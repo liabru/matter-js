@@ -1,0 +1,28 @@
+{
+    // settings
+    "passfail"      : false,  // Stop on first error.
+    "maxerr"        : 100,    // Maximum error before stopping.
+
+    // dev
+    "debug"         : false,  // Allow debugger statements e.g. browser breakpoints.
+    "devel"         : true,   // Allow developments statements e.g. `console.log();`.
+
+    // ECMAScript 5
+    "es5"           : false,   // Allow ECMAScript 5 syntax.
+    "strict"        : false,  // Require `use strict` pragma  in every file.
+    "globalstrict"  : false,  // Allow global "use strict" (also enables 'strict').
+
+    // options
+    "laxbreak"      : true,   // Tolerate unsafe line breaks e.g. `return [\n] x` without semicolons.
+
+    // style
+    "newcap"        : true,   // Require capitalization of all constructor functions e.g. `new F()`.
+    "noempty"       : true,   // Prohibit use of empty blocks.
+    "nonew"         : true,   // Prohibit use of constructors for side-effects.
+    "onevar"        : false,  // Allow only one `var` statement per function.
+    "plusplus"      : false,  // Prohibit use of `++` & `--`.
+    "sub"           : false,  // Tolerate all forms of subscript notation besides dot notation e.g. `dict['key']` instead of `dict.key`.
+    "trailing"      : false,   // Prohibit trailing whitespaces.
+    "white"         : false,  // Check against strict whitespace and indentation rules.
+    "indent"        : 4       // Specify indentation spacing
+}

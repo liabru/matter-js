@@ -1,0 +1,85 @@
+body { 
+    background: #222;
+    font-family: Georgia, Times, "Times New Roman", serif;
+    color: #aaa;
+}
+
+body.mobile {
+    font-size: 0.9em;
+}
+
+* { 
+    padding: 0; 
+    margin: 0; 
+}
+
+h1 {
+    color: #fff;
+    display: block;
+    margin: 0 0 1em 0;
+    font-weight: normal;
+    font-size: 30px;
+}
+
+.nav-sep {
+    padding: 0 5px;
+}
+
+a, a:link, a:visited, a:active, a:hover {
+    color: #aaa;
+    text-decoration: none;
+    border-bottom: 1px solid #555;
+    padding: 0 0 2px 0;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 6% 300px 6% 6%;
+}
+
+.mobile .container {
+    padding: 50px 40px 0 40px;
+}
+
+canvas {
+    margin: 40px 0;
+    max-width: 100%;
+}
+
+.mobile canvas {
+    margin: 0;
+}
+
+canvas:active { 
+    cursor: pointer;
+    cursor: -webkit-grabbing;
+}
+
+.controls-container {
+    margin: 40px 0 0 0;
+    width: 100%;
+}
+
+#canvas-container {
+    margin: 20px 0;
+}
+
+#demo-select {
+    padding: 8px 10px;
+    width: 40%;
+    color: #000;
+}
+
+#demo-reset {
+    padding: 8px 10px;
+    color: #000;
+}
+
+#demo-start {
+    display: block;
+    margin: 50px 0;
+    padding: 20px 40px;
+    width: 200px;
+    color: #000;
+}
