@@ -63,18 +63,18 @@ Though if I get time and people are interested, I may continue working on it.
 
 ### Install
 
-Download [matter.js](#) or [matter.min.js](#) and include the script in your HTML file:
+Download [matter.js](https://raw2.github.com/liabru/matter-js/master/build/matter.js) or [matter.min.js](https://raw2.github.com/liabru/matter-js/master/build/matter.min.js) and include the script in your HTML file:
 
 	<script src="matter.js" type="text/javascript"></script>
 
 ### Usage
 
-See [Demo.js](#) and [DemoMobile.js](#) for many usage examples. No docs at the moment, sorry.
+See [Demo.js](https://raw2.github.com/liabru/matter-js/master/demo/js/Demo.js) and [DemoMobile.js](https://raw2.github.com/liabru/matter-js/master/demo/js/DemoMobile.js) for many usage examples. No docs at the moment, sorry.
 <br>When loaded, all functions are under the global <code>Matter.*</code> namespace.
 
 ### Implementation
 
-The technical details for physics nerds and game devs. 
+The technical details for physics nerds and game devs.
 <br>This engine is using the following techniques:
 
 -   Time-corrected position Verlet integrator
