@@ -29,6 +29,7 @@
     "grunt-contrib-yuidoc": "~0.5.1"
   },
   "scripts": {
-    "dev": "npm install && grunt dev"
+    "dev": "npm install && grunt dev",
+    "test": "grunt test"
   }
 }
