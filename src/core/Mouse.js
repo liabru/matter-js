@@ -1,7 +1,17 @@
+/**
+* _Internal Class_, not generally used outside of the engine's internals.
+*
+* @class Mouse
+*/
+
 var Mouse;
 
 (function() {
     
+    /**
+     * Description
+     * @param {HTMLElement} element
+     */
     Mouse = function(element) {
         var mouse = this;
         
@@ -60,10 +70,24 @@ var Mouse;
         element.addEventListener('touchend', mouseup);
     };
 
+    /**
+     * Description
+     * @method create
+     * @param {HTMLElement} element
+     * @return {mouse} A new mouse
+     */
     Mouse.create = function(element) {
         return new Mouse(element);
     };
     
+    /**
+     * Description
+     * @method _getRelativeMousePosition
+     * @private
+     * @param {} event
+     * @param {} element
+     * @return ObjectExpression
+     */
     var _getRelativeMousePosition = function(event, element) {
         var elementBounds = element.getBoundingClientRect(),
             scrollX = (window.pageXOffset !== undefined) ? window.pageXOffset : (document.documentElement || document.body.parentNode || document.body).scrollLeft,

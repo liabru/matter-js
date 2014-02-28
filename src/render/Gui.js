@@ -1,7 +1,21 @@
+/**
+* See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
+* and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
+*
+* @class Gui
+*/
+
 var Gui = {};
 
 (function() {
 
+    /**
+     * Description
+     * @method create
+     * @param {engine} engine
+     * @param {object} options
+     * @return {gui} A container for a configured dat.gui
+     */
     Gui.create = function(engine, options) {
         var _datGuiSupported = window.dat && window.localStorage,
             _serializer;
@@ -32,6 +46,7 @@ var Gui = {};
         };
 
         var funcs = {
+
             addBody: function() {
                 var options = { 
                     density: gui.density,
@@ -133,6 +148,12 @@ var Gui = {};
         return gui;
     };
     
+    /**
+     * Description
+     * @method update
+     * @param {gui} gui
+     * @param {datGui} datGui
+     */
     Gui.update = function(gui, datGui) {
         var i;
         datGui = datGui || gui.datGui;
@@ -148,6 +169,11 @@ var Gui = {};
         }
     };
 
+    /**
+     * Description
+     * @method closeAll
+     * @param {gui} gui
+     */
     Gui.closeAll = function(gui) {
         var datGui = gui.datGui;
         

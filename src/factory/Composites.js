@@ -1,7 +1,26 @@
+/**
+* See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
+* and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
+*
+* @class Composites
+*/
+
 var Composites = {};
 
 (function() {
 
+    /**
+     * Description
+     * @method stack
+     * @param {number} xx
+     * @param {number} yy
+     * @param {number} columns
+     * @param {number} rows
+     * @param {number} columnGap
+     * @param {number} rowGap
+     * @param {function} callback
+     * @return {composite} A new composite containing objects created in the callback
+     */
     Composites.stack = function(xx, yy, columns, rows, columnGap, rowGap, callback) {
         var stack = Composite.create(),
             x = xx,
@@ -40,6 +59,17 @@ var Composites = {};
         return stack;
     };
     
+    /**
+     * Description
+     * @method chain
+     * @param {composite} composite
+     * @param {number} xOffsetA
+     * @param {number} yOffsetA
+     * @param {number} xOffsetB
+     * @param {number} yOffsetB
+     * @param {object} options
+     * @return {composite} A new composite containing objects chained together with constraints
+     */
     Composites.chain = function(composite, xOffsetA, yOffsetA, xOffsetB, yOffsetB, options) {
         var bodies = composite.bodies;
         
@@ -66,6 +96,18 @@ var Composites = {};
         return composite;
     };
     
+    /**
+     * Description
+     * @method pyramid
+     * @param {number} xx
+     * @param {number} yy
+     * @param {number} columns
+     * @param {number} rows
+     * @param {number} columnGap
+     * @param {number} rowGap
+     * @param {function} callback
+     * @return {composite} A new composite containing objects created in the callback
+     */
     Composites.pyramid = function(xx, yy, columns, rows, columnGap, rowGap, callback) {
         return Composites.stack(xx, yy, columns, rows, columnGap, rowGap, function(x, y, column, row, lastBody, i) {
             var actualRows = Math.min(rows, Math.ceil(columns / 2)),
@@ -94,6 +136,16 @@ var Composites = {};
         });
     };
 
+    /**
+     * Description
+     * @method newtonsCradle
+     * @param {number} xx
+     * @param {number} yy
+     * @param {number} number
+     * @param {number} size
+     * @param {number} length
+     * @return {composite} A new composite newtonsCradle body
+     */
     Composites.newtonsCradle = function(xx, yy, number, size, length) {
         var newtonsCradle = Composite.create();
 
@@ -110,6 +162,16 @@ var Composites = {};
         return newtonsCradle;
     };
     
+    /**
+     * Description
+     * @method car
+     * @param {number} xx
+     * @param {number} yy
+     * @param {number} width
+     * @param {number} height
+     * @param {number} wheelSize
+     * @return {composite} A new composite car body
+     */
     Composites.car = function(xx, yy, width, height, wheelSize) {
         var groupId = Body.nextGroupId(),
             wheelBase = -20,

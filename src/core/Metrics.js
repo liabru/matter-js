@@ -1,7 +1,18 @@
+/**
+* _Internal Class_, not generally used outside of the engine's internals.
+*
+* @class Metrics
+*/
+
 var Metrics = {};
 
 (function() {
 
+    /**
+     * Description
+     * @method create
+     * @return {metrics} A new metrics
+     */
     Metrics.create = function() {
         return {
             narrowDetections: 0,
@@ -18,6 +29,11 @@ var Metrics = {};
         };
     };
 
+    /**
+     * Description
+     * @method reset
+     * @param {metrics} metrics
+     */
     Metrics.reset = function(metrics) {
         metrics.narrowDetections = 0;
         metrics.narrowphaseTests = 0;
@@ -32,6 +48,12 @@ var Metrics = {};
         metrics.bodies = 0;
     };
 
+    /**
+     * Description
+     * @method update
+     * @param {metrics} metrics
+     * @param {engine} engine
+     */
     Metrics.update = function(metrics, engine) {
         var world = engine.world,
             broadphase = engine.broadphase[engine.broadphase.current];

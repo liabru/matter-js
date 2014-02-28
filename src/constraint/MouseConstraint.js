@@ -1,7 +1,19 @@
+/**
+* _Internal Class_, not generally used outside of the engine's internals.
+*
+* @class MouseConstraint
+*/
+
 var MouseConstraint = {};
 
 (function() {
 
+    /**
+     * Description
+     * @method create
+     * @param {mouse} mouse
+     * @return {MouseConstraint} A new MouseConstraint
+     */
     MouseConstraint.create = function(mouse) {
         var constraint = Constraint.create({ 
             pointA: mouse.position,
@@ -21,6 +33,12 @@ var MouseConstraint = {};
         };
     };
 
+    /**
+     * Description
+     * @method update
+     * @param {MouseConstraint} mouseConstraint
+     * @param {body[]} bodies
+     */
     MouseConstraint.update = function(mouseConstraint, bodies) {
         var mouse = mouseConstraint.mouse,
             constraint = mouseConstraint.constraints[0];

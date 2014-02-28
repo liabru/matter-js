@@ -1,3 +1,9 @@
+/**
+* _Internal Class_, not generally used outside of the engine's internals.
+*
+* @class Resolver
+*/
+
 var Resolver = {};
 
 (function() {
@@ -6,6 +12,11 @@ var Resolver = {};
         _positionDampen = 0.2,
         _positionWarming = 0.6;
 
+    /**
+     * Description
+     * @method solvePosition
+     * @param {pair[]} pairs
+     */
     Resolver.solvePosition = function(pairs) {
         var i,
             pair,
@@ -65,6 +76,11 @@ var Resolver = {};
         }
     };
 
+    /**
+     * Description
+     * @method postSolvePosition
+     * @param {body[]} bodies
+     */
     Resolver.postSolvePosition = function(bodies) {
         for (var i = 0; i < bodies.length; i++) {
             var body = bodies[i];
@@ -87,6 +103,11 @@ var Resolver = {};
         }
     };
 
+    /**
+     * Description
+     * @method preSolveVelocity
+     * @param {pair[]} pairs
+     */
     Resolver.preSolveVelocity = function(pairs) {
         var impulse = {},
             i,
@@ -146,6 +167,11 @@ var Resolver = {};
         }
     };
 
+    /**
+     * Description
+     * @method solveVelocity
+     * @param {pair[]} pairs
+     */
     Resolver.solveVelocity = function(pairs) {
         var impulse = {};
         

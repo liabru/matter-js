@@ -1,9 +1,22 @@
+/**
+* See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
+* and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
+*
+* @class Vertices
+*/
+
 // TODO: convex decomposition - http://mnbayazit.com/406/bayazit
 
 var Vertices = {};
 
 (function() {
 
+    /**
+     * Description
+     * @method create
+     * @param {vertices} vertices
+     * @param {body} body
+     */
     Vertices.create = function(vertices, body) {
         for (var i = 0; i < vertices.length; i++) {
             vertices[i].index = i;
@@ -11,6 +24,12 @@ var Vertices = {};
         }
     };
 
+    /**
+     * Description
+     * @method fromPath
+     * @param {string} path
+     * @return {vertices} vertices
+     */
     Vertices.fromPath = function(path) {
         var pathPattern = /L\s*([\-\d\.]*)\s*([\-\d\.]*)/ig,
             vertices = [];
@@ -22,6 +41,12 @@ var Vertices = {};
         return vertices;
     };
 
+    /**
+     * Description
+     * @method centre
+     * @param {vertices} vertices
+     * @return {vector} The centre point
+     */
     Vertices.centre = function(vertices) {
         var cx = 0, cy = 0;
 
@@ -33,6 +58,12 @@ var Vertices = {};
         return { x: cx / vertices.length, y: cy / vertices.length };
     };
 
+    /**
+     * Description
+     * @method area
+     * @param {vertices} vertices
+     * @return {number} The area
+     */
     Vertices.area = function(vertices) {
         var area = 0,
             j = vertices.length - 1;
@@ -45,6 +76,13 @@ var Vertices = {};
         return Math.abs(area) / 2;
     };
 
+    /**
+     * Description
+     * @method inertia
+     * @param {vertices} vertices
+     * @param {number} mass
+     * @return {number} The polygon's moment of inertia, using second moment of area
+     */
     Vertices.inertia = function(vertices, mass) {
         var numerator = 0,
             denominator = 0,
@@ -64,6 +102,13 @@ var Vertices = {};
         return (mass / 6) * (numerator / denominator);
     };
 
+    /**
+     * Description
+     * @method translate
+     * @param {vertices} vertices
+     * @param {vector} vector
+     * @param {number} scalar
+     */
     Vertices.translate = function(vertices, vector, scalar) {
         var i;
         if (scalar) {
@@ -79,6 +124,13 @@ var Vertices = {};
         } 
     };
 
+    /**
+     * Description
+     * @method rotate
+     * @param {vertices} vertices
+     * @param {number} angle
+     * @param {vector} point
+     */
     Vertices.rotate = function(vertices, angle, point) {
         if (angle === 0)
             return;
@@ -96,6 +148,13 @@ var Vertices = {};
         }
     };
 
+    /**
+     * Description
+     * @method contains
+     * @param {vertices} vertices
+     * @param {vector} point
+     * @return {boolean} True if the vertices contains point, otherwise false
+     */
     Vertices.contains = function(vertices, point) {
         for (var i = 0; i < vertices.length; i++) {
             var vertice = vertices[i],

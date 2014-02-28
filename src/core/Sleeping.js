@@ -1,3 +1,9 @@
+/**
+* _Internal Class_, not generally used outside of the engine's internals.
+*
+* @class Sleeping
+*/
+
 var Sleeping = {};
 
 (function() {
@@ -6,6 +12,11 @@ var Sleeping = {};
         _motionSleepThreshold = 0.08,
         _minBias = 0.9;
 
+    /**
+     * Description
+     * @method update
+     * @param {body[]} bodies
+     */
     Sleeping.update = function(bodies) {
         // update bodies sleeping status
         for (var i = 0; i < bodies.length; i++) {
@@ -29,6 +40,11 @@ var Sleeping = {};
         }
     };
 
+    /**
+     * Description
+     * @method afterCollisions
+     * @param {pair[]} pairs
+     */
     Sleeping.afterCollisions = function(pairs) {
         // wake up bodies involved in collisions
         for (var i = 0; i < pairs.length; i++) {
@@ -51,6 +67,12 @@ var Sleeping = {};
         }
     };
 
+    /**
+     * Description
+     * @method set
+     * @param {body} body
+     * @param {boolean} isSleeping
+     */
     Sleeping.set = function(body, isSleeping) {
         if (isSleeping) {
             body.isSleeping = true;

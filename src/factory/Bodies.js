@@ -1,9 +1,26 @@
+/**
+* See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
+* and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
+*
+* @class Bodies
+*/
+
 // TODO: true circle bodies
 
 var Bodies = {};
 
 (function() {
 
+    /**
+     * Description
+     * @method rectangle
+     * @param {number} x
+     * @param {number} y
+     * @param {number} width
+     * @param {number} height
+     * @param {object} options
+     * @return {body} A new rectangle body
+     */
     Bodies.rectangle = function(x, y, width, height, options) {
         options = options || {};
 
@@ -15,6 +32,17 @@ var Bodies = {};
         return Body.create(Common.extend({}, rectangle, options));
     };
     
+    /**
+     * Description
+     * @method trapezoid
+     * @param {number} x
+     * @param {number} y
+     * @param {number} width
+     * @param {number} height
+     * @param {number} slope
+     * @param {object} options
+     * @return {body} A new trapezoid body
+     */
     Bodies.trapezoid = function(x, y, width, height, slope, options) {
         options = options || {};
 
@@ -33,6 +61,16 @@ var Bodies = {};
         return Body.create(Common.extend({}, trapezoid, options));
     };
 
+    /**
+     * Description
+     * @method circle
+     * @param {number} x
+     * @param {number} y
+     * @param {number} radius
+     * @param {object} options
+     * @param {number} maxSides
+     * @return {body} A new circle body
+     */
     Bodies.circle = function(x, y, radius, options, maxSides) {
         options = options || {};
         
@@ -51,6 +89,16 @@ var Bodies = {};
         return Bodies.polygon(x, y, sides, radius, options);
     };
 
+    /**
+     * Description
+     * @method polygon
+     * @param {number} x
+     * @param {number} y
+     * @param {number} sides
+     * @param {number} radius
+     * @param {object} options
+     * @return {body} A new regular polygon body
+     */
     Bodies.polygon = function(x, y, sides, radius, options) {
         options = options || {};
 

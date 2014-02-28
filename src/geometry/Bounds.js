@@ -1,7 +1,19 @@
+/**
+* _Internal Class_, not generally used outside of the engine's internals.
+*
+* @class Bounds
+*/
+
 var Bounds = {};
 
 (function() {
 
+    /**
+     * Description
+     * @method create
+     * @param {vertices} vertices
+     * @return {bounds} A new bounds object
+     */
     Bounds.create = function(vertices) {
         var bounds = { 
             min: { x: 0, y: 0 }, 
@@ -11,6 +23,13 @@ var Bounds = {};
         return bounds;
     };
 
+    /**
+     * Description
+     * @method update
+     * @param {bounds} bounds
+     * @param {vertices} vertices
+     * @param {vector} velocity
+     */
     Bounds.update = function(bounds, vertices, velocity) {
         bounds.min.x = Number.MAX_VALUE;
         bounds.max.x = Number.MIN_VALUE;
@@ -40,11 +59,25 @@ var Bounds = {};
         }
     };
 
+    /**
+     * Description
+     * @method contains
+     * @param {bounds} bounds
+     * @param {vector} point
+     * @return {boolean} True if the bounds contain the point, otherwise false
+     */
     Bounds.contains = function(bounds, point) {
         return point.x >= bounds.min.x && point.x <= bounds.max.x 
                && point.y >= bounds.min.y && point.y <= bounds.max.y;
     };
 
+    /**
+     * Description
+     * @method overlaps
+     * @param {bounds} boundsA
+     * @param {bounds} boundsB
+     * @return {boolean} True if the bounds overlap, otherwise false
+     */
     Bounds.overlaps = function(boundsA, boundsB) {
         return (boundsA.min.x <= boundsB.max.x && boundsA.max.x >= boundsB.min.x
                 && boundsA.max.y >= boundsB.min.y && boundsA.min.y <= boundsB.max.y);

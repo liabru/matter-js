@@ -1,7 +1,21 @@
+/**
+* See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
+* and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
+*
+* @class Grid
+*/
+
 var Grid = {};
 
 (function() {
 
+    /**
+     * Description
+     * @method create
+     * @param {number} bucketWidth
+     * @param {number} bucketHeight
+     * @return {grid} A new grid
+     */
     Grid.create = function(bucketWidth, bucketHeight) {
         return {
             buckets: {},
@@ -12,6 +26,14 @@ var Grid = {};
         };
     };
 
+    /**
+     * Description
+     * @method update
+     * @param {grid} grid
+     * @param {body[]} bodies
+     * @param {engine} engine
+     * @param {boolean} forceUpdate
+     */
     Grid.update = function(grid, bodies, engine, forceUpdate) {
         var i, col, row,
             world = engine.world,
@@ -89,12 +111,25 @@ var Grid = {};
             grid.pairsList = _createActivePairsList(grid);
     };
 
+    /**
+     * Description
+     * @method clear
+     * @param {grid} grid
+     */
     Grid.clear = function(grid) {
         grid.buckets = {};
         grid.pairs = {};
         grid.pairsList = [];
     };
 
+    /**
+     * Description
+     * @method _regionUnion
+     * @private
+     * @param {} regionA
+     * @param {} regionB
+     * @return CallExpression
+     */
     var _regionUnion = function(regionA, regionB) {
         var startCol = Math.min(regionA.startCol, regionB.startCol),
             endCol = Math.max(regionA.endCol, regionB.endCol),
@@ -104,6 +139,14 @@ var Grid = {};
         return _createRegion(startCol, endCol, startRow, endRow);
     };
 
+    /**
+     * Description
+     * @method _getRegion
+     * @private
+     * @param {} grid
+     * @param {} body
+     * @return CallExpression
+     */
     var _getRegion = function(grid, body) {
         var bounds = body.bounds,
             startCol = Math.floor(bounds.min.x / grid.bucketWidth),
@@ -114,6 +157,16 @@ var Grid = {};
         return _createRegion(startCol, endCol, startRow, endRow);
     };
 
+    /**
+     * Description
+     * @method _createRegion
+     * @private
+     * @param {} startCol
+     * @param {} endCol
+     * @param {} startRow
+     * @param {} endRow
+     * @return ObjectExpression
+     */
     var _createRegion = function(startCol, endCol, startRow, endRow) {
         return { 
             id: startCol + ',' + endCol + ',' + startRow + ',' + endRow,
@@ -124,15 +177,39 @@ var Grid = {};
         };
     };
 
+    /**
+     * Description
+     * @method _getBucketId
+     * @private
+     * @param {} column
+     * @param {} row
+     * @return BinaryExpression
+     */
     var _getBucketId = function(column, row) {
         return column + ',' + row;
     };
 
+    /**
+     * Description
+     * @method _createBucket
+     * @private
+     * @param {} buckets
+     * @param {} bucketId
+     * @return bucket
+     */
     var _createBucket = function(buckets, bucketId) {
         var bucket = buckets[bucketId] = [];
         return bucket;
     };
 
+    /**
+     * Description
+     * @method _bucketAddBody
+     * @private
+     * @param {} grid
+     * @param {} bucket
+     * @param {} body
+     */
     var _bucketAddBody = function(grid, bucket, body) {
         // add new pairs
         for (var i = 0; i < bucket.length; i++) {
@@ -155,6 +232,14 @@ var Grid = {};
         bucket.push(body);
     };
 
+    /**
+     * Description
+     * @method _bucketRemoveBody
+     * @private
+     * @param {} grid
+     * @param {} bucket
+     * @param {} body
+     */
     var _bucketRemoveBody = function(grid, bucket, body) {
         // remove from bodies
         for (var i = 0; i < bucket.length; i++) {
@@ -176,6 +261,13 @@ var Grid = {};
         }
     };
 
+    /**
+     * Description
+     * @method _getPairId
+     * @private
+     * @param {} bodyA
+     * @param {} bodyB
+     */
     var _getPairId = function(bodyA, bodyB) {
         if (bodyA.id < bodyB.id) {
             return bodyA.id + ',' + bodyB.id;
@@ -184,6 +276,13 @@ var Grid = {};
         }
     };
 
+    /**
+     * Description
+     * @method _createActivePairsList
+     * @private
+     * @param {} grid
+     * @return pairs
+     */
     var _createActivePairsList = function(grid) {
         var pairKeys,
             pair,

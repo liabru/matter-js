@@ -1,7 +1,19 @@
+/**
+* _Internal Class_, not generally used outside of the engine's internals.
+*
+* @class Pair
+*/
+
 var Pair = {};
 
 (function() {
     
+    /**
+     * Description
+     * @method create
+     * @param {collision} collision
+     * @return {pair} A new pair
+     */
     Pair.create = function(collision) {
         var bodyA = collision.bodyA,
             bodyB = collision.bodyB;
@@ -24,6 +36,12 @@ var Pair = {};
         return pair;
     };
 
+    /**
+     * Description
+     * @method update
+     * @param {pair} pair
+     * @param {collision} collision
+     */
     Pair.update = function(pair, collision) {
         var contacts = pair.contacts,
             supports = collision.supports,
@@ -51,6 +69,12 @@ var Pair = {};
         }
     };
     
+    /**
+     * Description
+     * @method setActive
+     * @param {pair} pair
+     * @param {bool} isActive
+     */
     Pair.setActive = function(pair, isActive) {
         if (isActive) {
             pair.isActive = true;
@@ -61,6 +85,13 @@ var Pair = {};
         }
     };
 
+    /**
+     * Description
+     * @method id
+     * @param {body} bodyA
+     * @param {body} bodyB
+     * @return {number} Unique pairId
+     */
     Pair.id = function(bodyA, bodyB) {
         if (bodyA.id < bodyB.id) {
             return bodyA.id + '_' + bodyB.id;

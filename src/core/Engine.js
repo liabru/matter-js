@@ -1,3 +1,10 @@
+/**
+* See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
+* and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
+*
+* @class Engine
+*/
+
 // TODO: multiple event handlers, before & after handlers
 // TODO: viewports
 // TODO: frameskipping
@@ -14,6 +21,13 @@ var Engine = {};
                                       || window.mozRequestAnimationFrame || window.msRequestAnimationFrame 
                                       || function(callback){ window.setTimeout(function() { callback(Common.now()); }, _delta); };
    
+    /**
+     * Description
+     * @method create
+     * @param {HTMLElement} element
+     * @param {object} options
+     * @return {engine} engine
+     */
     Engine.create = function(element, options) {
         var defaults = {
             enabled: true,
@@ -77,6 +91,11 @@ var Engine = {};
         return engine;
     };
 
+    /**
+     * Description
+     * @method run
+     * @param {engine} engine
+     */
     Engine.run = function(engine) {
         var timing = engine.timing,
             delta,
@@ -118,6 +137,14 @@ var Engine = {};
         })();
     };
 
+    /**
+     * Description
+     * @method update
+     * @param {engine} engine
+     * @param {number} delta
+     * @param {number} correction
+     * @return engine
+     */
     Engine.update = function(engine, delta, correction) {
         var world = engine.world,
             broadphase = engine.broadphase[engine.broadphase.current],
@@ -171,6 +198,12 @@ var Engine = {};
         return engine;
     };
     
+    /**
+     * Description
+     * @method merge
+     * @param {engine} engineA
+     * @param {engine} engineB
+     */
     Engine.merge = function(engineA, engineB) {
         Common.extend(engineA, engineB);
         
@@ -197,6 +230,11 @@ var Engine = {};
         }
     };
 
+    /**
+     * Description
+     * @method clear
+     * @param {engine} engine
+     */
     Engine.clear = function(engine) {
         var world = engine.world;
         

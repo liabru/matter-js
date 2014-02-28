@@ -1,3 +1,10 @@
+/**
+* See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
+* and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
+*
+* @class Constraint
+*/
+
 // TODO: fix instabillity issues with torque
 // TODO: linked constraints
 // TODO: breakable constraints
@@ -12,6 +19,12 @@ var Constraint = {};
 
     var _minLength = 0.000001;
 
+    /**
+     * Description
+     * @method create
+     * @param {} options
+     * @return {constraint} constraint
+     */
     Constraint.create = function(options) {
         var constraint = options;
 
@@ -39,12 +52,22 @@ var Constraint = {};
         return constraint;
     };
 
+    /**
+     * Description
+     * @method updateAll
+     * @param {constraint[]} constraints
+     */
     Constraint.updateAll = function(constraints) {
         for (var i = 0; i < constraints.length; i++) {
             Constraint.update(constraints[i]);
         }
     };
 
+    /**
+     * Description
+     * @method update
+     * @param {constraint} constraint
+     */
     Constraint.update = function(constraint) {
         var bodyA = constraint.bodyA,
             bodyB = constraint.bodyB,

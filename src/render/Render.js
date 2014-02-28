@@ -1,3 +1,10 @@
+/**
+* See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
+* and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
+*
+* @class Render
+*/
+
 // TODO: viewports
 // TODO: two.js, pixi.js
 
@@ -5,6 +12,12 @@ var Render = {};
 
 (function() {
     
+    /**
+     * Description
+     * @method create
+     * @param {object} options
+     * @return {render} A new renderer
+     */
     Render.create = function(options) {
         var defaults = {
             controller: Render,
@@ -37,6 +50,11 @@ var Render = {};
         return render;
     };
 
+    /**
+     * Description
+     * @method world
+     * @param {engine} engine
+     */
     Render.world = function(engine) {
         var render = engine.render,
             world = engine.world,
@@ -74,6 +92,12 @@ var Render = {};
             Render.debug(engine, context);
     };
 
+    /**
+     * Description
+     * @method debug
+     * @param {engine} engine
+     * @param {RenderingContext} context
+     */
     Render.debug = function(engine, context) {
         var c = context,
             world = engine.world,
@@ -119,6 +143,12 @@ var Render = {};
         }
     };
 
+    /**
+     * Description
+     * @method constraint
+     * @param {constraint} constraint
+     * @param {RenderingContext} context
+     */
     Render.constraint = function(constraint, context) {
         var bodyA = constraint.bodyA,
             bodyB = constraint.bodyB,
@@ -146,6 +176,13 @@ var Render = {};
         c.stroke();
     };
     
+    /**
+     * Description
+     * @method bodyShadow
+     * @param {engine} engine
+     * @param {body} body
+     * @param {RenderingContext} context
+     */
     Render.bodyShadow = function(engine, body, context) {
         var c = context,
             render = engine.render;
@@ -180,6 +217,13 @@ var Render = {};
         c.shadowBlur = null;
     };
 
+    /**
+     * Description
+     * @method body
+     * @param {engine} engine
+     * @param {body} body
+     * @param {RenderingContext} context
+     */
     Render.body = function(engine, body, context) {
         var c = context,
             render = engine.render,
@@ -294,6 +338,13 @@ var Render = {};
         }
     };
 
+    /**
+     * Description
+     * @method collision
+     * @param {engine} engine
+     * @param {pair} pair
+     * @param {RenderingContext} context
+     */
     Render.collision = function(engine, pair, context) {
         var c = context,
             collision = pair.collision,
@@ -336,6 +387,13 @@ var Render = {};
         }
     };
 
+    /**
+     * Description
+     * @method grid
+     * @param {engine} engine
+     * @param {grid} grid
+     * @param {RenderingContext} context
+     */
     Render.grid = function(engine, grid, context) {
         var c = context,
             options = engine.render.options;
@@ -366,6 +424,14 @@ var Render = {};
         }
     };
 
+    /**
+     * Description
+     * @method _createCanvas
+     * @private
+     * @param {} width
+     * @param {} height
+     * @return canvas
+     */
     var _createCanvas = function(width, height) {
         var canvas = document.createElement('canvas');
         canvas.width = width;

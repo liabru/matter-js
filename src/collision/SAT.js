@@ -1,3 +1,10 @@
+/**
+* _Internal Class_, not generally used outside of the engine's internals.
+*
+* @class SAT
+*/
+
+
 // TODO: true circles and curves
 // TODO: cache the previously found axis and body, and start there first for faster early out
 
@@ -5,6 +12,13 @@ var SAT = {};
 
 (function() {
 
+    /**
+     * Description
+     * @method collides
+     * @param {body} bodyA
+     * @param {body} bodyB
+     * @return {collision} collision
+     */
     SAT.collides = function(bodyA, bodyB) {
         var overlapAB,
             overlapBA, 
@@ -71,6 +85,15 @@ var SAT = {};
         return collision;
     };
 
+    /**
+     * Description
+     * @method _overlapAxes
+     * @private
+     * @param {} verticesA
+     * @param {} verticesB
+     * @param {} axes
+     * @return result
+     */
     var _overlapAxes = function(verticesA, verticesB, axes) {
         var projectionA = {}, 
             projectionB = {},
@@ -100,6 +123,14 @@ var SAT = {};
         return result;
     };
 
+    /**
+     * Description
+     * @method _projectToAxis
+     * @private
+     * @param {} projection
+     * @param {} vertices
+     * @param {} axis
+     */
     var _projectToAxis = function(projection, vertices, axis) {
         var min = Vector.dot(vertices[0], axis),
             max = min;
@@ -118,6 +149,15 @@ var SAT = {};
         projection.max = max;
     };
     
+    /**
+     * Description
+     * @method _findSupports
+     * @private
+     * @param {} bodyA
+     * @param {} bodyB
+     * @param {} normal
+     * @return ArrayExpression
+     */
     var _findSupports = function(bodyA, bodyB, normal) {
         var nearestDistance = Number.MAX_VALUE,
             vertexToBody = { x: 0, y: 0 },

@@ -1,3 +1,10 @@
+/**
+* See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
+* and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
+*
+* @class Body
+*/
+
 var Body = {};
 
 (function() {
@@ -5,6 +12,12 @@ var Body = {};
     var _nextId = 0,
         _nextGroupId = 1;
 
+    /**
+     * Description to be written.
+     * @method create
+     * @param {} options
+     * @return {body} body
+     */
     Body.create = function(options) {
         var defaults = {
             id: Body.nextId(),
@@ -39,14 +52,29 @@ var Body = {};
         return body;
     };
 
+    /**
+     * Description
+     * @method nextId
+     * @return {Number} Unique bodyID
+     */
     Body.nextId = function() {
         return _nextId++;
     };
     
+    /**
+     * Description
+     * @method nextGroupId
+     * @return {Number} Unique groupID
+     */
     Body.nextGroupId = function() {
         return _nextGroupId++;
     };
 
+    /**
+     * Description
+     * @method updateProperties
+     * @param {body} body
+     */
     Body.updateProperties = function(body) {
         // calculated properties
         body.vertices = body.vertices || Vertices.fromPath(body.path);
@@ -81,6 +109,12 @@ var Body = {};
         Sleeping.set(body, body.isSleeping);
     };
 
+    /**
+     * Description
+     * @method resetForcesAll
+     * @param {body[]} bodies
+     * @param {vector} gravity
+     */
     Body.resetForcesAll = function(bodies, gravity) {
         for (var i = 0; i < bodies.length; i++) {
             var body = bodies[i];
@@ -99,6 +133,14 @@ var Body = {};
         }
     };
 
+    /**
+     * Description
+     * @method updateAll
+     * @param {body[]} bodies
+     * @param {number} deltaTime
+     * @param {number} correction
+     * @param {bounds} worldBounds
+     */
     Body.updateAll = function(bodies, deltaTime, correction, worldBounds) {
         for (var i = 0; i < bodies.length; i++) {
             var body = bodies[i];
@@ -116,6 +158,13 @@ var Body = {};
         }
     };
 
+    /**
+     * Description
+     * @method update
+     * @param {body} body
+     * @param {number} deltaTime
+     * @param {number} correction
+     */
     Body.update = function(body, deltaTime, correction) {
         var deltaTimeSquared = deltaTime * deltaTime;
 
@@ -149,6 +198,13 @@ var Body = {};
         Bounds.update(body.bounds, body.vertices, body.velocity);
     };
 
+    /**
+     * Description
+     * @method applyForce
+     * @param {body} body
+     * @param {vector} position
+     * @param {vector} force
+     */
     Body.applyForce = function(body, position, force) {
         body.force.x += force.x;
         body.force.y += force.y;
@@ -156,6 +212,12 @@ var Body = {};
         body.torque += (offset.x * force.y - offset.y * force.x) * body.inverseInertia;
     };
 
+    /**
+     * Description
+     * @method translate
+     * @param {body} body
+     * @param {vector} translation
+     */
     Body.translate = function(body, translation) {
         body.positionPrev.x += translation.x;
         body.positionPrev.y += translation.y;
@@ -165,6 +227,12 @@ var Body = {};
         Bounds.update(body.bounds, body.vertices, body.velocity);
     };
 
+    /**
+     * Description
+     * @method rotate
+     * @param {body} body
+     * @param {number} angle
+     */
     Body.rotate = function(body, angle) {
         body.anglePrev += angle;
         body.angle += angle;

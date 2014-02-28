@@ -1,7 +1,19 @@
+/**
+* _Internal Class_, not generally used outside of the engine's internals.
+*
+* @class Axes
+*/
+
 var Axes = {};
 
 (function() {
 
+    /**
+     * Description
+     * @method fromVertices
+     * @param {vertices} vertices
+     * @return {axes} A new axes from the given vertices
+     */
     Axes.fromVertices = function(vertices) {
         var axes = {};
 
@@ -23,6 +35,12 @@ var Axes = {};
         return Common.values(axes);
     };
 
+    /**
+     * Description
+     * @method rotate
+     * @param {axes} axes
+     * @param {number} angle
+     */
     Axes.rotate = function(axes, angle) {
         if (angle === 0)
             return;

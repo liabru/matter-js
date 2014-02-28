@@ -1,9 +1,22 @@
+/**
+* _Internal Class_, not generally used outside of the engine's internals.
+*
+* @class Detector
+*/
+
 // TODO: speculative contacts
 
 var Detector = {};
 
 (function() {
 
+    /**
+     * Description
+     * @method collisions
+     * @param {pair[]} pairs
+     * @param {metrics} metrics
+     * @return {array} collisions
+     */
     Detector.collisions = function(pairs, metrics) {
         var collisions = [];
 
@@ -39,6 +52,13 @@ var Detector = {};
         return collisions;
     };
 
+    /**
+     * Description
+     * @method bruteForce
+     * @param {body[]} bodies
+     * @param {metrics} metrics
+     * @return {array} collisions
+     */
     Detector.bruteForce = function(bodies, metrics) {
         var collisions = [];
 
