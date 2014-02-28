@@ -4,6 +4,8 @@
 
 [brm.io/matter-js](http://brm.io/matter-js)
 
+[![Build Status](https://travis-ci.org/liabru/matter-js.png?branch=master)](https://travis-ci.org/liabru/matter-js)
+
 ### Demos
 
 - [Mixed Shapes](http://brm.io/matter-js-demo#mixed)
