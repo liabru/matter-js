@@ -63,6 +63,20 @@ module.exports = function(grunt) {
         files: ['build/matter.js', 'demo/js/**/*.html', 'demo/js/**/*.js', 'demo/css/**/*.css']
       }
     },
+    yuidoc: {
+      compile: {
+        name: '<%= pkg.name %>.js Physics Engine API Documentation',
+        description: '<%= pkg.description %>',
+        version: '<%= pkg.version %>',
+        url: '<%= pkg.homepage %>',
+        options: {
+          paths: 'src',
+          themedir: 'matter-doc-theme',
+          outdir: 'doc',
+          linkNatives: true
+        }
+      }
+    }
   });
 
   grunt.loadNpmTasks('grunt-contrib-concat');
@@ -71,8 +85,10 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-contrib-copy');
+  grunt.loadNpmTasks('grunt-contrib-yuidoc');
 
   grunt.registerTask('default', ['test', 'concat', 'uglify', 'copy']);
   grunt.registerTask('test', ['jshint']);
   grunt.registerTask('dev', ['connect:watch', 'watch']);
+  grunt.registerTask('doc', ['yuidoc']);
 };
