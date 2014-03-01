@@ -6,7 +6,7 @@
 
 [![Build Status](https://travis-ci.org/liabru/matter-js.png?branch=master)](https://travis-ci.org/liabru/matter-js)
 
-[Features](#features) - [Status](#status) - [Install](#install) - [Usage](#usage) -  [Docs](http://brm.io/matter-js/) - [Implementation](#implementation) - [References](#references) - [License](#license)
+[Features](#features) - [Status](#status) - [Install](#install) - [Usage](#usage) -  [Docs](http://brm.io/matter-js-docs/) - [Implementation](#implementation) - [References](#references) - [License](#license)
 
 ### Demos
 
