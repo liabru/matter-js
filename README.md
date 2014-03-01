@@ -6,6 +6,8 @@
 
 [![Build Status](https://travis-ci.org/liabru/matter-js.png?branch=master)](https://travis-ci.org/liabru/matter-js)
 
+[Features](#Features) - [Status](#Status) - [Install](#Install) - [Usage](#Usage) -  [Docs](http://brm.io/matter-js/) - [Implementation](#Implementation) - [References](#References) - [License](#License)
+
 ### Demos
 
 - [Mixed Shapes](http://brm.io/matter-js-demo#mixed)
@@ -73,6 +75,10 @@ Download [matter.js](https://raw2.github.com/liabru/matter-js/master/build/matte
 
 See [Demo.js](https://raw2.github.com/liabru/matter-js/master/demo/js/Demo.js) and [DemoMobile.js](https://raw2.github.com/liabru/matter-js/master/demo/js/DemoMobile.js) for many usage examples. No docs at the moment, sorry.
 <br>When loaded, all functions are under the global <code>Matter.*</code> namespace.
+
+### Documentation
+
+See the [Matter.js API Docs](http://brm.io/matter-js/).
 
 ### Implementation
 
