@@ -1,5 +1,5 @@
 /**
-* matter.js 0.5.0 2014-02-19
+* Matter.js 0.5.0 2014-02-28
 * http://brm.io/matter-js/
 * License: MIT
 */
@@ -40,6 +40,13 @@ var Matter = {};
 
 // Begin src/body/Body.js
 
+/**
+* See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
+* and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
+*
+* @class Body
+*/
+
 var Body = {};
 
 (function() {
@@ -47,6 +54,12 @@ var Body = {};
     var _nextId = 0,
         _nextGroupId = 1;
 
+    /**
+     * Description to be written.
+     * @method create
+     * @param {} options
+     * @return {body} body
+     */
     Body.create = function(options) {
         var defaults = {
             id: Body.nextId(),
@@ -81,14 +94,29 @@ var Body = {};
         return body;
     };
 
+    /**
+     * Description
+     * @method nextId
+     * @return {Number} Unique bodyID
+     */
     Body.nextId = function() {
         return _nextId++;
     };
     
+    /**
+     * Description
+     * @method nextGroupId
+     * @return {Number} Unique groupID
+     */
     Body.nextGroupId = function() {
         return _nextGroupId++;
     };
 
+    /**
+     * Description
+     * @method updateProperties
+     * @param {body} body
+     */
     Body.updateProperties = function(body) {
         // calculated properties
         body.vertices = body.vertices || Vertices.fromPath(body.path);
@@ -123,6 +151,12 @@ var Body = {};
         Sleeping.set(body, body.isSleeping);
     };
 
+    /**
+     * Description
+     * @method resetForcesAll
+     * @param {body[]} bodies
+     * @param {vector} gravity
+     */
     Body.resetForcesAll = function(bodies, gravity) {
         for (var i = 0; i < bodies.length; i++) {
             var body = bodies[i];
@@ -141,6 +175,14 @@ var Body = {};
         }
     };
 
+    /**
+     * Description
+     * @method updateAll
+     * @param {body[]} bodies
+     * @param {number} deltaTime
+     * @param {number} correction
+     * @param {bounds} worldBounds
+     */
     Body.updateAll = function(bodies, deltaTime, correction, worldBounds) {
         for (var i = 0; i < bodies.length; i++) {
             var body = bodies[i];
@@ -158,6 +200,13 @@ var Body = {};
         }
     };
 
+    /**
+     * Description
+     * @method update
+     * @param {body} body
+     * @param {number} deltaTime
+     * @param {number} correction
+     */
     Body.update = function(body, deltaTime, correction) {
         var deltaTimeSquared = deltaTime * deltaTime;
 
@@ -191,6 +240,13 @@ var Body = {};
         Bounds.update(body.bounds, body.vertices, body.velocity);
     };
 
+    /**
+     * Description
+     * @method applyForce
+     * @param {body} body
+     * @param {vector} position
+     * @param {vector} force
+     */
     Body.applyForce = function(body, position, force) {
         body.force.x += force.x;
         body.force.y += force.y;
@@ -198,6 +254,12 @@ var Body = {};
         body.torque += (offset.x * force.y - offset.y * force.x) * body.inverseInertia;
     };
 
+    /**
+     * Description
+     * @method translate
+     * @param {body} body
+     * @param {vector} translation
+     */
     Body.translate = function(body, translation) {
         body.positionPrev.x += translation.x;
         body.positionPrev.y += translation.y;
@@ -207,6 +269,12 @@ var Body = {};
         Bounds.update(body.bounds, body.vertices, body.velocity);
     };
 
+    /**
+     * Description
+     * @method rotate
+     * @param {body} body
+     * @param {number} angle
+     */
     Body.rotate = function(body, angle) {
         body.anglePrev += angle;
         body.angle += angle;
@@ -222,16 +290,36 @@ var Body = {};
 
 // Begin src/body/Composite.js
 
+/**
+* See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
+* and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
+*
+* @class Composite
+*/
+
 // TODO: composite translate, rotate
 
 var Composite = {};
 
 (function() {
 
+    /**
+     * Description
+     * @method create
+     * @param {} options
+     * @return {composite} A new composite
+     */
     Composite.create = function(options) {
         return Common.extend({ bodies: [], constraints: [], composites: [] }, options);
     };
 
+    /**
+     * Description
+     * @method add
+     * @param {composite} compositeA
+     * @param {composite} compositeB
+     * @return {composite} The original compositeA with the objects from compositeB added
+     */
     Composite.add = function(compositeA, compositeB) {
         if (compositeA.bodies && compositeB.bodies)
             compositeA.bodies = compositeA.bodies.concat(compositeB.bodies);
@@ -245,12 +333,26 @@ var Composite = {};
         return compositeA;
     };
 
+    /**
+     * Description
+     * @method addBody
+     * @param {composite} composite
+     * @param {body} body
+     * @return {composite} The original composite with the body added
+     */
     Composite.addBody = function(composite, body) {
         composite.bodies = composite.bodies || [];
         composite.bodies.push(body);
         return composite;
     };
 
+    /**
+     * Description
+     * @method addConstraint
+     * @param {composite} composite
+     * @param {constraint} constraint
+     * @return {composite} The original composite with the constraint added
+     */
     Composite.addConstraint = function(composite, constraint) {
         composite.constraints = composite.constraints || [];
         composite.constraints.push(constraint);
@@ -264,10 +366,24 @@ var Composite = {};
 
 // Begin src/body/World.js
 
+/**
+* See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
+* and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
+*
+* @class World
+*/
+
 var World = {};
 
 (function() {
 
+    /**
+     * Description
+     * @method create
+     * @constructor
+     * @param {} options
+     * @return {world} A new world
+     */
     World.create = function(options) {
         var defaults = {
             gravity: { x: 0, y: 1 },
@@ -282,17 +398,43 @@ var World = {};
         return Common.extend(defaults, options);
     };
     
+    /**
+     * Description
+     * @method clear
+     * @param {world} world
+     * @param {boolean} keepStatic
+     */
     World.clear = function(world, keepStatic) {
         world.bodies = keepStatic ? world.bodies.filter(function(body) { return body.isStatic; }) : [];
         world.constraints = [];
     };
 
-    // world is a composite body
+    // World is a Composite body
     // see src/module/Outro.js for these aliases:
     
-    // World.addComposite = Composite.add;
-    // World.addBody = Composite.addBody;
-    // World.addConstraint = Composite.addConstraint;
+    /**
+     * An alias for Composite.add since World is also a Composite (see Outro.js)
+     * @method addComposite
+     * @param {world} world
+     * @param {composite} composite
+     * @return {world} The original world with the objects from composite added
+     */
+    
+     /**
+      * An alias for Composite.addBody since World is also a Composite (see Outro.js)
+      * @method addBody
+      * @param {world} world
+      * @param {body} body
+      * @return {world} The original world with the body added
+      */
+
+     /**
+      * An alias for Composite.addConstraint since World is also a Composite (see Outro.js)
+      * @method addConstraint
+      * @param {world} world
+      * @param {constraint} constraint
+      * @return {world} The original world with the constraint added
+      */
 
 })();
 
@@ -301,10 +443,22 @@ var World = {};
 
 // Begin src/collision/Contact.js
 
+/**
+* _Internal Class_, not generally used outside of the engine's internals.
+*
+* @class Contact
+*/
+
 var Contact = {};
 
 (function() {
 
+    /**
+     * Description
+     * @method create
+     * @param {vertex} vertex
+     * @return {contact} A new contact
+     */
     Contact.create = function(vertex) {
         return {
             id: Contact.id(vertex),
@@ -314,6 +468,12 @@ var Contact = {};
         };
     };
     
+    /**
+     * Description
+     * @method id
+     * @param {vertex} vertex
+     * @return {Number} Unique contactID
+     */
     Contact.id = function(vertex) {
         return vertex.body.id + '_' + vertex.index;
     };
@@ -325,12 +485,25 @@ var Contact = {};
 
 // Begin src/collision/Detector.js
 
+/**
+* _Internal Class_, not generally used outside of the engine's internals.
+*
+* @class Detector
+*/
+
 // TODO: speculative contacts
 
 var Detector = {};
 
 (function() {
 
+    /**
+     * Description
+     * @method collisions
+     * @param {pair[]} pairs
+     * @param {metrics} metrics
+     * @return {array} collisions
+     */
     Detector.collisions = function(pairs, metrics) {
         var collisions = [];
 
@@ -366,6 +539,13 @@ var Detector = {};
         return collisions;
     };
 
+    /**
+     * Description
+     * @method bruteForce
+     * @param {body[]} bodies
+     * @param {metrics} metrics
+     * @return {array} collisions
+     */
     Detector.bruteForce = function(bodies, metrics) {
         var collisions = [];
 
@@ -410,10 +590,24 @@ var Detector = {};
 
 // Begin src/collision/Grid.js
 
+/**
+* See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
+* and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
+*
+* @class Grid
+*/
+
 var Grid = {};
 
 (function() {
 
+    /**
+     * Description
+     * @method create
+     * @param {number} bucketWidth
+     * @param {number} bucketHeight
+     * @return {grid} A new grid
+     */
     Grid.create = function(bucketWidth, bucketHeight) {
         return {
             buckets: {},
@@ -424,6 +618,14 @@ var Grid = {};
         };
     };
 
+    /**
+     * Description
+     * @method update
+     * @param {grid} grid
+     * @param {body[]} bodies
+     * @param {engine} engine
+     * @param {boolean} forceUpdate
+     */
     Grid.update = function(grid, bodies, engine, forceUpdate) {
         var i, col, row,
             world = engine.world,
@@ -501,12 +703,25 @@ var Grid = {};
             grid.pairsList = _createActivePairsList(grid);
     };
 
+    /**
+     * Description
+     * @method clear
+     * @param {grid} grid
+     */
     Grid.clear = function(grid) {
         grid.buckets = {};
         grid.pairs = {};
         grid.pairsList = [];
     };
 
+    /**
+     * Description
+     * @method _regionUnion
+     * @private
+     * @param {} regionA
+     * @param {} regionB
+     * @return CallExpression
+     */
     var _regionUnion = function(regionA, regionB) {
         var startCol = Math.min(regionA.startCol, regionB.startCol),
             endCol = Math.max(regionA.endCol, regionB.endCol),
@@ -516,6 +731,14 @@ var Grid = {};
         return _createRegion(startCol, endCol, startRow, endRow);
     };
 
+    /**
+     * Description
+     * @method _getRegion
+     * @private
+     * @param {} grid
+     * @param {} body
+     * @return CallExpression
+     */
     var _getRegion = function(grid, body) {
         var bounds = body.bounds,
             startCol = Math.floor(bounds.min.x / grid.bucketWidth),
@@ -526,6 +749,16 @@ var Grid = {};
         return _createRegion(startCol, endCol, startRow, endRow);
     };
 
+    /**
+     * Description
+     * @method _createRegion
+     * @private
+     * @param {} startCol
+     * @param {} endCol
+     * @param {} startRow
+     * @param {} endRow
+     * @return ObjectExpression
+     */
     var _createRegion = function(startCol, endCol, startRow, endRow) {
         return { 
             id: startCol + ',' + endCol + ',' + startRow + ',' + endRow,
@@ -536,15 +769,39 @@ var Grid = {};
         };
     };
 
+    /**
+     * Description
+     * @method _getBucketId
+     * @private
+     * @param {} column
+     * @param {} row
+     * @return BinaryExpression
+     */
     var _getBucketId = function(column, row) {
         return column + ',' + row;
     };
 
+    /**
+     * Description
+     * @method _createBucket
+     * @private
+     * @param {} buckets
+     * @param {} bucketId
+     * @return bucket
+     */
     var _createBucket = function(buckets, bucketId) {
         var bucket = buckets[bucketId] = [];
         return bucket;
     };
 
+    /**
+     * Description
+     * @method _bucketAddBody
+     * @private
+     * @param {} grid
+     * @param {} bucket
+     * @param {} body
+     */
     var _bucketAddBody = function(grid, bucket, body) {
         // add new pairs
         for (var i = 0; i < bucket.length; i++) {
@@ -567,6 +824,14 @@ var Grid = {};
         bucket.push(body);
     };
 
+    /**
+     * Description
+     * @method _bucketRemoveBody
+     * @private
+     * @param {} grid
+     * @param {} bucket
+     * @param {} body
+     */
     var _bucketRemoveBody = function(grid, bucket, body) {
         // remove from bodies
         for (var i = 0; i < bucket.length; i++) {
@@ -588,6 +853,13 @@ var Grid = {};
         }
     };
 
+    /**
+     * Description
+     * @method _getPairId
+     * @private
+     * @param {} bodyA
+     * @param {} bodyB
+     */
     var _getPairId = function(bodyA, bodyB) {
         if (bodyA.id < bodyB.id) {
             return bodyA.id + ',' + bodyB.id;
@@ -596,6 +868,13 @@ var Grid = {};
         }
     };
 
+    /**
+     * Description
+     * @method _createActivePairsList
+     * @private
+     * @param {} grid
+     * @return pairs
+     */
     var _createActivePairsList = function(grid) {
         var pairKeys,
             pair,
@@ -624,12 +903,28 @@ var Grid = {};
 
 // Begin src/collision/Manager.js
 
+/**
+* _Internal Class_, not generally used outside of the engine's internals.
+*
+* @class Manager
+*/
+
 var Manager = {};
 
 (function() {
     
     var _pairMaxIdleLife = 500;
 
+    /**
+     * Description
+     * @method updatePairs
+     * @param {object} pairs
+     * @param {pair[]} pairsList
+     * @param {pair[]} candidatePairs
+     * @param {metrics} metrics
+     * @param {detector} detector
+     * @return {bool} pairsUpdated flag
+     */
     Manager.updatePairs = function(pairs, pairsList, candidatePairs, metrics, detector) {
         var i;
 
@@ -659,6 +954,13 @@ var Manager = {};
         return pairsUpdated;
     };
     
+    /**
+     * Description
+     * @method removeOldPairs
+     * @param {object} pairs
+     * @param {pair[]} pairsList
+     * @return {bool} pairsRemoved flag
+     */
     Manager.removeOldPairs = function(pairs, pairsList) {
         var timeNow = Common.now(),
             pairsRemoved = false,
@@ -691,10 +993,22 @@ var Manager = {};
 
 // Begin src/collision/Pair.js
 
+/**
+* _Internal Class_, not generally used outside of the engine's internals.
+*
+* @class Pair
+*/
+
 var Pair = {};
 
 (function() {
     
+    /**
+     * Description
+     * @method create
+     * @param {collision} collision
+     * @return {pair} A new pair
+     */
     Pair.create = function(collision) {
         var bodyA = collision.bodyA,
             bodyB = collision.bodyB;
@@ -717,6 +1031,12 @@ var Pair = {};
         return pair;
     };
 
+    /**
+     * Description
+     * @method update
+     * @param {pair} pair
+     * @param {collision} collision
+     */
     Pair.update = function(pair, collision) {
         var contacts = pair.contacts,
             supports = collision.supports,
@@ -744,6 +1064,12 @@ var Pair = {};
         }
     };
     
+    /**
+     * Description
+     * @method setActive
+     * @param {pair} pair
+     * @param {bool} isActive
+     */
     Pair.setActive = function(pair, isActive) {
         if (isActive) {
             pair.isActive = true;
@@ -754,6 +1080,13 @@ var Pair = {};
         }
     };
 
+    /**
+     * Description
+     * @method id
+     * @param {body} bodyA
+     * @param {body} bodyB
+     * @return {number} Unique pairId
+     */
     Pair.id = function(bodyA, bodyB) {
         if (bodyA.id < bodyB.id) {
             return bodyA.id + '_' + bodyB.id;
@@ -769,6 +1102,12 @@ var Pair = {};
 
 // Begin src/collision/Resolver.js
 
+/**
+* _Internal Class_, not generally used outside of the engine's internals.
+*
+* @class Resolver
+*/
+
 var Resolver = {};
 
 (function() {
@@ -777,6 +1116,11 @@ var Resolver = {};
         _positionDampen = 0.2,
         _positionWarming = 0.6;
 
+    /**
+     * Description
+     * @method solvePosition
+     * @param {pair[]} pairs
+     */
     Resolver.solvePosition = function(pairs) {
         var i,
             pair,
@@ -836,6 +1180,11 @@ var Resolver = {};
         }
     };
 
+    /**
+     * Description
+     * @method postSolvePosition
+     * @param {body[]} bodies
+     */
     Resolver.postSolvePosition = function(bodies) {
         for (var i = 0; i < bodies.length; i++) {
             var body = bodies[i];
@@ -858,6 +1207,11 @@ var Resolver = {};
         }
     };
 
+    /**
+     * Description
+     * @method preSolveVelocity
+     * @param {pair[]} pairs
+     */
     Resolver.preSolveVelocity = function(pairs) {
         var impulse = {},
             i,
@@ -917,6 +1271,11 @@ var Resolver = {};
         }
     };
 
+    /**
+     * Description
+     * @method solveVelocity
+     * @param {pair[]} pairs
+     */
     Resolver.solveVelocity = function(pairs) {
         var impulse = {};
         
@@ -1019,6 +1378,13 @@ var Resolver = {};
 
 // Begin src/collision/SAT.js
 
+/**
+* _Internal Class_, not generally used outside of the engine's internals.
+*
+* @class SAT
+*/
+
+
 // TODO: true circles and curves
 // TODO: cache the previously found axis and body, and start there first for faster early out
 
@@ -1026,6 +1392,13 @@ var SAT = {};
 
 (function() {
 
+    /**
+     * Description
+     * @method collides
+     * @param {body} bodyA
+     * @param {body} bodyB
+     * @return {collision} collision
+     */
     SAT.collides = function(bodyA, bodyB) {
         var overlapAB,
             overlapBA, 
@@ -1092,6 +1465,15 @@ var SAT = {};
         return collision;
     };
 
+    /**
+     * Description
+     * @method _overlapAxes
+     * @private
+     * @param {} verticesA
+     * @param {} verticesB
+     * @param {} axes
+     * @return result
+     */
     var _overlapAxes = function(verticesA, verticesB, axes) {
         var projectionA = {}, 
             projectionB = {},
@@ -1121,6 +1503,14 @@ var SAT = {};
         return result;
     };
 
+    /**
+     * Description
+     * @method _projectToAxis
+     * @private
+     * @param {} projection
+     * @param {} vertices
+     * @param {} axis
+     */
     var _projectToAxis = function(projection, vertices, axis) {
         var min = Vector.dot(vertices[0], axis),
             max = min;
@@ -1139,6 +1529,15 @@ var SAT = {};
         projection.max = max;
     };
     
+    /**
+     * Description
+     * @method _findSupports
+     * @private
+     * @param {} bodyA
+     * @param {} bodyB
+     * @param {} normal
+     * @return ArrayExpression
+     */
     var _findSupports = function(bodyA, bodyB, normal) {
         var nearestDistance = Number.MAX_VALUE,
             vertexToBody = { x: 0, y: 0 },
@@ -1190,6 +1589,13 @@ var SAT = {};
 
 // Begin src/constraint/Constraint.js
 
+/**
+* See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
+* and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
+*
+* @class Constraint
+*/
+
 // TODO: fix instabillity issues with torque
 // TODO: linked constraints
 // TODO: breakable constraints
@@ -1204,6 +1610,12 @@ var Constraint = {};
 
     var _minLength = 0.000001;
 
+    /**
+     * Description
+     * @method create
+     * @param {} options
+     * @return {constraint} constraint
+     */
     Constraint.create = function(options) {
         var constraint = options;
 
@@ -1231,12 +1643,22 @@ var Constraint = {};
         return constraint;
     };
 
+    /**
+     * Description
+     * @method updateAll
+     * @param {constraint[]} constraints
+     */
     Constraint.updateAll = function(constraints) {
         for (var i = 0; i < constraints.length; i++) {
             Constraint.update(constraints[i]);
         }
     };
 
+    /**
+     * Description
+     * @method update
+     * @param {constraint} constraint
+     */
     Constraint.update = function(constraint) {
         var bodyA = constraint.bodyA,
             bodyB = constraint.bodyB,
@@ -1390,10 +1812,22 @@ var Constraint = {};
 
 // Begin src/constraint/MouseConstraint.js
 
+/**
+* _Internal Class_, not generally used outside of the engine's internals.
+*
+* @class MouseConstraint
+*/
+
 var MouseConstraint = {};
 
 (function() {
 
+    /**
+     * Description
+     * @method create
+     * @param {mouse} mouse
+     * @return {MouseConstraint} A new MouseConstraint
+     */
     MouseConstraint.create = function(mouse) {
         var constraint = Constraint.create({ 
             pointA: mouse.position,
@@ -1413,6 +1847,12 @@ var MouseConstraint = {};
         };
     };
 
+    /**
+     * Description
+     * @method update
+     * @param {MouseConstraint} mouseConstraint
+     * @param {body[]} bodies
+     */
     MouseConstraint.update = function(mouseConstraint, bodies) {
         var mouse = mouseConstraint.mouse,
             constraint = mouseConstraint.constraints[0];
@@ -1449,10 +1889,22 @@ var MouseConstraint = {};
 
 // Begin src/core/Common.js
 
+/**
+* _Internal Class_, not generally used outside of the engine's internals.
+*
+* @class Common
+*/
+
 var Common = {};
 
 (function() {
 
+    /**
+     * Description
+     * @method extend
+     * @param {} obj, obj, obj...
+     * @return {} obj extended
+     */
     Common.extend = function(obj) {
         var args = Array.prototype.slice.call(arguments, 1);
 
@@ -1478,6 +1930,12 @@ var Common = {};
         return obj;
     };
 
+    /**
+     * Description
+     * @method keys
+     * @param {} obj
+     * @return {string[]} keys
+     */
     Common.keys = function(obj) {
         if (Object.keys)
             return Object.keys(obj);
@@ -1489,6 +1947,12 @@ var Common = {};
         return keys;
     };
 
+    /**
+     * Description
+     * @method values
+     * @param {} obj
+     * @return {array} Array of the objects property values
+     */
     Common.values = function(obj) {
         var values = [];
         
@@ -1506,6 +1970,13 @@ var Common = {};
         return values;
     };
 
+    /**
+     * Description
+     * @method shadeColor
+     * @param {string} color
+     * @param {number} percent
+     * @return {string} A hex colour string made by lightening or darkening color by percent
+     */
     Common.shadeColor = function(color, percent) {   
         // http://stackoverflow.com/questions/5560248/programmatically-lighten-or-darken-a-hex-color
         var colorInteger = parseInt(color.slice(1),16), 
@@ -1518,6 +1989,12 @@ var Common = {};
                 + (G < 255 ? G < 1 ? 0 : G : 255)).toString(16).slice(1);
     };
 
+    /**
+     * Description
+     * @method shuffle
+     * @param {array} array
+     * @return {array} array shuffled randomly
+     */
     Common.shuffle = function(array) {
         for (var i = array.length - 1; i > 0; i--) {
             var j = Math.floor(Math.random() * (i + 1));
@@ -1528,10 +2005,22 @@ var Common = {};
         return array;
     };
 
+    /**
+     * Description
+     * @method choose
+     * @param {array} choices
+     * @return {object} A random choice object from the array
+     */
     Common.choose = function(choices) {
         return choices[Math.floor(Math.random() * choices.length)];
     };
 
+    /**
+     * Description
+     * @method isElement
+     * @param {object} obj
+     * @return {boolean} True if the object is a HTMLElement, otherwise false
+     */
     Common.isElement = function(obj) {
         // http://stackoverflow.com/questions/384286/javascript-isdom-how-do-you-check-if-a-javascript-object-is-a-dom-object
         try {
@@ -1544,6 +2033,14 @@ var Common = {};
         }
     };
     
+    /**
+     * Description
+     * @method clamp
+     * @param {number} value
+     * @param {number} min
+     * @param {number} max
+     * @return {number} The value clamped between min and max inclusive
+     */
     Common.clamp = function(value, min, max) {
         if (value < min)
             return min;
@@ -1552,15 +2049,33 @@ var Common = {};
         return value;
     };
     
+    /**
+     * Description
+     * @method sign
+     * @param {number} value
+     * @return {number} -1 if negative, +1 if 0 or positive
+     */
     Common.sign = function(value) {
         return value < 0 ? -1 : 1;
     };
     
+    /**
+     * Description
+     * @method now
+     * @return {Date} the current DateTime
+     */
     Common.now = Date.now || function() {
         // http://stackoverflow.com/questions/221294/how-do-you-get-a-timestamp-in-javascript
         return +(new Date());
     };
     
+    /**
+     * Description
+     * @method random
+     * @param {number} min
+     * @param {number} max
+     * @return {number} A random number between min and max inclusive
+     */
     Common.random = function(min, max) {
         return min + Math.random() * (max - min);
     };
@@ -1571,6 +2086,13 @@ var Common = {};
 
 
 // Begin src/core/Engine.js
+
+/**
+* See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
+* and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
+*
+* @class Engine
+*/
 
 // TODO: multiple event handlers, before & after handlers
 // TODO: viewports
@@ -1588,6 +2110,13 @@ var Engine = {};
                                       || window.mozRequestAnimationFrame || window.msRequestAnimationFrame 
                                       || function(callback){ window.setTimeout(function() { callback(Common.now()); }, _delta); };
    
+    /**
+     * Description
+     * @method create
+     * @param {HTMLElement} element
+     * @param {object} options
+     * @return {engine} engine
+     */
     Engine.create = function(element, options) {
         var defaults = {
             enabled: true,
@@ -1651,6 +2180,11 @@ var Engine = {};
         return engine;
     };
 
+    /**
+     * Description
+     * @method run
+     * @param {engine} engine
+     */
     Engine.run = function(engine) {
         var timing = engine.timing,
             delta,
@@ -1692,6 +2226,14 @@ var Engine = {};
         })();
     };
 
+    /**
+     * Description
+     * @method update
+     * @param {engine} engine
+     * @param {number} delta
+     * @param {number} correction
+     * @return engine
+     */
     Engine.update = function(engine, delta, correction) {
         var world = engine.world,
             broadphase = engine.broadphase[engine.broadphase.current],
@@ -1745,6 +2287,12 @@ var Engine = {};
         return engine;
     };
     
+    /**
+     * Description
+     * @method merge
+     * @param {engine} engineA
+     * @param {engine} engineB
+     */
     Engine.merge = function(engineA, engineB) {
         Common.extend(engineA, engineB);
         
@@ -1771,6 +2319,11 @@ var Engine = {};
         }
     };
 
+    /**
+     * Description
+     * @method clear
+     * @param {engine} engine
+     */
     Engine.clear = function(engine) {
         var world = engine.world;
         
@@ -1796,10 +2349,21 @@ var Engine = {};
 
 // Begin src/core/Metrics.js
 
+/**
+* _Internal Class_, not generally used outside of the engine's internals.
+*
+* @class Metrics
+*/
+
 var Metrics = {};
 
 (function() {
 
+    /**
+     * Description
+     * @method create
+     * @return {metrics} A new metrics
+     */
     Metrics.create = function() {
         return {
             narrowDetections: 0,
@@ -1816,6 +2380,11 @@ var Metrics = {};
         };
     };
 
+    /**
+     * Description
+     * @method reset
+     * @param {metrics} metrics
+     */
     Metrics.reset = function(metrics) {
         metrics.narrowDetections = 0;
         metrics.narrowphaseTests = 0;
@@ -1830,6 +2399,12 @@ var Metrics = {};
         metrics.bodies = 0;
     };
 
+    /**
+     * Description
+     * @method update
+     * @param {metrics} metrics
+     * @param {engine} engine
+     */
     Metrics.update = function(metrics, engine) {
         var world = engine.world,
             broadphase = engine.broadphase[engine.broadphase.current];
@@ -1851,10 +2426,20 @@ var Metrics = {};
 
 // Begin src/core/Mouse.js
 
+/**
+* _Internal Class_, not generally used outside of the engine's internals.
+*
+* @class Mouse
+*/
+
 var Mouse;
 
 (function() {
     
+    /**
+     * Description
+     * @param {HTMLElement} element
+     */
     Mouse = function(element) {
         var mouse = this;
         
@@ -1913,10 +2498,24 @@ var Mouse;
         element.addEventListener('touchend', mouseup);
     };
 
+    /**
+     * Description
+     * @method create
+     * @param {HTMLElement} element
+     * @return {mouse} A new mouse
+     */
     Mouse.create = function(element) {
         return new Mouse(element);
     };
     
+    /**
+     * Description
+     * @method _getRelativeMousePosition
+     * @private
+     * @param {} event
+     * @param {} element
+     * @return ObjectExpression
+     */
     var _getRelativeMousePosition = function(event, element) {
         var elementBounds = element.getBoundingClientRect(),
             scrollX = (window.pageXOffset !== undefined) ? window.pageXOffset : (document.documentElement || document.body.parentNode || document.body).scrollLeft,
@@ -1945,6 +2544,12 @@ var Mouse;
 
 // Begin src/core/Sleeping.js
 
+/**
+* _Internal Class_, not generally used outside of the engine's internals.
+*
+* @class Sleeping
+*/
+
 var Sleeping = {};
 
 (function() {
@@ -1953,6 +2558,11 @@ var Sleeping = {};
         _motionSleepThreshold = 0.08,
         _minBias = 0.9;
 
+    /**
+     * Description
+     * @method update
+     * @param {body[]} bodies
+     */
     Sleeping.update = function(bodies) {
         // update bodies sleeping status
         for (var i = 0; i < bodies.length; i++) {
@@ -1976,6 +2586,11 @@ var Sleeping = {};
         }
     };
 
+    /**
+     * Description
+     * @method afterCollisions
+     * @param {pair[]} pairs
+     */
     Sleeping.afterCollisions = function(pairs) {
         // wake up bodies involved in collisions
         for (var i = 0; i < pairs.length; i++) {
@@ -1998,6 +2613,12 @@ var Sleeping = {};
         }
     };
 
+    /**
+     * Description
+     * @method set
+     * @param {body} body
+     * @param {boolean} isSleeping
+     */
     Sleeping.set = function(body, isSleeping) {
         if (isSleeping) {
             body.isSleeping = true;
@@ -2026,12 +2647,29 @@ var Sleeping = {};
 
 // Begin src/factory/Bodies.js
 
+/**
+* See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
+* and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
+*
+* @class Bodies
+*/
+
 // TODO: true circle bodies
 
 var Bodies = {};
 
 (function() {
 
+    /**
+     * Description
+     * @method rectangle
+     * @param {number} x
+     * @param {number} y
+     * @param {number} width
+     * @param {number} height
+     * @param {object} options
+     * @return {body} A new rectangle body
+     */
     Bodies.rectangle = function(x, y, width, height, options) {
         options = options || {};
 
@@ -2043,6 +2681,17 @@ var Bodies = {};
         return Body.create(Common.extend({}, rectangle, options));
     };
     
+    /**
+     * Description
+     * @method trapezoid
+     * @param {number} x
+     * @param {number} y
+     * @param {number} width
+     * @param {number} height
+     * @param {number} slope
+     * @param {object} options
+     * @return {body} A new trapezoid body
+     */
     Bodies.trapezoid = function(x, y, width, height, slope, options) {
         options = options || {};
 
@@ -2061,6 +2710,16 @@ var Bodies = {};
         return Body.create(Common.extend({}, trapezoid, options));
     };
 
+    /**
+     * Description
+     * @method circle
+     * @param {number} x
+     * @param {number} y
+     * @param {number} radius
+     * @param {object} options
+     * @param {number} maxSides
+     * @return {body} A new circle body
+     */
     Bodies.circle = function(x, y, radius, options, maxSides) {
         options = options || {};
         
@@ -2079,6 +2738,16 @@ var Bodies = {};
         return Bodies.polygon(x, y, sides, radius, options);
     };
 
+    /**
+     * Description
+     * @method polygon
+     * @param {number} x
+     * @param {number} y
+     * @param {number} sides
+     * @param {number} radius
+     * @param {object} options
+     * @return {body} A new regular polygon body
+     */
     Bodies.polygon = function(x, y, sides, radius, options) {
         options = options || {};
 
@@ -2112,10 +2781,29 @@ var Bodies = {};
 
 // Begin src/factory/Composites.js
 
+/**
+* See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
+* and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
+*
+* @class Composites
+*/
+
 var Composites = {};
 
 (function() {
 
+    /**
+     * Description
+     * @method stack
+     * @param {number} xx
+     * @param {number} yy
+     * @param {number} columns
+     * @param {number} rows
+     * @param {number} columnGap
+     * @param {number} rowGap
+     * @param {function} callback
+     * @return {composite} A new composite containing objects created in the callback
+     */
     Composites.stack = function(xx, yy, columns, rows, columnGap, rowGap, callback) {
         var stack = Composite.create(),
             x = xx,
@@ -2154,6 +2842,17 @@ var Composites = {};
         return stack;
     };
     
+    /**
+     * Description
+     * @method chain
+     * @param {composite} composite
+     * @param {number} xOffsetA
+     * @param {number} yOffsetA
+     * @param {number} xOffsetB
+     * @param {number} yOffsetB
+     * @param {object} options
+     * @return {composite} A new composite containing objects chained together with constraints
+     */
     Composites.chain = function(composite, xOffsetA, yOffsetA, xOffsetB, yOffsetB, options) {
         var bodies = composite.bodies;
         
@@ -2180,6 +2879,18 @@ var Composites = {};
         return composite;
     };
     
+    /**
+     * Description
+     * @method pyramid
+     * @param {number} xx
+     * @param {number} yy
+     * @param {number} columns
+     * @param {number} rows
+     * @param {number} columnGap
+     * @param {number} rowGap
+     * @param {function} callback
+     * @return {composite} A new composite containing objects created in the callback
+     */
     Composites.pyramid = function(xx, yy, columns, rows, columnGap, rowGap, callback) {
         return Composites.stack(xx, yy, columns, rows, columnGap, rowGap, function(x, y, column, row, lastBody, i) {
             var actualRows = Math.min(rows, Math.ceil(columns / 2)),
@@ -2208,6 +2919,16 @@ var Composites = {};
         });
     };
 
+    /**
+     * Description
+     * @method newtonsCradle
+     * @param {number} xx
+     * @param {number} yy
+     * @param {number} number
+     * @param {number} size
+     * @param {number} length
+     * @return {composite} A new composite newtonsCradle body
+     */
     Composites.newtonsCradle = function(xx, yy, number, size, length) {
         var newtonsCradle = Composite.create();
 
@@ -2224,6 +2945,16 @@ var Composites = {};
         return newtonsCradle;
     };
     
+    /**
+     * Description
+     * @method car
+     * @param {number} xx
+     * @param {number} yy
+     * @param {number} width
+     * @param {number} height
+     * @param {number} wheelSize
+     * @return {composite} A new composite car body
+     */
     Composites.car = function(xx, yy, width, height, wheelSize) {
         var groupId = Body.nextGroupId(),
             wheelBase = -20,
@@ -2278,10 +3009,22 @@ var Composites = {};
 
 // Begin src/geometry/Axes.js
 
+/**
+* _Internal Class_, not generally used outside of the engine's internals.
+*
+* @class Axes
+*/
+
 var Axes = {};
 
 (function() {
 
+    /**
+     * Description
+     * @method fromVertices
+     * @param {vertices} vertices
+     * @return {axes} A new axes from the given vertices
+     */
     Axes.fromVertices = function(vertices) {
         var axes = {};
 
@@ -2303,6 +3046,12 @@ var Axes = {};
         return Common.values(axes);
     };
 
+    /**
+     * Description
+     * @method rotate
+     * @param {axes} axes
+     * @param {number} angle
+     */
     Axes.rotate = function(axes, angle) {
         if (angle === 0)
             return;
@@ -2326,10 +3075,22 @@ var Axes = {};
 
 // Begin src/geometry/Bounds.js
 
+/**
+* _Internal Class_, not generally used outside of the engine's internals.
+*
+* @class Bounds
+*/
+
 var Bounds = {};
 
 (function() {
 
+    /**
+     * Description
+     * @method create
+     * @param {vertices} vertices
+     * @return {bounds} A new bounds object
+     */
     Bounds.create = function(vertices) {
         var bounds = { 
             min: { x: 0, y: 0 }, 
@@ -2339,6 +3100,13 @@ var Bounds = {};
         return bounds;
     };
 
+    /**
+     * Description
+     * @method update
+     * @param {bounds} bounds
+     * @param {vertices} vertices
+     * @param {vector} velocity
+     */
     Bounds.update = function(bounds, vertices, velocity) {
         bounds.min.x = Number.MAX_VALUE;
         bounds.max.x = Number.MIN_VALUE;
@@ -2368,11 +3136,25 @@ var Bounds = {};
         }
     };
 
+    /**
+     * Description
+     * @method contains
+     * @param {bounds} bounds
+     * @param {vector} point
+     * @return {boolean} True if the bounds contain the point, otherwise false
+     */
     Bounds.contains = function(bounds, point) {
         return point.x >= bounds.min.x && point.x <= bounds.max.x 
                && point.y >= bounds.min.y && point.y <= bounds.max.y;
     };
 
+    /**
+     * Description
+     * @method overlaps
+     * @param {bounds} boundsA
+     * @param {bounds} boundsB
+     * @return {boolean} True if the bounds overlap, otherwise false
+     */
     Bounds.overlaps = function(boundsA, boundsB) {
         return (boundsA.min.x <= boundsB.max.x && boundsA.max.x >= boundsB.min.x
                 && boundsA.max.y >= boundsB.min.y && boundsA.min.y <= boundsB.max.y);
@@ -2385,20 +3167,46 @@ var Bounds = {};
 
 // Begin src/geometry/Vector.js
 
+/**
+* See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
+* and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
+*
+* @class Vector
+*/
+
 // TODO: consider params for reusing vector objects
 
 var Vector = {};
 
 (function() {
 
+    /**
+     * Description
+     * @method magnitude
+     * @param {vector} vector
+     * @return {number} The magnitude of the vector
+     */
     Vector.magnitude = function(vector) {
         return Math.sqrt((vector.x * vector.x) + (vector.y * vector.y));
     };
 
+    /**
+     * Description
+     * @method magnitudeSquared
+     * @param {vector} vector
+     * @return {number} The squared magnitude of the vector
+     */
     Vector.magnitudeSquared = function(vector) {
         return (vector.x * vector.x) + (vector.y * vector.y);
     };
 
+    /**
+     * Description
+     * @method rotate
+     * @param {vector} vector
+     * @param {number} angle
+     * @return {vector} A new vector rotated
+     */
     Vector.rotate = function(vector, angle) {
         var cos = Math.cos(angle), sin = Math.sin(angle);
         return {
@@ -2407,6 +3215,14 @@ var Vector = {};
         };
     };
 
+    /**
+     * Description
+     * @method rotateAbout
+     * @param {vector} vector
+     * @param {number} angle
+     * @param {vector} point
+     * @return {vector} A new vector rotated about the point
+     */
     Vector.rotateAbout = function(vector, angle, point) {
         var cos = Math.cos(angle), sin = Math.sin(angle);
         return {
@@ -2415,6 +3231,12 @@ var Vector = {};
         };
     };
 
+    /**
+     * Description
+     * @method normalise
+     * @param {vector} vector
+     * @return {vector} A new vector normalised
+     */
     Vector.normalise = function(vector) {
         var magnitude = Vector.magnitude(vector);
         if (magnitude === 0)
@@ -2422,35 +3244,90 @@ var Vector = {};
         return { x: vector.x / magnitude, y: vector.y / magnitude };
     };
 
+    /**
+     * Description
+     * @method dot
+     * @param {vector} vectorA
+     * @param {vector} vectorB
+     * @return {number} The dot product of the two vectors
+     */
     Vector.dot = function(vectorA, vectorB) {
         return (vectorA.x * vectorB.x) + (vectorA.y * vectorB.y);
     };
 
+    /**
+     * Description
+     * @method cross
+     * @param {vector} vectorA
+     * @param {vector} vectorB
+     * @return {number} The cross product of the two vectors
+     */
     Vector.cross = function(vectorA, vectorB) {
         return (vectorA.x * vectorB.y) - (vectorA.y * vectorB.x);
     };
 
+    /**
+     * Description
+     * @method add
+     * @param {vector} vectorA
+     * @param {vector} vectorB
+     * @return {vector} A new vector added
+     */
     Vector.add = function(vectorA, vectorB) {
         return { x: vectorA.x + vectorB.x, y: vectorA.y + vectorB.y };
     };
 
+    /**
+     * Description
+     * @method sub
+     * @param {vector} vectorA
+     * @param {vector} vectorB
+     * @return {vector} A new vector subtracted
+     */
     Vector.sub = function(vectorA, vectorB) {
         return { x: vectorA.x - vectorB.x, y: vectorA.y - vectorB.y };
     };
 
+    /**
+     * Description
+     * @method mult
+     * @param {vector} vector
+     * @param {number} scalar
+     * @return {vector} A new vector multiplied by scalar
+     */
     Vector.mult = function(vector, scalar) {
         return { x: vector.x * scalar, y: vector.y * scalar };
     };
 
+    /**
+     * Description
+     * @method div
+     * @param {vector} vector
+     * @param {number} scalar
+     * @return {vector} A new vector divided by scalar
+     */
     Vector.div = function(vector, scalar) {
         return { x: vector.x / scalar, y: vector.y / scalar };
     };
 
+    /**
+     * Description
+     * @method perp
+     * @param {vector} vector
+     * @param {bool} negate
+     * @return {vector} The perpendicular vector
+     */
     Vector.perp = function(vector, negate) {
         negate = negate === true ? -1 : 1;
         return { x: negate * -vector.y, y: negate * vector.x };
     };
 
+    /**
+     * Description
+     * @method neg
+     * @param {vector} vector
+     * @return {vector} The negated vector
+     */
     Vector.neg = function(vector) {
         return { x: -vector.x, y: -vector.y };
     };
@@ -2462,12 +3339,25 @@ var Vector = {};
 
 // Begin src/geometry/Vertices.js
 
+/**
+* See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
+* and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
+*
+* @class Vertices
+*/
+
 // TODO: convex decomposition - http://mnbayazit.com/406/bayazit
 
 var Vertices = {};
 
 (function() {
 
+    /**
+     * Description
+     * @method create
+     * @param {vertices} vertices
+     * @param {body} body
+     */
     Vertices.create = function(vertices, body) {
         for (var i = 0; i < vertices.length; i++) {
             vertices[i].index = i;
@@ -2475,6 +3365,12 @@ var Vertices = {};
         }
     };
 
+    /**
+     * Description
+     * @method fromPath
+     * @param {string} path
+     * @return {vertices} vertices
+     */
     Vertices.fromPath = function(path) {
         var pathPattern = /L\s*([\-\d\.]*)\s*([\-\d\.]*)/ig,
             vertices = [];
@@ -2486,6 +3382,12 @@ var Vertices = {};
         return vertices;
     };
 
+    /**
+     * Description
+     * @method centre
+     * @param {vertices} vertices
+     * @return {vector} The centre point
+     */
     Vertices.centre = function(vertices) {
         var cx = 0, cy = 0;
 
@@ -2497,6 +3399,12 @@ var Vertices = {};
         return { x: cx / vertices.length, y: cy / vertices.length };
     };
 
+    /**
+     * Description
+     * @method area
+     * @param {vertices} vertices
+     * @return {number} The area
+     */
     Vertices.area = function(vertices) {
         var area = 0,
             j = vertices.length - 1;
@@ -2509,6 +3417,13 @@ var Vertices = {};
         return Math.abs(area) / 2;
     };
 
+    /**
+     * Description
+     * @method inertia
+     * @param {vertices} vertices
+     * @param {number} mass
+     * @return {number} The polygon's moment of inertia, using second moment of area
+     */
     Vertices.inertia = function(vertices, mass) {
         var numerator = 0,
             denominator = 0,
@@ -2528,6 +3443,13 @@ var Vertices = {};
         return (mass / 6) * (numerator / denominator);
     };
 
+    /**
+     * Description
+     * @method translate
+     * @param {vertices} vertices
+     * @param {vector} vector
+     * @param {number} scalar
+     */
     Vertices.translate = function(vertices, vector, scalar) {
         var i;
         if (scalar) {
@@ -2543,6 +3465,13 @@ var Vertices = {};
         } 
     };
 
+    /**
+     * Description
+     * @method rotate
+     * @param {vertices} vertices
+     * @param {number} angle
+     * @param {vector} point
+     */
     Vertices.rotate = function(vertices, angle, point) {
         if (angle === 0)
             return;
@@ -2560,6 +3489,13 @@ var Vertices = {};
         }
     };
 
+    /**
+     * Description
+     * @method contains
+     * @param {vertices} vertices
+     * @param {vector} point
+     * @return {boolean} True if the vertices contains point, otherwise false
+     */
     Vertices.contains = function(vertices, point) {
         for (var i = 0; i < vertices.length; i++) {
             var vertice = vertices[i],
@@ -2579,10 +3515,24 @@ var Vertices = {};
 
 // Begin src/render/Gui.js
 
+/**
+* See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
+* and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
+*
+* @class Gui
+*/
+
 var Gui = {};
 
 (function() {
 
+    /**
+     * Description
+     * @method create
+     * @param {engine} engine
+     * @param {object} options
+     * @return {gui} A container for a configured dat.gui
+     */
     Gui.create = function(engine, options) {
         var _datGuiSupported = window.dat && window.localStorage,
             _serializer;
@@ -2613,6 +3563,7 @@ var Gui = {};
         };
 
         var funcs = {
+
             addBody: function() {
                 var options = { 
                     density: gui.density,
@@ -2714,6 +3665,12 @@ var Gui = {};
         return gui;
     };
     
+    /**
+     * Description
+     * @method update
+     * @param {gui} gui
+     * @param {datGui} datGui
+     */
     Gui.update = function(gui, datGui) {
         var i;
         datGui = datGui || gui.datGui;
@@ -2729,6 +3686,11 @@ var Gui = {};
         }
     };
 
+    /**
+     * Description
+     * @method closeAll
+     * @param {gui} gui
+     */
     Gui.closeAll = function(gui) {
         var datGui = gui.datGui;
         
@@ -2744,6 +3706,13 @@ var Gui = {};
 
 // Begin src/render/Render.js
 
+/**
+* See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
+* and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
+*
+* @class Render
+*/
+
 // TODO: viewports
 // TODO: two.js, pixi.js
 
@@ -2751,6 +3720,12 @@ var Render = {};
 
 (function() {
     
+    /**
+     * Description
+     * @method create
+     * @param {object} options
+     * @return {render} A new renderer
+     */
     Render.create = function(options) {
         var defaults = {
             controller: Render,
@@ -2783,6 +3758,11 @@ var Render = {};
         return render;
     };
 
+    /**
+     * Description
+     * @method world
+     * @param {engine} engine
+     */
     Render.world = function(engine) {
         var render = engine.render,
             world = engine.world,
@@ -2820,6 +3800,12 @@ var Render = {};
             Render.debug(engine, context);
     };
 
+    /**
+     * Description
+     * @method debug
+     * @param {engine} engine
+     * @param {RenderingContext} context
+     */
     Render.debug = function(engine, context) {
         var c = context,
             world = engine.world,
@@ -2865,6 +3851,12 @@ var Render = {};
         }
     };
 
+    /**
+     * Description
+     * @method constraint
+     * @param {constraint} constraint
+     * @param {RenderingContext} context
+     */
     Render.constraint = function(constraint, context) {
         var bodyA = constraint.bodyA,
             bodyB = constraint.bodyB,
@@ -2892,6 +3884,13 @@ var Render = {};
         c.stroke();
     };
     
+    /**
+     * Description
+     * @method bodyShadow
+     * @param {engine} engine
+     * @param {body} body
+     * @param {RenderingContext} context
+     */
     Render.bodyShadow = function(engine, body, context) {
         var c = context,
             render = engine.render;
@@ -2926,6 +3925,13 @@ var Render = {};
         c.shadowBlur = null;
     };
 
+    /**
+     * Description
+     * @method body
+     * @param {engine} engine
+     * @param {body} body
+     * @param {RenderingContext} context
+     */
     Render.body = function(engine, body, context) {
         var c = context,
             render = engine.render,
@@ -3040,6 +4046,13 @@ var Render = {};
         }
     };
 
+    /**
+     * Description
+     * @method collision
+     * @param {engine} engine
+     * @param {pair} pair
+     * @param {RenderingContext} context
+     */
     Render.collision = function(engine, pair, context) {
         var c = context,
             collision = pair.collision,
@@ -3082,6 +4095,13 @@ var Render = {};
         }
     };
 
+    /**
+     * Description
+     * @method grid
+     * @param {engine} engine
+     * @param {grid} grid
+     * @param {RenderingContext} context
+     */
     Render.grid = function(engine, grid, context) {
         var c = context,
             options = engine.render.options;
@@ -3112,6 +4132,14 @@ var Render = {};
         }
     };
 
+    /**
+     * Description
+     * @method _createCanvas
+     * @private
+     * @param {} width
+     * @param {} height
+     * @return canvas
+     */
     var _createCanvas = function(width, height) {
         var canvas = document.createElement('canvas');
         canvas.width = width;
