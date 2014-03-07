@@ -1,6 +1,7 @@
 module.exports = function(grunt) {
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
+    buildName: 'matter',
     concat: {
       build: {
         options: {
@@ -9,29 +10,29 @@ module.exports = function(grunt) {
           }
         },
         src: ['src/**/*.js', '!src/module/*'],
-        dest: 'build/<%= pkg.name %>.js'
+        dest: 'build/<%= buildName %>.js'
       },
       pack: {
         options: {
-          banner: '/**\n* <%= pkg.name %>.js <%= pkg.version %> <%= grunt.template.today("yyyy-mm-dd") %>\n* <%= pkg.homepage %>\n* License: <%= pkg.license %>\n*/\n\n',
+          banner: '/**\n* <%= buildName %>.js <%= pkg.version %> <%= grunt.template.today("yyyy-mm-dd") %>\n* <%= pkg.homepage %>\n* License: <%= pkg.license %>\n*/\n\n',
         },
-        src: ['src/module/Intro.js', 'build/<%= pkg.name %>.js', 'src/module/Outro.js'],
-        dest: 'build/<%= pkg.name %>.js'
+        src: ['src/module/Intro.js', 'build/<%= buildName %>.js', 'src/module/Outro.js'],
+        dest: 'build/<%= buildName %>.js'
       }
     },
     uglify: {
       options: {
-        banner: '/**\n* <%= pkg.name %>.min.js <%= pkg.version %> <%= grunt.template.today("yyyy-mm-dd") %>\n* <%= pkg.homepage %>\n* License: <%= pkg.license %>\n*/\n\n',
+        banner: '/**\n* <%= buildName %>.min.js <%= pkg.version %> <%= grunt.template.today("yyyy-mm-dd") %>\n* <%= pkg.homepage %>\n* License: <%= pkg.license %>\n*/\n\n',
       },
       build: {
-        src: 'build/<%= pkg.name %>.js',
-        dest: 'build/<%= pkg.name %>.min.js'
+        src: 'build/<%= buildName %>.js',
+        dest: 'build/<%= buildName %>.min.js'
       }
     },
     copy: {
       demo: {
-        src: 'build/<%= pkg.name %>.js',
-        dest: 'demo/js/lib/<%= pkg.name %>.js'
+        src: 'build/<%= buildName %>.js',
+        dest: 'demo/js/lib/<%= buildName %>.js'
       }
     },
     jshint: {
@@ -44,7 +45,7 @@ module.exports = function(grunt) {
       watch: {
         options: {
           port: 9000,
-          open: 'http://localhost:9000/demo',
+          open: 'http://localhost:9000/demo/dev.html',
           livereload: 9001
         }
       }
@@ -57,7 +58,7 @@ module.exports = function(grunt) {
       },
       src: {
         files: ['src/**/*.js'],
-        tasks: ['concat', 'uglify', 'copy']
+        tasks: ['set_config:buildName:matter-dev','build']
       },
       demo: {
         files: ['build/matter.js', 'demo/js/**/*.html', 'demo/js/**/*.js', 'demo/css/**/*.css']
@@ -87,8 +88,13 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-contrib-yuidoc');
 
-  grunt.registerTask('default', ['test', 'concat', 'uglify', 'copy']);
+  grunt.registerTask('default', ['test', 'build']);
+  grunt.registerTask('build', ['concat', 'uglify', 'copy']);
   grunt.registerTask('test', ['jshint']);
-  grunt.registerTask('dev', ['connect:watch', 'watch']);
+  grunt.registerTask('dev', ['set_config:buildName:matter-dev', 'build', 'connect:watch', 'watch']);
   grunt.registerTask('doc', ['yuidoc']);
+
+  grunt.registerTask('set_config', 'Set a config property.', function(name, val) {
+    grunt.config.set(name, val);
+  });
 };
