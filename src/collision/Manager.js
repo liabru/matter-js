@@ -8,77 +8,112 @@ var Manager = {};
 
 (function() {
     
-    var _pairMaxIdleLife = 500;
+    var _pairMaxIdleLife = 1000;
 
     /**
      * Description
      * @method updatePairs
      * @param {object} pairs
-     * @param {pair[]} pairsList
-     * @param {pair[]} candidatePairs
-     * @param {metrics} metrics
-     * @param {detector} detector
-     * @return {bool} pairsUpdated flag
+     * @param {collision[]} collisions
      */
-    Manager.updatePairs = function(pairs, pairsList, candidatePairs, metrics, detector) {
-        var i;
+    Manager.updatePairs = function(pairs, collisions) {
+        var pairsList = pairs.list,
+            pairsTable = pairs.table,
+            collisionStart = pairs.collisionStart,
+            collisionEnd = pairs.collisionEnd,
+            collisionActive = pairs.collisionActive,
+            activePairIds = [],
+            collision,
+            pairId,
+            pair,
+            i;
 
-        // first set all pairs inactive
-        for (i = 0; i < pairsList.length; i++) {
-            var pair = pairsList[i];
-            Pair.setActive(pair, false);
-        }
-        
-        // detect collisions in current step
-        var pairsUpdated = false,
-            collisions = detector(candidatePairs, metrics);
+        // clear collision state arrays, but maintain old reference
+        collisionStart.length = 0;
+        collisionEnd.length = 0;
+        collisionActive.length = 0;
 
-        // set collision pairs to active, or create if pair is new
         for (i = 0; i < collisions.length; i++) {
-            var collision = collisions[i],
+            collision = collisions[i];
+
+            if (collision.collided) {
                 pairId = Pair.id(collision.bodyA, collision.bodyB);
-            
-            if (pairId in pairs) {
-                Pair.update(pairs[pairId], collision);
-            } else {
-                pairs[pairId] = Pair.create(collision);
-                pairsUpdated = true;
+                activePairIds.push(pairId);
+                
+                if (pairId in pairsTable) {
+                    // pair already exists (but may or may not be active)
+                    pair = pairsTable[pairId];
+
+                    if (pair.isActive) {
+                        // pair exists and is active
+                        collisionActive.push(pair);
+                    } else {
+                        // pair exists but was inactive, so a collision has just started again
+                        collisionStart.push(pair);
+                    }
+
+                    // update the pair
+                    Pair.update(pair, collision);
+                } else {
+                    // pair did not exist, create a new pair
+                    pair = Pair.create(collision);
+                    pairsTable[pairId] = pair;
+
+                    // push the new pair
+                    collisionStart.push(pair);
+                    pairsList.push(pair);
+                }
             }
         }
-        
-        return pairsUpdated;
+
+        // deactivate previously active pairs that are now inactive
+        for (i = 0; i < pairsList.length; i++) {
+            pair = pairsList[i];
+            if (pair.isActive && activePairIds.indexOf(pair.id) === -1) {
+                Pair.setActive(pair, false);
+                collisionEnd.push(pair);
+            }
+        }
     };
     
     /**
      * Description
      * @method removeOldPairs
      * @param {object} pairs
-     * @param {pair[]} pairsList
-     * @return {bool} pairsRemoved flag
      */
-    Manager.removeOldPairs = function(pairs, pairsList) {
-        var timeNow = Common.now(),
-            pairsRemoved = false,
+    Manager.removeOldPairs = function(pairs) {
+        var pairsList = pairs.list,
+            pairsTable = pairs.table,
+            timeNow = Common.now(),
+            indexesToRemove = [],
+            pair,
+            collision,
+            pairIndex,
             i;
-        
+
         for (i = 0; i < pairsList.length; i++) {
-            var pair = pairsList[i],
-                collision = pair.collision;
+            pair = pairsList[i];
+            collision = pair.collision;
             
             // never remove sleeping pairs
             if (collision.bodyA.isSleeping || collision.bodyB.isSleeping) {
-                pair.timestamp = timeNow;
+                pair.timeUpdated = timeNow;
                 continue;
             }
 
-            // if pair is inactive for too long, remove it
-            if (timeNow - pair.timestamp > _pairMaxIdleLife) {
-                delete pairs[pair.id];
-                pairsRemoved = true;
+            // if pair is inactive for too long, mark it to be removed
+            if (timeNow - pair.timeUpdated > _pairMaxIdleLife) {
+                indexesToRemove.push(i);
             }
         }
-        
-        return pairsRemoved;
+
+        // remove marked pairs
+        for (i = 0; i < indexesToRemove.length; i++) {
+            pairIndex = indexesToRemove[i];
+            pair = pairsList[pairIndex];
+            delete pairsTable[pair.id];
+            pairsList.splice(pairIndex, 1);
+        }
     };
 
 })();

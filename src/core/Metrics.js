@@ -59,7 +59,7 @@ var Metrics = {};
             broadphase = engine.broadphase[engine.broadphase.current];
         
         metrics.collisions = metrics.narrowDetections;
-        metrics.pairs = engine.pairsList.length;
+        metrics.pairs = engine.pairs.list.length;
         metrics.bodies = world.bodies.length;
         metrics.midEff = (metrics.narrowDetections / (metrics.midphaseTests || 1)).toFixed(2);
         metrics.narrowEff = (metrics.narrowDetections / (metrics.narrowphaseTests || 1)).toFixed(2);

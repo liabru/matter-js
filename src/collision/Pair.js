@@ -16,15 +16,19 @@ var Pair = {};
      */
     Pair.create = function(collision) {
         var bodyA = collision.bodyA,
-            bodyB = collision.bodyB;
+            bodyB = collision.bodyB,
+            timestamp = Common.now();
 
         var pair = {
             id: Pair.id(bodyA, bodyB),
+            bodyA: bodyA,
+            bodyB: bodyB,
             contacts: {},
             activeContacts: [],
             separation: 0,
             isActive: true,
-            timestamp: Common.now(),
+            timeCreated: timestamp,
+            timeUpdated: timestamp,
             inverseMass: bodyA.inverseMass + bodyB.inverseMass,
             friction: Math.min(bodyA.friction, bodyB.friction),
             restitution: Math.max(bodyA.restitution, bodyB.restitution),
@@ -78,7 +82,7 @@ var Pair = {};
     Pair.setActive = function(pair, isActive) {
         if (isActive) {
             pair.isActive = true;
-            pair.timestamp = Common.now();
+            pair.timeUpdated = Common.now();
         } else {
             pair.isActive = false;
             pair.activeContacts = [];

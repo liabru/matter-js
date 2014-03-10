@@ -34,11 +34,17 @@ var Engine = {};
             positionIterations: 6,
             velocityIterations: 4,
             constraintIterations: 1,
-            pairs: {},
-            pairsList: [],
+            pairs: {
+                table: {},
+                list: [],
+                collisionStart: [],
+                collisionActive: [],
+                collisionEnd: []
+            },
             enableSleeping: false,
             timeScale: 1,
             input: {},
+            events: [],
             timing: {
                 fps: _fps,
                 timestamp: 0,
@@ -78,16 +84,6 @@ var Engine = {};
             }
         };
 
-        engine.events = {
-            tick: function(engine) {
-                Engine.update(engine, engine.timing.delta, engine.timing.correction);
-            },
-            render: function(engine) {
-                if (engine.render.options.enabled)
-                    engine.render.controller.world(engine);
-            }
-        };
-
         return engine;
     };
 
@@ -99,6 +95,7 @@ var Engine = {};
     Engine.run = function(engine) {
         var timing = engine.timing,
             delta,
+            correction,
             counterTimestamp = 0,
             frameCounter = 0,
             deltaHistory = [];
@@ -108,6 +105,13 @@ var Engine = {};
 
             if (!engine.enabled)
                 return;
+
+            // create an event object
+            var event = {
+                timestamp: timestamp
+            };
+
+            Events.trigger(engine, 'beforeTick', event);
 
             delta = (timestamp - timing.timestamp) || _delta;
 
@@ -120,20 +124,32 @@ var Engine = {};
             delta = delta < engine.timing.deltaMin ? engine.timing.deltaMin : delta;
             delta = delta > engine.timing.deltaMax ? engine.timing.deltaMax : delta;
 
+            // verlet time correction
+            correction = delta / timing.delta;
+
+            // update engine timing object
             timing.timestamp = timestamp;
-            timing.correction = delta / timing.delta;
+            timing.correction = correction;
             timing.delta = delta;
             
+            // fps counter
             frameCounter += 1;
-
             if (timestamp - counterTimestamp >= 1000) {
                 timing.fps = frameCounter * ((timestamp - counterTimestamp) / 1000);
                 counterTimestamp = timestamp;
                 frameCounter = 0;
             }
 
-            engine.events.tick(engine);
-            engine.events.render(engine);
+            Events.trigger(engine, 'tick beforeUpdate', event);
+
+            Engine.update(engine, delta, correction);
+
+            Events.trigger(engine, 'afterUpdate beforeRender', event);
+
+            if (engine.render.options.enabled)
+                engine.render.controller.world(engine);
+
+            Events.trigger(engine, 'afterTick afterRender', event);
         })();
     };
 
@@ -151,16 +167,17 @@ var Engine = {};
             broadphasePairs = [],
             i;
 
-        Body.resetForcesAll(world.bodies, world.gravity);
         Metrics.reset(engine.metrics);
 
         MouseConstraint.update(engine.mouseConstraint, world.bodies, engine.input);
         Body.updateAll(world.bodies, delta * engine.timeScale, correction, world.bounds);
 
+        // update all constraints
         for (i = 0; i < engine.constraintIterations; i++) {
             Constraint.updateAll(world.constraints);
         }
 
+        // broadphase pass: find potential collision pairs
         if (broadphase.controller) {
             broadphase.controller.update(broadphase.instance, world.bodies, engine);
             broadphasePairs = broadphase.instance.pairsList;
@@ -168,25 +185,44 @@ var Engine = {};
             broadphasePairs = world.bodies;
         }
         
-        var pairsUpdated = Manager.updatePairs(engine.pairs, engine.pairsList, broadphasePairs, engine.metrics, broadphase.detector),
-            pairsRemoved = Manager.removeOldPairs(engine.pairs, engine.pairsList);
-        
-        if (pairsUpdated || pairsRemoved)
-            engine.pairsList = Common.values(engine.pairs);
+        // narrowphase pass: find actual collisions, then create or update collision pairs
+        var collisions = broadphase.detector(broadphasePairs, engine.metrics);
+
+        // update pairs
+        var pairs = engine.pairs;
+        Manager.updatePairs(pairs, collisions);
+        Manager.removeOldPairs(pairs);
+
+        // trigger collision events
+        if (pairs.collisionStart.length > 0) {
+            Events.trigger(engine, 'collisionStart', {
+                pairs: pairs.collisionStart
+            });
+        }
+        if (pairs.collisionActive.length > 0) {
+            Events.trigger(engine, 'collisionActive', {
+                pairs: pairs.collisionActive
+            });
+        }
+        if (pairs.collisionEnd.length > 0) {
+            Events.trigger(engine, 'collisionEnd', {
+                pairs: pairs.collisionEnd
+            });
+        }
 
         // wake up bodies involved in collisions
         if (engine.enableSleeping)
-            Sleeping.afterCollisions(engine.pairsList);
+            Sleeping.afterCollisions(pairs.list);
 
         // iteratively resolve velocity between collisions
-        Resolver.preSolveVelocity(engine.pairsList);
+        Resolver.preSolveVelocity(pairs.list);
         for (i = 0; i < engine.velocityIterations; i++) {
-            Resolver.solveVelocity(engine.pairsList);
+            Resolver.solveVelocity(pairs.list);
         }
         
         // iteratively resolve position between collisions
         for (i = 0; i < engine.positionIterations; i++) {
-            Resolver.solvePosition(engine.pairsList);
+            Resolver.solvePosition(pairs.list);
         }
         Resolver.postSolvePosition(world.bodies);
 
@@ -194,6 +230,9 @@ var Engine = {};
             Sleeping.update(world.bodies);
 
         Metrics.update(engine.metrics, engine);
+
+        // clear force buffers
+        Body.resetForcesAll(world.bodies, world.gravity);
 
         return engine;
     };
@@ -238,8 +277,8 @@ var Engine = {};
     Engine.clear = function(engine) {
         var world = engine.world;
         
-        engine.pairs = {};
-        engine.pairsList = [];
+        engine.pairs.table = {};
+        engine.pairs.list = [];
 
         World.addComposite(engine.world, engine.mouseConstraint);
 

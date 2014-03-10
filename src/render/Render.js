@@ -82,8 +82,8 @@ var Render = {};
             Render.constraint(world.constraints[i], context);
 
         if (options.showCollisions)
-            for (i = 0; i < engine.pairsList.length; i++)
-                Render.collision(engine, engine.pairsList[i], context);
+            for (i = 0; i < engine.pairs.list.length; i++)
+                Render.collision(engine, engine.pairs.list[i], context);
 
         if (options.showBroadphase && engine.broadphase.current === 'grid')
             Render.grid(engine, engine.broadphase[engine.broadphase.current].instance, context);
@@ -118,7 +118,7 @@ var Render = {};
             text += "\n";
 
             text += "collisions: " + engine.metrics.collisions + space;
-            text += "pairs: " + engine.pairs.length + space;
+            text += "pairs: " + engine.pairs.list.length + space;
             text += "broad: " + engine.metrics.broadEff + space;
             text += "mid: " + engine.metrics.midEff + space;
             text += "narrow: " + engine.metrics.narrowEff + space;            

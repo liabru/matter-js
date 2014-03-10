@@ -31,6 +31,7 @@ Matter.Vector = Vector;
 Matter.Vertices = Vertices;
 Matter.Gui = Gui;
 Matter.Render = Render;
+Matter.Events = Events;
 
 // CommonJS module
 if (typeof exports !== 'undefined') {
