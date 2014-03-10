@@ -23,6 +23,12 @@ var Sleeping = {};
             var body = bodies[i],
                 motion = body.speed * body.speed + body.angularSpeed * body.angularSpeed;
 
+            // wake up bodies if they have a force applied
+            if (body.force.x > 0 || body.force.y > 0) {
+                Sleeping.set(body, false);
+                continue;
+            }
+
             var minMotion = Math.min(body.motion, motion),
                 maxMotion = Math.max(body.motion, motion);
         

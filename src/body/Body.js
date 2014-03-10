@@ -113,19 +113,30 @@ var Body = {};
      * Description
      * @method resetForcesAll
      * @param {body[]} bodies
-     * @param {vector} gravity
      */
-    Body.resetForcesAll = function(bodies, gravity) {
+    Body.resetForcesAll = function(bodies) {
         for (var i = 0; i < bodies.length; i++) {
             var body = bodies[i];
-
-            if (body.isStatic || body.isSleeping)
-                continue;
 
             // reset force buffers
             body.force.x = 0;
             body.force.y = 0;
             body.torque = 0;
+        }
+    };
+
+    /**
+     * Description
+     * @method applyGravityAll
+     * @param {body[]} bodies
+     * @param {vector} gravity
+     */
+    Body.applyGravityAll = function(bodies, gravity) {
+        for (var i = 0; i < bodies.length; i++) {
+            var body = bodies[i];
+
+            if (body.isStatic || body.isSleeping)
+                continue;
 
             // apply gravity
             body.force.y += body.mass * gravity.y * 0.001;

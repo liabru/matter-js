@@ -169,7 +169,13 @@ var Engine = {};
 
         Metrics.reset(engine.metrics);
 
+        if (engine.enableSleeping)
+            Sleeping.update(world.bodies);
+
+        Body.applyGravityAll(world.bodies, world.gravity);
+
         MouseConstraint.update(engine.mouseConstraint, world.bodies, engine.input);
+        
         Body.updateAll(world.bodies, delta * engine.timeScale, correction, world.bounds);
 
         // update all constraints
@@ -226,13 +232,10 @@ var Engine = {};
         }
         Resolver.postSolvePosition(world.bodies);
 
-        if (engine.enableSleeping)
-            Sleeping.update(world.bodies);
-
         Metrics.update(engine.metrics, engine);
 
         // clear force buffers
-        Body.resetForcesAll(world.bodies, world.gravity);
+        Body.resetForcesAll(world.bodies);
 
         return engine;
     };
