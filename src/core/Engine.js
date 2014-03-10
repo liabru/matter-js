@@ -142,10 +142,32 @@ var Engine = {};
 
             Events.trigger(engine, 'tick beforeUpdate', event);
 
+            // update
             Engine.update(engine, delta, correction);
+
+            var pairs = engine.pairs;
+
+            if (pairs.collisionStart.length > 0) {
+                Events.trigger(engine, 'collisionStart', {
+                    pairs: pairs.collisionStart
+                });
+            }
+
+            if (pairs.collisionActive.length > 0) {
+                Events.trigger(engine, 'collisionActive', {
+                    pairs: pairs.collisionActive
+                });
+            }
+
+            if (pairs.collisionEnd.length > 0) {
+                Events.trigger(engine, 'collisionEnd', {
+                    pairs: pairs.collisionEnd
+                });
+            }
 
             Events.trigger(engine, 'afterUpdate beforeRender', event);
 
+            // render
             if (engine.render.options.enabled)
                 engine.render.controller.world(engine);
 
@@ -175,7 +197,7 @@ var Engine = {};
         Body.applyGravityAll(world.bodies, world.gravity);
 
         MouseConstraint.update(engine.mouseConstraint, world.bodies, engine.input);
-        
+
         Body.updateAll(world.bodies, delta * engine.timeScale, correction, world.bounds);
 
         // update all constraints
@@ -198,23 +220,6 @@ var Engine = {};
         var pairs = engine.pairs;
         Manager.updatePairs(pairs, collisions);
         Manager.removeOldPairs(pairs);
-
-        // trigger collision events
-        if (pairs.collisionStart.length > 0) {
-            Events.trigger(engine, 'collisionStart', {
-                pairs: pairs.collisionStart
-            });
-        }
-        if (pairs.collisionActive.length > 0) {
-            Events.trigger(engine, 'collisionActive', {
-                pairs: pairs.collisionActive
-            });
-        }
-        if (pairs.collisionEnd.length > 0) {
-            Events.trigger(engine, 'collisionEnd', {
-                pairs: pairs.collisionEnd
-            });
-        }
 
         // wake up bodies involved in collisions
         if (engine.enableSleeping)
