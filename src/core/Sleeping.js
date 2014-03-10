@@ -54,11 +54,17 @@ var Sleeping = {};
     Sleeping.afterCollisions = function(pairs) {
         // wake up bodies involved in collisions
         for (var i = 0; i < pairs.length; i++) {
-            var pair = pairs[i],
-                collision = pair.collision,
+            var pair = pairs[i];
+            
+            // don't wake inactive pairs
+            if (!pair.isActive)
+                continue;
+
+            var collision = pair.collision,
                 bodyA = collision.bodyA, 
                 bodyB = collision.bodyB;
         
+            // don't wake if at least one body is static
             if ((bodyA.isSleeping && bodyB.isSleeping) || bodyA.isStatic || bodyB.isStatic)
                 continue;
         
