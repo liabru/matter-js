@@ -11,21 +11,34 @@ var Common = {};
     /**
      * Description
      * @method extend
-     * @param {} obj, obj, obj...
+     * @param {} obj
+     * @param {boolean} deep
      * @return {} obj extended
      */
-    Common.extend = function(obj) {
-        var args = Array.prototype.slice.call(arguments, 1);
+    Common.extend = function(obj, deep) {
+        var argsStart,
+            args,
+            deepClone;
+
+        if (typeof deep === 'boolean') {
+            argsStart = 2;
+            deepClone = deep;
+        } else {
+            argsStart = 1;
+            deepClone = true;
+        }
+
+        args = Array.prototype.slice.call(arguments, argsStart);
 
         for (var i = 0; i < args.length; i++) {
             var source = args[i];
 
             if (source) {
                 for (var prop in source) {
-                    if (source[prop].constructor === Object) {
+                    if (deepClone && source[prop].constructor === Object) {
                         if (!obj[prop] || obj[prop].constructor === Object) {
                             obj[prop] = obj[prop] || {};
-                            Common.extend(obj[prop], source[prop]);
+                            Common.extend(obj[prop], deepClone, source[prop]);
                         } else {
                             obj[prop] = source[prop];
                         }
@@ -37,6 +50,17 @@ var Common = {};
         }
         
         return obj;
+    };
+
+    /**
+     * Creates a new clone of the object, if deep is true references will also be cloned
+     * @method clone
+     * @param {} obj
+     * @param {bool} deep
+     * @return {} obj cloned
+     */
+    Common.clone = function(obj, deep) {
+        return Common.extend({}, deep, obj);
     };
 
     /**
