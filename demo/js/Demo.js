@@ -9,7 +9,8 @@
         Composite = Matter.Composite,
         Composites = Matter.Composites,
         Common = Matter.Common,
-        Constraint = Matter.Constraint;
+        Constraint = Matter.Constraint,
+        Events = Matter.Events;
 
     var Demo = {};
 
@@ -85,6 +86,9 @@
         World.clear(_world);
         Engine.clear(_engine);
 
+        if (Events)
+            Events.clear(_engine);
+
         _engine.enableSleeping = false;
         _engine.world.gravity.y = 1;
 
@@ -97,7 +101,7 @@
         var renderOptions = _engine.render.options;
         
         renderOptions.wireframes = true;
-        renderOptions.showDebug = false;
+        renderOptions.showDebug = true;
         renderOptions.showBroadphase = false;
         renderOptions.showBounds = false;
         renderOptions.showVelocity = false;
@@ -509,6 +513,82 @@
         });
         
         World.addComposite(_world, stack);
+    };
+
+    Demo.events = function() {
+        var _world = _engine.world;
+        
+        Demo.reset();
+        
+        var stack = Composites.stack(50, 100, 8, 4, 50, 50, function(x, y, column, row) {
+            return Bodies.circle(x, y, 15, { restitution: 1, strokeStyle: '#777' });
+        });
+        
+        World.addComposite(_world, stack);
+
+        //_engine.enableSleeping = true;
+
+        // an example of using beforeUpdate event on an engine
+        Events.on(_engine, 'beforeUpdate', function(event) {
+            var engine = event.source;
+
+            // apply random forces every 5 secs
+            if (event.timestamp % 5000 < 50) {
+                var bodies = engine.world.bodies;
+
+                for (var i = 0; i < bodies.length; i++) {
+                    var body = bodies[i];
+
+                    if (!body.isStatic && body.position.y >= 500) {
+                        var forceMagnitude = 0.01 * body.mass;
+
+                        Body.applyForce(body, { x: 0, y: 0 }, { 
+                            x: (forceMagnitude + Math.random() * forceMagnitude) * Common.choose([1, -1]), 
+                            y: -forceMagnitude + Math.random() * -forceMagnitude
+                        });
+                    }
+                }
+            }
+        });
+
+        // an example of using collisionStart event on an engine
+        Events.on(_engine, 'collisionStart', function(event) {
+            var pairs = event.pairs;
+
+            // change object colours to show those starting a collision
+            for (var i = 0; i < pairs.length; i++) {
+                var pair = pairs[i];
+                pair.bodyA.fillStyle = '#bbbbbb';
+                pair.bodyB.fillStyle = '#bbbbbb';
+            }
+        });
+
+        // an example of using collisionActive event on an engine
+        Events.on(_engine, 'collisionActive', function(event) {
+            var pairs = event.pairs;
+
+            // change object colours to show those in an active collision (e.g. resting contact)
+            for (var i = 0; i < pairs.length; i++) {
+                var pair = pairs[i];
+                pair.bodyA.fillStyle = '#aaaaaa';
+                pair.bodyB.fillStyle = '#aaaaaa';
+            }
+        });
+
+        // an example of using collisionEnd event on an engine
+        Events.on(_engine, 'collisionEnd', function(event) {
+            var pairs = event.pairs;
+
+            // change object colours to show those ending a collision
+            for (var i = 0; i < pairs.length; i++) {
+                var pair = pairs[i];
+                pair.bodyA.fillStyle = '#999999';
+                pair.bodyB.fillStyle = '#999999';
+            }
+        });
+
+        var renderOptions = _engine.render.options;
+        renderOptions.wireframes = false;
     };
 
 })();
