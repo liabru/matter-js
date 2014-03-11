@@ -59,7 +59,7 @@
 Matter.js is currently only *alpha* status, so production use should be avoided.
 
 This engine is the result of [learning game physics](http://brm.io/game-physics-for-beginners/) and getting a bit carried away. 
-<br>There's no intention to compete with other engines, so I'm not sure yet if it will be developed further. 
+<br>There's no intention to compete with other engines, so I'm not sure yet how much it will be developed further. 
 <br>That said, the engine is reasonably stable and performs well, it's just not feature complete.
 
 Though if I get time and people are interested, I may continue working on it.
@@ -67,18 +67,21 @@ Though if I get time and people are interested, I may continue working on it.
 
 ### Install
 
-Download [matter.js](https://raw2.github.com/liabru/matter-js/master/build/matter.js) or [matter.min.js](https://raw2.github.com/liabru/matter-js/master/build/matter.min.js) and include the script in your HTML file:
+Download [matter-0.5.0.js](https://github.com/liabru/matter-js/releases/download/0.5.0-alpha/matter-0.5.0.js) or [matter-0.5.0.min.js](https://github.com/liabru/matter-js/releases/download/0.5.0-alpha/matter-0.5.0.min.js) and include the script in your HTML file:
 
-	<script src="matter.js" type="text/javascript"></script>
+	<script src="matter-0.5.0.js" type="text/javascript"></script>
+
+For the latest features try the [edge version (master)](https://raw.github.com/liabru/matter-js/master/build/matter.js), but it may not be fully stable.
 
 ### Usage
 
-See [Demo.js](https://raw2.github.com/liabru/matter-js/master/demo/js/Demo.js) and [DemoMobile.js](https://raw2.github.com/liabru/matter-js/master/demo/js/DemoMobile.js) for many usage examples.
+See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for many usage examples.
 <br>When loaded, all functions are under the global <code>Matter.*</code> namespace.
 
 ### Documentation
 
-See the [Matter.js API Docs](http://brm.io/matter-js-docs/).
+See the [Matter.js API Docs (v0.5.0)](http://brm.io/matter-js-docs/).
+<br>If you're using the [edge version (master)](https://raw2.github.com/liabru/matter-js/master/build/matter.js) then see the [API Docs (master)](http://brm.io/matter-js-docs-master/).
 
 ### Implementation
 
