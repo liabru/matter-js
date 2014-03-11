@@ -2,6 +2,7 @@ module.exports = function(grunt) {
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
     buildName: 'matter',
+    buildVersion: '<%= pkg.version %>-edge',
     docVersion: 'v<%= pkg.version %>',
     concat: {
       build: {
@@ -15,7 +16,7 @@ module.exports = function(grunt) {
       },
       pack: {
         options: {
-          banner: '/**\n* <%= buildName %>.js <%= pkg.version %> <%= grunt.template.today("yyyy-mm-dd") %>\n* <%= pkg.homepage %>\n* License: <%= pkg.license %>\n*/\n\n',
+          banner: '/**\n* <%= buildName %>.js <%= buildVersion %> <%= grunt.template.today("yyyy-mm-dd") %>\n* <%= pkg.homepage %>\n* License: <%= pkg.license %>\n*/\n\n',
         },
         src: ['src/module/Intro.js', 'build/<%= buildName %>.js', 'src/module/Outro.js'],
         dest: 'build/<%= buildName %>.js'
@@ -23,7 +24,7 @@ module.exports = function(grunt) {
     },
     uglify: {
       options: {
-        banner: '/**\n* <%= buildName %>.min.js <%= pkg.version %> <%= grunt.template.today("yyyy-mm-dd") %>\n* <%= pkg.homepage %>\n* License: <%= pkg.license %>\n*/\n\n',
+        banner: '/**\n* <%= buildName %>.min.js <%= buildVersion %> <%= grunt.template.today("yyyy-mm-dd") %>\n* <%= pkg.homepage %>\n* License: <%= pkg.license %>\n*/\n\n',
       },
       build: {
         src: 'build/<%= buildName %>.js',
@@ -59,7 +60,7 @@ module.exports = function(grunt) {
       },
       src: {
         files: ['src/**/*.js'],
-        tasks: ['set_config:buildName:matter-dev','build']
+        tasks: ['build:-dev']
       },
       demo: {
         files: ['build/matter.js', 'demo/js/**/*.html', 'demo/js/**/*.js', 'demo/css/**/*.css']
@@ -90,9 +91,34 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-yuidoc');
 
   grunt.registerTask('default', ['test', 'build']);
-  grunt.registerTask('build', ['concat', 'uglify', 'copy']);
   grunt.registerTask('test', ['jshint']);
-  grunt.registerTask('dev', ['set_config:buildName:matter-dev', 'build', 'connect:watch', 'watch']);
+  grunt.registerTask('dev', ['build:-dev', 'connect:watch', 'watch']);
+
+  grunt.registerTask('build', function(n) {
+    var isDev = grunt.option('dev'),
+        isRelease = grunt.option('release'),
+        isEdge = grunt.option('edge'),
+        pkg = grunt.file.readJSON('package.json');
+
+    // development build mode
+    if (isDev) {
+      grunt.config.set('buildName', 'matter-dev');
+      grunt.config.set('buildVersion', pkg.version + '-dev');
+    }
+
+    // release build mode
+    if (isRelease) {
+      grunt.config.set('buildName', 'matter-' + pkg.version);
+      grunt.config.set('buildVersion', pkg.version + '-alpha');
+    }
+
+    // edge build mode (default)
+    if (isEdge || (!isDev && !isRelease)) {
+      grunt.config.set('buildVersion', pkg.version + '-edge');
+    }
+
+    grunt.task.run('concat', 'uglify', 'copy');
+  });
 
   grunt.registerTask('doc', function(n) {
     var dev = grunt.option('dev');
