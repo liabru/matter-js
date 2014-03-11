@@ -1,5 +1,5 @@
 /**
-* matter.js 0.5.0-edge 2014-03-11
+* matter-0.5.0.js 0.5.0-alpha 2014-02-28
 * http://brm.io/matter-js/
 * License: MIT
 */
@@ -155,30 +155,19 @@ var Body = {};
      * Description
      * @method resetForcesAll
      * @param {body[]} bodies
-     */
-    Body.resetForcesAll = function(bodies) {
-        for (var i = 0; i < bodies.length; i++) {
-            var body = bodies[i];
-
-            // reset force buffers
-            body.force.x = 0;
-            body.force.y = 0;
-            body.torque = 0;
-        }
-    };
-
-    /**
-     * Description
-     * @method applyGravityAll
-     * @param {body[]} bodies
      * @param {vector} gravity
      */
-    Body.applyGravityAll = function(bodies, gravity) {
+    Body.resetForcesAll = function(bodies, gravity) {
         for (var i = 0; i < bodies.length; i++) {
             var body = bodies[i];
 
             if (body.isStatic || body.isSleeping)
                 continue;
+
+            // reset force buffers
+            body.force.x = 0;
+            body.force.y = 0;
+            body.torque = 0;
 
             // apply gravity
             body.force.y += body.mass * gravity.y * 0.001;
@@ -924,112 +913,77 @@ var Manager = {};
 
 (function() {
     
-    var _pairMaxIdleLife = 1000;
+    var _pairMaxIdleLife = 500;
 
     /**
      * Description
      * @method updatePairs
      * @param {object} pairs
-     * @param {collision[]} collisions
+     * @param {pair[]} pairsList
+     * @param {pair[]} candidatePairs
+     * @param {metrics} metrics
+     * @param {detector} detector
+     * @return {bool} pairsUpdated flag
      */
-    Manager.updatePairs = function(pairs, collisions) {
-        var pairsList = pairs.list,
-            pairsTable = pairs.table,
-            collisionStart = pairs.collisionStart,
-            collisionEnd = pairs.collisionEnd,
-            collisionActive = pairs.collisionActive,
-            activePairIds = [],
-            collision,
-            pairId,
-            pair,
-            i;
+    Manager.updatePairs = function(pairs, pairsList, candidatePairs, metrics, detector) {
+        var i;
 
-        // clear collision state arrays, but maintain old reference
-        collisionStart.length = 0;
-        collisionEnd.length = 0;
-        collisionActive.length = 0;
-
-        for (i = 0; i < collisions.length; i++) {
-            collision = collisions[i];
-
-            if (collision.collided) {
-                pairId = Pair.id(collision.bodyA, collision.bodyB);
-                activePairIds.push(pairId);
-                
-                if (pairId in pairsTable) {
-                    // pair already exists (but may or may not be active)
-                    pair = pairsTable[pairId];
-
-                    if (pair.isActive) {
-                        // pair exists and is active
-                        collisionActive.push(pair);
-                    } else {
-                        // pair exists but was inactive, so a collision has just started again
-                        collisionStart.push(pair);
-                    }
-
-                    // update the pair
-                    Pair.update(pair, collision);
-                } else {
-                    // pair did not exist, create a new pair
-                    pair = Pair.create(collision);
-                    pairsTable[pairId] = pair;
-
-                    // push the new pair
-                    collisionStart.push(pair);
-                    pairsList.push(pair);
-                }
-            }
-        }
-
-        // deactivate previously active pairs that are now inactive
+        // first set all pairs inactive
         for (i = 0; i < pairsList.length; i++) {
-            pair = pairsList[i];
-            if (pair.isActive && activePairIds.indexOf(pair.id) === -1) {
-                Pair.setActive(pair, false);
-                collisionEnd.push(pair);
+            var pair = pairsList[i];
+            Pair.setActive(pair, false);
+        }
+        
+        // detect collisions in current step
+        var pairsUpdated = false,
+            collisions = detector(candidatePairs, metrics);
+
+        // set collision pairs to active, or create if pair is new
+        for (i = 0; i < collisions.length; i++) {
+            var collision = collisions[i],
+                pairId = Pair.id(collision.bodyA, collision.bodyB);
+            
+            if (pairId in pairs) {
+                Pair.update(pairs[pairId], collision);
+            } else {
+                pairs[pairId] = Pair.create(collision);
+                pairsUpdated = true;
             }
         }
+        
+        return pairsUpdated;
     };
     
     /**
      * Description
      * @method removeOldPairs
      * @param {object} pairs
+     * @param {pair[]} pairsList
+     * @return {bool} pairsRemoved flag
      */
-    Manager.removeOldPairs = function(pairs) {
-        var pairsList = pairs.list,
-            pairsTable = pairs.table,
-            timeNow = Common.now(),
-            indexesToRemove = [],
-            pair,
-            collision,
-            pairIndex,
+    Manager.removeOldPairs = function(pairs, pairsList) {
+        var timeNow = Common.now(),
+            pairsRemoved = false,
             i;
-
+        
         for (i = 0; i < pairsList.length; i++) {
-            pair = pairsList[i];
-            collision = pair.collision;
+            var pair = pairsList[i],
+                collision = pair.collision;
             
             // never remove sleeping pairs
             if (collision.bodyA.isSleeping || collision.bodyB.isSleeping) {
-                pair.timeUpdated = timeNow;
+                pair.timestamp = timeNow;
                 continue;
             }
 
-            // if pair is inactive for too long, mark it to be removed
-            if (timeNow - pair.timeUpdated > _pairMaxIdleLife) {
-                indexesToRemove.push(i);
+            // if pair is inactive for too long, remove it
+            if (timeNow - pair.timestamp > _pairMaxIdleLife) {
+                delete pairs[pair.id];
+                pairsRemoved = true;
             }
         }
-
-        // remove marked pairs
-        for (i = 0; i < indexesToRemove.length; i++) {
-            pairIndex = indexesToRemove[i];
-            pair = pairsList[pairIndex];
-            delete pairsTable[pair.id];
-            pairsList.splice(pairIndex, 1);
-        }
+        
+        return pairsRemoved;
     };
 
 })();
@@ -1057,19 +1011,15 @@ var Pair = {};
      */
     Pair.create = function(collision) {
         var bodyA = collision.bodyA,
-            bodyB = collision.bodyB,
-            timestamp = Common.now();
+            bodyB = collision.bodyB;
 
         var pair = {
             id: Pair.id(bodyA, bodyB),
-            bodyA: bodyA,
-            bodyB: bodyB,
             contacts: {},
             activeContacts: [],
             separation: 0,
             isActive: true,
-            timeCreated: timestamp,
-            timeUpdated: timestamp,
+            timestamp: Common.now(),
             inverseMass: bodyA.inverseMass + bodyB.inverseMass,
             friction: Math.min(bodyA.friction, bodyB.friction),
             restitution: Math.max(bodyA.restitution, bodyB.restitution),
@@ -1123,7 +1073,7 @@ var Pair = {};
     Pair.setActive = function(pair, isActive) {
         if (isActive) {
             pair.isActive = true;
-            pair.timeUpdated = Common.now();
+            pair.timestamp = Common.now();
         } else {
             pair.isActive = false;
             pair.activeContacts = [];
@@ -1952,34 +1902,21 @@ var Common = {};
     /**
      * Description
      * @method extend
-     * @param {} obj
-     * @param {boolean} deep
+     * @param {} obj, obj, obj...
      * @return {} obj extended
      */
-    Common.extend = function(obj, deep) {
-        var argsStart,
-            args,
-            deepClone;
-
-        if (typeof deep === 'boolean') {
-            argsStart = 2;
-            deepClone = deep;
-        } else {
-            argsStart = 1;
-            deepClone = true;
-        }
-
-        args = Array.prototype.slice.call(arguments, argsStart);
+    Common.extend = function(obj) {
+        var args = Array.prototype.slice.call(arguments, 1);
 
         for (var i = 0; i < args.length; i++) {
             var source = args[i];
 
             if (source) {
                 for (var prop in source) {
-                    if (deepClone && source[prop].constructor === Object) {
+                    if (source[prop].constructor === Object) {
                         if (!obj[prop] || obj[prop].constructor === Object) {
                             obj[prop] = obj[prop] || {};
-                            Common.extend(obj[prop], deepClone, source[prop]);
+                            Common.extend(obj[prop], source[prop]);
                         } else {
                             obj[prop] = source[prop];
                         }
@@ -1991,17 +1928,6 @@ var Common = {};
         }
         
         return obj;
-    };
-
-    /**
-     * Creates a new clone of the object, if deep is true references will also be cloned
-     * @method clone
-     * @param {} obj
-     * @param {bool} deep
-     * @return {} obj cloned
-     */
-    Common.clone = function(obj, deep) {
-        return Common.extend({}, deep, obj);
     };
 
     /**
@@ -2197,17 +2123,11 @@ var Engine = {};
             positionIterations: 6,
             velocityIterations: 4,
             constraintIterations: 1,
-            pairs: {
-                table: {},
-                list: [],
-                collisionStart: [],
-                collisionActive: [],
-                collisionEnd: []
-            },
+            pairs: {},
+            pairsList: [],
             enableSleeping: false,
             timeScale: 1,
             input: {},
-            events: [],
             timing: {
                 fps: _fps,
                 timestamp: 0,
@@ -2247,6 +2167,16 @@ var Engine = {};
             }
         };
 
+        engine.events = {
+            tick: function(engine) {
+                Engine.update(engine, engine.timing.delta, engine.timing.correction);
+            },
+            render: function(engine) {
+                if (engine.render.options.enabled)
+                    engine.render.controller.world(engine);
+            }
+        };
+
         return engine;
     };
 
@@ -2258,7 +2188,6 @@ var Engine = {};
     Engine.run = function(engine) {
         var timing = engine.timing,
             delta,
-            correction,
             counterTimestamp = 0,
             frameCounter = 0,
             deltaHistory = [];
@@ -2268,22 +2197,6 @@ var Engine = {};
 
             if (!engine.enabled)
                 return;
-
-            // create an event object
-            var event = {
-                timestamp: timestamp
-            };
-
-            /**
-            * Fired at the start of a tick, before any updates to the engine or timing
-            *
-            * @event beforeTick
-            * @param {} event An event object
-            * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
-            * @param {} event.source The source object of the event
-            * @param {} event.name The name of the event
-            */
-            Events.trigger(engine, 'beforeTick', event);
 
             delta = (timestamp - timing.timestamp) || _delta;
 
@@ -2296,138 +2209,20 @@ var Engine = {};
             delta = delta < engine.timing.deltaMin ? engine.timing.deltaMin : delta;
             delta = delta > engine.timing.deltaMax ? engine.timing.deltaMax : delta;
 
-            // verlet time correction
-            correction = delta / timing.delta;
-
-            // update engine timing object
             timing.timestamp = timestamp;
-            timing.correction = correction;
+            timing.correction = delta / timing.delta;
             timing.delta = delta;
             
-            // fps counter
             frameCounter += 1;
+
             if (timestamp - counterTimestamp >= 1000) {
                 timing.fps = frameCounter * ((timestamp - counterTimestamp) / 1000);
                 counterTimestamp = timestamp;
                 frameCounter = 0;
             }
 
-            /**
-            * Fired after engine timing updated, but just before engine state updated
-            *
-            * @event tick
-            * @param {} event An event object
-            * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
-            * @param {} event.source The source object of the event
-            * @param {} event.name The name of the event
-            */
-            /**
-            * Fired just before an update
-            *
-            * @event beforeUpdate
-            * @param {} event An event object
-            * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
-            * @param {} event.source The source object of the event
-            * @param {} event.name The name of the event
-            */
-            Events.trigger(engine, 'tick beforeUpdate', event);
-
-            // update
-            Engine.update(engine, delta, correction);
-
-            var pairs = engine.pairs;
-
-            /**
-            * Fired after engine update, provides a list of all pairs that have started to collide in the current tick (if any)
-            *
-            * @event collisionStart
-            * @param {} event An event object
-            * @param {} event.pairs List of affected pairs
-            * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
-            * @param {} event.source The source object of the event
-            * @param {} event.name The name of the event
-            */
-            if (pairs.collisionStart.length > 0) {
-                Events.trigger(engine, 'collisionStart', {
-                    pairs: pairs.collisionStart
-                });
-            }
-
-            /**
-            * Fired after engine update, provides a list of all pairs that are colliding in the current tick (if any)
-            *
-            * @event collisionActive
-            * @param {} event An event object
-            * @param {} event.pairs List of affected pairs
-            * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
-            * @param {} event.source The source object of the event
-            * @param {} event.name The name of the event
-            */
-            if (pairs.collisionActive.length > 0) {
-                Events.trigger(engine, 'collisionActive', {
-                    pairs: pairs.collisionActive
-                });
-            }
-
-            /**
-            * Fired after engine update, provides a list of all pairs that have ended collision in the current tick (if any)
-            *
-            * @event collisionEnd
-            * @param {} event An event object
-            * @param {} event.pairs List of affected pairs
-            * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
-            * @param {} event.source The source object of the event
-            * @param {} event.name The name of the event
-            */
-            if (pairs.collisionEnd.length > 0) {
-                Events.trigger(engine, 'collisionEnd', {
-                    pairs: pairs.collisionEnd
-                });
-            }
-
-            /**
-            * Fired after engine update and all collision events
-            *
-            * @event afterUpdate
-            * @param {} event An event object
-            * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
-            * @param {} event.source The source object of the event
-            * @param {} event.name The name of the event
-            */
-            /**
-            * Fired just before rendering
-            *
-            * @event beforeRender
-            * @param {} event An event object
-            * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
-            * @param {} event.source The source object of the event
-            * @param {} event.name The name of the event
-            */
-            Events.trigger(engine, 'afterUpdate beforeRender', event);
-
-            // render
-            if (engine.render.options.enabled)
-                engine.render.controller.world(engine);
-
-            /**
-            * Fired after rendering
-            *
-            * @event afterRender
-            * @param {} event An event object
-            * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
-            * @param {} event.source The source object of the event
-            * @param {} event.name The name of the event
-            */
-            /**
-            * Fired after engine update and after rendering
-            *
-            * @event afterTick
-            * @param {} event An event object
-            * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
-            * @param {} event.source The source object of the event
-            * @param {} event.name The name of the event
-            */
-            Events.trigger(engine, 'afterTick afterRender', event);
+            engine.events.tick(engine);
+            engine.events.render(engine);
         })();
     };
 
@@ -2445,23 +2240,16 @@ var Engine = {};
             broadphasePairs = [],
             i;
 
+        Body.resetForcesAll(world.bodies, world.gravity);
         Metrics.reset(engine.metrics);
 
-        if (engine.enableSleeping)
-            Sleeping.update(world.bodies);
-
-        Body.applyGravityAll(world.bodies, world.gravity);
-
         MouseConstraint.update(engine.mouseConstraint, world.bodies, engine.input);
-
         Body.updateAll(world.bodies, delta * engine.timeScale, correction, world.bounds);
 
-        // update all constraints
         for (i = 0; i < engine.constraintIterations; i++) {
             Constraint.updateAll(world.constraints);
         }
 
-        // broadphase pass: find potential collision pairs
         if (broadphase.controller) {
             broadphase.controller.update(broadphase.instance, world.bodies, engine);
             broadphasePairs = broadphase.instance.pairsList;
@@ -2469,34 +2257,32 @@ var Engine = {};
             broadphasePairs = world.bodies;
         }
         
-        // narrowphase pass: find actual collisions, then create or update collision pairs
-        var collisions = broadphase.detector(broadphasePairs, engine.metrics);
-
-        // update pairs
-        var pairs = engine.pairs;
-        Manager.updatePairs(pairs, collisions);
-        Manager.removeOldPairs(pairs);
+        var pairsUpdated = Manager.updatePairs(engine.pairs, engine.pairsList, broadphasePairs, engine.metrics, broadphase.detector),
+            pairsRemoved = Manager.removeOldPairs(engine.pairs, engine.pairsList);
+        
+        if (pairsUpdated || pairsRemoved)
+            engine.pairsList = Common.values(engine.pairs);
 
         // wake up bodies involved in collisions
         if (engine.enableSleeping)
-            Sleeping.afterCollisions(pairs.list);
+            Sleeping.afterCollisions(engine.pairsList);
 
         // iteratively resolve velocity between collisions
-        Resolver.preSolveVelocity(pairs.list);
+        Resolver.preSolveVelocity(engine.pairsList);
         for (i = 0; i < engine.velocityIterations; i++) {
-            Resolver.solveVelocity(pairs.list);
+            Resolver.solveVelocity(engine.pairsList);
         }
         
         // iteratively resolve position between collisions
         for (i = 0; i < engine.positionIterations; i++) {
-            Resolver.solvePosition(pairs.list);
+            Resolver.solvePosition(engine.pairsList);
         }
         Resolver.postSolvePosition(world.bodies);
 
-        Metrics.update(engine.metrics, engine);
+        if (engine.enableSleeping)
+            Sleeping.update(world.bodies);
 
-        // clear force buffers
-        Body.resetForcesAll(world.bodies);
+        Metrics.update(engine.metrics, engine);
 
         return engine;
     };
@@ -2541,8 +2327,8 @@ var Engine = {};
     Engine.clear = function(engine) {
         var world = engine.world;
         
-        engine.pairs.table = {};
-        engine.pairs.list = [];
+        engine.pairs = {};
+        engine.pairsList = [];
 
         World.addComposite(engine.world, engine.mouseConstraint);
 
@@ -2559,95 +2345,6 @@ var Engine = {};
 })();
 
 ;   // End src/core/Engine.js
-
-
-// Begin src/core/Events.js
-
-/**
-* See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
-* and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
-*
-* @class Events
-*/
-
-var Events = {};
-
-(function() {
-
-    /**
-     * Subscribes a callback function to the given object's eventName
-     * @method on
-     * @param {} object
-     * @param {string} eventNames
-     * @param {function} callback
-     */
-    Events.on = function(object, eventNames, callback) {
-        var names = eventNames.split(' '),
-            name;
-
-        for (var i = 0; i < names.length; i++) {
-            name = names[i];
-            object.events = object.events || {};
-            object.events[name] = object.events[name] || [];
-            object.events[name].push(callback);
-        }
-    };
-
-    /**
-     * Fires all the callbacks subscribed to the given object's eventName, in the order they subscribed, if any
-     * @method fire
-     * @param {} object
-     * @param {string} eventNames
-     * @param {} event
-     */
-    Events.trigger = function(object, eventNames, event) {
-        var names,
-            name,
-            callbacks,
-            eventClone;
-
-        if (object.events) {
-            event = event || {};
-            names = eventNames.split(' ');
-
-            for (var i = 0; i < names.length; i++) {
-                name = names[i];
-
-                if (name in object.events) {
-                    callbacks = object.events[name];
-                    eventClone = Common.clone(event, false);
-                    eventClone.name = name;
-                    eventClone.source = object;
-
-                    for (var j = 0; j < callbacks.length; j++) {
-                        callbacks[j].apply(object, [eventClone]);
-                    }
-                }
-            }
-        }
-    };
-
-    /**
-     * Clears all callbacks for the given event names if supplied, otherwise all events
-     * @method clear
-     * @param {} object
-     * @param {string} eventNames
-     */
-    Events.clear = function(object, eventNames) {
-        if (!eventNames) {
-            object.events = {};
-            return;
-        }
-
-        var names = eventNames.split(' ');
-        for (var i = 0; i < names.length; i++) {
-            object.events[names[i]] = [];
-        }
-    };
-
-})();
-
-;   // End src/core/Events.js
 
 
 // Begin src/core/Metrics.js
@@ -2713,7 +2410,7 @@ var Metrics = {};
             broadphase = engine.broadphase[engine.broadphase.current];
         
         metrics.collisions = metrics.narrowDetections;
-        metrics.pairs = engine.pairs.list.length;
+        metrics.pairs = engine.pairsList.length;
         metrics.bodies = world.bodies.length;
         metrics.midEff = (metrics.narrowDetections / (metrics.midphaseTests || 1)).toFixed(2);
         metrics.narrowEff = (metrics.narrowDetections / (metrics.narrowphaseTests || 1)).toFixed(2);
@@ -2872,12 +2569,6 @@ var Sleeping = {};
             var body = bodies[i],
                 motion = body.speed * body.speed + body.angularSpeed * body.angularSpeed;
 
-            // wake up bodies if they have a force applied
-            if (body.force.x > 0 || body.force.y > 0) {
-                Sleeping.set(body, false);
-                continue;
-            }
-
             var minMotion = Math.min(body.motion, motion),
                 maxMotion = Math.max(body.motion, motion);
         
@@ -2903,17 +2594,11 @@ var Sleeping = {};
     Sleeping.afterCollisions = function(pairs) {
         // wake up bodies involved in collisions
         for (var i = 0; i < pairs.length; i++) {
-            var pair = pairs[i];
-            
-            // don't wake inactive pairs
-            if (!pair.isActive)
-                continue;
-
-            var collision = pair.collision,
+            var pair = pairs[i],
+                collision = pair.collision,
                 bodyA = collision.bodyA, 
                 bodyB = collision.bodyB;
         
-            // don't wake if at least one body is static
             if ((bodyA.isSleeping && bodyB.isSleeping) || bodyA.isStatic || bodyB.isStatic)
                 continue;
         
@@ -4105,8 +3790,8 @@ var Render = {};
             Render.constraint(world.constraints[i], context);
 
         if (options.showCollisions)
-            for (i = 0; i < engine.pairs.list.length; i++)
-                Render.collision(engine, engine.pairs.list[i], context);
+            for (i = 0; i < engine.pairsList.length; i++)
+                Render.collision(engine, engine.pairsList[i], context);
 
         if (options.showBroadphase && engine.broadphase.current === 'grid')
             Render.grid(engine, engine.broadphase[engine.broadphase.current].instance, context);
@@ -4141,7 +3826,7 @@ var Render = {};
             text += "\n";
 
             text += "collisions: " + engine.metrics.collisions + space;
-            text += "pairs: " + engine.pairs.list.length + space;
+            text += "pairs: " + engine.pairs.length + space;
             text += "broad: " + engine.metrics.broadEff + space;
             text += "mid: " + engine.metrics.midEff + space;
             text += "narrow: " + engine.metrics.narrowEff + space;            
@@ -4502,7 +4187,6 @@ Matter.Vector = Vector;
 Matter.Vertices = Vertices;
 Matter.Gui = Gui;
 Matter.Render = Render;
-Matter.Events = Events;
 
 // CommonJS module
 if (typeof exports !== 'undefined') {

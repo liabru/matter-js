@@ -1,5 +1,5 @@
 /**
-* Matter.js 0.5.0 2014-02-28
+* matter-0.5.0.js 0.5.0-alpha 2014-02-28
 * http://brm.io/matter-js/
 * License: MIT
 */
