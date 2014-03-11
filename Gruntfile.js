@@ -2,6 +2,7 @@ module.exports = function(grunt) {
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
     buildName: 'matter',
+    docVersion: 'v<%= pkg.version %>',
     concat: {
       build: {
         options: {
@@ -66,9 +67,9 @@ module.exports = function(grunt) {
     },
     yuidoc: {
       compile: {
-        name: '<%= pkg.name %>.js Physics Engine API Documentation',
+        name: '<%= pkg.name %>.js Physics Engine API Documentation for <%= docVersion %>',
         description: '<%= pkg.description %>',
-        version: '<%= pkg.version %>',
+        version: '<%= docVersion %>',
         url: '<%= pkg.homepage %>',
         options: {
           paths: 'src',
@@ -92,7 +93,13 @@ module.exports = function(grunt) {
   grunt.registerTask('build', ['concat', 'uglify', 'copy']);
   grunt.registerTask('test', ['jshint']);
   grunt.registerTask('dev', ['set_config:buildName:matter-dev', 'build', 'connect:watch', 'watch']);
-  grunt.registerTask('doc', ['yuidoc']);
+
+  grunt.registerTask('doc', function(n) {
+    var dev = grunt.option('dev');
+    if (dev)
+      grunt.config.set('docVersion', 'edge version (master)');
+    grunt.task.run('yuidoc');
+  });
 
   grunt.registerTask('set_config', 'Set a config property.', function(name, val) {
     grunt.config.set(name, val);
