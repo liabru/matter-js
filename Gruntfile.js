@@ -60,7 +60,7 @@ module.exports = function(grunt) {
       },
       src: {
         files: ['src/**/*.js'],
-        tasks: ['build:-dev']
+        tasks: ['build:dev']
       },
       demo: {
         files: ['build/matter.js', 'demo/js/**/*.html', 'demo/js/**/*.js', 'demo/css/**/*.css']
@@ -92,12 +92,12 @@ module.exports = function(grunt) {
 
   grunt.registerTask('default', ['test', 'build']);
   grunt.registerTask('test', ['jshint']);
-  grunt.registerTask('dev', ['build:-dev', 'connect:watch', 'watch']);
+  grunt.registerTask('dev', ['build:dev', 'connect:watch', 'watch']);
 
-  grunt.registerTask('build', function(n) {
-    var isDev = grunt.option('dev'),
-        isRelease = grunt.option('release'),
-        isEdge = grunt.option('edge'),
+  grunt.registerTask('build', function(mode) {
+    var isDev = (mode === 'dev'),
+        isRelease = (mode === 'release'),
+        isEdge = (mode === 'edge'),
         pkg = grunt.file.readJSON('package.json');
 
     // development build mode
@@ -120,7 +120,7 @@ module.exports = function(grunt) {
     grunt.task.run('concat', 'uglify', 'copy');
   });
 
-  grunt.registerTask('doc', function(n) {
+  grunt.registerTask('doc', function() {
     var dev = grunt.option('dev');
     if (dev)
       grunt.config.set('docVersion', 'edge version (master)');
