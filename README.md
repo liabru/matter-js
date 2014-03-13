@@ -30,6 +30,8 @@
 - [Beach Balls](http://brm.io/matter-js-demo#beachBalls)
 - [Stress 1](http://brm.io/matter-js-demo#stress)
 - [Stress 2](http://brm.io/matter-js-demo#stress2)
+- [Sprites (_edge_)](http://brm.io/matter-js-demo-master/#sprites)
+- [Events (_edge_)](http://brm.io/matter-js-demo-master/#events)
 
 ### Features
 
@@ -44,7 +46,7 @@
 -   Composite bodies
 -   Sleeping and static bodies
 -   Original JavaScript physics implementation (not a port)
--   HTML5 canvas renderer
+-   HTML5 canvas renderer (optional)
 -   Mobile-compatible (touch, scaleable)
 -   Cross-browser (chrome, firefox, IE8+)
 -   World state serialisation (requires
@@ -53,6 +55,8 @@
     [dat.gui.js](http://workshop.chromeexperiments.com/examples/gui/))
 -   Time scaling (slow-mo, speed-up)
 -   Broad-phase, mid-phase and narrow-phase collisions
+-   Events (_edge_)
+-   Sprite texture rendering (_edge_)
 
 ### Status
 
