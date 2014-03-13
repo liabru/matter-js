@@ -101,7 +101,7 @@
         var renderOptions = _engine.render.options;
         
         renderOptions.wireframes = true;
-        renderOptions.showDebug = true;
+        renderOptions.showDebug = false;
         renderOptions.showBroadphase = false;
         renderOptions.showBounds = false;
         renderOptions.showVelocity = false;
@@ -111,6 +111,7 @@
         renderOptions.showAngleIndicator = true;
         renderOptions.showIds = false;
         renderOptions.showShadows = false;
+        renderOptions.background = '#fff';
     };
 
     // all functions below are for setting up scenes
@@ -120,7 +121,7 @@
         
         Demo.reset();
         
-        var stack = Composites.stack(20, 20, 20, 5, 0, 0, function(x, y, column, row) {
+        var stack = Composites.stack(20, 20, 15, 4, 0, 0, function(x, y, column, row) {
             switch (Math.round(Common.random(0, 1))) {
                 case 0:
                     if (Math.random() < 0.8) {
@@ -129,7 +130,13 @@
                         return Bodies.rectangle(x, y, Common.random(80, 120), Common.random(20, 30));
                     }
                 case 1:
-                    return Bodies.polygon(x, y, Math.round(Common.random(1, 8)), Common.random(20, 50));
+                    var sides = Math.round(Common.random(1, 8));
+
+                    // triangles can be a little jittery... so avoid until fixed
+                    // TODO: make triangles more stable
+                    sides = (sides === 3) ? 4 : sides;
+
+                    return Bodies.polygon(x, y, sides, Common.random(20, 50));
             }
         });
         
@@ -161,7 +168,9 @@
         var renderOptions = _engine.render.options;
         renderOptions.wireframes = false;
         renderOptions.showAngleIndicator = false;
-        renderOptions.showShadows = true;
+
+        if (window.chrome)
+            renderOptions.showShadows = true;
     };
     
     Demo.chains = function() {
@@ -521,7 +530,7 @@
         Demo.reset();
         
         var stack = Composites.stack(50, 100, 8, 4, 50, 50, function(x, y, column, row) {
-            return Bodies.circle(x, y, 15, { restitution: 1, strokeStyle: '#777' });
+            return Bodies.circle(x, y, 15, { restitution: 1, render: { strokeStyle: '#777' } });
         });
         
         World.addComposite(_world, stack);
@@ -558,8 +567,8 @@
             // change object colours to show those starting a collision
             for (var i = 0; i < pairs.length; i++) {
                 var pair = pairs[i];
-                pair.bodyA.fillStyle = '#bbbbbb';
-                pair.bodyB.fillStyle = '#bbbbbb';
+                pair.bodyA.render.fillStyle = '#bbbbbb';
+                pair.bodyB.render.fillStyle = '#bbbbbb';
             }
         });
 
@@ -570,8 +579,8 @@
             // change object colours to show those in an active collision (e.g. resting contact)
             for (var i = 0; i < pairs.length; i++) {
                 var pair = pairs[i];
-                pair.bodyA.fillStyle = '#aaaaaa';
-                pair.bodyB.fillStyle = '#aaaaaa';
+                pair.bodyA.render.fillStyle = '#aaaaaa';
+                pair.bodyB.render.fillStyle = '#aaaaaa';
             }
         });
 
@@ -582,13 +591,93 @@
             // change object colours to show those ending a collision
             for (var i = 0; i < pairs.length; i++) {
                 var pair = pairs[i];
-                pair.bodyA.fillStyle = '#999999';
-                pair.bodyB.fillStyle = '#999999';
+                pair.bodyA.render.fillStyle = '#999999';
+                pair.bodyB.render.fillStyle = '#999999';
             }
         });
 
         var renderOptions = _engine.render.options;
         renderOptions.wireframes = false;
+    };
+
+    Demo.sprites = function() {
+        var initScene = function() {
+            var _world = _engine.world,
+                offset = 10,
+                options = { 
+                    isStatic: true,
+                    render: {
+                        visible: false
+                    }
+                };
+
+            Demo.reset();
+            _world.bodies = [];
+
+            World.addBody(_world, Bodies.rectangle(400, -offset, 800.5 + 2 * offset, 50.5, options));
+            World.addBody(_world, Bodies.rectangle(400, 600 + offset, 800.5 + 2 * offset, 50.5, options));
+            World.addBody(_world, Bodies.rectangle(800 + offset, 300, 50.5, 600.5 + 2 * offset, options));
+            World.addBody(_world, Bodies.rectangle(-offset, 300, 50.5, 600.5 + 2 * offset, options));
+
+            var stack = Composites.stack(20, 20, 15, 4, 0, 0, function(x, y, column, row) {
+                if (Math.random() > 0.35) {
+                    return Bodies.rectangle(x, y, 64, 64, {
+                        render: {
+                            strokeStyle: '#ffffff',
+                            sprite: {
+                                image: boxSprite,
+                                width: boxSprite.width,
+                                height: boxSprite.height,
+                                xScale: 1,
+                                yScale: 1
+                            }
+                        }
+                    });
+                } else {
+                    return Bodies.circle(x, y, 46, {
+                        density: 0.0005,
+                        frictionAir: 0.06,
+                        restitution: 0.3,
+                        friction: 0.01,
+                        render: {
+                            sprite: {
+                                image: ballSprite,
+                                width: ballSprite.width,
+                                height: ballSprite.height,
+                                xScale: 1,
+                                yScale: 1
+                            }
+                        }
+                    });
+                }
+            });
+
+            World.addComposite(_world, stack);
+
+            var renderOptions = _engine.render.options;
+            renderOptions.background = 'url(./img/wall-bg.jpg) no-repeat';
+            renderOptions.showAngleIndicator = false;
+            renderOptions.wireframes = false;
+        };
+
+        var boxSprite = new Image(),
+            ballSprite = new Image(),
+            spriteLoadCount = 0;
+
+        // count the sprites loaded until they're all ready
+        var spriteLoaded = function() {
+            spriteLoadCount += 1;
+
+            // when all sprites loaded, start the scene!
+            if (spriteLoadCount >= 2)
+                initScene();
+        };
+        boxSprite.onload = spriteLoaded;
+        ballSprite.onload = spriteLoaded;
+
+        // trigger loading of sprites
+        ballSprite.src = './img/ball.png';
+        boxSprite.src = './img/box.png';
     };
 
 })();
