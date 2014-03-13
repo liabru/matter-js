@@ -47,7 +47,23 @@ var Render = {};
         render.canvas = render.canvas || _createCanvas(render.options.width, render.options.height);
         render.context = render.canvas.getContext('2d');
 
+        Render.setBackground(render, render.options.background);
+
         return render;
+    };
+
+    /**
+     * Sets the background CSS property of the canvas 
+     * @method setBackground
+     * @param {render} render
+     * @param {string} background
+     */
+    Render.setBackground = function(render, background) {
+        if (render.currentBackground !== background) {
+            render.canvas.style.background = background;
+            render.canvas.style.backgroundSize = "contain";
+            render.currentBackground = background;
+        }
     };
 
     /**
@@ -64,12 +80,16 @@ var Render = {};
             i;
 
         if (options.wireframes) {
-            context.fillStyle = options.wireframeBackground;
+            Render.setBackground(render, options.wireframeBackground);
         } else {
-            context.fillStyle = options.background;
+            Render.setBackground(render, options.background);
         }
-        
+
+        // clear the canvas with a transparent fill, to allow the canvas background to show
+        context.globalCompositeOperation = 'source-in';
+        context.fillStyle = "transparent";
         context.fillRect(0, 0, canvas.width, canvas.height);
+        context.globalCompositeOperation = 'source-over';
 
         if (options.showShadows && !options.wireframes)
             for (i = 0; i < world.bodies.length; i++)
@@ -242,34 +262,49 @@ var Render = {};
             c.stroke();
         }
 
-        // body polygon
-        if (body.circleRadius) {
-            c.beginPath();
-            c.arc(body.position.x, body.position.y, body.circleRadius, 0, 2 * Math.PI);
-            c.closePath();
-        } else {
-            c.beginPath();
-            c.moveTo(body.vertices[0].x, body.vertices[0].y);
-            for (var j = 1; j < body.vertices.length; j++) {
-                c.lineTo(body.vertices[j].x, body.vertices[j].y);
-            }
-            c.closePath();
-        }
+        // draw body
+        if (body.render.visible) {
+            if (body.render.sprite && !options.wireframes) {
+                // body sprite
+                var sprite = body.render.sprite;
+                c.save();
+                c.webkitImageSmoothingEnabled = true;
+                c.translate(body.position.x, body.position.y); 
+                c.rotate(body.angle);
+                c.drawImage(sprite.image, sprite.width * -0.5 * sprite.xScale, sprite.height * -0.5 * sprite.yScale, 
+                            sprite.width * sprite.xScale, sprite.height * sprite.yScale);
+                c.restore();
+            } else {
+                // body polygon
+                if (body.circleRadius) {
+                    c.beginPath();
+                    c.arc(body.position.x, body.position.y, body.circleRadius, 0, 2 * Math.PI);
+                    c.closePath();
+                } else {
+                    c.beginPath();
+                    c.moveTo(body.vertices[0].x, body.vertices[0].y);
+                    for (var j = 1; j < body.vertices.length; j++) {
+                        c.lineTo(body.vertices[j].x, body.vertices[j].y);
+                    }
+                    c.closePath();
+                }
 
-        if (!options.wireframes) {
-            c.fillStyle = body.fillStyle;
-            if (options.showSleeping && body.isSleeping)
-                c.fillStyle = Common.shadeColor(body.fillStyle, 50);
-            c.lineWidth = body.lineWidth;
-            c.strokeStyle = body.strokeStyle;
-            c.fill();
-            c.stroke();
-        } else {
-            c.lineWidth = 1;
-            c.strokeStyle = '#bbb';
-            if (options.showSleeping && body.isSleeping)
-                c.strokeStyle = 'rgba(255,255,255,0.2)';
-            c.stroke();
+                if (!options.wireframes) {
+                    c.fillStyle = body.render.fillStyle;
+                    if (options.showSleeping && body.isSleeping)
+                        c.fillStyle = Common.shadeColor(body.render.fillStyle, 50);
+                    c.lineWidth = body.render.lineWidth;
+                    c.strokeStyle = body.render.strokeStyle;
+                    c.fill();
+                    c.stroke();
+                } else {
+                    c.lineWidth = 1;
+                    c.strokeStyle = '#bbb';
+                    if (options.showSleeping && body.isSleeping)
+                        c.strokeStyle = 'rgba(255,255,255,0.2)';
+                    c.stroke();
+                }
+            }
         }
 
         // angle indicator
@@ -282,7 +317,7 @@ var Render = {};
             if (options.wireframes) {
                 c.strokeStyle = 'indianred';
             } else {
-                c.strokeStyle = body.strokeStyle;
+                c.strokeStyle = body.render.strokeStyle;
             }
             c.stroke();
         }
@@ -298,7 +333,7 @@ var Render = {};
                 if (options.wireframes) {
                     c.strokeStyle = 'indianred';
                 } else {
-                    c.strokeStyle = body.strokeStyle;
+                    c.strokeStyle = body.render.strokeStyle;
                 }
                 c.stroke();
             }

@@ -38,11 +38,14 @@ var Body = {};
             restitution: 0,
             friction: 0.1,
             frictionAir: 0.01,
-            path: 'L 0 0 L 40 0 L 40 40 L 0 40',
-            fillStyle: options.isStatic ? '#eeeeee' : Common.choose(['#556270', '#4ECDC4', '#C7F464', '#FF6B6B', '#C44D58']),
-            lineWidth: 1.5,
             groupId: 0,
-            slop: 0.05
+            slop: 0.05,
+            render: {
+                visible: true,
+                sprite: null,
+                path: 'L 0 0 L 40 0 L 40 40 L 0 40',
+                lineWidth: 1.5
+            }
         };
 
         var body = Common.extend(defaults, options);
@@ -77,7 +80,7 @@ var Body = {};
      */
     Body.updateProperties = function(body) {
         // calculated properties
-        body.vertices = body.vertices || Vertices.fromPath(body.path);
+        body.vertices = body.vertices || Vertices.fromPath(body.render.path);
         body.axes = body.axes || Axes.fromVertices(body.vertices);
         body.area = Vertices.area(body.vertices);
         body.bounds = Bounds.create(body.vertices);
@@ -87,7 +90,8 @@ var Body = {};
         body.inverseInertia = 1 / body.inertia;
         body.positionPrev = body.positionPrev || { x: body.position.x, y: body.position.y };
         body.anglePrev = body.anglePrev || body.angle;
-        body.strokeStyle = body.strokeStyle || Common.shadeColor(body.fillStyle, -20);
+        body.render.fillStyle = body.render.fillStyle || (body.isStatic ? '#eeeeee' : Common.choose(['#556270', '#4ECDC4', '#C7F464', '#FF6B6B', '#C44D58']));
+        body.render.strokeStyle = body.render.strokeStyle || Common.shadeColor(body.render.fillStyle, -20);
 
         // update geometry
         Vertices.create(body.vertices, body);
@@ -103,7 +107,7 @@ var Body = {};
             body.friction = 1;
             body.mass = body.inertia = body.density = Infinity;
             body.inverseMass = body.inverseInertia = 0;
-            body.lineWidth = 1;
+            body.render.lineWidth = 1;
         }
 
         Sleeping.set(body, body.isSleeping);

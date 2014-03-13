@@ -25,9 +25,11 @@ var Bodies = {};
         options = options || {};
 
         var rectangle = { 
-                position: { x: x, y: y },
+            position: { x: x, y: y },
+            render: {
                 path: 'L 0 0 L ' + width + ' 0 L ' + width + ' ' + height + ' L 0 ' + height
-            };
+            }
+        };
 
         return Body.create(Common.extend({}, rectangle, options));
     };
@@ -54,9 +56,11 @@ var Bodies = {};
             x3 = x2 + x1;
 
         var trapezoid = { 
-                position: { x: x, y: y },
+            position: { x: x, y: y },
+            render: {
                 path: 'L 0 0 L ' + x1 + ' ' + (-height) + ' L ' + x2 + ' ' + (-height) + ' L ' + x3 + ' 0'
-            };
+            }
+        };
 
         return Body.create(Common.extend({}, trapezoid, options));
     };
@@ -118,9 +122,11 @@ var Bodies = {};
         }
 
         var polygon = { 
-                position: { x: x, y: y },
+            position: { x: x, y: y },
+            render: {
                 path: path
-            };
+            }
+        };
 
         return Body.create(Common.extend({}, polygon, options));
     };
