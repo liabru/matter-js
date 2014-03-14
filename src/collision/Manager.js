@@ -109,7 +109,7 @@ var Manager = {};
 
         // remove marked pairs
         for (i = 0; i < indexesToRemove.length; i++) {
-            pairIndex = indexesToRemove[i];
+            pairIndex = indexesToRemove[i] - i;
             pair = pairsList[pairIndex];
             delete pairsTable[pair.id];
             pairsList.splice(pairIndex, 1);
