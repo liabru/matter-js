@@ -21,6 +21,12 @@ var Mouse;
         this.mousedownPosition = { x: 0, y: 0 };
         this.mouseupPosition = { x: 0, y: 0 };
         this.button = -1;
+
+        this.sourceEvents = {
+            mousemove: null,
+            mousedown: null,
+            mouseup: null
+        };
         
         var mousemove = function(event) { 
             var position = _getRelativeMousePosition(event, element),
@@ -32,6 +38,7 @@ var Mouse;
             }
 
             mouse.position = position;
+            mouse.sourceEvents.mousemove = event;
         };
         
         var mousedown = function(event) {
@@ -46,6 +53,7 @@ var Mouse;
             }
 
             mouse.position = mouse.mousedownPosition = position;
+            mouse.sourceEvents.mousedown = event;
         };
         
         var mouseup = function(event) {
@@ -57,8 +65,8 @@ var Mouse;
             }
             
             mouse.button = -1;
-
             mouse.position = mouse.mouseupPosition = position;
+            mouse.sourceEvents.mouseup = event;
         };
         
         element.addEventListener('mousemove', mousemove);
@@ -78,6 +86,17 @@ var Mouse;
      */
     Mouse.create = function(element) {
         return new Mouse(element);
+    };
+
+    /**
+     * Clears all captured source events
+     * @method create
+     * @param {mouse} mouse
+     */
+    Mouse.clearSourceEvents = function(mouse) {
+        mouse.sourceEvents.mousemove = null;
+        mouse.sourceEvents.mousedown = null;
+        mouse.sourceEvents.mouseup = null;
     };
     
     /**

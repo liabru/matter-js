@@ -172,55 +172,9 @@ var Engine = {};
             // update
             Engine.update(engine, delta, correction);
 
-            var pairs = engine.pairs;
-
-            /**
-            * Fired after engine update, provides a list of all pairs that have started to collide in the current tick (if any)
-            *
-            * @event collisionStart
-            * @param {} event An event object
-            * @param {} event.pairs List of affected pairs
-            * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
-            * @param {} event.source The source object of the event
-            * @param {} event.name The name of the event
-            */
-            if (pairs.collisionStart.length > 0) {
-                Events.trigger(engine, 'collisionStart', {
-                    pairs: pairs.collisionStart
-                });
-            }
-
-            /**
-            * Fired after engine update, provides a list of all pairs that are colliding in the current tick (if any)
-            *
-            * @event collisionActive
-            * @param {} event An event object
-            * @param {} event.pairs List of affected pairs
-            * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
-            * @param {} event.source The source object of the event
-            * @param {} event.name The name of the event
-            */
-            if (pairs.collisionActive.length > 0) {
-                Events.trigger(engine, 'collisionActive', {
-                    pairs: pairs.collisionActive
-                });
-            }
-
-            /**
-            * Fired after engine update, provides a list of all pairs that have ended collision in the current tick (if any)
-            *
-            * @event collisionEnd
-            * @param {} event An event object
-            * @param {} event.pairs List of affected pairs
-            * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
-            * @param {} event.source The source object of the event
-            * @param {} event.name The name of the event
-            */
-            if (pairs.collisionEnd.length > 0) {
-                Events.trigger(engine, 'collisionEnd', {
-                    pairs: pairs.collisionEnd
-                });
-            }
+            // trigger events that may have occured during the step
+            _triggerCollisionEvents(engine);
+            _triggerMouseEvents(engine);
 
             /**
             * Fired after engine update and all collision events
@@ -390,6 +344,123 @@ var Engine = {};
 
         if (broadphase.controller) {
             broadphase.controller.update(broadphase.instance, world.bodies, engine, true);
+        }
+    };
+
+    /**
+     * Triggers mouse events
+     * @method _triggerMouseEvents
+     * @private
+     * @param {engine} engine
+     */
+    var _triggerMouseEvents = function(engine) {
+        var mouse = engine.input.mouse,
+            mouseEvents = mouse.sourceEvents;
+
+        /**
+        * Fired when the mouse has moved (or a touch moves) during the last step
+        *
+        * @event mousemove
+        * @param {} event An event object
+        * @param {MouseEvent} event.mouseEvent The native MouseEvent from the browser
+        * @param {} event.source The source object of the event
+        * @param {} event.name The name of the event
+        */
+        if (mouseEvents.mousemove) {
+            Events.trigger(mouse, 'mousemove', {
+                mouseEvent: mouseEvents.mousemove
+            });
+        }
+
+        /**
+        * Fired when the mouse is down (or a touch has started) during the last step
+        *
+        * @event mousedown
+        * @param {} event An event object
+        * @param {MouseEvent} event.mouseEvent The native MouseEvent from the browser
+        * @param {} event.source The source object of the event
+        * @param {} event.name The name of the event
+        */
+        if (mouseEvents.mousedown) {
+            Events.trigger(mouse, 'mousedown', {
+                mouseEvent: mouseEvents.mousedown
+            });
+        }
+
+        /**
+        * Fired when the mouse is up (or a touch has ended) during the last step
+        *
+        * @event mouseup
+        * @param {} event An event object
+        * @param {MouseEvent} event.mouseEvent The native MouseEvent from the browser
+        * @param {} event.source The source object of the event
+        * @param {} event.name The name of the event
+        */
+        if (mouseEvents.mouseup) {
+            Events.trigger(mouse, 'mouseup', {
+                mouseEvent: mouseEvents.mouseup
+            });
+        }
+
+        // reset the mouse state ready for the next step
+        Mouse.clearSourceEvents(mouse);
+    };
+
+    /**
+     * Triggers collision events
+     * @method _triggerMouseEvents
+     * @private
+     * @param {engine} engine
+     */
+    var _triggerCollisionEvents = function(engine) {
+        var pairs = engine.pairs;
+
+        /**
+        * Fired after engine update, provides a list of all pairs that have started to collide in the current tick (if any)
+        *
+        * @event collisionStart
+        * @param {} event An event object
+        * @param {} event.pairs List of affected pairs
+        * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
+        * @param {} event.source The source object of the event
+        * @param {} event.name The name of the event
+        */
+        if (pairs.collisionStart.length > 0) {
+            Events.trigger(engine, 'collisionStart', {
+                pairs: pairs.collisionStart
+            });
+        }
+
+        /**
+        * Fired after engine update, provides a list of all pairs that are colliding in the current tick (if any)
+        *
+        * @event collisionActive
+        * @param {} event An event object
+        * @param {} event.pairs List of affected pairs
+        * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
+        * @param {} event.source The source object of the event
+        * @param {} event.name The name of the event
+        */
+        if (pairs.collisionActive.length > 0) {
+            Events.trigger(engine, 'collisionActive', {
+                pairs: pairs.collisionActive
+            });
+        }
+
+        /**
+        * Fired after engine update, provides a list of all pairs that have ended collision in the current tick (if any)
+        *
+        * @event collisionEnd
+        * @param {} event An event object
+        * @param {} event.pairs List of affected pairs
+        * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
+        * @param {} event.source The source object of the event
+        * @param {} event.name The name of the event
+        */
+        if (pairs.collisionEnd.length > 0) {
+            Events.trigger(engine, 'collisionEnd', {
+                pairs: pairs.collisionEnd
+            });
         }
     };
 
