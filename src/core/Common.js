@@ -195,12 +195,22 @@ var Common = {};
     /**
      * Description
      * @method now
-     * @return {Date} the current DateTime
+     * @return {number} the current timestamp (high-res if avaliable)
      */
-    Common.now = Date.now || function() {
+    Common.now = function() {
         // http://stackoverflow.com/questions/221294/how-do-you-get-a-timestamp-in-javascript
+        // https://gist.github.com/davidwaterston/2982531
+        
+        var perf = window.performance;
+
+        if (perf) {
+            perf.now = perf.now || perf.webkitNow || perf.msNow || perf.oNow || perf.mozNow;
+            return +(perf.now());
+        }
+        
         return +(new Date());
     };
+
     
     /**
      * Description
