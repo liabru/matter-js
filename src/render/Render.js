@@ -267,13 +267,22 @@ var Render = {};
             if (body.render.sprite && !options.wireframes) {
                 // body sprite
                 var sprite = body.render.sprite;
-                c.save();
-                c.webkitImageSmoothingEnabled = true;
+
+                if (options.showSleeping && body.isSleeping) 
+                    c.globalAlpha = 0.5;
+
                 c.translate(body.position.x, body.position.y); 
                 c.rotate(body.angle);
+
                 c.drawImage(sprite.image, sprite.width * -0.5 * sprite.xScale, sprite.height * -0.5 * sprite.yScale, 
                             sprite.width * sprite.xScale, sprite.height * sprite.yScale);
-                c.restore();
+
+                // revert translation, hopefully faster than save / restore
+                c.rotate(-body.angle);
+                c.translate(-body.position.x, -body.position.y); 
+
+                if (options.showSleeping && body.isSleeping) 
+                    c.globalAlpha = 1;
             } else {
                 // body polygon
                 if (body.circleRadius) {
