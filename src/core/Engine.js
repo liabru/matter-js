@@ -362,13 +362,13 @@ var Engine = {};
         *
         * @event mousemove
         * @param {} event An event object
-        * @param {MouseEvent} event.mouseEvent The native MouseEvent from the browser
+        * @param {mouse} event.mouse The engine's mouse instance
         * @param {} event.source The source object of the event
         * @param {} event.name The name of the event
         */
         if (mouseEvents.mousemove) {
-            Events.trigger(mouse, 'mousemove', {
-                mouseEvent: mouseEvents.mousemove
+            Events.trigger(engine, 'mousemove', {
+                mouse: mouse
             });
         }
 
@@ -377,13 +377,13 @@ var Engine = {};
         *
         * @event mousedown
         * @param {} event An event object
-        * @param {MouseEvent} event.mouseEvent The native MouseEvent from the browser
+        * @param {mouse} event.mouse The engine's mouse instance
         * @param {} event.source The source object of the event
         * @param {} event.name The name of the event
         */
         if (mouseEvents.mousedown) {
-            Events.trigger(mouse, 'mousedown', {
-                mouseEvent: mouseEvents.mousedown
+            Events.trigger(engine, 'mousedown', {
+                mouse: mouse
             });
         }
 
@@ -392,13 +392,13 @@ var Engine = {};
         *
         * @event mouseup
         * @param {} event An event object
-        * @param {MouseEvent} event.mouseEvent The native MouseEvent from the browser
+        * @param {mouse} event.mouse The engine's mouse instance
         * @param {} event.source The source object of the event
         * @param {} event.name The name of the event
         */
         if (mouseEvents.mouseup) {
-            Events.trigger(mouse, 'mouseup', {
-                mouseEvent: mouseEvents.mouseup
+            Events.trigger(engine, 'mouseup', {
+                mouse: mouse
             });
         }
 
