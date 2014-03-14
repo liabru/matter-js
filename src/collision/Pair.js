@@ -14,10 +14,9 @@ var Pair = {};
      * @param {collision} collision
      * @return {pair} A new pair
      */
-    Pair.create = function(collision) {
+    Pair.create = function(collision, timestamp) {
         var bodyA = collision.bodyA,
-            bodyB = collision.bodyB,
-            timestamp = Common.now();
+            bodyB = collision.bodyB;
 
         var pair = {
             id: Pair.id(bodyA, bodyB),
@@ -35,7 +34,7 @@ var Pair = {};
             slop: Math.max(bodyA.slop, bodyB.slop)
         };
 
-        Pair.update(pair, collision);
+        Pair.update(pair, collision, timestamp);
 
         return pair;
     };
@@ -46,12 +45,13 @@ var Pair = {};
      * @param {pair} pair
      * @param {collision} collision
      */
-    Pair.update = function(pair, collision) {
+    Pair.update = function(pair, collision, timestamp) {
         var contacts = pair.contacts,
             supports = collision.supports,
-            activeContacts = [];
+            activeContacts = pair.activeContacts;
         
         pair.collision = collision;
+        activeContacts.length = 0;
         
         if (collision.collided) {
             for (var i = 0; i < supports.length; i++) {
@@ -65,11 +65,11 @@ var Pair = {};
                 }
             }
 
-            pair.activeContacts = activeContacts;
             pair.separation = collision.depth;
-            Pair.setActive(pair, true);
+            Pair.setActive(pair, true, timestamp);
         } else {
-            Pair.setActive(pair, false);
+            if (pair.isActive === true)
+                Pair.setActive(pair, false, timestamp);
         }
     };
     
@@ -79,13 +79,13 @@ var Pair = {};
      * @param {pair} pair
      * @param {bool} isActive
      */
-    Pair.setActive = function(pair, isActive) {
+    Pair.setActive = function(pair, isActive, timestamp) {
         if (isActive) {
             pair.isActive = true;
-            pair.timeUpdated = Common.now();
+            pair.timeUpdated = timestamp;
         } else {
             pair.isActive = false;
-            pair.activeContacts = [];
+            pair.activeContacts.length = 0;
         }
     };
 

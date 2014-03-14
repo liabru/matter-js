@@ -106,6 +106,9 @@ var Engine = {};
             if (!engine.enabled)
                 return;
 
+            // timestamp is undefined on the first update
+            timestamp = timestamp || 0;
+
             // create an event object
             var event = {
                 timestamp: timestamp
@@ -264,9 +267,10 @@ var Engine = {};
         var collisions = broadphase.detector(broadphasePairs, engine.metrics);
 
         // update pairs
-        var pairs = engine.pairs;
-        Manager.updatePairs(pairs, collisions);
-        Manager.removeOldPairs(pairs);
+        var pairs = engine.pairs,
+            timestamp = engine.timing.timestamp;
+        Manager.updatePairs(pairs, collisions, timestamp);
+        Manager.removeOldPairs(pairs, timestamp);
 
         // wake up bodies involved in collisions
         if (engine.enableSleeping)

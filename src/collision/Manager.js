@@ -16,7 +16,7 @@ var Manager = {};
      * @param {object} pairs
      * @param {collision[]} collisions
      */
-    Manager.updatePairs = function(pairs, collisions) {
+    Manager.updatePairs = function(pairs, collisions, timestamp) {
         var pairsList = pairs.list,
             pairsTable = pairs.table,
             collisionStart = pairs.collisionStart,
@@ -53,10 +53,10 @@ var Manager = {};
                     }
 
                     // update the pair
-                    Pair.update(pair, collision);
+                    Pair.update(pair, collision, timestamp);
                 } else {
                     // pair did not exist, create a new pair
-                    pair = Pair.create(collision);
+                    pair = Pair.create(collision, timestamp);
                     pairsTable[pairId] = pair;
 
                     // push the new pair
@@ -70,7 +70,7 @@ var Manager = {};
         for (i = 0; i < pairsList.length; i++) {
             pair = pairsList[i];
             if (pair.isActive && activePairIds.indexOf(pair.id) === -1) {
-                Pair.setActive(pair, false);
+                Pair.setActive(pair, false, timestamp);
                 collisionEnd.push(pair);
             }
         }
@@ -81,10 +81,9 @@ var Manager = {};
      * @method removeOldPairs
      * @param {object} pairs
      */
-    Manager.removeOldPairs = function(pairs) {
+    Manager.removeOldPairs = function(pairs, timestamp) {
         var pairsList = pairs.list,
             pairsTable = pairs.table,
-            timeNow = Common.now(),
             indexesToRemove = [],
             pair,
             collision,
@@ -97,12 +96,12 @@ var Manager = {};
             
             // never remove sleeping pairs
             if (collision.bodyA.isSleeping || collision.bodyB.isSleeping) {
-                pair.timeUpdated = timeNow;
+                pair.timeUpdated = timestamp;
                 continue;
             }
 
             // if pair is inactive for too long, mark it to be removed
-            if (timeNow - pair.timeUpdated > _pairMaxIdleLife) {
+            if (timestamp - pair.timeUpdated > _pairMaxIdleLife) {
                 indexesToRemove.push(i);
             }
         }
