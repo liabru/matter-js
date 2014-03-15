@@ -220,7 +220,7 @@ var Grid = {};
 
             // keep track of the number of buckets the pair exists in
             // important for Grid.update to work
-            var pairId = _getPairId(body, bodyB);
+            var pairId = Pair.id(body, bodyB);
             if (grid.pairs[pairId]) {
                 grid.pairs[pairId][2] += 1;
             } else {
@@ -252,27 +252,12 @@ var Grid = {};
             } else {
                 // keep track of the number of buckets the pair exists in
                 // important for Grid.update to work
-                var pairId = _getPairId(body, bodyB);
+                var pairId = Pair.id(body, bodyB);
                 if (grid.pairs[pairId]) {
                     var pairCount = grid.pairs[pairId][2];
                     grid.pairs[pairId][2] = pairCount > 0 ? pairCount - 1 : 0;
                 }
             }
-        }
-    };
-
-    /**
-     * Description
-     * @method _getPairId
-     * @private
-     * @param {} bodyA
-     * @param {} bodyB
-     */
-    var _getPairId = function(bodyA, bodyB) {
-        if (bodyA.id < bodyB.id) {
-            return bodyA.id + ',' + bodyB.id;
-        } else {
-            return bodyB.id + ',' + bodyA.id;
         }
     };
 

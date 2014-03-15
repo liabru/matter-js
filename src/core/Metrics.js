@@ -17,6 +17,8 @@ var Metrics = {};
         return {
             narrowDetections: 0,
             narrowphaseTests: 0,
+            narrowReuse: 0,
+            narrowReuseCount: 0,
             midphaseTests: 0,
             broadphaseTests: 0,
             narrowEff: 0.0001,
@@ -37,6 +39,8 @@ var Metrics = {};
     Metrics.reset = function(metrics) {
         metrics.narrowDetections = 0;
         metrics.narrowphaseTests = 0;
+        metrics.narrowReuse = 0;
+        metrics.narrowReuseCount = 0;
         metrics.midphaseTests = 0;
         metrics.broadphaseTests = 0;
         metrics.narrowEff = 0;
@@ -64,8 +68,9 @@ var Metrics = {};
         metrics.midEff = (metrics.narrowDetections / (metrics.midphaseTests || 1)).toFixed(2);
         metrics.narrowEff = (metrics.narrowDetections / (metrics.narrowphaseTests || 1)).toFixed(2);
         metrics.broadEff = (1 - (metrics.broadphaseTests / (world.bodies.length || 1))).toFixed(2);
-        if (broadphase.instance)
-            metrics.buckets = Common.keys(broadphase.instance.buckets).length;
+        metrics.narrowReuse = (metrics.narrowReuseCount / (metrics.narrowphaseTests || 1)).toFixed(2);
+        //if (broadphase.instance)
+        //    metrics.buckets = Common.keys(broadphase.instance.buckets).length;
     };
 
 })();

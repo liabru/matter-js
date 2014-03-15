@@ -94,6 +94,7 @@ var Gui = {};
         metrics.add(engine.metrics, 'broadEff').listen();
         metrics.add(engine.metrics, 'midEff').listen();
         metrics.add(engine.metrics, 'narrowEff').listen();
+        metrics.add(engine.metrics, 'narrowReuse').listen();
         metrics.close();
 
         var controls = datGui.addFolder('Add Body');

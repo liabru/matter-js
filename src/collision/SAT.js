@@ -4,9 +4,7 @@
 * @class SAT
 */
 
-
 // TODO: true circles and curves
-// TODO: cache the previously found axis and body, and start there first for faster early out
 
 var SAT = {};
 
@@ -17,30 +15,60 @@ var SAT = {};
      * @method collides
      * @param {body} bodyA
      * @param {body} bodyB
+     * @param {collision} previousCollision
      * @return {collision} collision
      */
-    SAT.collides = function(bodyA, bodyB) {
+    SAT.collides = function(bodyA, bodyB, previousCollision) {
         var overlapAB,
             overlapBA, 
             minOverlap,
-            collision = { collided: false, bodyA: bodyA, bodyB: bodyB};
+            collision,
+            prevCol = previousCollision,
+            canReusePrevCol = false;
 
-        overlapAB = _overlapAxes(bodyA.vertices, bodyB.vertices, bodyA.axes);
+        if (prevCol) {
+            var motion = bodyA.speed * bodyA.speed + bodyA.angularSpeed * bodyA.angularSpeed;
+            motion += bodyB.speed * bodyB.speed + bodyB.angularSpeed * bodyB.angularSpeed;
 
-        if (overlapAB.overlap === 0)
-            return collision;
+            // can reuse if collision was resting
+            canReusePrevCol = prevCol && prevCol.collided && motion < 0.2;
+        }
 
-        overlapBA = _overlapAxes(bodyB.vertices, bodyA.vertices, bodyB.axes);
+        if (prevCol && canReusePrevCol) {
 
-        if (overlapBA.overlap === 0)
-            return collision;
+            // only need to test the previously found axis
+            var axes = [prevCol.bodyA.axes[prevCol.axisNumber]];
+            minOverlap = _overlapAxes(prevCol.bodyA.vertices, prevCol.bodyB.vertices, axes);
 
-        if (overlapAB.overlap < overlapBA.overlap) {
-            minOverlap = overlapAB;
+            collision = previousCollision;
+            collision.reused = true;
+
+            if (minOverlap.overlap <= 0) {
+                collision.collided = false;
+                return collision;
+            }
         } else {
-            minOverlap = overlapBA;
-            collision.bodyA = bodyB;
-            collision.bodyB = bodyA;
+            collision = { collided: false, bodyA: bodyA, bodyB: bodyB };
+
+            overlapAB = _overlapAxes(bodyA.vertices, bodyB.vertices, bodyA.axes);
+
+            if (overlapAB.overlap <= 0)
+                return collision;
+
+            overlapBA = _overlapAxes(bodyB.vertices, bodyA.vertices, bodyB.axes);
+
+            if (overlapBA.overlap <= 0)
+                return collision;
+
+            if (overlapAB.overlap < overlapBA.overlap) {
+                minOverlap = overlapAB;
+            } else {
+                minOverlap = overlapBA;
+                collision.bodyA = bodyB;
+                collision.bodyB = bodyA;
+            }
+
+            collision.axisNumber = minOverlap.axisNumber;
         }
 
         collision.collided = true;
@@ -111,12 +139,15 @@ var SAT = {};
                         ? projectionA.max - projectionB.min 
                         : projectionB.max - projectionA.min;
 
-            if (overlap <= 0)
-                return { overlap: 0 };
+            if (overlap <= 0) {
+                result.overlap = overlap;
+                return result;
+            }
 
             if (overlap < result.overlap) {
                 result.overlap = overlap;
                 result.axis = axis;
+                result.axisNumber = i;
             }
         }
 

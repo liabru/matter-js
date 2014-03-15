@@ -262,9 +262,9 @@ var Engine = {};
         } else {
             broadphasePairs = world.bodies;
         }
-        
+
         // narrowphase pass: find actual collisions, then create or update collision pairs
-        var collisions = broadphase.detector(broadphasePairs, engine.metrics);
+        var collisions = broadphase.detector(broadphasePairs, engine);
 
         // update pairs
         var pairs = engine.pairs,

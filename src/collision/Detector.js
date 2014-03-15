@@ -13,16 +13,18 @@ var Detector = {};
     /**
      * Description
      * @method collisions
-     * @param {pair[]} pairs
-     * @param {metrics} metrics
+     * @param {pair[]} broadphasePairs
+     * @param {engine} engine
      * @return {array} collisions
      */
-    Detector.collisions = function(pairs, metrics) {
-        var collisions = [];
+    Detector.collisions = function(broadphasePairs, engine) {
+        var collisions = [],
+            metrics = engine.metrics,
+            pairsTable = engine.pairs.table;
 
-        for (var i = 0; i < pairs.length; i++) {
-            var bodyA = pairs[i][0], 
-                bodyB = pairs[i][1];
+        for (var i = 0; i < broadphasePairs.length; i++) {
+            var bodyA = broadphasePairs[i][0], 
+                bodyB = broadphasePairs[i][1];
 
             // NOTE: could share a function for the below, but may drop performance?
 
@@ -36,11 +38,25 @@ var Detector = {};
 
             // mid phase
             if (Bounds.overlaps(bodyA.bounds, bodyB.bounds)) {
-                
+
+                // find a previous collision we could reuse
+                var pairId = Pair.id(bodyA, bodyB),
+                    pair = pairId in pairsTable ? pairsTable[pairId] : null,
+                    previousCollision;
+
+                if (pair && pair.isActive) {
+                    previousCollision = pair.collision;
+                } else {
+                    previousCollision = null;
+                }
+
                 // narrow phase
-                var collision = SAT.collides(bodyA, bodyB);
+                var collision = SAT.collides(bodyA, bodyB, previousCollision);
 
                 metrics.narrowphaseTests += 1;
+
+                if (collision.reused)
+                    metrics.narrowReuseCount += 1;
 
                 if (collision.collided) {
                     collisions.push(collision);
@@ -56,11 +72,13 @@ var Detector = {};
      * Description
      * @method bruteForce
      * @param {body[]} bodies
-     * @param {metrics} metrics
+     * @param {engine} engine
      * @return {array} collisions
      */
-    Detector.bruteForce = function(bodies, metrics) {
-        var collisions = [];
+    Detector.bruteForce = function(bodies, engine) {
+        var collisions = [],
+            metrics = engine.metrics,
+            pairsTable = engine.pairs.table;
 
         for (var i = 0; i < bodies.length; i++) {
             for (var j = i + 1; j < bodies.length; j++) {
@@ -80,10 +98,24 @@ var Detector = {};
                 // mid phase
                 if (Bounds.overlaps(bodyA.bounds, bodyB.bounds)) {
 
+                    // find a previous collision we could reuse
+                    var pairId = Pair.id(bodyA, bodyB),
+                        pair = pairId in pairsTable ? pairsTable[pairId] : null,
+                        previousCollision;
+
+                    if (pair && pair.isActive) {
+                        previousCollision = pair.collision;
+                    } else {
+                        previousCollision = null;
+                    }
+
                     // narrow phase
-                    var collision = SAT.collides(bodyA, bodyB);
-                    
+                    var collision = SAT.collides(bodyA, bodyB, previousCollision);
+
                     metrics.narrowphaseTests += 1;
+
+                    if (collision.reused)
+                        metrics.narrowReuseCount += 1;
 
                     if (collision.collided) {
                         collisions.push(collision);
