@@ -42,7 +42,9 @@ var Events = {};
             eventClone;
 
         if (object.events) {
-            event = event || {};
+            if (!event)
+                event = {};
+
             names = eventNames.split(' ');
 
             for (var i = 0; i < names.length; i++) {
