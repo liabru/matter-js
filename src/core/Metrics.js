@@ -15,6 +15,7 @@ var Metrics = {};
      */
     Metrics.create = function() {
         return {
+            extended: false,
             narrowDetections: 0,
             narrowphaseTests: 0,
             narrowReuse: 0,
@@ -37,19 +38,21 @@ var Metrics = {};
      * @param {metrics} metrics
      */
     Metrics.reset = function(metrics) {
-        metrics.narrowDetections = 0;
-        metrics.narrowphaseTests = 0;
-        metrics.narrowReuse = 0;
-        metrics.narrowReuseCount = 0;
-        metrics.midphaseTests = 0;
-        metrics.broadphaseTests = 0;
-        metrics.narrowEff = 0;
-        metrics.midEff = 0;
-        metrics.broadEff = 0;
-        metrics.collisions = 0;
-        metrics.buckets = 0;
-        metrics.pairs = 0;
-        metrics.bodies = 0;
+        if (metrics.extended) {
+            metrics.narrowDetections = 0;
+            metrics.narrowphaseTests = 0;
+            metrics.narrowReuse = 0;
+            metrics.narrowReuseCount = 0;
+            metrics.midphaseTests = 0;
+            metrics.broadphaseTests = 0;
+            metrics.narrowEff = 0;
+            metrics.midEff = 0;
+            metrics.broadEff = 0;
+            metrics.collisions = 0;
+            metrics.buckets = 0;
+            metrics.pairs = 0;
+            metrics.bodies = 0;
+        }
     };
 
     /**
@@ -59,18 +62,20 @@ var Metrics = {};
      * @param {engine} engine
      */
     Metrics.update = function(metrics, engine) {
-        var world = engine.world,
-            broadphase = engine.broadphase[engine.broadphase.current];
-        
-        metrics.collisions = metrics.narrowDetections;
-        metrics.pairs = engine.pairs.list.length;
-        metrics.bodies = world.bodies.length;
-        metrics.midEff = (metrics.narrowDetections / (metrics.midphaseTests || 1)).toFixed(2);
-        metrics.narrowEff = (metrics.narrowDetections / (metrics.narrowphaseTests || 1)).toFixed(2);
-        metrics.broadEff = (1 - (metrics.broadphaseTests / (world.bodies.length || 1))).toFixed(2);
-        metrics.narrowReuse = (metrics.narrowReuseCount / (metrics.narrowphaseTests || 1)).toFixed(2);
-        //if (broadphase.instance)
-        //    metrics.buckets = Common.keys(broadphase.instance.buckets).length;
+        if (metrics.extended) {
+            var world = engine.world,
+                broadphase = engine.broadphase[engine.broadphase.current];
+
+            metrics.collisions = metrics.narrowDetections;
+            metrics.pairs = engine.pairs.list.length;
+            metrics.bodies = world.bodies.length;
+            metrics.midEff = (metrics.narrowDetections / (metrics.midphaseTests || 1)).toFixed(2);
+            metrics.narrowEff = (metrics.narrowDetections / (metrics.narrowphaseTests || 1)).toFixed(2);
+            metrics.broadEff = (1 - (metrics.broadphaseTests / (world.bodies.length || 1))).toFixed(2);
+            metrics.narrowReuse = (metrics.narrowReuseCount / (metrics.narrowphaseTests || 1)).toFixed(2);
+            //if (broadphase.instance)
+            //    metrics.buckets = Common.keys(broadphase.instance.buckets).length;
+        }
     };
 
 })();
