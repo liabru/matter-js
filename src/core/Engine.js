@@ -71,7 +71,7 @@ var Engine = {};
         engine.metrics = engine.metrics || Metrics.create();
         engine.input.mouse = engine.input.mouse || Mouse.create(engine.render.canvas);
         engine.mouseConstraint = engine.mouseConstraint || MouseConstraint.create(engine.input.mouse);
-        World.addComposite(engine.world, engine.mouseConstraint);
+        World.addConstraint(engine.world, engine.mouseConstraint.constraint);
 
         engine.broadphase = engine.broadphase || {
             current: 'grid',
@@ -340,7 +340,7 @@ var Engine = {};
         engine.pairs.table = {};
         engine.pairs.list = [];
 
-        World.addComposite(engine.world, engine.mouseConstraint);
+        World.addConstraint(engine.world, engine.mouseConstraint.constraint);
 
         var broadphase = engine.broadphase[engine.broadphase.current];
 

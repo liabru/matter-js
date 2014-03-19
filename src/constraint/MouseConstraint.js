@@ -31,7 +31,7 @@ var MouseConstraint = {};
             mouse: mouse,
             dragBody: null,
             dragPoint: null,
-            constraints: [constraint]
+            constraint: constraint
         };
     };
 
@@ -43,7 +43,7 @@ var MouseConstraint = {};
      */
     MouseConstraint.update = function(mouseConstraint, bodies) {
         var mouse = mouseConstraint.mouse,
-            constraint = mouseConstraint.constraints[0];
+            constraint = mouseConstraint.constraint;
 
         if (mouse.button === 0 || mouse.button === 2) {
             if (!constraint.bodyB) {
