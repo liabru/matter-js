@@ -191,8 +191,8 @@ var Render = {};
             c.lineTo(constraint.pointB.x, constraint.pointB.y);
         }
 
-        c.lineWidth = constraint.lineWidth;
-        c.strokeStyle = constraint.strokeStyle;
+        c.lineWidth = constraint.render.lineWidth;
+        c.strokeStyle = constraint.render.strokeStyle;
         c.stroke();
     };
     

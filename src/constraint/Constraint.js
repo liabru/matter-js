@@ -41,9 +41,12 @@ var Constraint = {};
     
         constraint.length = constraint.length || length || _minLength;
 
+        // render
+        constraint.render = constraint.render || {};
+        constraint.render.lineWidth = constraint.render.lineWidth || 2;
+        constraint.render.strokeStyle = constraint.render.strokeStyle || '#666';
+
         // option defaults
-        constraint.lineWidth = constraint.lineWidth || 2;
-        constraint.strokeStyle = constraint.strokeStyle || '#666';
         constraint.stiffness = constraint.stiffness || 1;
         constraint.angularStiffness = constraint.angularStiffness || 0;
         constraint.angleA = constraint.bodyA ? constraint.bodyA.angle : constraint.angleA;

@@ -21,8 +21,10 @@ var MouseConstraint = {};
             length: 0.01, 
             stiffness: 0.1,
             angularStiffness: 1,
-            strokeStyle: 'lightgreen',
-            lineWidth: 3
+            render: {
+                strokeStyle: '#90EE90',
+                lineWidth: 3
+            }
         });
 
         return {
