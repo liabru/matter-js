@@ -254,11 +254,14 @@ var Common = {};
         var style;
 
         switch (type) {
-            case 'warn':
-                style = 'color: coral';
+
+        case 'warn':
+            style = 'color: coral';
             break;
-            case 'error':
-                style = 'color: red';
+        case 'error':
+            style = 'color: red';
+            break;
+
         }
 
         console.log('%c [Matter] ' + type + ': ' + message, style);
