@@ -29,6 +29,11 @@ var Engine = {};
      * @return {engine} engine
      */
     Engine.create = function(element, options) {
+
+        // options may be passed as the first (and only) argument
+        options = Common.isElement(element) ? options : element;
+        element = Common.isElement(element) ? element : null;
+
         var defaults = {
             enabled: true,
             positionIterations: 6,
@@ -52,20 +57,16 @@ var Engine = {};
                 correction: 1,
                 deltaMin: 1000 / _fps,
                 deltaMax: 1000 / (_fps * 0.5)
+            },
+            render: {
+                element: element,
+                controller: Render
             }
         };
         
         var engine = Common.extend(defaults, options);
-        engine = Common.isElement(element) ? (engine || {}) : element;
 
-        // create default renderer only if no custom renderer set
-        // but still allow engine.render.engine to pass through if set
-        if (!engine.render || (engine.render && !engine.render.controller)) {
-            engine.render = Render.create(engine.render);
-            if (Common.isElement(element))
-                element.appendChild(engine.render.canvas);
-        }
-
+        engine.render = engine.render.controller.create(engine.render);
         engine.world = World.create(engine.world);
         engine.metrics = engine.metrics || Metrics.create();
         engine.input.mouse = engine.input.mouse || Mouse.create(engine.render.canvas);

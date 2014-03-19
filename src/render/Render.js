@@ -21,6 +21,8 @@ var Render = {};
     Render.create = function(options) {
         var defaults = {
             controller: Render,
+            element: null,
+            canvas: null,
             options: {
                 width: 800,
                 height: 600,
@@ -48,6 +50,12 @@ var Render = {};
         render.context = render.canvas.getContext('2d');
 
         Render.setBackground(render, render.options.background);
+
+        if (Common.isElement(render.element)) {
+            render.element.appendChild(render.canvas);
+        } else {
+            Common.log('No "render.element" passed, "render.canvas" was not inserted into document.', 'warn');
+        }
 
         return render;
     };
