@@ -35,7 +35,7 @@ var Common = {};
 
             if (source) {
                 for (var prop in source) {
-                    if (deepClone && source[prop].constructor === Object) {
+                    if (deepClone && source[prop] && source[prop].constructor === Object) {
                         if (!obj[prop] || obj[prop].constructor === Object) {
                             obj[prop] = obj[prop] || {};
                             Common.extend(obj[prop], deepClone, source[prop]);
