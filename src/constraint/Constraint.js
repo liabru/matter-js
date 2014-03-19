@@ -42,9 +42,13 @@ var Constraint = {};
         constraint.length = constraint.length || length || _minLength;
 
         // render
-        constraint.render = constraint.render || {};
-        constraint.render.lineWidth = constraint.render.lineWidth || 2;
-        constraint.render.strokeStyle = constraint.render.strokeStyle || '#666';
+        var render = {
+            visible: true,
+            lineWidth: 2,
+            strokeStyle: '#666'
+        };
+        
+        constraint.render = Common.extend(render, constraint.render);
 
         // option defaults
         constraint.stiffness = constraint.stiffness || 1;

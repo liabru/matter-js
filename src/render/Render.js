@@ -188,7 +188,7 @@ var Render = {};
             bodyB = constraint.bodyB,
             c = context;
 
-        if (!constraint.pointA || !constraint.pointB)
+        if (!constraint.render.visible || !constraint.pointA || !constraint.pointB)
             return;
 
         if (bodyA) {
