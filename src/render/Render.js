@@ -48,6 +48,7 @@ var Render = {};
 
         render.canvas = render.canvas || _createCanvas(render.options.width, render.options.height);
         render.context = render.canvas.getContext('2d');
+        render.textures = {};
 
         Render.setBackground(render, render.options.background);
 
@@ -68,7 +69,12 @@ var Render = {};
      */
     Render.setBackground = function(render, background) {
         if (render.currentBackground !== background) {
-            render.canvas.style.background = background;
+            var cssBackground = background;
+
+            if (/(jpg|gif|png)$/.test(background))
+                cssBackground = 'url(' + background + ')';
+
+            render.canvas.style.background = cssBackground;
             render.canvas.style.backgroundSize = "contain";
             render.currentBackground = background;
         }
@@ -274,7 +280,8 @@ var Render = {};
         if (body.render.visible) {
             if (body.render.sprite && !options.wireframes) {
                 // body sprite
-                var sprite = body.render.sprite;
+                var sprite = body.render.sprite,
+                    texture = _getTexture(render, sprite.texture);
 
                 if (options.showSleeping && body.isSleeping) 
                     c.globalAlpha = 0.5;
@@ -282,8 +289,8 @@ var Render = {};
                 c.translate(body.position.x, body.position.y); 
                 c.rotate(body.angle);
 
-                c.drawImage(sprite.image, sprite.width * -0.5 * sprite.xScale, sprite.height * -0.5 * sprite.yScale, 
-                            sprite.width * sprite.xScale, sprite.height * sprite.yScale);
+                c.drawImage(texture, texture.width * -0.5 * sprite.xScale, texture.height * -0.5 * sprite.yScale, 
+                            texture.width * sprite.xScale, texture.height * sprite.yScale);
 
                 // revert translation, hopefully faster than save / restore
                 c.rotate(-body.angle);
@@ -491,6 +498,26 @@ var Render = {};
         canvas.oncontextmenu = function() { return false; };
         canvas.onselectstart = function() { return false; };
         return canvas;
+    };
+
+    /**
+     * Gets the requested texture (an Image) via its path
+     * @method _getTexture
+     * @private
+     * @param {render} render
+     * @param {string} imagePath
+     * @return {Image} texture
+     */
+    var _getTexture = function(render, imagePath) {
+        var image = render.textures[imagePath];
+
+        if (image)
+            return image;
+
+        image = render.textures[imagePath] = new Image();
+        image.src = imagePath;
+
+        return image;
     };
 
 })();
