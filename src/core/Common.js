@@ -223,4 +223,45 @@ var Common = {};
         return min + Math.random() * (max - min);
     };
 
+    /**
+     * Converts a CSS hex colour string into an integer
+     * @method colorToNumber
+     * @param {string} colorString
+     * @return {number} An integer representing the CSS hex string
+     */
+    Common.colorToNumber = function(colorString) {
+        colorString = colorString.replace('#','');
+
+        if (colorString.length == 3) {
+            colorString = colorString.charAt(0) + colorString.charAt(0)
+                        + colorString.charAt(1) + colorString.charAt(1)
+                        + colorString.charAt(2) + colorString.charAt(2);
+        }
+
+        return parseInt(colorString, 16);
+    };
+
+    /**
+     * A wrapper for console.log, for providing errors and warnings
+     * @method log
+     * @param {string} message
+     * @param {string} type
+     */
+    Common.log = function(message, type) {
+        if (!console || !console.log)
+            return;
+
+        var style;
+
+        switch (type) {
+            case 'warn':
+                style = 'color: coral';
+            break;
+            case 'error':
+                style = 'color: red';
+        }
+
+        console.log('%c [Matter] ' + type + ': ' + message, style);
+    };
+
 })();
