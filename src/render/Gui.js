@@ -42,7 +42,8 @@ var Gui = {};
             density: 0.001,
             restitution: 0,
             friction: 0.1,
-            frictionAir: 0.01
+            frictionAir: 0.01,
+            renderer: 'canvas'
         };
 
         var funcs = {
@@ -63,6 +64,11 @@ var Gui = {};
             clear: function() {
                 World.clear(engine.world, true);
                 Engine.clear(engine);
+
+                // clear scene graph (if defined in controller)
+                var renderController = engine.render.controller;
+                if (renderController.clear)
+                    renderController.clear(engine.render);
             },
 
             save: function() {
@@ -134,6 +140,35 @@ var Gui = {};
         physics.open();
 
         var render = datGui.addFolder('Render');
+
+        render.add(gui, 'renderer', ['canvas', 'webgl'])
+            .onFinishChange(function(value) {
+                var controller;
+
+                if (value === 'canvas')
+                    controller = Render;
+
+                if (value === 'webgl')
+                    controller = RenderPixi;
+
+                // remove old canvas
+                engine.render.element.removeChild(engine.render.canvas);
+
+                // create new renderer using the same options object
+                var options = engine.render.options;
+
+                engine.render = controller.create({
+                    element: engine.render.element,
+                    options: options
+                });
+
+                engine.render.options = options;
+
+                // update mouse
+                engine.input.mouse = Mouse.create(engine.render.canvas);
+                engine.mouseConstraint.mouse = engine.input.mouse;
+            });
+
         render.add(engine.render.options, 'wireframes');
         render.add(engine.render.options, 'showDebug');
         render.add(engine.render.options, 'showPositions');
