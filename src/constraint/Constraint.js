@@ -17,7 +17,8 @@ var Constraint = {};
 
 (function() {
 
-    var _minLength = 0.000001;
+    var _minLength = 0.000001,
+        _nextId = 0;
 
     /**
      * Description
@@ -51,6 +52,7 @@ var Constraint = {};
         constraint.render = Common.extend(render, constraint.render);
 
         // option defaults
+        constraint.id = constraint.id || Constraint.nextId();
         constraint.stiffness = constraint.stiffness || 1;
         constraint.angularStiffness = constraint.angularStiffness || 0;
         constraint.angleA = constraint.bodyA ? constraint.bodyA.angle : constraint.angleA;
@@ -219,6 +221,15 @@ var Constraint = {};
             Bounds.update(bodyB.bounds, bodyB.vertices, bodyB.velocity);
         }
 
+    };
+
+    /**
+     * Returns the next unique constraintId
+     * @method nextId
+     * @return {Number} Unique constraintId
+     */
+    Constraint.nextId = function() {
+        return _nextId++;
     };
 
 })();
