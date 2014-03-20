@@ -105,19 +105,36 @@ var Render = {};
         context.fillRect(0, 0, canvas.width, canvas.height);
         context.globalCompositeOperation = 'source-over';
 
-        if (options.showShadows && !options.wireframes)
-            for (i = 0; i < world.bodies.length; i++)
-                Render.bodyShadow(engine, world.bodies[i], context);
+        /*if (options.showShadows && !options.wireframes)
+            Render.bodyShadows(engine, world.bodies, context);*/
 
-        for (i = 0; i < world.bodies.length; i++)
-            Render.body(engine, world.bodies[i], context);
+        if (!options.wireframes || (engine.enableSleeping && options.showSleeping)) {
+            // fully featured rendering of bodies
+            Render.bodies(engine, world.bodies, context);
+        } else {
+            // optimised method for wireframes only
+            Render.bodyWireframes(engine, world.bodies, context);
+        }
 
-        for (i = 0; i < world.constraints.length; i++)
-            Render.constraint(world.constraints[i], context);
+        if (options.showBounds)
+            Render.bodyBounds(engine, world.bodies, context);
+
+        if (options.showAxes || options.showAngleIndicator)
+            Render.bodyAxes(engine, world.bodies, context);
+        
+        if (options.showPositions)
+            Render.bodyPositions(engine, world.bodies, context);
+
+        if (options.showVelocity)
+            Render.bodyVelocity(engine, world.bodies, context);
+
+        if (options.showIds)
+            Render.bodyIds(engine, world.bodies, context);
 
         if (options.showCollisions)
-            for (i = 0; i < engine.pairs.list.length; i++)
-                Render.collision(engine, engine.pairs.list[i], context);
+            Render.collisions(engine, engine.pairs.list, context);
+
+        Render.constraints(world.constraints, context);
 
         if (options.showBroadphase && engine.broadphase.current === 'grid')
             Render.grid(engine, engine.broadphase[engine.broadphase.current].instance, context);
@@ -159,7 +176,7 @@ var Render = {};
                 text += "mid: " + engine.metrics.midEff + space;
                 text += "narrow: " + engine.metrics.narrowEff + space;
             }            
-            
+
             render.debugString = text;
             render.debugTimestamp = engine.timing.timestamp;
         }
@@ -183,105 +200,110 @@ var Render = {};
 
     /**
      * Description
-     * @method constraint
-     * @param {constraint} constraint
+     * @method constraints
+     * @param {constraint[]} constraints
      * @param {RenderingContext} context
      */
-    Render.constraint = function(constraint, context) {
-        var bodyA = constraint.bodyA,
-            bodyB = constraint.bodyB,
-            c = context;
+    Render.constraints = function(constraints, context) {
+        var c = context;
 
-        if (!constraint.render.visible || !constraint.pointA || !constraint.pointB)
-            return;
+        for (var i = 0; i < constraints.length; i++) {
+            var constraint = constraints[i];
 
-        if (bodyA) {
-            c.beginPath();
-            c.moveTo(bodyA.position.x + constraint.pointA.x, bodyA.position.y + constraint.pointA.y);
-        } else {
-            c.beginPath();
-            c.moveTo(constraint.pointA.x, constraint.pointA.y);
+            if (!constraint.render.visible || !constraint.pointA || !constraint.pointB)
+                continue;
+
+            var bodyA = constraint.bodyA,
+                bodyB = constraint.bodyB;
+
+            if (bodyA) {
+                c.beginPath();
+                c.moveTo(bodyA.position.x + constraint.pointA.x, bodyA.position.y + constraint.pointA.y);
+            } else {
+                c.beginPath();
+                c.moveTo(constraint.pointA.x, constraint.pointA.y);
+            }
+
+            if (bodyB) {
+                c.lineTo(bodyB.position.x + constraint.pointB.x, bodyB.position.y + constraint.pointB.y);
+            } else {
+                c.lineTo(constraint.pointB.x, constraint.pointB.y);
+            }
+
+            c.lineWidth = constraint.render.lineWidth;
+            c.strokeStyle = constraint.render.strokeStyle;
+            c.stroke();
         }
-
-        if (bodyB) {
-            c.lineTo(bodyB.position.x + constraint.pointB.x, bodyB.position.y + constraint.pointB.y);
-        } else {
-            c.lineTo(constraint.pointB.x, constraint.pointB.y);
-        }
-
-        c.lineWidth = constraint.render.lineWidth;
-        c.strokeStyle = constraint.render.strokeStyle;
-        c.stroke();
     };
     
     /**
      * Description
-     * @method bodyShadow
+     * @method bodyShadows
      * @param {engine} engine
-     * @param {body} body
+     * @param {body[]} bodies
      * @param {RenderingContext} context
      */
-    Render.bodyShadow = function(engine, body, context) {
-        var c = context,
-            render = engine.render;
-
-        if (body.circleRadius) {
-            c.beginPath();
-            c.arc(body.position.x, body.position.y, body.circleRadius, 0, 2 * Math.PI);
-            c.closePath();
-        } else {
-            c.beginPath();
-            c.moveTo(body.vertices[0].x, body.vertices[0].y);
-            for (var j = 1; j < body.vertices.length; j++) {
-                c.lineTo(body.vertices[j].x, body.vertices[j].y);
-            }
-            c.closePath();
-        }
-
-        var distanceX = body.position.x - render.options.width * 0.5,
-            distanceY = body.position.y - render.options.height * 0.2,
-            distance = Math.abs(distanceX) + Math.abs(distanceY);
-
-        c.shadowColor = 'rgba(0,0,0,0.15)';
-        c.shadowOffsetX = 0.05 * distanceX;
-        c.shadowOffsetY = 0.05 * distanceY;
-        c.shadowBlur = 1 + 12 * Math.min(1, distance / 1000);
-
-        c.fill();
-
-        c.shadowColor = null;
-        c.shadowOffsetX = null;
-        c.shadowOffsetY = null;
-        c.shadowBlur = null;
-    };
-
-    /**
-     * Description
-     * @method body
-     * @param {engine} engine
-     * @param {body} body
-     * @param {RenderingContext} context
-     */
-    Render.body = function(engine, body, context) {
+    Render.bodyShadows = function(engine, bodies, context) {
         var c = context,
             render = engine.render,
             options = render.options;
 
-        // body bounds
-        if (options.showBounds) {
-            c.beginPath();
-            c.rect(body.bounds.min.x, body.bounds.min.y, body.bounds.max.x - body.bounds.min.x, body.bounds.max.y - body.bounds.min.y);
-            c.lineWidth = 1;
-            if (options.wireframes) {
-                c.strokeStyle = 'rgba(255,255,255,0.08)';
-            } else {
-                c.strokeStyle = 'rgba(0,0,0,0.1)';
-            }
-            c.stroke();
-        }
+        for (var i = 0; i < bodies.length; i++) {
+            var body = bodies[i];
 
-        // draw body
-        if (body.render.visible) {
+            if (!body.render.visible)
+                continue;
+
+            if (body.circleRadius) {
+                c.beginPath();
+                c.arc(body.position.x, body.position.y, body.circleRadius, 0, 2 * Math.PI);
+                c.closePath();
+            } else {
+                c.beginPath();
+                c.moveTo(body.vertices[0].x, body.vertices[0].y);
+                for (var j = 1; j < body.vertices.length; j++) {
+                    c.lineTo(body.vertices[j].x, body.vertices[j].y);
+                }
+                c.closePath();
+            }
+
+            var distanceX = body.position.x - render.options.width * 0.5,
+                distanceY = body.position.y - render.options.height * 0.2,
+                distance = Math.abs(distanceX) + Math.abs(distanceY);
+
+            c.shadowColor = 'rgba(0,0,0,0.15)';
+            c.shadowOffsetX = 0.05 * distanceX;
+            c.shadowOffsetY = 0.05 * distanceY;
+            c.shadowBlur = 1 + 12 * Math.min(1, distance / 1000);
+
+            c.fill();
+
+            c.shadowColor = null;
+            c.shadowOffsetX = null;
+            c.shadowOffsetY = null;
+            c.shadowBlur = null;
+        }
+    };
+
+    /**
+     * Description
+     * @method bodies
+     * @param {engine} engine
+     * @param {body[]} bodies
+     * @param {RenderingContext} context
+     */
+    Render.bodies = function(engine, bodies, context) {
+        var c = context,
+            render = engine.render,
+            options = render.options,
+            i;
+
+        for (i = 0; i < bodies.length; i++) {
+            var body = bodies[i];
+
+            if (!body.render.visible)
+                continue;
+
             if (body.render.sprite && !options.wireframes) {
                 // body sprite
                 var sprite = body.render.sprite,
@@ -307,7 +329,6 @@ var Render = {};
                 if (body.circleRadius) {
                     c.beginPath();
                     c.arc(body.position.x, body.position.y, body.circleRadius, 0, 2 * Math.PI);
-                    c.closePath();
                 } else {
                     c.beginPath();
                     c.moveTo(body.vertices[0].x, body.vertices[0].y);
@@ -318,9 +339,12 @@ var Render = {};
                 }
 
                 if (!options.wireframes) {
-                    c.fillStyle = body.render.fillStyle;
-                    if (options.showSleeping && body.isSleeping)
+                    if (options.showSleeping && body.isSleeping) {
                         c.fillStyle = Common.shadeColor(body.render.fillStyle, 50);
+                    } else {
+                        c.fillStyle = body.render.fillStyle;
+                    }
+
                     c.lineWidth = body.render.lineWidth;
                     c.strokeStyle = body.render.strokeStyle;
                     c.fill();
@@ -335,66 +359,212 @@ var Render = {};
             }
         }
 
-        // angle indicator
-        if (options.showAngleIndicator && !options.showAxes) {
-            c.beginPath();
-            c.moveTo(body.position.x, body.position.y);
-            c.lineTo((body.vertices[0].x + body.vertices[body.vertices.length-1].x) / 2, 
-                     (body.vertices[0].y + body.vertices[body.vertices.length-1].y) / 2);
-            c.lineWidth = 1;
-            if (options.wireframes) {
-                c.strokeStyle = 'indianred';
-            } else {
-                c.strokeStyle = body.render.strokeStyle;
+    };
+
+    /**
+     * Optimised method for drawing body wireframes in one pass
+     * @method bodyWireframes
+     * @param {engine} engine
+     * @param {body[]} bodies
+     * @param {RenderingContext} context
+     */
+    Render.bodyWireframes = function(engine, bodies, context) {
+        var c = context,
+            i,
+            j;
+
+        c.beginPath();
+
+        for (i = 0; i < bodies.length; i++) {
+            var body = bodies[i];
+
+            if (!body.render.visible)
+                continue;
+
+            c.moveTo(body.vertices[0].x, body.vertices[0].y);
+
+            for (j = 1; j < body.vertices.length; j++) {
+                c.lineTo(body.vertices[j].x, body.vertices[j].y);
             }
-            c.stroke();
+            
+            c.lineTo(body.vertices[0].x, body.vertices[0].y);
         }
 
-        // axes
-        if (options.showAxes) {
-            for (var i = 0; i < body.axes.length; i++) {
-                var axis = body.axes[i];
-                c.beginPath();
-                c.moveTo(body.position.x, body.position.y);
-                c.lineTo(body.position.x + axis.x * 20, body.position.y + axis.y * 20);
-                c.lineWidth = 1;
-                if (options.wireframes) {
-                    c.strokeStyle = 'indianred';
-                } else {
-                    c.strokeStyle = body.render.strokeStyle;
+        c.lineWidth = 1;
+        c.strokeStyle = '#bbb';
+        c.stroke();
+    };
+
+    /**
+     * Draws body bounds
+     * @method bodyBounds
+     * @param {engine} engine
+     * @param {body[]} bodies
+     * @param {RenderingContext} context
+     */
+    Render.bodyBounds = function(engine, bodies, context) {
+        var c = context,
+            render = engine.render,
+            options = render.options;
+
+        c.beginPath();
+
+        for (var i = 0; i < bodies.length; i++) {
+            var body = bodies[i];
+
+            if (body.render.visible)
+                c.rect(body.bounds.min.x, body.bounds.min.y, body.bounds.max.x - body.bounds.min.x, body.bounds.max.y - body.bounds.min.y);
+        }
+
+        if (options.wireframes) {
+            c.strokeStyle = 'rgba(255,255,255,0.08)';
+        } else {
+            c.strokeStyle = 'rgba(0,0,0,0.1)';
+        }
+
+        c.lineWidth = 1;
+        c.stroke();
+    };
+
+    /**
+     * Draws body angle indicators and axes
+     * @method bodyAxes
+     * @param {engine} engine
+     * @param {body[]} bodies
+     * @param {RenderingContext} context
+     */
+    Render.bodyAxes = function(engine, bodies, context) {
+        var c = context,
+            render = engine.render,
+            options = render.options,
+            i,
+            j;
+
+        c.beginPath();
+
+        for (i = 0; i < bodies.length; i++) {
+            var body = bodies[i];
+
+            if (!body.render.visible)
+                continue;
+
+            if (options.showAxes) {
+                // render all axes
+                for (j = 0; j < body.axes.length; j++) {
+                    var axis = body.axes[j];
+                    c.moveTo(body.position.x, body.position.y);
+                    c.lineTo(body.position.x + axis.x * 20, body.position.y + axis.y * 20);
                 }
-                c.stroke();
+            } else {
+                // render a single axis indicator
+                c.moveTo(body.position.x, body.position.y);
+                c.lineTo((body.vertices[0].x + body.vertices[body.vertices.length-1].x) / 2, 
+                         (body.vertices[0].y + body.vertices[body.vertices.length-1].y) / 2);
             }
         }
 
-        // positions
-        if (options.showPositions) {
-            c.beginPath();
-            c.arc(body.position.x, body.position.y, 3, 0, 2 * Math.PI, false);
-            if (options.wireframes) {
-                c.fillStyle = 'indianred';
-            } else {
-                c.fillStyle = 'rgba(0,0,0,0.5)';
-            }
-            c.fill();
-            c.beginPath();
-            c.arc(body.positionPrev.x, body.positionPrev.y, 2, 0, 2 * Math.PI, false);
-            c.fillStyle = 'rgba(255,165,0,0.8)';
-            c.fill();
+        if (options.wireframes) {
+            c.strokeStyle = 'indianred';
+        } else {
+            c.strokeStyle = 'rgba(0,0,0,0.3)';
         }
-        
-        // body velocity vector
-        if (options.showVelocity) {
-            c.beginPath();
+
+        c.lineWidth = 1;
+        c.stroke();
+    };
+
+    /**
+     * Draws body positions
+     * @method bodyPositions
+     * @param {engine} engine
+     * @param {body[]} bodies
+     * @param {RenderingContext} context
+     */
+    Render.bodyPositions = function(engine, bodies, context) {
+        var c = context,
+            render = engine.render,
+            options = render.options,
+            body,
+            i;
+
+        c.beginPath();
+
+        // render current positions
+        for (i = 0; i < bodies.length; i++) {
+            body = bodies[i];
+            if (body.render.visible) {
+                c.arc(body.position.x, body.position.y, 3, 0, 2 * Math.PI, false);
+                c.closePath();
+            }
+        }
+
+        if (options.wireframes) {
+            c.fillStyle = 'indianred';
+        } else {
+            c.fillStyle = 'rgba(0,0,0,0.5)';
+        }
+        c.fill();
+
+        c.beginPath();
+
+        // render previous positions
+        for (i = 0; i < bodies.length; i++) {
+            body = bodies[i];
+            if (body.render.visible) {
+                c.arc(body.positionPrev.x, body.positionPrev.y, 2, 0, 2 * Math.PI, false);
+                c.closePath();
+            }
+        }
+
+        c.fillStyle = 'rgba(255,165,0,0.8)';
+        c.fill();
+    };
+
+    /**
+     * Draws body velocity
+     * @method bodyVelocity
+     * @param {engine} engine
+     * @param {body[]} bodies
+     * @param {RenderingContext} context
+     */
+    Render.bodyVelocity = function(engine, bodies, context) {
+        var c = context,
+            render = engine.render,
+            options = render.options;
+
+        c.beginPath();
+
+        for (var i = 0; i < bodies.length; i++) {
+            var body = bodies[i];
+
+            if (!body.render.visible)
+                continue;
+
             c.moveTo(body.position.x, body.position.y);
             c.lineTo(body.position.x + (body.position.x - body.positionPrev.x) * 2, body.position.y + (body.position.y - body.positionPrev.y) * 2);
-            c.lineWidth = 3;
-            c.strokeStyle = 'cornflowerblue';
-            c.stroke();
         }
 
-        // body id
-        if (options.showIds) {
+        c.lineWidth = 3;
+        c.strokeStyle = 'cornflowerblue';
+        c.stroke();
+    };
+
+    /**
+     * Draws body ids
+     * @method bodyIds
+     * @param {engine} engine
+     * @param {body[]} bodies
+     * @param {RenderingContext} context
+     */
+    Render.bodyIds = function(engine, bodies, context) {
+        var c = context;
+
+        for (var i = 0; i < bodies.length; i++) {
+            var body = bodies[i];
+
+            if (!body.render.visible)
+                continue;
+
             c.font = "12px Arial";
             c.fillStyle = 'rgba(255,255,255,0.5)';
             c.fillText(body.id, body.position.x + 10, body.position.y - 10);
@@ -403,51 +573,68 @@ var Render = {};
 
     /**
      * Description
-     * @method collision
+     * @method collisions
      * @param {engine} engine
-     * @param {pair} pair
+     * @param {pair[]} pairs
      * @param {RenderingContext} context
      */
-    Render.collision = function(engine, pair, context) {
+    Render.collisions = function(engine, pairs, context) {
         var c = context,
-            collision = pair.collision,
-            options = engine.render.options;
+            options = engine.render.options,
+            pair,
+            collision,
+            i,
+            j;
 
-        for (var i = 0; i < pair.activeContacts.length; i++) {
-            var contact = pair.activeContacts[i],
-                vertex = contact.vertex;
-            c.beginPath();
-            //c.arc(vertex.x, vertex.y, 2.5, 0, 2 * Math.PI, false);
-            c.rect(vertex.x - 1.5, vertex.y - 1.5, 3.5, 3.5);
-            if (options.wireframes) {
-                c.fillStyle = 'rgba(255,255,255,0.7)';
-            } else {
-                c.fillStyle = 'orange';
+        c.beginPath();
+
+        // render collision positions
+        for (i = 0; i < pairs.length; i++) {
+            pair = pairs[i];
+            collision = pair.collision;
+            for (j = 0; j < pair.activeContacts.length; j++) {
+                var contact = pair.activeContacts[j],
+                    vertex = contact.vertex;
+                c.rect(vertex.x - 1.5, vertex.y - 1.5, 3.5, 3.5);
             }
-            c.fill();
         }
-        
-        if (pair.activeContacts.length > 0) {
-            var normalPosX = pair.activeContacts[0].vertex.x,
-                normalPosY = pair.activeContacts[0].vertex.y;
 
-            if (pair.activeContacts.length === 2) {
-                normalPosX = (pair.activeContacts[0].vertex.x + pair.activeContacts[1].vertex.x) / 2;
-                normalPosY = (pair.activeContacts[0].vertex.y + pair.activeContacts[1].vertex.y) / 2;
-            }
+        if (options.wireframes) {
+            c.fillStyle = 'rgba(255,255,255,0.7)';
+        } else {
+            c.fillStyle = 'orange';
+        }
+        c.fill();
+
+        c.beginPath();
             
-            // collision normal
-            c.beginPath();
-            c.moveTo(normalPosX - collision.normal.x * 8, normalPosY - collision.normal.y * 8);
-            c.lineWidth = 1;
-            c.lineTo(normalPosX, normalPosY);
-            if (options.wireframes) {
-                c.strokeStyle = 'rgba(255,165,0,0.7)';
-            } else {
-                c.strokeStyle = 'orange';
+        // render collision normals
+        for (i = 0; i < pairs.length; i++) {
+            pair = pairs[i];
+            collision = pair.collision;
+
+            if (pair.activeContacts.length > 0) {
+                var normalPosX = pair.activeContacts[0].vertex.x,
+                    normalPosY = pair.activeContacts[0].vertex.y;
+
+                if (pair.activeContacts.length === 2) {
+                    normalPosX = (pair.activeContacts[0].vertex.x + pair.activeContacts[1].vertex.x) / 2;
+                    normalPosY = (pair.activeContacts[0].vertex.y + pair.activeContacts[1].vertex.y) / 2;
+                }
+                
+                c.moveTo(normalPosX - collision.normal.x * 8, normalPosY - collision.normal.y * 8);
+                c.lineTo(normalPosX, normalPosY);
             }
-            c.stroke();
         }
+
+        if (options.wireframes) {
+            c.strokeStyle = 'rgba(255,165,0,0.7)';
+        } else {
+            c.strokeStyle = 'orange';
+        }
+
+        c.lineWidth = 1;
+        c.stroke();
     };
 
     /**
@@ -461,13 +648,13 @@ var Render = {};
         var c = context,
             options = engine.render.options;
 
-        c.lineWidth = 1;
-
         if (options.wireframes) {
             c.strokeStyle = 'rgba(255,180,0,0.1)';
         } else {
             c.strokeStyle = 'rgba(255,180,0,0.5)';
         }
+
+        c.beginPath();
 
         var bucketKeys = Common.keys(grid.buckets);
 
@@ -478,13 +665,14 @@ var Render = {};
                 continue;
 
             var region = bucketId.split(',');
-            c.beginPath();
             c.rect(0.5 + parseInt(region[0], 10) * grid.bucketWidth, 
                     0.5 + parseInt(region[1], 10) * grid.bucketHeight, 
                     grid.bucketWidth, 
                     grid.bucketHeight);
-            c.stroke();
         }
+
+        c.lineWidth = 1;
+        c.stroke();
     };
 
     /**
