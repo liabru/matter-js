@@ -10,26 +10,27 @@
         Composites = Matter.Composites,
         Common = Matter.Common,
         Constraint = Matter.Constraint,
+        RenderPixi = Matter.RenderPixi,
         Events = Matter.Events;
 
     var Demo = {};
 
     var _engine,
         _gui,
-        _sceneName;
+        _sceneName,
+        _isMobile = /(ipad|iphone|ipod|android)/gi.test(navigator.userAgent);
     
     Demo.init = function() {
         var container = document.getElementById('canvas-container');
 
-        // engine options - these are the defaults
+        // engine options
         var options = {
             positionIterations: 6,
             velocityIterations: 4,
-            enableSleeping: false,
-            timeScale: 1
+            enableSleeping: false
         };
 
-        // create a Matter engine, with the element to insert the canvas into
+        // create a Matter engine
         // NOTE: this is actually Matter.Engine.create(), see the aliases at top of this file
         _engine = Engine.create(container, options);
 
@@ -59,10 +60,37 @@
     Demo.initControls = function() {
         var demoSelect = document.getElementById('demo-select'),
             demoReset = document.getElementById('demo-reset');
-        
-        // create a dat.gui using Matter helper
-        _gui = Gui.create(_engine);
 
+        // create a dat.gui using Matter helper
+        if (!_isMobile)
+            _gui = Gui.create(_engine);
+
+        // go fullscreen when using a mobile device
+        if (_isMobile) {
+            var body = document.body;
+
+            body.className += ' is-mobile';
+            _engine.render.canvas.addEventListener('touchstart', Demo.fullscreen);
+
+            var fullscreenChange = function() {
+                var fullscreenEnabled = document.fullscreenEnabled || document.mozFullScreenEnabled || document.webkitFullscreenEnabled;
+
+                // delay fullscreen styles until fullscreen has finished changing
+                setTimeout(function() {
+                    if (fullscreenEnabled) {
+                        body.className += ' is-fullscreen';
+                    } else {
+                        body.className = body.className.replace('is-fullscreen', '');
+                    }
+                }, 2000);
+            };
+
+            document.addEventListener('webkitfullscreenchange', fullscreenChange);
+            document.addEventListener('mozfullscreenchange', fullscreenChange);
+            document.addEventListener('fullscreenchange', fullscreenChange);
+        }
+
+        // initialise demo selector
         demoSelect.value = _sceneName;
         
         demoSelect.addEventListener('change', function(e) {
@@ -79,6 +107,20 @@
             Gui.update(_gui);
         });
     };
+
+    Demo.fullscreen = function(){
+        var _fullscreenElement = _engine.render.canvas;
+        
+        if (!document.fullscreenElement && !document.mozFullScreenElement && !document.webkitFullscreenElement) {
+            if (_fullscreenElement.requestFullscreen) {
+                _fullscreenElement.requestFullscreen();
+            } else if (_fullscreenElement.mozRequestFullScreen) {
+                _fullscreenElement.mozRequestFullScreen();
+            } else if (_fullscreenElement.webkitRequestFullscreen) {
+                _fullscreenElement.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
+            }
+        }
+    };
     
     Demo.reset = function() {
         var _world = _engine.world;
@@ -86,8 +128,13 @@
         World.clear(_world);
         Engine.clear(_engine);
 
-        if (Events)
-            Events.clear(_engine);
+        // clear scene graph (if defined in controller)
+        var renderController = _engine.render.controller;
+        if (renderController.clear)
+            renderController.clear(_engine.render);
+
+        // clear events
+        Events.clear(_engine);
 
         _engine.enableSleeping = false;
         _engine.world.gravity.y = 1;
@@ -99,7 +146,6 @@
         World.addBody(_world, Bodies.rectangle(-offset, 300, 50.5, 600.5 + 2 * offset, { isStatic: true }));
         
         var renderOptions = _engine.render.options;
-        
         renderOptions.wireframes = true;
         renderOptions.showDebug = false;
         renderOptions.showBroadphase = false;
@@ -112,6 +158,11 @@
         renderOptions.showIds = false;
         renderOptions.showShadows = false;
         renderOptions.background = '#fff';
+
+        if (_isMobile) {
+            renderOptions.showAngleIndicator = false;
+            renderOptions.showDebug = true;
+        }
     };
 
     // all functions below are for setting up scenes
@@ -132,7 +183,7 @@
                 case 1:
                     var sides = Math.round(Common.random(1, 8));
 
-                    // triangles can be a little jittery... so avoid until fixed
+                    // triangles can be a little unstable, so avoid until fixed
                     // TODO: make triangles more stable
                     sides = (sides === 3) ? 4 : sides;
 
@@ -426,9 +477,11 @@
             bodyB: ball
         }));
         
-        var renderOptions = _engine.render.options;
-        renderOptions.showCollisions = true;
-        renderOptions.showVelocity = true;
+        if (!_isMobile) {
+            var renderOptions = _engine.render.options;
+            renderOptions.showCollisions = true;
+            renderOptions.showVelocity = true;
+        }
     };
     
     Demo.ballPool = function() {
@@ -535,29 +588,30 @@
         
         World.addComposite(_world, stack);
 
-        //_engine.enableSleeping = true;
+        var shakeScene = function(engine) {
+            var bodies = engine.world.bodies;
+
+            for (var i = 0; i < bodies.length; i++) {
+                var body = bodies[i];
+
+                if (!body.isStatic && body.position.y >= 500) {
+                    var forceMagnitude = 0.01 * body.mass;
+
+                    Body.applyForce(body, { x: 0, y: 0 }, { 
+                        x: (forceMagnitude + Math.random() * forceMagnitude) * Common.choose([1, -1]), 
+                        y: -forceMagnitude + Math.random() * -forceMagnitude
+                    });
+                }
+            }
+        };
 
         // an example of using beforeUpdate event on an engine
         Events.on(_engine, 'beforeUpdate', function(event) {
             var engine = event.source;
 
             // apply random forces every 5 secs
-            if (event.timestamp % 5000 < 50) {
-                var bodies = engine.world.bodies;
-
-                for (var i = 0; i < bodies.length; i++) {
-                    var body = bodies[i];
-
-                    if (!body.isStatic && body.position.y >= 500) {
-                        var forceMagnitude = 0.01 * body.mass;
-
-                        Body.applyForce(body, { x: 0, y: 0 }, { 
-                            x: (forceMagnitude + Math.random() * forceMagnitude) * Common.choose([1, -1]), 
-                            y: -forceMagnitude + Math.random() * -forceMagnitude
-                        });
-                    }
-                }
-            }
+            if (event.timestamp % 5000 < 50)
+                shakeScene(engine);
         });
 
         // an example of using collisionStart event on an engine
@@ -596,88 +650,79 @@
             }
         });
 
+        // an example of using mouse events on an engine.input.mouse
+        Events.on(_engine, 'mousedown', function(event) {
+            var mousePosition = event.mouse.position;
+            console.log('mousedown at ' + mousePosition.x + ' ' + mousePosition.y);
+            _engine.render.options.background = 'cornsilk';
+            shakeScene(_engine);
+        });
+
+        // an example of using mouse events on an engine.input.mouse
+        Events.on(_engine, 'mouseup', function(event) {
+            var mousePosition = event.mouse.position;
+            _engine.render.options.background = "white";
+            console.log('mouseup at ' + mousePosition.x + ' ' + mousePosition.y);
+        });
+
         var renderOptions = _engine.render.options;
         renderOptions.wireframes = false;
     };
 
     Demo.sprites = function() {
-        var initScene = function() {
-            var _world = _engine.world,
-                offset = 10,
-                options = { 
-                    isStatic: true,
-                    render: {
-                        visible: false
-                    }
-                };
-
-            Demo.reset();
-            _world.bodies = [];
-
-            World.addBody(_world, Bodies.rectangle(400, -offset, 800.5 + 2 * offset, 50.5, options));
-            World.addBody(_world, Bodies.rectangle(400, 600 + offset, 800.5 + 2 * offset, 50.5, options));
-            World.addBody(_world, Bodies.rectangle(800 + offset, 300, 50.5, 600.5 + 2 * offset, options));
-            World.addBody(_world, Bodies.rectangle(-offset, 300, 50.5, 600.5 + 2 * offset, options));
-
-            var stack = Composites.stack(20, 20, 15, 4, 0, 0, function(x, y, column, row) {
-                if (Math.random() > 0.35) {
-                    return Bodies.rectangle(x, y, 64, 64, {
-                        render: {
-                            strokeStyle: '#ffffff',
-                            sprite: {
-                                image: boxSprite,
-                                width: boxSprite.width,
-                                height: boxSprite.height,
-                                xScale: 1,
-                                yScale: 1
-                            }
-                        }
-                    });
-                } else {
-                    return Bodies.circle(x, y, 46, {
-                        density: 0.0005,
-                        frictionAir: 0.06,
-                        restitution: 0.3,
-                        friction: 0.01,
-                        render: {
-                            sprite: {
-                                image: ballSprite,
-                                width: ballSprite.width,
-                                height: ballSprite.height,
-                                xScale: 1,
-                                yScale: 1
-                            }
-                        }
-                    });
+        var _world = _engine.world,
+            offset = 10,
+            options = { 
+                isStatic: true,
+                render: {
+                    visible: false
                 }
-            });
+            };
 
-            World.addComposite(_world, stack);
+        Demo.reset();
+        _world.bodies = [];
 
-            var renderOptions = _engine.render.options;
-            renderOptions.background = 'url(./img/wall-bg.jpg) no-repeat';
-            renderOptions.showAngleIndicator = false;
-            renderOptions.wireframes = false;
-        };
+        // these static walls will not be rendered in this sprites example, see options
+        World.addBody(_world, Bodies.rectangle(400, -offset, 800.5 + 2 * offset, 50.5, options));
+        World.addBody(_world, Bodies.rectangle(400, 600 + offset, 800.5 + 2 * offset, 50.5, options));
+        World.addBody(_world, Bodies.rectangle(800 + offset, 300, 50.5, 600.5 + 2 * offset, options));
+        World.addBody(_world, Bodies.rectangle(-offset, 300, 50.5, 600.5 + 2 * offset, options));
 
-        var boxSprite = new Image(),
-            ballSprite = new Image(),
-            spriteLoadCount = 0;
+        var stack = Composites.stack(20, 20, 15, 4, 0, 0, function(x, y, column, row) {
+            if (Math.random() > 0.35) {
+                return Bodies.rectangle(x, y, 64, 64, {
+                    render: {
+                        strokeStyle: '#ffffff',
+                        sprite: {
+                            texture: './img/box.png',
+                            xScale: 1,
+                            yScale: 1
+                        }
+                    }
+                });
+            } else {
+                return Bodies.circle(x, y, 46, {
+                    density: 0.0005,
+                    frictionAir: 0.06,
+                    restitution: 0.3,
+                    friction: 0.01,
+                    render: {
+                        sprite: {
+                            texture: './img/ball.png',
+                            xScale: 1,
+                            yScale: 1
+                        }
+                    }
+                });
+            }
+        });
 
-        // count the sprites loaded until they're all ready
-        var spriteLoaded = function() {
-            spriteLoadCount += 1;
+        World.addComposite(_world, stack);
 
-            // when all sprites loaded, start the scene!
-            if (spriteLoadCount >= 2)
-                initScene();
-        };
-        boxSprite.onload = spriteLoaded;
-        ballSprite.onload = spriteLoaded;
-
-        // trigger loading of sprites
-        ballSprite.src = './img/ball.png';
-        boxSprite.src = './img/box.png';
+        var renderOptions = _engine.render.options;
+        renderOptions.background = './img/wall-bg.jpg';
+        renderOptions.showAngleIndicator = false;
+        renderOptions.wireframes = false;
     };
 
 })();
