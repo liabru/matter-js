@@ -141,21 +141,25 @@ var Render = {};
 
         if (engine.timing.timestamp - (render.debugTimestamp || 0) >= 500) {
             var text = "";
-            text += "delta: " + engine.timing.delta.toFixed(3) + space;
             text += "fps: " + Math.round(engine.timing.fps) + space;
-            text += "correction: " + engine.timing.correction.toFixed(3) + space;
-            text += "bodies: " + world.bodies.length + space;
 
-            if (engine.broadphase.controller === Grid)
-                text += "buckets: " + engine.metrics.buckets + space;
+            if (engine.metrics.extended) {
+                text += "delta: " + engine.timing.delta.toFixed(3) + space;
+                text += "correction: " + engine.timing.correction.toFixed(3) + space;
+                text += "bodies: " + world.bodies.length + space;
 
-            text += "\n";
+                if (engine.broadphase.controller === Grid)
+                    text += "buckets: " + engine.metrics.buckets + space;
 
-            text += "collisions: " + engine.metrics.collisions + space;
-            text += "pairs: " + engine.pairs.list.length + space;
-            text += "broad: " + engine.metrics.broadEff + space;
-            text += "mid: " + engine.metrics.midEff + space;
-            text += "narrow: " + engine.metrics.narrowEff + space;            
+                text += "\n";
+
+                text += "collisions: " + engine.metrics.collisions + space;
+                text += "pairs: " + engine.pairs.list.length + space;
+                text += "broad: " + engine.metrics.broadEff + space;
+                text += "mid: " + engine.metrics.midEff + space;
+                text += "narrow: " + engine.metrics.narrowEff + space;
+            }            
+            
             render.debugString = text;
             render.debugTimestamp = engine.timing.timestamp;
         }
