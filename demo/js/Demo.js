@@ -134,7 +134,8 @@
             renderController.clear(_engine.render);
 
         // clear events
-        Events.clear(_engine);
+        if (Events)
+            Events.clear(_engine);
 
         _engine.enableSleeping = false;
         _engine.world.gravity.y = 1;

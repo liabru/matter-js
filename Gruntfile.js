@@ -134,7 +134,7 @@ module.exports = function(grunt) {
     // edge build mode (default)
     if (isEdge || (!isDev && !isRelease)) {
       grunt.config.set('buildVersion', pkg.version + '-edge');
-      grunt.task.run('concat', 'uglify:min', 'copy');
+      grunt.task.run('concat', 'uglify:min');
     }
   });
 
