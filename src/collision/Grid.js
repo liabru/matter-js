@@ -220,9 +220,11 @@ var Grid = {};
 
             // keep track of the number of buckets the pair exists in
             // important for Grid.update to work
-            var pairId = Pair.id(body, bodyB);
-            if (grid.pairs[pairId]) {
-                grid.pairs[pairId][2] += 1;
+            var pairId = Pair.id(body, bodyB),
+                pair = grid.pairs[pairId];
+
+            if (pair) {
+                pair[2] += 1;
             } else {
                 grid.pairs[pairId] = [body, bodyB, 1];
             }
@@ -241,23 +243,19 @@ var Grid = {};
      * @param {} body
      */
     var _bucketRemoveBody = function(grid, bucket, body) {
-        // remove from bodies
-        for (var i = 0; i < bucket.length; i++) {
-            var bodyB = bucket[i];
+        // remove from bucket
+        bucket.splice(bucket.indexOf(body), 1);
 
-            // when position of body in bucket array is found, remove it
-            if (bodyB.id === body.id) {
-                bucket.splice(i, 1);
-                continue;
-            } else {
-                // keep track of the number of buckets the pair exists in
-                // important for Grid.update to work
-                var pairId = Pair.id(body, bodyB);
-                if (grid.pairs[pairId]) {
-                    var pairCount = grid.pairs[pairId][2];
-                    grid.pairs[pairId][2] = pairCount > 0 ? pairCount - 1 : 0;
-                }
-            }
+        // update pair counts
+        for (var i = 0; i < bucket.length; i++) {
+            // keep track of the number of buckets the pair exists in
+            // important for _createActivePairsList to work
+            var bodyB = bucket[i],
+                pairId = Pair.id(body, bodyB),
+                pair = grid.pairs[pairId];
+
+            if (pair)
+                pair[2] -= 1;
         }
     };
 
@@ -282,8 +280,11 @@ var Grid = {};
 
             // if pair exists in at least one bucket
             // it is a pair that needs further collision testing so push it
-            if (pair[2] > 0)
+            if (pair[2] > 0) {
                 pairs.push(pair);
+            } else {
+                delete grid.pairs[pairKeys[k]];
+            }
         }
 
         return pairs;
