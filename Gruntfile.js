@@ -138,10 +138,14 @@ module.exports = function(grunt) {
     }
   });
 
-  grunt.registerTask('doc', function() {
-    var dev = grunt.option('dev');
-    if (dev)
+  grunt.registerTask('doc', function(mode) {
+    var isDev = (mode === 'dev'),
+        isRelease = (mode === 'release'),
+        isEdge = (mode === 'edge');
+
+    if (isEdge)
       grunt.config.set('docVersion', 'edge version (master)');
+    
     grunt.task.run('yuidoc');
   });
 
