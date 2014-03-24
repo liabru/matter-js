@@ -91,6 +91,8 @@ var Render = {};
             canvas = render.canvas,
             context = render.context,
             options = render.options,
+            bodies = Composite.allBodies(world),
+            constraints = Composite.allConstraints(world),
             i;
 
         if (options.wireframes) {
@@ -106,35 +108,35 @@ var Render = {};
         context.globalCompositeOperation = 'source-over';
 
         /*if (options.showShadows && !options.wireframes)
-            Render.bodyShadows(engine, world.bodies, context);*/
+            Render.bodyShadows(engine, bodies, context);*/
 
         if (!options.wireframes || (engine.enableSleeping && options.showSleeping)) {
             // fully featured rendering of bodies
-            Render.bodies(engine, world.bodies, context);
+            Render.bodies(engine, bodies, context);
         } else {
             // optimised method for wireframes only
-            Render.bodyWireframes(engine, world.bodies, context);
+            Render.bodyWireframes(engine, bodies, context);
         }
 
         if (options.showBounds)
-            Render.bodyBounds(engine, world.bodies, context);
+            Render.bodyBounds(engine, bodies, context);
 
         if (options.showAxes || options.showAngleIndicator)
-            Render.bodyAxes(engine, world.bodies, context);
+            Render.bodyAxes(engine, bodies, context);
         
         if (options.showPositions)
-            Render.bodyPositions(engine, world.bodies, context);
+            Render.bodyPositions(engine, bodies, context);
 
         if (options.showVelocity)
-            Render.bodyVelocity(engine, world.bodies, context);
+            Render.bodyVelocity(engine, bodies, context);
 
         if (options.showIds)
-            Render.bodyIds(engine, world.bodies, context);
+            Render.bodyIds(engine, bodies, context);
 
         if (options.showCollisions)
             Render.collisions(engine, engine.pairs.list, context);
 
-        Render.constraints(world.constraints, context);
+        Render.constraints(constraints, context);
 
         if (options.showBroadphase && engine.broadphase.current === 'grid')
             Render.grid(engine, engine.broadphase[engine.broadphase.current].instance, context);
@@ -154,6 +156,7 @@ var Render = {};
             world = engine.world,
             render = engine.render,
             options = render.options,
+            bodies = Composite.allBodies(world),
             space = "    ";
 
         if (engine.timing.timestamp - (render.debugTimestamp || 0) >= 500) {
@@ -163,7 +166,7 @@ var Render = {};
             if (engine.metrics.extended) {
                 text += "delta: " + engine.timing.delta.toFixed(3) + space;
                 text += "correction: " + engine.timing.correction.toFixed(3) + space;
-                text += "bodies: " + world.bodies.length + space;
+                text += "bodies: " + bodies.length + space;
 
                 if (engine.broadphase.controller === Grid)
                     text += "buckets: " + engine.metrics.buckets + space;

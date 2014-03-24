@@ -17,33 +17,29 @@ var World = {};
      * @return {world} A new world
      */
     World.create = function(options) {
+        var composite = Composite.create();
+
         var defaults = {
             gravity: { x: 0, y: 1 },
-            bodies: [],
-            constraints: [],
             bounds: { 
                 min: { x: 0, y: 0 }, 
                 max: { x: 800, y: 600 } 
             }
         };
         
-        return Common.extend(defaults, options);
-    };
-    
-    /**
-     * Description
-     * @method clear
-     * @param {world} world
-     * @param {boolean} keepStatic
-     */
-    World.clear = function(world, keepStatic) {
-        world.bodies = keepStatic ? world.bodies.filter(function(body) { return body.isStatic; }) : [];
-        world.constraints = [];
+        return Common.extend(composite, defaults, options);
     };
 
     // World is a Composite body
     // see src/module/Outro.js for these aliases:
     
+    /**
+     * An alias for Composite.clear since World is also a Composite (see Outro.js)
+     * @method clear
+     * @param {world} world
+     * @param {boolean} keepStatic
+     */
+
     /**
      * An alias for Composite.add since World is also a Composite (see Outro.js)
      * @method addComposite

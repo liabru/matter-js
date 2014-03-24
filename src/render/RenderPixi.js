@@ -151,6 +151,8 @@ var RenderPixi = {};
             context = render.context,
             stage = render.stage,
             options = render.options,
+            bodies = Composite.allBodies(world),
+            constraints = Composite.allConstraints(world),
             i;
 
         if (options.wireframes) {
@@ -159,11 +161,11 @@ var RenderPixi = {};
             RenderPixi.setBackground(render, options.background);
         }
 
-        for (i = 0; i < world.bodies.length; i++)
-            RenderPixi.body(engine, world.bodies[i]);
+        for (i = 0; i < bodies.length; i++)
+            RenderPixi.body(engine, bodies[i]);
 
-        for (i = 0; i < world.constraints.length; i++)
-            RenderPixi.constraint(engine, world.constraints[i]);
+        for (i = 0; i < constraints.length; i++)
+            RenderPixi.constraint(engine, constraints[i]);
 
         context.render(stage);
     };

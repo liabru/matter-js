@@ -1,8 +1,9 @@
 // aliases
 
-World.addComposite = Composite.add;
+World.addComposite = Composite.addComposite;
 World.addBody = Composite.addBody;
 World.addConstraint = Composite.addConstraint;
+World.clear = Composite.clear;
 
 // exports
 

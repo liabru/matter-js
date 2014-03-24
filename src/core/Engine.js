@@ -240,28 +240,31 @@ var Engine = {};
             broadphasePairs = [],
             i;
 
+        var allBodies = Composite.allBodies(world),
+            allConstraints = Composite.allConstraints(world);
+
         Metrics.reset(engine.metrics);
 
         if (engine.enableSleeping)
-            Sleeping.update(world.bodies);
+            Sleeping.update(allBodies);
 
-        Body.applyGravityAll(world.bodies, world.gravity);
+        Body.applyGravityAll(allBodies, world.gravity);
 
-        MouseConstraint.update(engine.mouseConstraint, world.bodies, engine.input);
+        MouseConstraint.update(engine.mouseConstraint, allBodies, engine.input);
 
-        Body.updateAll(world.bodies, delta * engine.timeScale, correction, world.bounds);
+        Body.updateAll(allBodies, delta * engine.timeScale, correction, world.bounds);
 
         // update all constraints
         for (i = 0; i < engine.constraintIterations; i++) {
-            Constraint.updateAll(world.constraints);
+            Constraint.updateAll(allConstraints);
         }
 
         // broadphase pass: find potential collision pairs
         if (broadphase.controller) {
-            broadphase.controller.update(broadphase.instance, world.bodies, engine);
+            broadphase.controller.update(broadphase.instance, allBodies, engine);
             broadphasePairs = broadphase.instance.pairsList;
         } else {
-            broadphasePairs = world.bodies;
+            broadphasePairs = allBodies;
         }
 
         // narrowphase pass: find actual collisions, then create or update collision pairs
@@ -287,12 +290,12 @@ var Engine = {};
         for (i = 0; i < engine.positionIterations; i++) {
             Resolver.solvePosition(pairs.list);
         }
-        Resolver.postSolvePosition(world.bodies);
+        Resolver.postSolvePosition(allBodies);
 
         Metrics.update(engine.metrics, engine);
 
         // clear force buffers
-        Body.resetForcesAll(world.bodies);
+        Body.resetForcesAll(allBodies);
 
         return engine;
     };
@@ -311,7 +314,7 @@ var Engine = {};
 
             Engine.clear(engineA);
 
-            var bodies = engineA.world.bodies;
+            var bodies = Composite.allBodies(engineA.world);
 
             for (var i = 0; i < bodies.length; i++) {
                 var body = bodies[i];
@@ -324,7 +327,7 @@ var Engine = {};
             if (broadphase.controller === Grid) {
                 var grid = broadphase.instance;
                 Grid.clear(grid);
-                Grid.update(grid, engineA.world.bodies, engineA, true);
+                Grid.update(grid, bodies, engineA, true);
             }
         }
     };
@@ -348,7 +351,8 @@ var Engine = {};
             Grid.clear(broadphase.instance);
 
         if (broadphase.controller) {
-            broadphase.controller.update(broadphase.instance, world.bodies, engine, true);
+            var bodies = Composite.allBodies(world);
+            broadphase.controller.update(broadphase.instance, bodies, engine, true);
         }
     };
 

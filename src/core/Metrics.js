@@ -64,14 +64,15 @@ var Metrics = {};
     Metrics.update = function(metrics, engine) {
         if (metrics.extended) {
             var world = engine.world,
-                broadphase = engine.broadphase[engine.broadphase.current];
+                broadphase = engine.broadphase[engine.broadphase.current],
+                bodies = Composite.allBodies(world);
 
             metrics.collisions = metrics.narrowDetections;
             metrics.pairs = engine.pairs.list.length;
-            metrics.bodies = world.bodies.length;
+            metrics.bodies = bodies.length;
             metrics.midEff = (metrics.narrowDetections / (metrics.midphaseTests || 1)).toFixed(2);
             metrics.narrowEff = (metrics.narrowDetections / (metrics.narrowphaseTests || 1)).toFixed(2);
-            metrics.broadEff = (1 - (metrics.broadphaseTests / (world.bodies.length || 1))).toFixed(2);
+            metrics.broadEff = (1 - (metrics.broadphaseTests / (bodies.length || 1))).toFixed(2);
             metrics.narrowReuse = (metrics.narrowReuseCount / (metrics.narrowphaseTests || 1)).toFixed(2);
             //if (broadphase.instance)
             //    metrics.buckets = Common.keys(broadphase.instance.buckets).length;
