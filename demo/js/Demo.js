@@ -11,7 +11,10 @@
         Common = Matter.Common,
         Constraint = Matter.Constraint,
         RenderPixi = Matter.RenderPixi,
-        Events = Matter.Events;
+        Events = Matter.Events,
+        Bounds = Matter.Bounds,
+        Vector = Matter.Vector,
+        Vertices = Matter.Vertices;
 
     var Demo = {};
 
@@ -133,9 +136,60 @@
         if (renderController.clear)
             renderController.clear(_engine.render);
 
-        // clear events
-        if (Events)
-            Events.clear(_engine);
+        if (Events) {
+
+            // clear all events
+            Events.off(_engine);
+
+            // add event for deleting bodies and constraints with right mouse button
+            Events.on(_engine, 'mousedown', function(event) {
+                var mouse = event.mouse,
+                    engine = event.source,
+                    bodies = Composite.allBodies(engine.world),
+                    constraints = Composite.allConstraints(engine.world),
+                    i;
+
+                if (mouse.button === 2) {
+
+                    // find if a body was clicked on
+                    for (i = 0; i < bodies.length; i++) {
+                        var body = bodies[i];
+                        if (Bounds.contains(body.bounds, mouse.position) 
+                                && Vertices.contains(body.vertices, mouse.position)) {
+
+                            // remove the body that was clicked on
+                            Composite.removeBody(engine.world, body, true);
+                        }
+                    }
+
+                    // find if a constraint anchor was clicked on
+                    for (i = 0; i < constraints.length; i++) {
+                        var constraint = constraints[i],
+                            bodyA = constraint.bodyA,
+                            bodyB = constraint.bodyB;
+
+                        // we need to account for different types of constraint anchor
+                        var pointAWorld = constraint.pointA,
+                            pointBWorld = constraint.pointB;
+                        if (bodyA) pointAWorld = Vector.add(bodyA.position, constraint.pointA);
+                        if (bodyB) pointBWorld = Vector.add(bodyB.position, constraint.pointB);
+
+                        // if the constraint does not have two valid anchors, skip it
+                        if (!pointAWorld || !pointBWorld)
+                            continue;
+
+                        // find distance between mouse and anchor points
+                        var distA = Vector.magnitudeSquared(Vector.sub(mouse.position, pointAWorld)),
+                            distB = Vector.magnitudeSquared(Vector.sub(mouse.position, pointBWorld));
+
+                        // if mouse was close, remove the constraint
+                        if (distA < 100 || distB < 100) {
+                            Composite.removeConstraint(engine.world, constraint, true);
+                        }
+                    }
+                }
+            });
+        }
 
         _engine.enableSleeping = false;
         _engine.world.gravity.y = 1;

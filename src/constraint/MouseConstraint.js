@@ -45,7 +45,7 @@ var MouseConstraint = {};
         var mouse = mouseConstraint.mouse,
             constraint = mouseConstraint.constraint;
 
-        if (mouse.button === 0 || mouse.button === 2) {
+        if (mouse.button === 0) {
             if (!constraint.bodyB) {
                 for (var i = 0; i < bodies.length; i++) {
                     var body = bodies[i];
