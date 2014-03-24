@@ -132,7 +132,12 @@ var Gui = {};
 
         var physics = datGui.addFolder('Engine');
         physics.add(engine, 'enableSleeping');
-        physics.add(engine.broadphase, 'current', ['grid', 'bruteForce']);
+
+        physics.add(engine.broadphase, 'current', ['grid', 'bruteForce'])
+            .onFinishChange(function(value) {
+                Composite.setModified(engine.world, true, false, false);
+            });
+
         physics.add(engine, 'timeScale', 0.1, 2).step(0.1);
         physics.add(engine, 'velocityIterations', 1, 10).step(1);
         physics.add(engine, 'positionIterations', 1, 10).step(1);

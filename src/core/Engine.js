@@ -167,6 +167,10 @@ var Engine = {};
             */
             Events.trigger(engine, 'tick beforeUpdate', event);
 
+            // if world has been modified, clear the render scene graph
+            if (engine.world.isModified)
+                engine.render.controller.clear(engine.render);
+
             // update
             Engine.update(engine, delta, correction);
 
@@ -234,18 +238,24 @@ var Engine = {};
             broadphasePairs = [],
             i;
 
+        // get lists of all bodies and constraints, no matter what composites they are in
         var allBodies = Composite.allBodies(world),
             allConstraints = Composite.allConstraints(world);
 
+        // reset metrics logging
         Metrics.reset(engine.metrics);
 
+        // if sleeping enabled, call the sleeping controller
         if (engine.enableSleeping)
             Sleeping.update(allBodies);
 
+        // applies gravity to all bodies
         Body.applyGravityAll(allBodies, world.gravity);
 
+        // update the mouse constraint
         MouseConstraint.update(engine.mouseConstraint, allBodies, engine.input);
 
+        // update all body position and rotation by integration
         Body.updateAll(allBodies, delta * engine.timeScale, correction, world.bounds);
 
         // update all constraints
@@ -255,16 +265,24 @@ var Engine = {};
 
         // broadphase pass: find potential collision pairs
         if (broadphase.controller) {
-            broadphase.controller.update(broadphase.instance, allBodies, engine);
+
+            // if world is dirty, we must flush the whole grid
+            if (world.isModified)
+                broadphase.controller.clear(broadphase.instance);
+
+            // update the grid buckets based on current bodies
+            broadphase.controller.update(broadphase.instance, allBodies, engine, world.isModified);
             broadphasePairs = broadphase.instance.pairsList;
         } else {
+
+            // if no broadphase set, we just pass all bodies
             broadphasePairs = allBodies;
         }
 
         // narrowphase pass: find actual collisions, then create or update collision pairs
         var collisions = broadphase.detector(broadphasePairs, engine);
 
-        // update pairs
+        // update collision pairs
         var pairs = engine.pairs,
             timestamp = engine.timing.timestamp;
         Pairs.update(pairs, collisions, timestamp);
@@ -286,10 +304,15 @@ var Engine = {};
         }
         Resolver.postSolvePosition(allBodies);
 
+        // update metrics log
         Metrics.update(engine.metrics, engine);
 
         // clear force buffers
         Body.resetForcesAll(allBodies);
+
+        // clear all composite modified flags
+        if (world.isModified)
+            Composite.setModified(world, false, false, true);
 
         return engine;
     };
@@ -315,14 +338,6 @@ var Engine = {};
                 Sleeping.set(body, false);
                 body.id = Body.nextId();
             }
-
-            var broadphase = engineA.broadphase[engineA.broadphase.current];
-
-            if (broadphase.controller === Grid) {
-                var grid = broadphase.instance;
-                Grid.clear(grid);
-                Grid.update(grid, bodies, engineA, true);
-            }
         }
     };
 
@@ -339,12 +354,9 @@ var Engine = {};
         World.addConstraint(engine.world, engine.mouseConstraint.constraint);
 
         var broadphase = engine.broadphase[engine.broadphase.current];
-
-        if (broadphase.controller === Grid)
-            Grid.clear(broadphase.instance);
-
         if (broadphase.controller) {
             var bodies = Composite.allBodies(world);
+            broadphase.controller.clear(broadphase.instance);
             broadphase.controller.update(broadphase.instance, bodies, engine, true);
         }
     };

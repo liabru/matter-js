@@ -48,7 +48,7 @@ var Grid = {};
         for (i = 0; i < bodies.length; i++) {
             var body = bodies[i];
 
-            if (body.isSleeping)
+            if (body.isSleeping && !forceUpdate)
                 continue;
 
             // don't update out of world bodies

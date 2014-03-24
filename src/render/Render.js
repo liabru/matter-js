@@ -62,6 +62,16 @@ var Render = {};
     };
 
     /**
+     * Clears the renderer. In this implementation, this is a noop.
+     * @method clear
+     * @param {RenderPixi} render
+     */
+    Render.clear = function(render) {
+        // nothing required to clear this renderer implentation
+        // if a scene graph is required, clear it here (see RenderPixi.js)
+    };
+
+    /**
      * Sets the background CSS property of the canvas 
      * @method setBackground
      * @param {render} render
