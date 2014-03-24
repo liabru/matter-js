@@ -1,5 +1,5 @@
 /**
-* matter.js 0.5.0-edge 2014-03-22
+* matter.js 0.5.0-edge 2014-03-24
 * http://brm.io/matter-js/
 * License: MIT
 */
@@ -318,6 +318,8 @@ var Composite = {};
 
 (function() {
 
+    var _nextId = 0;
+
     /**
      * Description
      * @method create
@@ -325,26 +327,61 @@ var Composite = {};
      * @return {composite} A new composite
      */
     Composite.create = function(options) {
-        return Common.extend({ bodies: [], constraints: [], composites: [] }, options);
+        return Common.extend({ 
+            id: Composite.nextId(),
+            parent: null,
+            isModified: false,
+            bodies: [], 
+            constraints: [], 
+            composites: [] 
+        }, options);
+    };
+
+    /**
+     * Returns the next unique compositeID
+     * @method nextId
+     * @return {Number} Unique compositeID
+     */
+    Composite.nextId = function() {
+        return _nextId++;
+    };
+
+    /**
+     * Sets the composite's `isModified` flag. 
+     * If `updateParents` is true, all parents will be set (default: false).
+     * If `updateChildren` is true, all children will be set (default: false).
+     * @method setModified
+     * @param {composite} composite
+     * @param {boolean} isModified
+     * @param {boolean} updateParents
+     * @param {boolean} updateChildren
+     */
+    Composite.setModified = function(composite, isModified, updateParents, updateChildren) {
+        composite.isModified = isModified;
+
+        if (updateParents && composite.parent) {
+            Composite.setModified(composite.parent, isModified, updateParents, updateChildren);
+        }
+
+        if (updateChildren) {
+            for(var i = 0; i < composite.composites.length; i++) {
+                var childComposite = composite.composites[i];
+                Composite.setModified(childComposite, isModified, updateParents, updateChildren);
+            }
+        }
     };
 
     /**
      * Description
-     * @method add
+     * @method addComposite
      * @param {composite} compositeA
      * @param {composite} compositeB
      * @return {composite} The original compositeA with the objects from compositeB added
      */
-    Composite.add = function(compositeA, compositeB) {
-        if (compositeA.bodies && compositeB.bodies)
-            compositeA.bodies = compositeA.bodies.concat(compositeB.bodies);
-
-        if (compositeA.constraints && compositeB.constraints)
-            compositeA.constraints = compositeA.constraints.concat(compositeB.constraints);
-
-        if (compositeA.composites && compositeB.composites)
-            compositeA.composites = compositeA.composites.concat(compositeB.composites);
-
+    Composite.addComposite = function(compositeA, compositeB) {
+        compositeA.composites.push(compositeB);
+        compositeB.parent = compositeA;
+        Composite.setModified(compositeA, true, true, false);
         return compositeA;
     };
 
@@ -356,8 +393,45 @@ var Composite = {};
      * @return {composite} The original composite with the body added
      */
     Composite.addBody = function(composite, body) {
-        composite.bodies = composite.bodies || [];
         composite.bodies.push(body);
+        Composite.setModified(composite, true, true, false);
+        return composite;
+    };
+
+    /**
+     * Removes a body from the given composite, and optionally searching its children recursively
+     * @method removeBody
+     * @param {composite} composite
+     * @param {body} body
+     * @param {boolean} deep
+     * @return {composite} The original composite with the body removed
+     */
+    Composite.removeBody = function(composite, body, deep) {
+        var position = composite.bodies.indexOf(body);
+        if (position !== -1) {
+            Composite.removeBodyAt(composite, position);
+            Composite.setModified(composite, true, true, false);
+        }
+
+        if (deep) {
+            for (var i = 0; i < composite.composites.length; i++){
+                Composite.removeBody(composite.composites[i], body, true);
+            }
+        }
+
+        return composite;
+    };
+
+    /**
+     * Removes a body from the given composite
+     * @method removeBodyAt
+     * @param {composite} composite
+     * @param {number} position
+     * @return {composite} The original composite with the body removed
+     */
+    Composite.removeBodyAt = function(composite, position) {
+        composite.bodies.splice(position, 1);
+        Composite.setModified(composite, true, true, false);
         return composite;
     };
 
@@ -369,9 +443,103 @@ var Composite = {};
      * @return {composite} The original composite with the constraint added
      */
     Composite.addConstraint = function(composite, constraint) {
-        composite.constraints = composite.constraints || [];
         composite.constraints.push(constraint);
+        Composite.setModified(composite, true, true, false);
         return composite;
+    };
+
+    /**
+     * Removes a constraint from the given composite, and optionally searching its children recursively
+     * @method removeConstraint
+     * @param {composite} composite
+     * @param {constraint} constraint
+     * @param {boolean} deep
+     * @return {composite} The original composite with the constraint removed
+     */
+    Composite.removeConstraint = function(composite, constraint, deep) {
+        var position = composite.constraints.indexOf(constraint);
+        if (position !== -1) {
+            Composite.removeConstraintAt(composite, position);
+        }
+
+        if (deep) {
+            for (var i = 0; i < composite.composites.length; i++){
+                Composite.removeConstraint(composite.composites[i], constraint, true);
+            }
+        }
+
+        return composite;
+    };
+
+    /**
+     * Removes a body from the given composite
+     * @method removeConstraintAt
+     * @param {composite} composite
+     * @param {number} position
+     * @return {composite} The original composite with the constraint removed
+     */
+    Composite.removeConstraintAt = function(composite, position) {
+        composite.constraints.splice(position, 1);
+        Composite.setModified(composite, true, true, false);
+        return composite;
+    };
+
+    /**
+     * Removes all bodies, constraints and composites from the given composite
+     * Optionally clearing its children recursively
+     * @method clear
+     * @param {world} world
+     * @param {boolean} keepStatic
+     * @param {boolean} deep
+     */
+    Composite.clear = function(composite, keepStatic, deep) {
+        if (deep) {
+            for (var i = 0; i < composite.composites.length; i++){
+                Composite.clear(composite.composites[i], keepStatic, true);
+            }
+        }
+        
+        if (keepStatic) {
+            composite.bodies = composite.bodies.filter(function(body) { return body.isStatic; });
+        } else {
+            composite.bodies.length = 0;
+        }
+
+        composite.constraints.length = 0;
+        composite.composites.length = 0;
+        Composite.setModified(composite, true, true, false);
+
+        return composite;
+    };
+
+    /**
+     * Returns all bodies in the given composite, including all bodies in its children, recursively
+     * @method allBodies
+     * @param {composite} composite
+     * @return {body[]} All the bodies
+     */
+    Composite.allBodies = function(composite) {
+        var bodies = [].concat(composite.bodies);
+
+        for (var i = 0; i < composite.composites.length; i++)
+            bodies = bodies.concat(Composite.allBodies(composite.composites[i]));
+
+        return bodies;
+    };
+
+    /**
+     * Returns all constraints in the given composite, including all constraints in its children, recursively
+     * @method allConstraints
+     * @param {composite} composite
+     * @return {constraint[]} All the constraints
+     */
+    Composite.allConstraints = function(composite) {
+        var constraints = [].concat(composite.constraints);
+
+        for (var i = 0; i < composite.composites.length; i++)
+            constraints = constraints.concat(Composite.allConstraints(composite.composites[i]));
+
+        return constraints;
     };
 
 })();
@@ -400,33 +568,29 @@ var World = {};
      * @return {world} A new world
      */
     World.create = function(options) {
+        var composite = Composite.create();
+
         var defaults = {
             gravity: { x: 0, y: 1 },
-            bodies: [],
-            constraints: [],
             bounds: { 
                 min: { x: 0, y: 0 }, 
                 max: { x: 800, y: 600 } 
             }
         };
         
-        return Common.extend(defaults, options);
-    };
-    
-    /**
-     * Description
-     * @method clear
-     * @param {world} world
-     * @param {boolean} keepStatic
-     */
-    World.clear = function(world, keepStatic) {
-        world.bodies = keepStatic ? world.bodies.filter(function(body) { return body.isStatic; }) : [];
-        world.constraints = [];
+        return Common.extend(composite, defaults, options);
     };
 
     // World is a Composite body
     // see src/module/Outro.js for these aliases:
     
+    /**
+     * An alias for Composite.clear since World is also a Composite (see Outro.js)
+     * @method clear
+     * @param {world} world
+     * @param {boolean} keepStatic
+     */
+
     /**
      * An alias for Composite.add since World is also a Composite (see Outro.js)
      * @method addComposite
@@ -687,7 +851,7 @@ var Grid = {};
         for (i = 0; i < bodies.length; i++) {
             var body = bodies[i];
 
-            if (body.isSleeping)
+            if (body.isSleeping && !forceUpdate)
                 continue;
 
             // don't update out of world bodies
@@ -934,130 +1098,6 @@ var Grid = {};
 ;   // End src/collision/Grid.js
 
 
-// Begin src/collision/Manager.js
-
-/**
-* _Internal Class_, not generally used outside of the engine's internals.
-*
-* @class Manager
-*/
-
-var Manager = {};
-
-(function() {
-    
-    var _pairMaxIdleLife = 1000;
-
-    /**
-     * Description
-     * @method updatePairs
-     * @param {object} pairs
-     * @param {collision[]} collisions
-     */
-    Manager.updatePairs = function(pairs, collisions, timestamp) {
-        var pairsList = pairs.list,
-            pairsTable = pairs.table,
-            collisionStart = pairs.collisionStart,
-            collisionEnd = pairs.collisionEnd,
-            collisionActive = pairs.collisionActive,
-            activePairIds = [],
-            collision,
-            pairId,
-            pair,
-            i;
-
-        // clear collision state arrays, but maintain old reference
-        collisionStart.length = 0;
-        collisionEnd.length = 0;
-        collisionActive.length = 0;
-
-        for (i = 0; i < collisions.length; i++) {
-            collision = collisions[i];
-
-            if (collision.collided) {
-                pairId = Pair.id(collision.bodyA, collision.bodyB);
-                activePairIds.push(pairId);
-                
-                if (pairId in pairsTable) {
-                    // pair already exists (but may or may not be active)
-                    pair = pairsTable[pairId];
-
-                    if (pair.isActive) {
-                        // pair exists and is active
-                        collisionActive.push(pair);
-                    } else {
-                        // pair exists but was inactive, so a collision has just started again
-                        collisionStart.push(pair);
-                    }
-
-                    // update the pair
-                    Pair.update(pair, collision, timestamp);
-                } else {
-                    // pair did not exist, create a new pair
-                    pair = Pair.create(collision, timestamp);
-                    pairsTable[pairId] = pair;
-
-                    // push the new pair
-                    collisionStart.push(pair);
-                    pairsList.push(pair);
-                }
-            }
-        }
-
-        // deactivate previously active pairs that are now inactive
-        for (i = 0; i < pairsList.length; i++) {
-            pair = pairsList[i];
-            if (pair.isActive && activePairIds.indexOf(pair.id) === -1) {
-                Pair.setActive(pair, false, timestamp);
-                collisionEnd.push(pair);
-            }
-        }
-    };
-    
-    /**
-     * Description
-     * @method removeOldPairs
-     * @param {object} pairs
-     */
-    Manager.removeOldPairs = function(pairs, timestamp) {
-        var pairsList = pairs.list,
-            pairsTable = pairs.table,
-            indexesToRemove = [],
-            pair,
-            collision,
-            pairIndex,
-            i;
-
-        for (i = 0; i < pairsList.length; i++) {
-            pair = pairsList[i];
-            collision = pair.collision;
-            
-            // never remove sleeping pairs
-            if (collision.bodyA.isSleeping || collision.bodyB.isSleeping) {
-                pair.timeUpdated = timestamp;
-                continue;
-            }
-
-            // if pair is inactive for too long, mark it to be removed
-            if (timestamp - pair.timeUpdated > _pairMaxIdleLife) {
-                indexesToRemove.push(i);
-            }
-        }
-
-        // remove marked pairs
-        for (i = 0; i < indexesToRemove.length; i++) {
-            pairIndex = indexesToRemove[i] - i;
-            pair = pairsList[pairIndex];
-            delete pairsTable[pair.id];
-            pairsList.splice(pairIndex, 1);
-        }
-    };
-
-})();
-
-;   // End src/collision/Manager.js
-
-
 // Begin src/collision/Pair.js
 
 /**
@@ -1169,6 +1209,161 @@ var Pair = {};
 })();
 
 ;   // End src/collision/Pair.js
+
+
+// Begin src/collision/Pairs.js
+
+/**
+* _Internal Class_, not generally used outside of the engine's internals.
+*
+* @class Pairs
+*/
+
+var Pairs = {};
+
+(function() {
+    
+    var _pairMaxIdleLife = 1000;
+
+    /**
+     * Creates a new pairs structure
+     * @method create
+     * @param {object} options
+     * @return {pairs} A new pairs structure
+     */
+    Pairs.create = function(options) {
+        return Common.extend({ 
+            table: {},
+            list: [],
+            collisionStart: [],
+            collisionActive: [],
+            collisionEnd: []
+        }, options);
+    };
+
+    /**
+     * Description
+     * @method update
+     * @param {object} pairs
+     * @param {collision[]} collisions
+     */
+    Pairs.update = function(pairs, collisions, timestamp) {
+        var pairsList = pairs.list,
+            pairsTable = pairs.table,
+            collisionStart = pairs.collisionStart,
+            collisionEnd = pairs.collisionEnd,
+            collisionActive = pairs.collisionActive,
+            activePairIds = [],
+            collision,
+            pairId,
+            pair,
+            i;
+
+        // clear collision state arrays, but maintain old reference
+        collisionStart.length = 0;
+        collisionEnd.length = 0;
+        collisionActive.length = 0;
+
+        for (i = 0; i < collisions.length; i++) {
+            collision = collisions[i];
+
+            if (collision.collided) {
+                pairId = Pair.id(collision.bodyA, collision.bodyB);
+                activePairIds.push(pairId);
+                
+                if (pairId in pairsTable) {
+                    // pair already exists (but may or may not be active)
+                    pair = pairsTable[pairId];
+
+                    if (pair.isActive) {
+                        // pair exists and is active
+                        collisionActive.push(pair);
+                    } else {
+                        // pair exists but was inactive, so a collision has just started again
+                        collisionStart.push(pair);
+                    }
+
+                    // update the pair
+                    Pair.update(pair, collision, timestamp);
+                } else {
+                    // pair did not exist, create a new pair
+                    pair = Pair.create(collision, timestamp);
+                    pairsTable[pairId] = pair;
+
+                    // push the new pair
+                    collisionStart.push(pair);
+                    pairsList.push(pair);
+                }
+            }
+        }
+
+        // deactivate previously active pairs that are now inactive
+        for (i = 0; i < pairsList.length; i++) {
+            pair = pairsList[i];
+            if (pair.isActive && activePairIds.indexOf(pair.id) === -1) {
+                Pair.setActive(pair, false, timestamp);
+                collisionEnd.push(pair);
+            }
+        }
+    };
+    
+    /**
+     * Description
+     * @method removeOld
+     * @param {object} pairs
+     */
+    Pairs.removeOld = function(pairs, timestamp) {
+        var pairsList = pairs.list,
+            pairsTable = pairs.table,
+            indexesToRemove = [],
+            pair,
+            collision,
+            pairIndex,
+            i;
+
+        for (i = 0; i < pairsList.length; i++) {
+            pair = pairsList[i];
+            collision = pair.collision;
+            
+            // never remove sleeping pairs
+            if (collision.bodyA.isSleeping || collision.bodyB.isSleeping) {
+                pair.timeUpdated = timestamp;
+                continue;
+            }
+
+            // if pair is inactive for too long, mark it to be removed
+            if (timestamp - pair.timeUpdated > _pairMaxIdleLife) {
+                indexesToRemove.push(i);
+            }
+        }
+
+        // remove marked pairs
+        for (i = 0; i < indexesToRemove.length; i++) {
+            pairIndex = indexesToRemove[i] - i;
+            pair = pairsList[pairIndex];
+            delete pairsTable[pair.id];
+            pairsList.splice(pairIndex, 1);
+        }
+    };
+
+    /**
+     * Clears the given pairs structure
+     * @method create
+     * @param {object} options
+     * @param {pairs} pairs
+     */
+    Pairs.clear = function(pairs) {
+        pairs.table = {};
+        pairs.list.length = 0;
+        pairs.collisionStart.length = 0;
+        pairs.collisionActive.length = 0;
+        pairs.collisionEnd.length = 0;
+        return pairs;
+    };
+
+})();
+
+;   // End src/collision/Pairs.js
 
 
 // Begin src/collision/Resolver.js
@@ -1992,7 +2187,7 @@ var MouseConstraint = {};
         var mouse = mouseConstraint.mouse,
             constraint = mouseConstraint.constraint;
 
-        if (mouse.button === 0 || mouse.button === 2) {
+        if (mouse.button === 0) {
             if (!constraint.bodyB) {
                 for (var i = 0; i < bodies.length; i++) {
                     var body = bodies[i];
@@ -2341,13 +2536,6 @@ var Engine = {};
             positionIterations: 6,
             velocityIterations: 4,
             constraintIterations: 1,
-            pairs: {
-                table: {},
-                list: [],
-                collisionStart: [],
-                collisionActive: [],
-                collisionEnd: []
-            },
             enableSleeping: false,
             timeScale: 1,
             input: {},
@@ -2370,6 +2558,7 @@ var Engine = {};
 
         engine.render = engine.render.controller.create(engine.render);
         engine.world = World.create(engine.world);
+        engine.pairs = Pairs.create();
         engine.metrics = engine.metrics || Metrics.create();
         engine.input.mouse = engine.input.mouse || Mouse.create(engine.render.canvas);
         engine.mouseConstraint = engine.mouseConstraint || MouseConstraint.create(engine.input.mouse);
@@ -2475,6 +2664,10 @@ var Engine = {};
             */
             Events.trigger(engine, 'tick beforeUpdate', event);
 
+            // if world has been modified, clear the render scene graph
+            if (engine.world.isModified)
+                engine.render.controller.clear(engine.render);
+
             // update
             Engine.update(engine, delta, correction);
 
@@ -2542,38 +2735,55 @@ var Engine = {};
             broadphasePairs = [],
             i;
 
+        // get lists of all bodies and constraints, no matter what composites they are in
+        var allBodies = Composite.allBodies(world),
+            allConstraints = Composite.allConstraints(world);
+
+        // reset metrics logging
         Metrics.reset(engine.metrics);
 
+        // if sleeping enabled, call the sleeping controller
         if (engine.enableSleeping)
-            Sleeping.update(world.bodies);
+            Sleeping.update(allBodies);
 
-        Body.applyGravityAll(world.bodies, world.gravity);
+        // applies gravity to all bodies
+        Body.applyGravityAll(allBodies, world.gravity);
 
-        MouseConstraint.update(engine.mouseConstraint, world.bodies, engine.input);
+        // update the mouse constraint
+        MouseConstraint.update(engine.mouseConstraint, allBodies, engine.input);
 
-        Body.updateAll(world.bodies, delta * engine.timeScale, correction, world.bounds);
+        // update all body position and rotation by integration
+        Body.updateAll(allBodies, delta * engine.timeScale, correction, world.bounds);
 
         // update all constraints
         for (i = 0; i < engine.constraintIterations; i++) {
-            Constraint.updateAll(world.constraints);
+            Constraint.updateAll(allConstraints);
         }
 
         // broadphase pass: find potential collision pairs
         if (broadphase.controller) {
-            broadphase.controller.update(broadphase.instance, world.bodies, engine);
+
+            // if world is dirty, we must flush the whole grid
+            if (world.isModified)
+                broadphase.controller.clear(broadphase.instance);
+
+            // update the grid buckets based on current bodies
+            broadphase.controller.update(broadphase.instance, allBodies, engine, world.isModified);
             broadphasePairs = broadphase.instance.pairsList;
         } else {
-            broadphasePairs = world.bodies;
+
+            // if no broadphase set, we just pass all bodies
+            broadphasePairs = allBodies;
         }
 
         // narrowphase pass: find actual collisions, then create or update collision pairs
         var collisions = broadphase.detector(broadphasePairs, engine);
 
-        // update pairs
+        // update collision pairs
         var pairs = engine.pairs,
             timestamp = engine.timing.timestamp;
-        Manager.updatePairs(pairs, collisions, timestamp);
-        Manager.removeOldPairs(pairs, timestamp);
+        Pairs.update(pairs, collisions, timestamp);
+        Pairs.removeOld(pairs, timestamp);
 
         // wake up bodies involved in collisions
         if (engine.enableSleeping)
@@ -2589,12 +2799,17 @@ var Engine = {};
         for (i = 0; i < engine.positionIterations; i++) {
             Resolver.solvePosition(pairs.list);
         }
-        Resolver.postSolvePosition(world.bodies);
+        Resolver.postSolvePosition(allBodies);
 
+        // update metrics log
         Metrics.update(engine.metrics, engine);
 
         // clear force buffers
-        Body.resetForcesAll(world.bodies);
+        Body.resetForcesAll(allBodies);
+
+        // clear all composite modified flags
+        if (world.isModified)
+            Composite.setModified(world, false, false, true);
 
         return engine;
     };
@@ -2613,20 +2828,12 @@ var Engine = {};
 
             Engine.clear(engineA);
 
-            var bodies = engineA.world.bodies;
+            var bodies = Composite.allBodies(engineA.world);
 
             for (var i = 0; i < bodies.length; i++) {
                 var body = bodies[i];
                 Sleeping.set(body, false);
                 body.id = Body.nextId();
-            }
-
-            var broadphase = engineA.broadphase[engineA.broadphase.current];
-
-            if (broadphase.controller === Grid) {
-                var grid = broadphase.instance;
-                Grid.clear(grid);
-                Grid.update(grid, engineA.world.bodies, engineA, true);
             }
         }
     };
@@ -2639,18 +2846,15 @@ var Engine = {};
     Engine.clear = function(engine) {
         var world = engine.world;
         
-        engine.pairs.table = {};
-        engine.pairs.list = [];
+        Pairs.clear(engine.pairs);
 
         World.addConstraint(engine.world, engine.mouseConstraint.constraint);
 
         var broadphase = engine.broadphase[engine.broadphase.current];
-
-        if (broadphase.controller === Grid)
-            Grid.clear(broadphase.instance);
-
         if (broadphase.controller) {
-            broadphase.controller.update(broadphase.instance, world.bodies, engine, true);
+            var bodies = Composite.allBodies(world);
+            broadphase.controller.clear(broadphase.instance);
+            broadphase.controller.update(broadphase.instance, bodies, engine, true);
         }
     };
 
@@ -2809,8 +3013,26 @@ var Events = {};
     };
 
     /**
+     * Clears all callbacks for the given event names if supplied, otherwise all events
+     * @method off
+     * @param {} object
+     * @param {string} eventNames
+     */
+    Events.off = function(object, eventNames) {
+        if (!eventNames) {
+            object.events = {};
+            return;
+        }
+
+        var names = eventNames.split(' ');
+        for (var i = 0; i < names.length; i++) {
+            object.events[names[i]] = [];
+        }
+    };
+
+    /**
      * Fires all the callbacks subscribed to the given object's eventName, in the order they subscribed, if any
-     * @method fire
+     * @method trigger
      * @param {} object
      * @param {string} eventNames
      * @param {} event
@@ -2841,24 +3063,6 @@ var Events = {};
                     }
                 }
             }
-        }
-    };
-
-    /**
-     * Clears all callbacks for the given event names if supplied, otherwise all events
-     * @method clear
-     * @param {} object
-     * @param {string} eventNames
-     */
-    Events.clear = function(object, eventNames) {
-        if (!eventNames) {
-            object.events = {};
-            return;
-        }
-
-        var names = eventNames.split(' ');
-        for (var i = 0; i < names.length; i++) {
-            object.events[names[i]] = [];
         }
     };
 
@@ -2935,14 +3139,15 @@ var Metrics = {};
     Metrics.update = function(metrics, engine) {
         if (metrics.extended) {
             var world = engine.world,
-                broadphase = engine.broadphase[engine.broadphase.current];
+                broadphase = engine.broadphase[engine.broadphase.current],
+                bodies = Composite.allBodies(world);
 
             metrics.collisions = metrics.narrowDetections;
             metrics.pairs = engine.pairs.list.length;
-            metrics.bodies = world.bodies.length;
+            metrics.bodies = bodies.length;
             metrics.midEff = (metrics.narrowDetections / (metrics.midphaseTests || 1)).toFixed(2);
             metrics.narrowEff = (metrics.narrowDetections / (metrics.narrowphaseTests || 1)).toFixed(2);
-            metrics.broadEff = (1 - (metrics.broadphaseTests / (world.bodies.length || 1))).toFixed(2);
+            metrics.broadEff = (1 - (metrics.broadphaseTests / (bodies.length || 1))).toFixed(2);
             metrics.narrowReuse = (metrics.narrowReuseCount / (metrics.narrowphaseTests || 1)).toFixed(2);
             //if (broadphase.instance)
             //    metrics.buckets = Common.keys(broadphase.instance.buckets).length;
@@ -4216,7 +4421,12 @@ var Gui = {};
 
         var physics = datGui.addFolder('Engine');
         physics.add(engine, 'enableSleeping');
-        physics.add(engine.broadphase, 'current', ['grid', 'bruteForce']);
+
+        physics.add(engine.broadphase, 'current', ['grid', 'bruteForce'])
+            .onFinishChange(function(value) {
+                Composite.setModified(engine.world, true, false, false);
+            });
+
         physics.add(engine, 'timeScale', 0.1, 2).step(0.1);
         physics.add(engine, 'velocityIterations', 1, 10).step(1);
         physics.add(engine, 'positionIterations', 1, 10).step(1);
@@ -4378,6 +4588,16 @@ var Render = {};
     };
 
     /**
+     * Clears the renderer. In this implementation, this is a noop.
+     * @method clear
+     * @param {RenderPixi} render
+     */
+    Render.clear = function(render) {
+        // nothing required to clear this renderer implentation
+        // if a scene graph is required, clear it here (see RenderPixi.js)
+    };
+
+    /**
      * Sets the background CSS property of the canvas 
      * @method setBackground
      * @param {render} render
@@ -4407,6 +4627,8 @@ var Render = {};
             canvas = render.canvas,
             context = render.context,
             options = render.options,
+            bodies = Composite.allBodies(world),
+            constraints = Composite.allConstraints(world),
             i;
 
         if (options.wireframes) {
@@ -4422,35 +4644,35 @@ var Render = {};
         context.globalCompositeOperation = 'source-over';
 
         /*if (options.showShadows && !options.wireframes)
-            Render.bodyShadows(engine, world.bodies, context);*/
+            Render.bodyShadows(engine, bodies, context);*/
 
         if (!options.wireframes || (engine.enableSleeping && options.showSleeping)) {
             // fully featured rendering of bodies
-            Render.bodies(engine, world.bodies, context);
+            Render.bodies(engine, bodies, context);
         } else {
             // optimised method for wireframes only
-            Render.bodyWireframes(engine, world.bodies, context);
+            Render.bodyWireframes(engine, bodies, context);
         }
 
         if (options.showBounds)
-            Render.bodyBounds(engine, world.bodies, context);
+            Render.bodyBounds(engine, bodies, context);
 
         if (options.showAxes || options.showAngleIndicator)
-            Render.bodyAxes(engine, world.bodies, context);
+            Render.bodyAxes(engine, bodies, context);
         
         if (options.showPositions)
-            Render.bodyPositions(engine, world.bodies, context);
+            Render.bodyPositions(engine, bodies, context);
 
         if (options.showVelocity)
-            Render.bodyVelocity(engine, world.bodies, context);
+            Render.bodyVelocity(engine, bodies, context);
 
         if (options.showIds)
-            Render.bodyIds(engine, world.bodies, context);
+            Render.bodyIds(engine, bodies, context);
 
         if (options.showCollisions)
             Render.collisions(engine, engine.pairs.list, context);
 
-        Render.constraints(world.constraints, context);
+        Render.constraints(constraints, context);
 
         if (options.showBroadphase && engine.broadphase.current === 'grid')
             Render.grid(engine, engine.broadphase[engine.broadphase.current].instance, context);
@@ -4470,6 +4692,7 @@ var Render = {};
             world = engine.world,
             render = engine.render,
             options = render.options,
+            bodies = Composite.allBodies(world),
             space = "    ";
 
         if (engine.timing.timestamp - (render.debugTimestamp || 0) >= 500) {
@@ -4479,7 +4702,7 @@ var Render = {};
             if (engine.metrics.extended) {
                 text += "delta: " + engine.timing.delta.toFixed(3) + space;
                 text += "correction: " + engine.timing.correction.toFixed(3) + space;
-                text += "bodies: " + world.bodies.length + space;
+                text += "bodies: " + bodies.length + space;
 
                 if (engine.broadphase.controller === Grid)
                     text += "buckets: " + engine.metrics.buckets + space;
@@ -5101,6 +5324,10 @@ var RenderPixi = {};
             Common.log('No "render.element" passed, "render.canvas" was not inserted into document.', 'warn');
         }
 
+        // prevent menus on canvas
+        render.canvas.oncontextmenu = function() { return false; };
+        render.canvas.onselectstart = function() { return false; };
+
         return render;
     };
 
@@ -5188,6 +5415,8 @@ var RenderPixi = {};
             context = render.context,
             stage = render.stage,
             options = render.options,
+            bodies = Composite.allBodies(world),
+            constraints = Composite.allConstraints(world),
             i;
 
         if (options.wireframes) {
@@ -5196,11 +5425,11 @@ var RenderPixi = {};
             RenderPixi.setBackground(render, options.background);
         }
 
-        for (i = 0; i < world.bodies.length; i++)
-            RenderPixi.body(engine, world.bodies[i]);
+        for (i = 0; i < bodies.length; i++)
+            RenderPixi.body(engine, bodies[i]);
 
-        for (i = 0; i < world.constraints.length; i++)
-            RenderPixi.constraint(engine, world.constraints[i]);
+        for (i = 0; i < constraints.length; i++)
+            RenderPixi.constraint(engine, constraints[i]);
 
         context.render(stage);
     };
@@ -5406,9 +5635,10 @@ var RenderPixi = {};
 
 // aliases
 
-World.addComposite = Composite.add;
+World.addComposite = Composite.addComposite;
 World.addBody = Composite.addBody;
 World.addConstraint = Composite.addConstraint;
+World.clear = Composite.clear;
 
 // exports
 
@@ -5418,7 +5648,7 @@ Matter.World = World;
 Matter.Contact = Contact;
 Matter.Detector = Detector;
 Matter.Grid = Grid;
-Matter.Manager = Manager;
+Matter.Pairs = Pairs;
 Matter.Pair = Pair;
 Matter.Resolver = Resolver;
 Matter.SAT = SAT;
