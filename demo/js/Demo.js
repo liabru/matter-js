@@ -468,7 +468,7 @@
         Demo.reset();
         
         var stack = Composites.stack(20, 20, 20, 5, 0, 0, function(x, y, column, row) {
-            return Bodies.circle(x, y, Common.random(10, 20), { friction: 0.00001, restitution: 0.5, density: 0.1 });
+            return Bodies.circle(x, y, Common.random(10, 20), { friction: 0.00001, restitution: 0.5, density: 0.001 });
         });
         
         World.addComposite(_world, stack);
@@ -538,7 +538,7 @@
         
         World.addComposite(_world, stack);
         
-        var ball = Bodies.circle(100, 400, 50, { density: 1, frictionAir: 0.001});
+        var ball = Bodies.circle(100, 400, 50, { density: 0.07, frictionAir: 0.001});
         
         World.addBody(_world, ball);
         World.addConstraint(_world, Constraint.create({
@@ -658,7 +658,7 @@
         World.addComposite(_world, stack);
 
         var shakeScene = function(engine) {
-            var bodies = engine.world.bodies;
+            var bodies = Composite.allBodies(engine.world);
 
             for (var i = 0; i < bodies.length; i++) {
                 var body = bodies[i];
