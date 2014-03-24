@@ -39,13 +39,6 @@ var Engine = {};
             positionIterations: 6,
             velocityIterations: 4,
             constraintIterations: 1,
-            pairs: {
-                table: {},
-                list: [],
-                collisionStart: [],
-                collisionActive: [],
-                collisionEnd: []
-            },
             enableSleeping: false,
             timeScale: 1,
             input: {},
@@ -68,6 +61,7 @@ var Engine = {};
 
         engine.render = engine.render.controller.create(engine.render);
         engine.world = World.create(engine.world);
+        engine.pairs = Pairs.create();
         engine.metrics = engine.metrics || Metrics.create();
         engine.input.mouse = engine.input.mouse || Mouse.create(engine.render.canvas);
         engine.mouseConstraint = engine.mouseConstraint || MouseConstraint.create(engine.input.mouse);
@@ -273,8 +267,8 @@ var Engine = {};
         // update pairs
         var pairs = engine.pairs,
             timestamp = engine.timing.timestamp;
-        Manager.updatePairs(pairs, collisions, timestamp);
-        Manager.removeOldPairs(pairs, timestamp);
+        Pairs.update(pairs, collisions, timestamp);
+        Pairs.removeOld(pairs, timestamp);
 
         // wake up bodies involved in collisions
         if (engine.enableSleeping)
@@ -340,8 +334,7 @@ var Engine = {};
     Engine.clear = function(engine) {
         var world = engine.world;
         
-        engine.pairs.table = {};
-        engine.pairs.list = [];
+        Pairs.clear(engine.pairs);
 
         World.addConstraint(engine.world, engine.mouseConstraint.constraint);
 
