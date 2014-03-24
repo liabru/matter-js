@@ -64,6 +64,10 @@ var RenderPixi = {};
             Common.log('No "render.element" passed, "render.canvas" was not inserted into document.', 'warn');
         }
 
+        // prevent menus on canvas
+        render.canvas.oncontextmenu = function() { return false; };
+        render.canvas.onselectstart = function() { return false; };
+
         return render;
     };
 
