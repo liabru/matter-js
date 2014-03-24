@@ -29,8 +29,26 @@ var Events = {};
     };
 
     /**
+     * Clears all callbacks for the given event names if supplied, otherwise all events
+     * @method off
+     * @param {} object
+     * @param {string} eventNames
+     */
+    Events.off = function(object, eventNames) {
+        if (!eventNames) {
+            object.events = {};
+            return;
+        }
+
+        var names = eventNames.split(' ');
+        for (var i = 0; i < names.length; i++) {
+            object.events[names[i]] = [];
+        }
+    };
+
+    /**
      * Fires all the callbacks subscribed to the given object's eventName, in the order they subscribed, if any
-     * @method fire
+     * @method trigger
      * @param {} object
      * @param {string} eventNames
      * @param {} event
@@ -61,24 +79,6 @@ var Events = {};
                     }
                 }
             }
-        }
-    };
-
-    /**
-     * Clears all callbacks for the given event names if supplied, otherwise all events
-     * @method clear
-     * @param {} object
-     * @param {string} eventNames
-     */
-    Events.clear = function(object, eventNames) {
-        if (!eventNames) {
-            object.events = {};
-            return;
-        }
-
-        var names = eventNames.split(' ');
-        for (var i = 0; i < names.length; i++) {
-            object.events[names[i]] = [];
         }
     };
 
