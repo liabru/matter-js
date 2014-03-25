@@ -23,6 +23,8 @@
         _sceneName,
         _isMobile = /(ipad|iphone|ipod|android)/gi.test(navigator.userAgent);
     
+    // initialise the demo
+
     Demo.init = function() {
         var container = document.getElementById('canvas-container');
 
@@ -50,9 +52,11 @@
         // set up a scene with bodies
         Demo[_sceneName]();
 
-        // set up demo interface
+        // set up demo interface (see end of this file)
         Demo.initControls();
     };
+
+    // call init when the page has loaded fully
 
     if (window.addEventListener) {
         window.addEventListener('load', Demo.init);
@@ -60,167 +64,7 @@
         window.attachEvent('load', Demo.init);
     }
 
-    Demo.initControls = function() {
-        var demoSelect = document.getElementById('demo-select'),
-            demoReset = document.getElementById('demo-reset');
-
-        // create a dat.gui using Matter helper
-        if (!_isMobile)
-            _gui = Gui.create(_engine);
-
-        // go fullscreen when using a mobile device
-        if (_isMobile) {
-            var body = document.body;
-
-            body.className += ' is-mobile';
-            _engine.render.canvas.addEventListener('touchstart', Demo.fullscreen);
-
-            var fullscreenChange = function() {
-                var fullscreenEnabled = document.fullscreenEnabled || document.mozFullScreenEnabled || document.webkitFullscreenEnabled;
-
-                // delay fullscreen styles until fullscreen has finished changing
-                setTimeout(function() {
-                    if (fullscreenEnabled) {
-                        body.className += ' is-fullscreen';
-                    } else {
-                        body.className = body.className.replace('is-fullscreen', '');
-                    }
-                }, 2000);
-            };
-
-            document.addEventListener('webkitfullscreenchange', fullscreenChange);
-            document.addEventListener('mozfullscreenchange', fullscreenChange);
-            document.addEventListener('fullscreenchange', fullscreenChange);
-        }
-
-        // initialise demo selector
-        demoSelect.value = _sceneName;
-        
-        demoSelect.addEventListener('change', function(e) {
-            Demo[_sceneName = e.target.value]();
-            Gui.update(_gui);
-            
-            var scrollY = window.scrollY;
-            window.location.hash = _sceneName;
-            window.scrollY = scrollY;
-        });
-        
-        demoReset.addEventListener('click', function(e) {
-            Demo[_sceneName]();
-            Gui.update(_gui);
-        });
-    };
-
-    Demo.fullscreen = function(){
-        var _fullscreenElement = _engine.render.canvas;
-        
-        if (!document.fullscreenElement && !document.mozFullScreenElement && !document.webkitFullscreenElement) {
-            if (_fullscreenElement.requestFullscreen) {
-                _fullscreenElement.requestFullscreen();
-            } else if (_fullscreenElement.mozRequestFullScreen) {
-                _fullscreenElement.mozRequestFullScreen();
-            } else if (_fullscreenElement.webkitRequestFullscreen) {
-                _fullscreenElement.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
-            }
-        }
-    };
-    
-    Demo.reset = function() {
-        var _world = _engine.world;
-        
-        World.clear(_world);
-        Engine.clear(_engine);
-
-        // clear scene graph (if defined in controller)
-        var renderController = _engine.render.controller;
-        if (renderController.clear)
-            renderController.clear(_engine.render);
-
-        if (Events) {
-
-            // clear all events
-            Events.off(_engine);
-
-            // add event for deleting bodies and constraints with right mouse button
-            Events.on(_engine, 'mousedown', function(event) {
-                var mouse = event.mouse,
-                    engine = event.source,
-                    bodies = Composite.allBodies(engine.world),
-                    constraints = Composite.allConstraints(engine.world),
-                    i;
-
-                if (mouse.button === 2) {
-
-                    // find if a body was clicked on
-                    for (i = 0; i < bodies.length; i++) {
-                        var body = bodies[i];
-                        if (Bounds.contains(body.bounds, mouse.position) 
-                                && Vertices.contains(body.vertices, mouse.position)) {
-
-                            // remove the body that was clicked on
-                            Composite.remove(engine.world, body, true);
-                        }
-                    }
-
-                    // find if a constraint anchor was clicked on
-                    for (i = 0; i < constraints.length; i++) {
-                        var constraint = constraints[i],
-                            bodyA = constraint.bodyA,
-                            bodyB = constraint.bodyB;
-
-                        // we need to account for different types of constraint anchor
-                        var pointAWorld = constraint.pointA,
-                            pointBWorld = constraint.pointB;
-                        if (bodyA) pointAWorld = Vector.add(bodyA.position, constraint.pointA);
-                        if (bodyB) pointBWorld = Vector.add(bodyB.position, constraint.pointB);
-
-                        // if the constraint does not have two valid anchors, skip it
-                        if (!pointAWorld || !pointBWorld)
-                            continue;
-
-                        // find distance between mouse and anchor points
-                        var distA = Vector.magnitudeSquared(Vector.sub(mouse.position, pointAWorld)),
-                            distB = Vector.magnitudeSquared(Vector.sub(mouse.position, pointBWorld));
-
-                        // if mouse was close, remove the constraint
-                        if (distA < 100 || distB < 100) {
-                            Composite.remove(engine.world, constraint, true);
-                        }
-                    }
-                }
-            });
-        }
-
-        _engine.enableSleeping = false;
-        _engine.world.gravity.y = 1;
-
-        var offset = 5;
-        World.add(_world, [
-            Bodies.rectangle(400, -offset, 800.5 + 2 * offset, 50.5, { isStatic: true }),
-            Bodies.rectangle(400, 600 + offset, 800.5 + 2 * offset, 50.5, { isStatic: true }),
-            Bodies.rectangle(800 + offset, 300, 50.5, 600.5 + 2 * offset, { isStatic: true }),
-            Bodies.rectangle(-offset, 300, 50.5, 600.5 + 2 * offset, { isStatic: true })
-        ]);
-        
-        var renderOptions = _engine.render.options;
-        renderOptions.wireframes = true;
-        renderOptions.showDebug = false;
-        renderOptions.showBroadphase = false;
-        renderOptions.showBounds = false;
-        renderOptions.showVelocity = false;
-        renderOptions.showCollisions = false;
-        renderOptions.showAxes = false;
-        renderOptions.showPositions = false;
-        renderOptions.showAngleIndicator = true;
-        renderOptions.showIds = false;
-        renderOptions.showShadows = false;
-        renderOptions.background = '#fff';
-
-        if (_isMobile)
-            renderOptions.showDebug = true;
-    };
-
-    // all functions below are for setting up scenes
+    // each demo scene is set up in its own function, see below
 
     Demo.mixed = function() {
         var _world = _engine.world;
@@ -806,6 +650,168 @@
         renderOptions.background = './img/wall-bg.jpg';
         renderOptions.showAngleIndicator = false;
         renderOptions.wireframes = false;
+    };
+
+    // the functions for the demo interface and controls below
+
+    Demo.initControls = function() {
+        var demoSelect = document.getElementById('demo-select'),
+            demoReset = document.getElementById('demo-reset');
+
+        // create a dat.gui using Matter helper
+        if (!_isMobile)
+            _gui = Gui.create(_engine);
+
+        // go fullscreen when using a mobile device
+        if (_isMobile) {
+            var body = document.body;
+
+            body.className += ' is-mobile';
+            _engine.render.canvas.addEventListener('touchstart', Demo.fullscreen);
+
+            var fullscreenChange = function() {
+                var fullscreenEnabled = document.fullscreenEnabled || document.mozFullScreenEnabled || document.webkitFullscreenEnabled;
+
+                // delay fullscreen styles until fullscreen has finished changing
+                setTimeout(function() {
+                    if (fullscreenEnabled) {
+                        body.className += ' is-fullscreen';
+                    } else {
+                        body.className = body.className.replace('is-fullscreen', '');
+                    }
+                }, 2000);
+            };
+
+            document.addEventListener('webkitfullscreenchange', fullscreenChange);
+            document.addEventListener('mozfullscreenchange', fullscreenChange);
+            document.addEventListener('fullscreenchange', fullscreenChange);
+        }
+
+        // initialise demo selector
+        demoSelect.value = _sceneName;
+        
+        demoSelect.addEventListener('change', function(e) {
+            Demo[_sceneName = e.target.value]();
+            Gui.update(_gui);
+            
+            var scrollY = window.scrollY;
+            window.location.hash = _sceneName;
+            window.scrollY = scrollY;
+        });
+        
+        demoReset.addEventListener('click', function(e) {
+            Demo[_sceneName]();
+            Gui.update(_gui);
+        });
+    };
+
+    Demo.fullscreen = function(){
+        var _fullscreenElement = _engine.render.canvas;
+        
+        if (!document.fullscreenElement && !document.mozFullScreenElement && !document.webkitFullscreenElement) {
+            if (_fullscreenElement.requestFullscreen) {
+                _fullscreenElement.requestFullscreen();
+            } else if (_fullscreenElement.mozRequestFullScreen) {
+                _fullscreenElement.mozRequestFullScreen();
+            } else if (_fullscreenElement.webkitRequestFullscreen) {
+                _fullscreenElement.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
+            }
+        }
+    };
+    
+    Demo.reset = function() {
+        var _world = _engine.world;
+        
+        World.clear(_world);
+        Engine.clear(_engine);
+
+        // clear scene graph (if defined in controller)
+        var renderController = _engine.render.controller;
+        if (renderController.clear)
+            renderController.clear(_engine.render);
+
+        if (Events) {
+
+            // clear all events
+            Events.off(_engine);
+
+            // add event for deleting bodies and constraints with right mouse button
+            Events.on(_engine, 'mousedown', function(event) {
+                var mouse = event.mouse,
+                    engine = event.source,
+                    bodies = Composite.allBodies(engine.world),
+                    constraints = Composite.allConstraints(engine.world),
+                    i;
+
+                if (mouse.button === 2) {
+
+                    // find if a body was clicked on
+                    for (i = 0; i < bodies.length; i++) {
+                        var body = bodies[i];
+                        if (Bounds.contains(body.bounds, mouse.position) 
+                                && Vertices.contains(body.vertices, mouse.position)) {
+
+                            // remove the body that was clicked on
+                            Composite.remove(engine.world, body, true);
+                        }
+                    }
+
+                    // find if a constraint anchor was clicked on
+                    for (i = 0; i < constraints.length; i++) {
+                        var constraint = constraints[i],
+                            bodyA = constraint.bodyA,
+                            bodyB = constraint.bodyB;
+
+                        // we need to account for different types of constraint anchor
+                        var pointAWorld = constraint.pointA,
+                            pointBWorld = constraint.pointB;
+                        if (bodyA) pointAWorld = Vector.add(bodyA.position, constraint.pointA);
+                        if (bodyB) pointBWorld = Vector.add(bodyB.position, constraint.pointB);
+
+                        // if the constraint does not have two valid anchors, skip it
+                        if (!pointAWorld || !pointBWorld)
+                            continue;
+
+                        // find distance between mouse and anchor points
+                        var distA = Vector.magnitudeSquared(Vector.sub(mouse.position, pointAWorld)),
+                            distB = Vector.magnitudeSquared(Vector.sub(mouse.position, pointBWorld));
+
+                        // if mouse was close, remove the constraint
+                        if (distA < 100 || distB < 100) {
+                            Composite.remove(engine.world, constraint, true);
+                        }
+                    }
+                }
+            });
+        }
+
+        _engine.enableSleeping = false;
+        _engine.world.gravity.y = 1;
+
+        var offset = 5;
+        World.add(_world, [
+            Bodies.rectangle(400, -offset, 800.5 + 2 * offset, 50.5, { isStatic: true }),
+            Bodies.rectangle(400, 600 + offset, 800.5 + 2 * offset, 50.5, { isStatic: true }),
+            Bodies.rectangle(800 + offset, 300, 50.5, 600.5 + 2 * offset, { isStatic: true }),
+            Bodies.rectangle(-offset, 300, 50.5, 600.5 + 2 * offset, { isStatic: true })
+        ]);
+        
+        var renderOptions = _engine.render.options;
+        renderOptions.wireframes = true;
+        renderOptions.showDebug = false;
+        renderOptions.showBroadphase = false;
+        renderOptions.showBounds = false;
+        renderOptions.showVelocity = false;
+        renderOptions.showCollisions = false;
+        renderOptions.showAxes = false;
+        renderOptions.showPositions = false;
+        renderOptions.showAngleIndicator = true;
+        renderOptions.showIds = false;
+        renderOptions.showShadows = false;
+        renderOptions.background = '#fff';
+
+        if (_isMobile)
+            renderOptions.showDebug = true;
     };
 
 })();
