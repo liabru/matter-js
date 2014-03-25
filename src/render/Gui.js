@@ -57,7 +57,7 @@ var Gui = {};
                 };
 
                 for (var i = 0; i < gui.amount; i++) {
-                    World.addBody(engine.world, Bodies.polygon(120 + i * gui.size + i * 50, 200, gui.sides, gui.size, options));
+                    World.add(engine.world, Bodies.polygon(120 + i * gui.size + i * 50, 200, gui.sides, gui.size, options));
                 }
             },
 

@@ -22,6 +22,7 @@ var Composite = {};
     Composite.create = function(options) {
         return Common.extend({ 
             id: Composite.nextId(),
+            type: 'composite',
             parent: null,
             isModified: false,
             bodies: [], 
@@ -65,6 +66,70 @@ var Composite = {};
     };
 
     /**
+     * Generic add function. Adds one or many body(s), constraint(s) or a composite(s) to the given composite.
+     * @method add
+     * @param {composite} composite
+     * @param {} object
+     * @return {composite} The original composite with the objects added
+     */
+    Composite.add = function(composite, object) {
+        var objects = [].concat(object);
+
+        for (var i = 0; i < objects.length; i++) {
+            var obj = objects[i];
+
+            switch (obj.type) {
+
+            case 'body':
+                Composite.addBody(composite, obj);
+                break;
+            case 'constraint':
+                Composite.addConstraint(composite, obj);
+                break;
+            case 'composite':
+                Composite.addComposite(composite, obj);
+                break;
+
+            }
+        }
+
+        return composite;
+    };
+
+    /**
+     * Generic remove function. Removes one or many body(s), constraint(s) or a composite(s) to the given composite.
+     * Optionally searching its children recursively.
+     * @method remove
+     * @param {composite} composite
+     * @param {} object
+     * @param {boolean} deep
+     * @return {composite} The original composite with the objects removed
+     */
+    Composite.remove = function(composite, object, deep) {
+        var objects = [].concat(object);
+
+        for (var i = 0; i < objects.length; i++) {
+            var obj = objects[i];
+
+            switch (obj.type) {
+
+            case 'body':
+                Composite.removeBody(composite, obj, deep);
+                break;
+            case 'constraint':
+                Composite.removeConstraint(composite, obj, deep);
+                break;
+            case 'composite':
+                Composite.removeComposite(composite, obj, deep);
+                break;
+
+            }
+        }
+
+        return composite;
+    };
+
+    /**
      * Description
      * @method addComposite
      * @param {composite} compositeA
@@ -76,6 +141,43 @@ var Composite = {};
         compositeB.parent = compositeA;
         Composite.setModified(compositeA, true, true, false);
         return compositeA;
+    };
+
+    /**
+     * Removes a composite from the given composite, and optionally searching its children recursively
+     * @method removeComposite
+     * @param {composite} compositeA
+     * @param {composite} compositeB
+     * @param {boolean} deep
+     * @return {composite} The original compositeA with the composite removed
+     */
+    Composite.removeComposite = function(compositeA, compositeB, deep) {
+        var position = compositeA.composites.indexOf(compositeB);
+        if (position !== -1) {
+            Composite.removeCompositeAt(compositeA, position);
+            Composite.setModified(compositeA, true, true, false);
+        }
+
+        if (deep) {
+            for (var i = 0; i < compositeA.composites.length; i++){
+                Composite.removeComposite(compositeA.composites[i], compositeB, true);
+            }
+        }
+
+        return compositeA;
+    };
+
+    /**
+     * Removes a composite from the given composite
+     * @method removeCompositeAt
+     * @param {composite} composite
+     * @param {number} position
+     * @return {composite} The original composite with the composite removed
+     */
+    Composite.removeCompositeAt = function(composite, position) {
+        composite.composites.splice(position, 1);
+        Composite.setModified(composite, true, true, false);
+        return composite;
     };
 
     /**
@@ -233,6 +335,21 @@ var Composite = {};
             constraints = constraints.concat(Composite.allConstraints(composite.composites[i]));
 
         return constraints;
+    };
+
+    /**
+     * Returns all composites in the given composite, including all composites in its children, recursively
+     * @method allComposites
+     * @param {composite} composite
+     * @return {composite[]} All the composites
+     */
+    Composite.allComposites = function(composite) {
+        var composites = [].concat(composite.composites);
+
+        for (var i = 0; i < composite.composites.length; i++)
+            composites = composites.concat(Composite.allComposites(composite.composites[i]));
+
+        return composites;
     };
 
 })();

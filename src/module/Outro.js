@@ -1,5 +1,7 @@
 // aliases
 
+World.add = Composite.add;
+World.remove = Composite.remove;
 World.addComposite = Composite.addComposite;
 World.addBody = Composite.addBody;
 World.addConstraint = Composite.addConstraint;

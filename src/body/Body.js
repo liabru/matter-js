@@ -21,6 +21,7 @@ var Body = {};
     Body.create = function(options) {
         var defaults = {
             id: Body.nextId(),
+            type: 'body',
             angle: 0,
             position: { x: 0, y: 0 },
             force: { x: 0, y: 0 },
