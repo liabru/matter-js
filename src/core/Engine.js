@@ -64,8 +64,6 @@ var Engine = {};
         engine.pairs = Pairs.create();
         engine.metrics = engine.metrics || Metrics.create();
         engine.input.mouse = engine.input.mouse || Mouse.create(engine.render.canvas);
-        engine.mouseConstraint = engine.mouseConstraint || MouseConstraint.create(engine.input.mouse);
-        World.addConstraint(engine.world, engine.mouseConstraint.constraint);
 
         engine.broadphase = engine.broadphase || {
             current: 'grid',
@@ -252,9 +250,6 @@ var Engine = {};
         // applies gravity to all bodies
         Body.applyGravityAll(allBodies, world.gravity);
 
-        // update the mouse constraint
-        MouseConstraint.update(engine.mouseConstraint, allBodies, engine.input);
-
         // update all body position and rotation by integration
         Body.updateAll(allBodies, delta * engine.timeScale, correction, world.bounds);
 
@@ -350,8 +345,6 @@ var Engine = {};
         var world = engine.world;
         
         Pairs.clear(engine.pairs);
-
-        World.addConstraint(engine.world, engine.mouseConstraint.constraint);
 
         var broadphase = engine.broadphase[engine.broadphase.current];
         if (broadphase.controller) {

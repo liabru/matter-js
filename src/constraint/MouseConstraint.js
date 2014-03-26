@@ -11,10 +11,13 @@ var MouseConstraint = {};
     /**
      * Description
      * @method create
-     * @param {mouse} mouse
+     * @param {engine} engine
+     * @param {} options
      * @return {MouseConstraint} A new MouseConstraint
      */
-    MouseConstraint.create = function(mouse) {
+    MouseConstraint.create = function(engine, options) {
+        var mouse = engine.input.mouse;
+
         var constraint = Constraint.create({ 
             pointA: mouse.position,
             pointB: { x: 0, y: 0 },
@@ -27,12 +30,22 @@ var MouseConstraint = {};
             }
         });
 
-        return {
+        var defaults = {
+            type: 'mouseConstraint',
             mouse: mouse,
             dragBody: null,
             dragPoint: null,
             constraint: constraint
         };
+
+        var mouseConstraint = Common.extend(defaults, options);
+
+        Events.on(engine, 'tick', function(event) {
+            var allBodies = Composite.allBodies(engine.world);
+            MouseConstraint.update(mouseConstraint, allBodies);
+        });
+
+        return mouseConstraint;
     };
 
     /**

@@ -14,13 +14,15 @@
         Events = Matter.Events,
         Bounds = Matter.Bounds,
         Vector = Matter.Vector,
-        Vertices = Matter.Vertices;
+        Vertices = Matter.Vertices,
+        MouseConstraint = Matter.MouseConstraint;
 
     var Demo = {};
 
     var _engine,
         _gui,
         _sceneName,
+        _mouseConstraint,
         _isMobile = /(ipad|iphone|ipod|android)/gi.test(navigator.userAgent);
     
     // initialise the demo
@@ -28,7 +30,7 @@
     Demo.init = function() {
         var container = document.getElementById('canvas-container');
 
-        // engine options
+        // some example engine options
         var options = {
             positionIterations: 6,
             velocityIterations: 4,
@@ -38,6 +40,10 @@
         // create a Matter engine
         // NOTE: this is actually Matter.Engine.create(), see the aliases at top of this file
         _engine = Engine.create(container, options);
+
+        // add a mouse controlled constraint
+        _mouseConstraint = MouseConstraint.create(_engine);
+        World.add(_engine.world, _mouseConstraint);
 
         // run the engine
         Engine.run(_engine);
@@ -659,8 +665,15 @@
             demoReset = document.getElementById('demo-reset');
 
         // create a dat.gui using Matter helper
-        if (!_isMobile)
+        if (!_isMobile) {
             _gui = Gui.create(_engine);
+
+            // need to add mouse constraint back in after gui clear or load is pressed
+            Events.on(_gui, 'clear load', function() {
+                _mouseConstraint = MouseConstraint.create(_engine);
+                World.add(_engine.world, _mouseConstraint);
+            });
+        }
 
         // go fullscreen when using a mobile device
         if (_isMobile) {
@@ -795,6 +808,9 @@
             Bodies.rectangle(800 + offset, 300, 50.5, 600.5 + 2 * offset, { isStatic: true }),
             Bodies.rectangle(-offset, 300, 50.5, 600.5 + 2 * offset, { isStatic: true })
         ]);
+
+        _mouseConstraint = MouseConstraint.create(_engine);
+        World.add(_world, _mouseConstraint);
         
         var renderOptions = _engine.render.options;
         renderOptions.wireframes = true;

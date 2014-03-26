@@ -89,6 +89,9 @@ var Composite = {};
             case 'composite':
                 Composite.addComposite(composite, obj);
                 break;
+            case 'mouseConstraint':
+                Composite.addConstraint(composite, obj.constraint);
+                break;
 
             }
         }
@@ -121,6 +124,9 @@ var Composite = {};
                 break;
             case 'composite':
                 Composite.removeComposite(composite, obj, deep);
+                break;
+            case 'mouseConstraint':
+                Composite.removeConstraint(composite, obj.constraint);
                 break;
 
             }

@@ -69,12 +69,32 @@ var Gui = {};
                 var renderController = engine.render.controller;
                 if (renderController.clear)
                     renderController.clear(engine.render);
+
+                /**
+                * Fired after the gui's clear button pressed
+                *
+                * @event clear
+                * @param {} event An event object
+                * @param {} event.source The source object of the event
+                * @param {} event.name The name of the event
+                */
+                Events.trigger(gui, 'clear');
             },
 
             save: function() {
                 if (localStorage && _serializer) {
                     localStorage.setItem('world', _serializer.stringify(engine.world));
                 }
+
+                /**
+                * Fired after the gui's save button pressed
+                *
+                * @event save
+                * @param {} event An event object
+                * @param {} event.source The source object of the event
+                * @param {} event.name The name of the event
+                */
+                Events.trigger(gui, 'save');
             },
 
             load: function() {
@@ -87,6 +107,16 @@ var Gui = {};
                 if (loadedWorld) {
                     Engine.merge(engine, { world: loadedWorld });
                 }
+
+                /**
+                * Fired after the gui's load button pressed
+                *
+                * @event load
+                * @param {} event An event object
+                * @param {} event.source The source object of the event
+                * @param {} event.name The name of the event
+                */
+                Events.trigger(gui, 'load');
             }
         };
 
@@ -169,9 +199,8 @@ var Gui = {};
 
                 engine.render.options = options;
 
-                // update mouse
-                engine.input.mouse = Mouse.create(engine.render.canvas);
-                engine.mouseConstraint.mouse = engine.input.mouse;
+                // bind the mouse to the new canvas
+                Mouse.setElement(engine.input.mouse, engine.render.canvas);
             });
 
         render.add(engine.render.options, 'wireframes');
