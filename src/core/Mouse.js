@@ -15,8 +15,7 @@ var Mouse;
     Mouse = function(element) {
         var mouse = this;
         
-        element = element || document.body;
-        
+        this.element = element || document.body;
         this.position = { x: 0, y: 0 };
         this.mousedownPosition = { x: 0, y: 0 };
         this.mouseupPosition = { x: 0, y: 0 };
@@ -28,8 +27,8 @@ var Mouse;
             mouseup: null
         };
         
-        var mousemove = function(event) { 
-            var position = _getRelativeMousePosition(event, element),
+        this.mousemove = function(event) { 
+            var position = _getRelativeMousePosition(event, mouse.element),
                 touches = event.changedTouches;
 
             if (touches) {
@@ -41,8 +40,8 @@ var Mouse;
             mouse.sourceEvents.mousemove = event;
         };
         
-        var mousedown = function(event) {
-            var position = _getRelativeMousePosition(event, element),
+        this.mousedown = function(event) {
+            var position = _getRelativeMousePosition(event, mouse.element),
                 touches = event.changedTouches;
 
             if (touches) {
@@ -56,8 +55,8 @@ var Mouse;
             mouse.sourceEvents.mousedown = event;
         };
         
-        var mouseup = function(event) {
-            var position = _getRelativeMousePosition(event, element),
+        this.mouseup = function(event) {
+            var position = _getRelativeMousePosition(event, mouse.element),
                 touches = event.changedTouches;
 
             if (touches) {
@@ -68,14 +67,8 @@ var Mouse;
             mouse.position = mouse.mouseupPosition = position;
             mouse.sourceEvents.mouseup = event;
         };
-        
-        element.addEventListener('mousemove', mousemove);
-        element.addEventListener('mousedown', mousedown);
-        element.addEventListener('mouseup', mouseup);
-        
-        element.addEventListener('touchmove', mousemove);
-        element.addEventListener('touchstart', mousedown);
-        element.addEventListener('touchend', mouseup);
+
+        Mouse.setElement(mouse, mouse.element);
     };
 
     /**
@@ -86,6 +79,24 @@ var Mouse;
      */
     Mouse.create = function(element) {
         return new Mouse(element);
+    };
+
+    /**
+     * Sets the element the mouse is bound to (and relative to)
+     * @method setElement
+     * @param {mouse} mouse
+     * @param {HTMLElement} element
+     */
+    Mouse.setElement = function(mouse, element) {
+        mouse.element = element;
+
+        element.addEventListener('mousemove', mouse.mousemove);
+        element.addEventListener('mousedown', mouse.mousedown);
+        element.addEventListener('mouseup', mouse.mouseup);
+        
+        element.addEventListener('touchmove', mouse.mousemove);
+        element.addEventListener('touchstart', mouse.mousedown);
+        element.addEventListener('touchend', mouse.mouseup);
     };
 
     /**
