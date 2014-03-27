@@ -627,9 +627,7 @@
                     render: {
                         strokeStyle: '#ffffff',
                         sprite: {
-                            texture: './img/box.png',
-                            xScale: 1,
-                            yScale: 1
+                            texture: './img/box.png'
                         }
                     }
                 });
@@ -641,9 +639,7 @@
                     friction: 0.01,
                     render: {
                         sprite: {
-                            texture: './img/ball.png',
-                            xScale: 1,
-                            yScale: 1
+                            texture: './img/ball.png'
                         }
                     }
                 });

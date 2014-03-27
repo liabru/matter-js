@@ -317,7 +317,7 @@ var Render = {};
             if (!body.render.visible)
                 continue;
 
-            if (body.render.sprite && !options.wireframes) {
+            if (body.render.sprite && body.render.sprite.texture && !options.wireframes) {
                 // body sprite
                 var sprite = body.render.sprite,
                     texture = _getTexture(render, sprite.texture);

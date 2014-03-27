@@ -43,7 +43,10 @@ var Body = {};
             slop: 0.05,
             render: {
                 visible: true,
-                sprite: null,
+                sprite: {
+                    xScale: 1,
+                    yScale: 1
+                },
                 path: 'L 0 0 L 40 0 L 40 40 L 0 40',
                 lineWidth: 1.5
             }

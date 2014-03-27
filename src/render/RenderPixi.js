@@ -239,7 +239,7 @@ var RenderPixi = {};
         if (!bodyRender.visible)
             return;
 
-        if (bodyRender.sprite) {
+        if (bodyRender.sprite && bodyRender.sprite.texture) {
             var spriteId = 'b-' + body.id,
                 sprite = render.sprites[spriteId],
                 spriteBatch = render.spriteBatch;
