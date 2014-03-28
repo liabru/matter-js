@@ -67,9 +67,9 @@ var Events = {};
 
             for (var i = 0; i < names.length; i++) {
                 name = names[i];
+                callbacks = object.events[name];
 
-                if (name in object.events) {
-                    callbacks = object.events[name];
+                if (callbacks) {
                     eventClone = Common.clone(event, false);
                     eventClone.name = name;
                     eventClone.source = object;

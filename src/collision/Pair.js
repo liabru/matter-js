@@ -56,10 +56,11 @@ var Pair = {};
         if (collision.collided) {
             for (var i = 0; i < supports.length; i++) {
                 var support = supports[i],
-                    contactId = Contact.id(support);
+                    contactId = Contact.id(support),
+                    contact = contacts[contactId];
 
-                if (contactId in contacts) {
-                    activeContacts.push(contacts[contactId]);
+                if (contact) {
+                    activeContacts.push(contact);
                 } else {
                     activeContacts.push(contacts[contactId] = Contact.create(support));
                 }

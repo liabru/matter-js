@@ -41,7 +41,7 @@ var Detector = {};
 
                 // find a previous collision we could reuse
                 var pairId = Pair.id(bodyA, bodyB),
-                    pair = pairId in pairsTable ? pairsTable[pairId] : null,
+                    pair = pairsTable[pairId],
                     previousCollision;
 
                 if (pair && pair.isActive) {
@@ -100,7 +100,7 @@ var Detector = {};
 
                     // find a previous collision we could reuse
                     var pairId = Pair.id(bodyA, bodyB),
-                        pair = pairId in pairsTable ? pairsTable[pairId] : null,
+                        pair = pairsTable[pairId],
                         previousCollision;
 
                     if (pair && pair.isActive) {

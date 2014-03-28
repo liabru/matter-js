@@ -55,11 +55,11 @@ var Pairs = {};
             if (collision.collided) {
                 pairId = Pair.id(collision.bodyA, collision.bodyB);
                 activePairIds.push(pairId);
-                
-                if (pairId in pairsTable) {
-                    // pair already exists (but may or may not be active)
-                    pair = pairsTable[pairId];
 
+                pair = pairsTable[pairId];
+                
+                if (pair) {
+                    // pair already exists (but may or may not be active)
                     if (pair.isActive) {
                         // pair exists and is active
                         collisionActive.push(pair);
