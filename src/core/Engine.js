@@ -14,7 +14,7 @@ var Engine = {};
 (function() {
 
     var _fps = 60,
-        _deltaSampleSize = 8,
+        _deltaSampleSize = _fps,
         _delta = 1000 / _fps;
         
     var _requestAnimationFrame = window.requestAnimationFrame || window.webkitRequestAnimationFrame
