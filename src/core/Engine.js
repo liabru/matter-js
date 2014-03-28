@@ -38,7 +38,7 @@ var Engine = {};
             enabled: true,
             positionIterations: 6,
             velocityIterations: 4,
-            constraintIterations: 1,
+            constraintIterations: 2,
             enableSleeping: false,
             timeScale: 1,
             input: {},
