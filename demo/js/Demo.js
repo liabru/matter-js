@@ -170,6 +170,32 @@
         
         World.add(_world, ropeB);
     };
+
+    Demo.bridge = function() {
+        var _world = _engine.world,
+            groupId = Body.nextGroupId();
+        
+        Demo.reset();
+         
+        var bridge = Composites.stack(150, 300, 9, 1, 10, 10, function(x, y, column, row) {
+            return Bodies.rectangle(x, y, 50, 20, { groupId: groupId });
+        });
+        
+        Composites.chain(bridge, 0.5, 0, -0.5, 0, { stiffness: 0.9 });
+        
+        var stack = Composites.stack(200, 40, 6, 3, 0, 0, function(x, y, column, row) {
+            return Bodies.polygon(x, y, Math.round(Common.random(1, 8)), Common.random(20, 40));
+        });
+
+        World.add(_world, [
+            bridge,
+            Bodies.rectangle(80, 440, 120, 280, { isStatic: true }),
+            Bodies.rectangle(720, 440, 120, 280, { isStatic: true }),
+            Constraint.create({ pointA: { x: 140, y: 300 }, bodyB: bridge.bodies[0], pointB: { x: -25, y: 0 } }),
+            Constraint.create({ pointA: { x: 660, y: 300 }, bodyB: bridge.bodies[8], pointB: { x: 25, y: 0 } }),
+            stack
+        ]);
+    };
     
     Demo.car = function() {
         var _world = _engine.world,
@@ -341,17 +367,17 @@
         
         Demo.reset();
         
-        var cradle = Composites.newtonsCradle(300, 100, 5, 30, 200);
+        var cradle = Composites.newtonsCradle(280, 100, 5, 30, 200);
         World.add(_world, cradle);
         Body.translate(cradle.bodies[0], { x: -180, y: -100 });
         
-        cradle = Composites.newtonsCradle(250, 400, 7, 20, 140);
+        cradle = Composites.newtonsCradle(280, 380, 7, 20, 140);
         World.add(_world, cradle);
         Body.translate(cradle.bodies[0], { x: -140, y: -100 });
         
         var renderOptions = _engine.render.options;
         renderOptions.showVelocity = true;
-        renderOptions.showAngleIndicator = false;
+        //renderOptions.showAngleIndicator = false;
     };
     
     Demo.stack = function() {
@@ -494,6 +520,40 @@
         renderOptions.showCollisions = true;
         renderOptions.showVelocity = true;
         renderOptions.showAngleIndicator = true;
+    };
+
+    Demo.softBody = function() {
+        var _world = _engine.world;
+        
+        Demo.reset();
+
+        var particleOptions = { render: { visible: true } };
+
+        World.add(_world, [
+            Composites.softBody(250, 100, 5, 5, 0, 0, true, 18, particleOptions),
+            Composites.softBody(250, 300, 8, 3, 0, 0, true, 15, particleOptions),
+            Composites.softBody(250, 400, 4, 4, 0, 0, true, 15, particleOptions)
+        ]);
+    };
+
+    Demo.cloth = function() {
+        var _world = _engine.world;
+        
+        Demo.reset();
+
+        var groupId = Body.nextGroupId(),
+            particleOptions = { friction: 0.00001, groupId: groupId, render: { visible: false }},
+            cloth = Composites.softBody(200, 200, 20, 12, 5, 5, false, 8, particleOptions);
+
+        for (var i = 0; i < 20; i++) {
+            cloth.bodies[i].isStatic = true;
+        }
+
+        World.add(_world, [
+            cloth,
+            Bodies.circle(300, 500, 80, { isStatic: true }),
+            Bodies.rectangle(500, 480, 80, 80, { isStatic: true })
+        ]);
     };
 
     Demo.catapult = function() {
