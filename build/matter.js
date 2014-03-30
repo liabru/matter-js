@@ -1,5 +1,5 @@
 /**
-* matter.js 0.5.0-edge 2014-03-24
+* matter.js 0.5.0-edge 2014-03-30
 * http://brm.io/matter-js/
 * License: MIT
 */
@@ -63,11 +63,13 @@ var Body = {};
     Body.create = function(options) {
         var defaults = {
             id: Body.nextId(),
+            type: 'body',
             angle: 0,
             position: { x: 0, y: 0 },
             force: { x: 0, y: 0 },
             torque: 0,
             positionImpulse: { x: 0, y: 0 },
+            constraintImpulse: { x: 0, y: 0, angle: 0 },
             speed: 0,
             angularSpeed: 0,
             velocity: { x: 0, y: 0 },
@@ -84,7 +86,10 @@ var Body = {};
             slop: 0.05,
             render: {
                 visible: true,
-                sprite: null,
+                sprite: {
+                    xScale: 1,
+                    yScale: 1
+                },
                 path: 'L 0 0 L 40 0 L 40 40 L 0 40',
                 lineWidth: 1.5
             }
@@ -329,6 +334,7 @@ var Composite = {};
     Composite.create = function(options) {
         return Common.extend({ 
             id: Composite.nextId(),
+            type: 'composite',
             parent: null,
             isModified: false,
             bodies: [], 
@@ -372,6 +378,76 @@ var Composite = {};
     };
 
     /**
+     * Generic add function. Adds one or many body(s), constraint(s) or a composite(s) to the given composite.
+     * @method add
+     * @param {composite} composite
+     * @param {} object
+     * @return {composite} The original composite with the objects added
+     */
+    Composite.add = function(composite, object) {
+        var objects = [].concat(object);
+
+        for (var i = 0; i < objects.length; i++) {
+            var obj = objects[i];
+
+            switch (obj.type) {
+
+            case 'body':
+                Composite.addBody(composite, obj);
+                break;
+            case 'constraint':
+                Composite.addConstraint(composite, obj);
+                break;
+            case 'composite':
+                Composite.addComposite(composite, obj);
+                break;
+            case 'mouseConstraint':
+                Composite.addConstraint(composite, obj.constraint);
+                break;
+
+            }
+        }
+
+        return composite;
+    };
+
+    /**
+     * Generic remove function. Removes one or many body(s), constraint(s) or a composite(s) to the given composite.
+     * Optionally searching its children recursively.
+     * @method remove
+     * @param {composite} composite
+     * @param {} object
+     * @param {boolean} deep
+     * @return {composite} The original composite with the objects removed
+     */
+    Composite.remove = function(composite, object, deep) {
+        var objects = [].concat(object);
+
+        for (var i = 0; i < objects.length; i++) {
+            var obj = objects[i];
+
+            switch (obj.type) {
+
+            case 'body':
+                Composite.removeBody(composite, obj, deep);
+                break;
+            case 'constraint':
+                Composite.removeConstraint(composite, obj, deep);
+                break;
+            case 'composite':
+                Composite.removeComposite(composite, obj, deep);
+                break;
+            case 'mouseConstraint':
+                Composite.removeConstraint(composite, obj.constraint);
+                break;
+
+            }
+        }
+
+        return composite;
+    };
+
+    /**
      * Description
      * @method addComposite
      * @param {composite} compositeA
@@ -383,6 +459,43 @@ var Composite = {};
         compositeB.parent = compositeA;
         Composite.setModified(compositeA, true, true, false);
         return compositeA;
+    };
+
+    /**
+     * Removes a composite from the given composite, and optionally searching its children recursively
+     * @method removeComposite
+     * @param {composite} compositeA
+     * @param {composite} compositeB
+     * @param {boolean} deep
+     * @return {composite} The original compositeA with the composite removed
+     */
+    Composite.removeComposite = function(compositeA, compositeB, deep) {
+        var position = compositeA.composites.indexOf(compositeB);
+        if (position !== -1) {
+            Composite.removeCompositeAt(compositeA, position);
+            Composite.setModified(compositeA, true, true, false);
+        }
+
+        if (deep) {
+            for (var i = 0; i < compositeA.composites.length; i++){
+                Composite.removeComposite(compositeA.composites[i], compositeB, true);
+            }
+        }
+
+        return compositeA;
+    };
+
+    /**
+     * Removes a composite from the given composite
+     * @method removeCompositeAt
+     * @param {composite} composite
+     * @param {number} position
+     * @return {composite} The original composite with the composite removed
+     */
+    Composite.removeCompositeAt = function(composite, position) {
+        composite.composites.splice(position, 1);
+        Composite.setModified(composite, true, true, false);
+        return composite;
     };
 
     /**
@@ -540,6 +653,21 @@ var Composite = {};
             constraints = constraints.concat(Composite.allConstraints(composite.composites[i]));
 
         return constraints;
+    };
+
+    /**
+     * Returns all composites in the given composite, including all composites in its children, recursively
+     * @method allComposites
+     * @param {composite} composite
+     * @return {composite[]} All the composites
+     */
+    Composite.allComposites = function(composite) {
+        var composites = [].concat(composite.composites);
+
+        for (var i = 0; i < composite.composites.length; i++)
+            composites = composites.concat(Composite.allComposites(composite.composites[i]));
+
+        return composites;
     };
 
 })();
@@ -707,7 +835,7 @@ var Detector = {};
 
                 // find a previous collision we could reuse
                 var pairId = Pair.id(bodyA, bodyB),
-                    pair = pairId in pairsTable ? pairsTable[pairId] : null,
+                    pair = pairsTable[pairId],
                     previousCollision;
 
                 if (pair && pair.isActive) {
@@ -766,7 +894,7 @@ var Detector = {};
 
                     // find a previous collision we could reuse
                     var pairId = Pair.id(bodyA, bodyB),
-                        pair = pairId in pairsTable ? pairsTable[pairId] : null,
+                        pair = pairsTable[pairId],
                         previousCollision;
 
                     if (pair && pair.isActive) {
@@ -1158,10 +1286,11 @@ var Pair = {};
         if (collision.collided) {
             for (var i = 0; i < supports.length; i++) {
                 var support = supports[i],
-                    contactId = Contact.id(support);
+                    contactId = Contact.id(support),
+                    contact = contacts[contactId];
 
-                if (contactId in contacts) {
-                    activeContacts.push(contacts[contactId]);
+                if (contact) {
+                    activeContacts.push(contact);
                 } else {
                     activeContacts.push(contacts[contactId] = Contact.create(support));
                 }
@@ -1270,11 +1399,11 @@ var Pairs = {};
             if (collision.collided) {
                 pairId = Pair.id(collision.bodyA, collision.bodyB);
                 activePairIds.push(pairId);
-                
-                if (pairId in pairsTable) {
-                    // pair already exists (but may or may not be active)
-                    pair = pairsTable[pairId];
 
+                pair = pairsTable[pairId];
+                
+                if (pair) {
+                    // pair already exists (but may or may not be active)
                     if (pair.isActive) {
                         // pair exists and is active
                         collisionActive.push(pair);
@@ -1954,6 +2083,7 @@ var Constraint = {};
 
         // option defaults
         constraint.id = constraint.id || Constraint.nextId();
+        constraint.type = 'constraint';
         constraint.stiffness = constraint.stiffness || 1;
         constraint.angularStiffness = constraint.angularStiffness || 0;
         constraint.angleA = constraint.bodyA ? constraint.bodyA.angle : constraint.angleA;
@@ -1964,21 +2094,21 @@ var Constraint = {};
 
     /**
      * Description
-     * @method updateAll
+     * @method solveAll
      * @param {constraint[]} constraints
      */
-    Constraint.updateAll = function(constraints) {
+    Constraint.solveAll = function(constraints) {
         for (var i = 0; i < constraints.length; i++) {
-            Constraint.update(constraints[i]);
+            Constraint.solve(constraints[i]);
         }
     };
 
     /**
      * Description
-     * @method update
+     * @method solve
      * @param {constraint} constraint
      */
-    Constraint.update = function(constraint) {
+    Constraint.solve = function(constraint) {
         var bodyA = constraint.bodyA,
             bodyB = constraint.bodyB,
             pointA = constraint.pointA,
@@ -2089,16 +2219,15 @@ var Constraint = {};
             // TODO: solve this properlly
             torque = Common.clamp(torque, -0.01, 0.01);
 
+            // keep track of applied impulses for post solving
+            bodyA.constraintImpulse.x -= force.x;
+            bodyA.constraintImpulse.y -= force.y;
+            bodyA.constraintImpulse.angle += torque;
+
             // apply forces
             bodyA.position.x -= force.x;
             bodyA.position.y -= force.y;
             bodyA.angle += torque;
-
-            // update geometry
-            Vertices.translate(bodyA.vertices, force, -1);
-            Vertices.rotate(bodyA.vertices, torque, bodyA.position);
-            Axes.rotate(bodyA.axes, torque);
-            Bounds.update(bodyA.bounds, bodyA.vertices, bodyA.velocity);
         }
 
         if (bodyB && !bodyB.isStatic) {
@@ -2109,19 +2238,43 @@ var Constraint = {};
             // clamp to prevent instabillity
             // TODO: solve this properlly
             torque = Common.clamp(torque, -0.01, 0.01);
+
+            // keep track of applied impulses for post solving
+            bodyB.constraintImpulse.x += force.x;
+            bodyB.constraintImpulse.y += force.y;
+            bodyB.constraintImpulse.angle -= torque;
             
             // apply forces
             bodyB.position.x += force.x;
             bodyB.position.y += force.y;
             bodyB.angle -= torque;
-            
-            // update geometry
-            Vertices.translate(bodyB.vertices, force);
-            Vertices.rotate(bodyB.vertices, -torque, bodyB.position);
-            Axes.rotate(bodyB.axes, -torque);
-            Bounds.update(bodyB.bounds, bodyB.vertices, bodyB.velocity);
         }
 
+    };
+
+    /**
+     * Performs body updates required after solving constraints
+     * @method postSolveAll
+     * @param {body[]} bodies
+     */
+    Constraint.postSolveAll = function(bodies) {
+        for (var i = 0; i < bodies.length; i++) {
+            var body = bodies[i],
+                impulse = body.constraintImpulse;
+
+            if (impulse.x !== 0 || impulse.y !== 0 || impulse.angle !== 0) {
+                // update geometry
+                Vertices.translate(body.vertices, impulse);
+                Vertices.rotate(body.vertices, impulse.angle, body.position);
+                Axes.rotate(body.axes, impulse.angle);
+                Bounds.update(body.bounds, body.vertices);
+
+                // reset body.constraintImpulse
+                impulse.x = 0;
+                impulse.y = 0;
+                impulse.angle = 0;
+            }
+        }
     };
 
     /**
@@ -2153,10 +2306,13 @@ var MouseConstraint = {};
     /**
      * Description
      * @method create
-     * @param {mouse} mouse
+     * @param {engine} engine
+     * @param {} options
      * @return {MouseConstraint} A new MouseConstraint
      */
-    MouseConstraint.create = function(mouse) {
+    MouseConstraint.create = function(engine, options) {
+        var mouse = engine.input.mouse;
+
         var constraint = Constraint.create({ 
             pointA: mouse.position,
             pointB: { x: 0, y: 0 },
@@ -2169,12 +2325,22 @@ var MouseConstraint = {};
             }
         });
 
-        return {
+        var defaults = {
+            type: 'mouseConstraint',
             mouse: mouse,
             dragBody: null,
             dragPoint: null,
             constraint: constraint
         };
+
+        var mouseConstraint = Common.extend(defaults, options);
+
+        Events.on(engine, 'tick', function(event) {
+            var allBodies = Composite.allBodies(engine.world);
+            MouseConstraint.update(mouseConstraint, allBodies);
+        });
+
+        return mouseConstraint;
     };
 
     /**
@@ -2511,7 +2677,7 @@ var Engine = {};
 (function() {
 
     var _fps = 60,
-        _deltaSampleSize = 8,
+        _deltaSampleSize = _fps,
         _delta = 1000 / _fps;
         
     var _requestAnimationFrame = window.requestAnimationFrame || window.webkitRequestAnimationFrame
@@ -2535,7 +2701,7 @@ var Engine = {};
             enabled: true,
             positionIterations: 6,
             velocityIterations: 4,
-            constraintIterations: 1,
+            constraintIterations: 2,
             enableSleeping: false,
             timeScale: 1,
             input: {},
@@ -2561,8 +2727,6 @@ var Engine = {};
         engine.pairs = Pairs.create();
         engine.metrics = engine.metrics || Metrics.create();
         engine.input.mouse = engine.input.mouse || Mouse.create(engine.render.canvas);
-        engine.mouseConstraint = engine.mouseConstraint || MouseConstraint.create(engine.input.mouse);
-        World.addConstraint(engine.world, engine.mouseConstraint.constraint);
 
         engine.broadphase = engine.broadphase || {
             current: 'grid',
@@ -2749,16 +2913,14 @@ var Engine = {};
         // applies gravity to all bodies
         Body.applyGravityAll(allBodies, world.gravity);
 
-        // update the mouse constraint
-        MouseConstraint.update(engine.mouseConstraint, allBodies, engine.input);
-
         // update all body position and rotation by integration
         Body.updateAll(allBodies, delta * engine.timeScale, correction, world.bounds);
 
         // update all constraints
         for (i = 0; i < engine.constraintIterations; i++) {
-            Constraint.updateAll(allConstraints);
+            Constraint.solveAll(allConstraints);
         }
+        Constraint.postSolveAll(allBodies);
 
         // broadphase pass: find potential collision pairs
         if (broadphase.controller) {
@@ -2847,8 +3009,6 @@ var Engine = {};
         var world = engine.world;
         
         Pairs.clear(engine.pairs);
-
-        World.addConstraint(engine.world, engine.mouseConstraint.constraint);
 
         var broadphase = engine.broadphase[engine.broadphase.current];
         if (broadphase.controller) {
@@ -3051,9 +3211,9 @@ var Events = {};
 
             for (var i = 0; i < names.length; i++) {
                 name = names[i];
+                callbacks = object.events[name];
 
-                if (name in object.events) {
-                    callbacks = object.events[name];
+                if (callbacks) {
                     eventClone = Common.clone(event, false);
                     eventClone.name = name;
                     eventClone.source = object;
@@ -3178,8 +3338,7 @@ var Mouse;
     Mouse = function(element) {
         var mouse = this;
         
-        element = element || document.body;
-        
+        this.element = element || document.body;
         this.position = { x: 0, y: 0 };
         this.mousedownPosition = { x: 0, y: 0 };
         this.mouseupPosition = { x: 0, y: 0 };
@@ -3191,8 +3350,8 @@ var Mouse;
             mouseup: null
         };
         
-        var mousemove = function(event) { 
-            var position = _getRelativeMousePosition(event, element),
+        this.mousemove = function(event) { 
+            var position = _getRelativeMousePosition(event, mouse.element),
                 touches = event.changedTouches;
 
             if (touches) {
@@ -3204,8 +3363,8 @@ var Mouse;
             mouse.sourceEvents.mousemove = event;
         };
         
-        var mousedown = function(event) {
-            var position = _getRelativeMousePosition(event, element),
+        this.mousedown = function(event) {
+            var position = _getRelativeMousePosition(event, mouse.element),
                 touches = event.changedTouches;
 
             if (touches) {
@@ -3219,8 +3378,8 @@ var Mouse;
             mouse.sourceEvents.mousedown = event;
         };
         
-        var mouseup = function(event) {
-            var position = _getRelativeMousePosition(event, element),
+        this.mouseup = function(event) {
+            var position = _getRelativeMousePosition(event, mouse.element),
                 touches = event.changedTouches;
 
             if (touches) {
@@ -3231,14 +3390,8 @@ var Mouse;
             mouse.position = mouse.mouseupPosition = position;
             mouse.sourceEvents.mouseup = event;
         };
-        
-        element.addEventListener('mousemove', mousemove);
-        element.addEventListener('mousedown', mousedown);
-        element.addEventListener('mouseup', mouseup);
-        
-        element.addEventListener('touchmove', mousemove);
-        element.addEventListener('touchstart', mousedown);
-        element.addEventListener('touchend', mouseup);
+
+        Mouse.setElement(mouse, mouse.element);
     };
 
     /**
@@ -3249,6 +3402,24 @@ var Mouse;
      */
     Mouse.create = function(element) {
         return new Mouse(element);
+    };
+
+    /**
+     * Sets the element the mouse is bound to (and relative to)
+     * @method setElement
+     * @param {mouse} mouse
+     * @param {HTMLElement} element
+     */
+    Mouse.setElement = function(mouse, element) {
+        mouse.element = element;
+
+        element.addEventListener('mousemove', mouse.mousemove);
+        element.addEventListener('mousedown', mouse.mousedown);
+        element.addEventListener('mouseup', mouse.mouseup);
+        
+        element.addEventListener('touchmove', mouse.mousemove);
+        element.addEventListener('touchstart', mouse.mousedown);
+        element.addEventListener('touchend', mouse.mouseup);
     };
 
     /**
@@ -3650,6 +3821,55 @@ var Composites = {};
         
         return composite;
     };
+
+    /**
+     * Connects bodies in the composite with constraints in a grid pattern, with optional cross braces
+     * @method mesh
+     * @param {composite} composite
+     * @param {number} columns
+     * @param {number} rows
+     * @param {boolean} crossBrace
+     * @param {object} options
+     * @return {composite} The composite containing objects meshed together with constraints
+     */
+    Composites.mesh = function(composite, columns, rows, crossBrace, options) {
+        var bodies = composite.bodies,
+            row,
+            col,
+            bodyA,
+            bodyB,
+            bodyC;
+        
+        for (row = 0; row < rows; row++) {
+            for (col = 0; col < columns; col++) {
+                if (col > 0) {
+                    bodyA = bodies[(col - 1) + (row * columns)];
+                    bodyB = bodies[col + (row * columns)];
+                    Composite.addConstraint(composite, Constraint.create(Common.extend({ bodyA: bodyA, bodyB: bodyB }, options)));
+                }
+            }
+
+            for (col = 0; col < columns; col++) {
+                if (row > 0) {
+                    bodyA = bodies[col + ((row - 1) * columns)];
+                    bodyB = bodies[col + (row * columns)];
+                    Composite.addConstraint(composite, Constraint.create(Common.extend({ bodyA: bodyA, bodyB: bodyB }, options)));
+
+                    if (crossBrace && col > 0) {
+                        bodyC = bodies[(col - 1) + ((row - 1) * columns)];
+                        Composite.addConstraint(composite, Constraint.create(Common.extend({ bodyA: bodyC, bodyB: bodyB }, options)));
+                    }
+
+                    if (crossBrace && col < columns - 1) {
+                        bodyC = bodies[(col + 1) + ((row - 1) * columns)];
+                        Composite.addConstraint(composite, Constraint.create(Common.extend({ bodyA: bodyC, bodyB: bodyB }, options)));
+                    }
+                }
+            }
+        }
+        
+        return composite;
+    };
     
     /**
      * Description
@@ -3707,7 +3927,7 @@ var Composites = {};
         for (var i = 0; i < number; i++) {
             var separation = 1.9,
                 circle = Bodies.circle(xx + i * (size * separation), yy + length, size, 
-                            { restitution: 1, friction: 0, frictionAir: 0.0001, slop: 0.01 }),
+                            { inertia: 99999, restitution: 1, friction: 0, frictionAir: 0.0001, slop: 0.01 }),
                 constraint = Constraint.create({ pointA: { x: xx + i * (size * separation), y: yy }, bodyB: circle });
 
             Composite.addBody(newtonsCradle, circle);
@@ -3772,6 +3992,34 @@ var Composites = {};
         Composite.addConstraint(car, axelB);
 
         return car;
+    };
+
+    /**
+     * Creates a simple soft body like object
+     * @method softBody
+     * @param {number} xx
+     * @param {number} yy
+     * @param {number} columns
+     * @param {number} rows
+     * @param {number} columnGap
+     * @param {number} rowGap
+     * @param {boolean} crossBrace
+     * @param {number} particleRadius
+     * @param {} particleOptions
+     * @param {} constraintOptions
+     * @return {composite} A new composite softBody
+     */
+    Composites.softBody = function(xx, yy, columns, rows, columnGap, rowGap, crossBrace, particleRadius, particleOptions, constraintOptions) {
+        particleOptions = Common.extend({ inertia: Infinity }, particleOptions);
+        constraintOptions = Common.extend({ stiffness: 0.4 }, constraintOptions);
+
+        var softBody = Composites.stack(xx, yy, columns, rows, columnGap, rowGap, function(x, y, column, row) {
+            return Bodies.circle(x, y, particleRadius, particleOptions);
+        });
+
+        Composites.mesh(softBody, columns, rows, crossBrace, constraintOptions);
+
+        return softBody;
     };
 
 })();
@@ -4346,7 +4594,7 @@ var Gui = {};
                 };
 
                 for (var i = 0; i < gui.amount; i++) {
-                    World.addBody(engine.world, Bodies.polygon(120 + i * gui.size + i * 50, 200, gui.sides, gui.size, options));
+                    World.add(engine.world, Bodies.polygon(120 + i * gui.size + i * 50, 200, gui.sides, gui.size, options));
                 }
             },
 
@@ -4358,12 +4606,32 @@ var Gui = {};
                 var renderController = engine.render.controller;
                 if (renderController.clear)
                     renderController.clear(engine.render);
+
+                /**
+                * Fired after the gui's clear button pressed
+                *
+                * @event clear
+                * @param {} event An event object
+                * @param {} event.source The source object of the event
+                * @param {} event.name The name of the event
+                */
+                Events.trigger(gui, 'clear');
             },
 
             save: function() {
                 if (localStorage && _serializer) {
                     localStorage.setItem('world', _serializer.stringify(engine.world));
                 }
+
+                /**
+                * Fired after the gui's save button pressed
+                *
+                * @event save
+                * @param {} event An event object
+                * @param {} event.source The source object of the event
+                * @param {} event.name The name of the event
+                */
+                Events.trigger(gui, 'save');
             },
 
             load: function() {
@@ -4376,6 +4644,16 @@ var Gui = {};
                 if (loadedWorld) {
                     Engine.merge(engine, { world: loadedWorld });
                 }
+
+                /**
+                * Fired after the gui's load button pressed
+                *
+                * @event load
+                * @param {} event An event object
+                * @param {} event.source The source object of the event
+                * @param {} event.name The name of the event
+                */
+                Events.trigger(gui, 'load');
             }
         };
 
@@ -4458,9 +4736,8 @@ var Gui = {};
 
                 engine.render.options = options;
 
-                // update mouse
-                engine.input.mouse = Mouse.create(engine.render.canvas);
-                engine.mouseConstraint.mouse = engine.input.mouse;
+                // bind the mouse to the new canvas
+                Mouse.setElement(engine.input.mouse, engine.render.canvas);
             });
 
         render.add(engine.render.options, 'wireframes');
@@ -4843,7 +5120,7 @@ var Render = {};
             if (!body.render.visible)
                 continue;
 
-            if (body.render.sprite && !options.wireframes) {
+            if (body.render.sprite && body.render.sprite.texture && !options.wireframes) {
                 // body sprite
                 var sprite = body.render.sprite,
                     texture = _getTexture(render, sprite.texture);
@@ -5499,7 +5776,7 @@ var RenderPixi = {};
         if (!bodyRender.visible)
             return;
 
-        if (bodyRender.sprite) {
+        if (bodyRender.sprite && bodyRender.sprite.texture) {
             var spriteId = 'b-' + body.id,
                 sprite = render.sprites[spriteId],
                 spriteBatch = render.spriteBatch;
@@ -5635,6 +5912,8 @@ var RenderPixi = {};
 
 // aliases
 
+World.add = Composite.add;
+World.remove = Composite.remove;
 World.addComposite = Composite.addComposite;
 World.addBody = Composite.addBody;
 World.addConstraint = Composite.addConstraint;
