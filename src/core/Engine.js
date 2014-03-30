@@ -255,8 +255,9 @@ var Engine = {};
 
         // update all constraints
         for (i = 0; i < engine.constraintIterations; i++) {
-            Constraint.updateAll(allConstraints);
+            Constraint.solveAll(allConstraints);
         }
+        Constraint.postSolveAll(allBodies);
 
         // broadphase pass: find potential collision pairs
         if (broadphase.controller) {

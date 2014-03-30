@@ -64,21 +64,21 @@ var Constraint = {};
 
     /**
      * Description
-     * @method updateAll
+     * @method solveAll
      * @param {constraint[]} constraints
      */
-    Constraint.updateAll = function(constraints) {
+    Constraint.solveAll = function(constraints) {
         for (var i = 0; i < constraints.length; i++) {
-            Constraint.update(constraints[i]);
+            Constraint.solve(constraints[i]);
         }
     };
 
     /**
      * Description
-     * @method update
+     * @method solve
      * @param {constraint} constraint
      */
-    Constraint.update = function(constraint) {
+    Constraint.solve = function(constraint) {
         var bodyA = constraint.bodyA,
             bodyB = constraint.bodyB,
             pointA = constraint.pointA,
@@ -189,16 +189,15 @@ var Constraint = {};
             // TODO: solve this properlly
             torque = Common.clamp(torque, -0.01, 0.01);
 
+            // keep track of applied impulses for post solving
+            bodyA.constraintImpulse.x -= force.x;
+            bodyA.constraintImpulse.y -= force.y;
+            bodyA.constraintImpulse.angle += torque;
+
             // apply forces
             bodyA.position.x -= force.x;
             bodyA.position.y -= force.y;
             bodyA.angle += torque;
-
-            // update geometry
-            Vertices.translate(bodyA.vertices, force, -1);
-            Vertices.rotate(bodyA.vertices, torque, bodyA.position);
-            Axes.rotate(bodyA.axes, torque);
-            Bounds.update(bodyA.bounds, bodyA.vertices, bodyA.velocity);
         }
 
         if (bodyB && !bodyB.isStatic) {
@@ -209,19 +208,43 @@ var Constraint = {};
             // clamp to prevent instabillity
             // TODO: solve this properlly
             torque = Common.clamp(torque, -0.01, 0.01);
+
+            // keep track of applied impulses for post solving
+            bodyB.constraintImpulse.x += force.x;
+            bodyB.constraintImpulse.y += force.y;
+            bodyB.constraintImpulse.angle -= torque;
             
             // apply forces
             bodyB.position.x += force.x;
             bodyB.position.y += force.y;
             bodyB.angle -= torque;
-            
-            // update geometry
-            Vertices.translate(bodyB.vertices, force);
-            Vertices.rotate(bodyB.vertices, -torque, bodyB.position);
-            Axes.rotate(bodyB.axes, -torque);
-            Bounds.update(bodyB.bounds, bodyB.vertices, bodyB.velocity);
         }
 
+    };
+
+    /**
+     * Performs body updates required after solving constraints
+     * @method postSolveAll
+     * @param {body[]} bodies
+     */
+    Constraint.postSolveAll = function(bodies) {
+        for (var i = 0; i < bodies.length; i++) {
+            var body = bodies[i],
+                impulse = body.constraintImpulse;
+
+            if (impulse.x !== 0 || impulse.y !== 0 || impulse.angle !== 0) {
+                // update geometry
+                Vertices.translate(body.vertices, impulse);
+                Vertices.rotate(body.vertices, impulse.angle, body.position);
+                Axes.rotate(body.axes, impulse.angle);
+                Bounds.update(body.bounds, body.vertices);
+
+                // reset body.constraintImpulse
+                impulse.x = 0;
+                impulse.y = 0;
+                impulse.angle = 0;
+            }
+        }
     };
 
     /**

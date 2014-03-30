@@ -27,6 +27,7 @@ var Body = {};
             force: { x: 0, y: 0 },
             torque: 0,
             positionImpulse: { x: 0, y: 0 },
+            constraintImpulse: { x: 0, y: 0, angle: 0 },
             speed: 0,
             angularSpeed: 0,
             velocity: { x: 0, y: 0 },
