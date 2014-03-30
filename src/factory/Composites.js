@@ -95,6 +95,55 @@ var Composites = {};
         
         return composite;
     };
+
+    /**
+     * Connects bodies in the composite with constraints in a grid pattern, with optional cross braces
+     * @method mesh
+     * @param {composite} composite
+     * @param {number} columns
+     * @param {number} rows
+     * @param {boolean} crossBrace
+     * @param {object} options
+     * @return {composite} The composite containing objects meshed together with constraints
+     */
+    Composites.mesh = function(composite, columns, rows, crossBrace, options) {
+        var bodies = composite.bodies,
+            row,
+            col,
+            bodyA,
+            bodyB,
+            bodyC;
+        
+        for (row = 0; row < rows; row++) {
+            for (col = 0; col < columns; col++) {
+                if (col > 0) {
+                    bodyA = bodies[(col - 1) + (row * columns)];
+                    bodyB = bodies[col + (row * columns)];
+                    Composite.addConstraint(composite, Constraint.create(Common.extend({ bodyA: bodyA, bodyB: bodyB }, options)));
+                }
+            }
+
+            for (col = 0; col < columns; col++) {
+                if (row > 0) {
+                    bodyA = bodies[col + ((row - 1) * columns)];
+                    bodyB = bodies[col + (row * columns)];
+                    Composite.addConstraint(composite, Constraint.create(Common.extend({ bodyA: bodyA, bodyB: bodyB }, options)));
+
+                    if (crossBrace && col > 0) {
+                        bodyC = bodies[(col - 1) + ((row - 1) * columns)];
+                        Composite.addConstraint(composite, Constraint.create(Common.extend({ bodyA: bodyC, bodyB: bodyB }, options)));
+                    }
+
+                    if (crossBrace && col < columns - 1) {
+                        bodyC = bodies[(col + 1) + ((row - 1) * columns)];
+                        Composite.addConstraint(composite, Constraint.create(Common.extend({ bodyA: bodyC, bodyB: bodyB }, options)));
+                    }
+                }
+            }
+        }
+        
+        return composite;
+    };
     
     /**
      * Description
@@ -217,6 +266,34 @@ var Composites = {};
         Composite.addConstraint(car, axelB);
 
         return car;
+    };
+
+    /**
+     * Creates a simple soft body like object
+     * @method softBody
+     * @param {number} xx
+     * @param {number} yy
+     * @param {number} columns
+     * @param {number} rows
+     * @param {number} columnGap
+     * @param {number} rowGap
+     * @param {boolean} crossBrace
+     * @param {number} particleRadius
+     * @param {} particleOptions
+     * @param {} constraintOptions
+     * @return {composite} A new composite softBody
+     */
+    Composites.softBody = function(xx, yy, columns, rows, columnGap, rowGap, crossBrace, particleRadius, particleOptions, constraintOptions) {
+        particleOptions = Common.extend({ inertia: Infinity }, particleOptions);
+        constraintOptions = Common.extend({ stiffness: 0.4 }, constraintOptions);
+
+        var softBody = Composites.stack(xx, yy, columns, rows, columnGap, rowGap, function(x, y, column, row) {
+            return Bodies.circle(x, y, particleRadius, particleOptions);
+        });
+
+        Composites.mesh(softBody, columns, rows, crossBrace, constraintOptions);
+
+        return softBody;
     };
 
 })();
