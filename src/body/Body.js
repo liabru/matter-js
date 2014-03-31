@@ -213,8 +213,10 @@ var Body = {};
 
         // transform the body geometry
         Vertices.translate(body.vertices, body.velocity);
-        Vertices.rotate(body.vertices, body.angularVelocity, body.position);
-        Axes.rotate(body.axes, body.angularVelocity);
+        if (body.angularVelocity !== 0) {
+            Vertices.rotate(body.vertices, body.angularVelocity, body.position);
+            Axes.rotate(body.axes, body.angularVelocity);
+        }
         Bounds.update(body.bounds, body.vertices, body.velocity);
     };
 
