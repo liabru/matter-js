@@ -9,7 +9,8 @@
         Composite = Matter.Composite,
         Composites = Matter.Composites,
         Common = Matter.Common,
-        Constraint = Matter.Constraint;
+        Constraint = Matter.Constraint,
+        MouseConstraint = Matter.MouseConstraint;
 
     var Demo = {};
 
@@ -26,18 +27,15 @@
             demoStart.style.display = 'none';
         
             _engine = Engine.create(canvasContainer, {
-                positionIterations: 3,
-                velocityIterations: 2,
                 render: {
                     options: {
                         wireframes: true,
-                        showAngleIndicator: true
+                        showAngleIndicator: true,
+                        showDebug: true
                     }
                 }
             });
-            
-            _engine.broadphase.current = 'bruteForce';
-            
+
             Demo.fullscreen();
 
             setTimeout(function() {
@@ -49,16 +47,39 @@
         window.addEventListener('deviceorientation', Demo.updateGravity, true);
         window.addEventListener('touchstart', Demo.fullscreen);
         window.addEventListener('orientationchange', function() {
+            Demo.updateGravity();
             Demo.updateScene();
             Demo.fullscreen();
         }, false);
     };
 
-    if (window.addEventListener) {
-        window.addEventListener('load', Demo.init);
-    } else if (window.attachEvent) {
-        window.attachEvent('load', Demo.init);
-    }
+    window.addEventListener('load', Demo.init);
+
+    Demo.mixed = function() {
+        var _world = _engine.world;
+        
+        Demo.reset();
+
+        World.add(_world, MouseConstraint.create(_engine));
+        
+        var stack = Composites.stack(20, 20, 10, 5, 0, 0, function(x, y, column, row) {
+            switch (Math.round(Common.random(0, 1))) {
+                
+            case 0:
+                if (Math.random() < 0.8) {
+                    return Bodies.rectangle(x, y, Common.random(20, 40), Common.random(20, 40), { friction: 0.01, restitution: 0.4 });
+                } else {
+                    return Bodies.rectangle(x, y, Common.random(80, 120), Common.random(20, 30), { friction: 0.01, restitution: 0.4 });
+                }
+                break;
+            case 1:
+                return Bodies.polygon(x, y, Math.round(Common.random(4, 6)), Common.random(20, 40), { friction: 0.01, restitution: 0.4 });
+            
+            }
+        });
+        
+        World.add(_world, stack);
+    };
     
     Demo.updateScene = function() {
         if (!_engine)
@@ -127,30 +148,6 @@
         World.addBody(_world, Bodies.rectangle(_sceneWidth * 0.5, _sceneHeight + offset, _sceneWidth + 0.5, 50.5, { isStatic: true }));
         World.addBody(_world, Bodies.rectangle(_sceneWidth + offset, _sceneHeight * 0.5, 50.5, _sceneHeight + 0.5, { isStatic: true }));
         World.addBody(_world, Bodies.rectangle(-offset, _sceneHeight * 0.5, 50.5, _sceneHeight + 0.5, { isStatic: true }));
-    };
-    
-    Demo.mixed = function() {
-        var _world = _engine.world;
-        
-        Demo.reset();
-        
-        var stack = Composites.stack(20, 20, 10, 5, 0, 0, function(x, y, column, row) {
-            switch (Math.round(Common.random(0, 1))) {
-                
-            case 0:
-                if (Math.random() < 0.8) {
-                    return Bodies.rectangle(x, y, Common.random(20, 40), Common.random(20, 40), { friction: 0.01, restitution: 0.4 });
-                } else {
-                    return Bodies.rectangle(x, y, Common.random(80, 120), Common.random(20, 30), { friction: 0.01, restitution: 0.4 });
-                }
-                break;
-            case 1:
-                return Bodies.polygon(x, y, Math.round(Common.random(4, 6)), Common.random(20, 40), { friction: 0.01, restitution: 0.4 });
-            
-            }
-        });
-        
-        World.addComposite(_world, stack);
     };
 
 })();
