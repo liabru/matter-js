@@ -18,6 +18,7 @@ var Constraint = {};
 (function() {
 
     var _minLength = 0.000001,
+        _minDifference = 0.001,
         _nextId = 0;
 
     /**
@@ -116,7 +117,11 @@ var Constraint = {};
         var difference = (currentLength - constraint.length) / currentLength,
             normal = Vector.div(delta, currentLength),
             force = Vector.mult(delta, difference * 0.5 * constraint.stiffness);
-    
+        
+        // if difference is very small, we can skip
+        if (Math.abs(1 - (currentLength / constraint.length)) < _minDifference)
+            return;
+
         var velocityPointA,
             velocityPointB,
             offsetA,
@@ -232,18 +237,19 @@ var Constraint = {};
             var body = bodies[i],
                 impulse = body.constraintImpulse;
 
-            if (impulse.x !== 0 || impulse.y !== 0 || impulse.angle !== 0) {
-                // update geometry
-                Vertices.translate(body.vertices, impulse);
+            // update geometry and reset
+            Vertices.translate(body.vertices, impulse);
+
+            if (impulse.angle !== 0) {
                 Vertices.rotate(body.vertices, impulse.angle, body.position);
                 Axes.rotate(body.axes, impulse.angle);
-                Bounds.update(body.bounds, body.vertices);
-
-                // reset body.constraintImpulse
-                impulse.x = 0;
-                impulse.y = 0;
                 impulse.angle = 0;
             }
+
+            Bounds.update(body.bounds, body.vertices);
+
+            impulse.x = 0;
+            impulse.y = 0;
         }
     };
 
