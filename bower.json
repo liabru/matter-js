@@ -6,7 +6,7 @@
     "Liam Brummitt <liam@brm.io> (http://brm.io/)"
   ],
   "description": "a 2D rigid body physics engine for the web",
-  "main": "build/matter.js",
+  "main": "build/matter-0.7.0.min.js",
   "keywords": [
     "javascript",
     "canvas",
