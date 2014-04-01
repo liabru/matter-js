@@ -534,6 +534,9 @@
             Composites.softBody(250, 300, 8, 3, 0, 0, true, 15, particleOptions),
             Composites.softBody(250, 400, 4, 4, 0, 0, true, 15, particleOptions)
         ]);
+
+        var renderOptions = _engine.render.options;
+        renderOptions.showAngleIndicator = false;
     };
 
     Demo.cloth = function() {

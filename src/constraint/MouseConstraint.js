@@ -1,5 +1,6 @@
 /**
-* _Internal Class_, not generally used outside of the engine's internals.
+* See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
+* and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
 *
 * @class MouseConstraint
 */

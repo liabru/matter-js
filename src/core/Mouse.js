@@ -101,7 +101,7 @@ var Mouse;
 
     /**
      * Clears all captured source events
-     * @method create
+     * @method clearSourceEvents
      * @param {mouse} mouse
      */
     Mouse.clearSourceEvents = function(mouse) {
