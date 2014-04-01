@@ -1,5 +1,5 @@
 /**
-* matter.js 0.5.0-edge 2014-03-30
+* matter.js 0.7.0-edge 2014-04-01
 * http://brm.io/matter-js/
 * License: MIT
 */
@@ -255,8 +255,10 @@ var Body = {};
 
         // transform the body geometry
         Vertices.translate(body.vertices, body.velocity);
-        Vertices.rotate(body.vertices, body.angularVelocity, body.position);
-        Axes.rotate(body.axes, body.angularVelocity);
+        if (body.angularVelocity !== 0) {
+            Vertices.rotate(body.vertices, body.angularVelocity, body.position);
+            Axes.rotate(body.axes, body.angularVelocity);
+        }
         Bounds.update(body.bounds, body.vertices, body.velocity);
     };
 
@@ -2048,6 +2050,7 @@ var Constraint = {};
 (function() {
 
     var _minLength = 0.000001,
+        _minDifference = 0.001,
         _nextId = 0;
 
     /**
@@ -2146,7 +2149,11 @@ var Constraint = {};
         var difference = (currentLength - constraint.length) / currentLength,
             normal = Vector.div(delta, currentLength),
             force = Vector.mult(delta, difference * 0.5 * constraint.stiffness);
-    
+        
+        // if difference is very small, we can skip
+        if (Math.abs(1 - (currentLength / constraint.length)) < _minDifference)
+            return;
+
         var velocityPointA,
             velocityPointB,
             offsetA,
@@ -2262,18 +2269,19 @@ var Constraint = {};
             var body = bodies[i],
                 impulse = body.constraintImpulse;
 
-            if (impulse.x !== 0 || impulse.y !== 0 || impulse.angle !== 0) {
-                // update geometry
-                Vertices.translate(body.vertices, impulse);
+            // update geometry and reset
+            Vertices.translate(body.vertices, impulse);
+
+            if (impulse.angle !== 0) {
                 Vertices.rotate(body.vertices, impulse.angle, body.position);
                 Axes.rotate(body.axes, impulse.angle);
-                Bounds.update(body.bounds, body.vertices);
-
-                // reset body.constraintImpulse
-                impulse.x = 0;
-                impulse.y = 0;
                 impulse.angle = 0;
             }
+
+            Bounds.update(body.bounds, body.vertices);
+
+            impulse.x = 0;
+            impulse.y = 0;
         }
     };
 
@@ -2294,7 +2302,8 @@ var Constraint = {};
 // Begin src/constraint/MouseConstraint.js
 
 /**
-* _Internal Class_, not generally used outside of the engine's internals.
+* See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
+* and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
 *
 * @class MouseConstraint
 */
@@ -3424,7 +3433,7 @@ var Mouse;
 
     /**
      * Clears all captured source events
-     * @method create
+     * @method clearSourceEvents
      * @param {mouse} mouse
      */
     Mouse.clearSourceEvents = function(mouse) {
