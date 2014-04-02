@@ -88,6 +88,8 @@ For the latest features try the [edge version (master)](https://raw.github.com/l
 See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for many usage examples.
 <br>When loaded, all modules and functions are under the global <code>Matter.*</code> namespace.
 
+Some of the demos are avaliable at [codepen.io/liabru](http://codepen.io/liabru/), where you can easily experiment with them!
+
 ### Documentation
 
 See the [Matter.js API Docs (v0.7.0)](http://brm.io/matter-js-docs/).
