@@ -278,4 +278,24 @@ var Common = {};
         return Common._nextId++;
     };
 
+    /**
+     * A wrapper for console.log, for providing errors and warnings
+     * @method indexOf
+     * @param {array} haystack
+     * @param {object} needle
+     */
+    Common.indexOf = function(haystack, needle) {
+        if(haystack.indexOf) {
+            return haystack.indexOf(needle);
+        } else {
+            for(var i = 0; i < haystack.length; i++) {
+                if(haystack[i] == needle) {
+                    return i;
+                }
+            }
+        }
+        return -1;
+    };
+
+
 })();

@@ -148,7 +148,7 @@ var Composite = {};
      * @return {composite} The original compositeA with the composite removed
      */
     Composite.removeComposite = function(compositeA, compositeB, deep) {
-        var position = compositeA.composites.indexOf(compositeB);
+        var position = Common.indexOf(compositeA.composites, compositeB);
         if (position !== -1) {
             Composite.removeCompositeAt(compositeA, position);
             Composite.setModified(compositeA, true, true, false);
@@ -198,7 +198,7 @@ var Composite = {};
      * @return {composite} The original composite with the body removed
      */
     Composite.removeBody = function(composite, body, deep) {
-        var position = composite.bodies.indexOf(body);
+        var position = Common.indexOf(composite.bodies, body);
         if (position !== -1) {
             Composite.removeBodyAt(composite, position);
             Composite.setModified(composite, true, true, false);
@@ -248,7 +248,7 @@ var Composite = {};
      * @return {composite} The original composite with the constraint removed
      */
     Composite.removeConstraint = function(composite, constraint, deep) {
-        var position = composite.constraints.indexOf(constraint);
+        var position = Common.indexOf(composite.constraints, constraint);
         if (position !== -1) {
             Composite.removeConstraintAt(composite, position);
         }
