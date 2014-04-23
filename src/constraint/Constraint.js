@@ -67,10 +67,11 @@ var Constraint = {};
      * Description
      * @method solveAll
      * @param {constraint[]} constraints
+     * @param {number} timeScale
      */
-    Constraint.solveAll = function(constraints) {
+    Constraint.solveAll = function(constraints, timeScale) {
         for (var i = 0; i < constraints.length; i++) {
-            Constraint.solve(constraints[i]);
+            Constraint.solve(constraints[i], timeScale);
         }
     };
 
@@ -78,8 +79,9 @@ var Constraint = {};
      * Description
      * @method solve
      * @param {constraint} constraint
+     * @param {number} timeScale
      */
-    Constraint.solve = function(constraint) {
+    Constraint.solve = function(constraint, timeScale) {
         var bodyA = constraint.bodyA,
             bodyB = constraint.bodyB,
             pointA = constraint.pointA,
@@ -116,10 +118,10 @@ var Constraint = {};
         // solve distance constraint with Gauss-Siedel method
         var difference = (currentLength - constraint.length) / currentLength,
             normal = Vector.div(delta, currentLength),
-            force = Vector.mult(delta, difference * 0.5 * constraint.stiffness);
+            force = Vector.mult(delta, difference * 0.5 * constraint.stiffness * timeScale * timeScale);
         
         // if difference is very small, we can skip
-        if (Math.abs(1 - (currentLength / constraint.length)) < _minDifference)
+        if (Math.abs(1 - (currentLength / constraint.length)) < _minDifference * timeScale)
             return;
 
         var velocityPointA,

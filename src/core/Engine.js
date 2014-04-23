@@ -255,7 +255,7 @@ var Engine = {};
 
         // update all constraints
         for (i = 0; i < engine.constraintIterations; i++) {
-            Constraint.solveAll(allConstraints);
+            Constraint.solveAll(allConstraints, engine.timeScale);
         }
         Constraint.postSolveAll(allBodies);
 
