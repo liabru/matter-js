@@ -108,15 +108,25 @@ var Body = {};
         Axes.rotate(body.axes, body.angle);
         Bounds.update(body.bounds, body.vertices, body.velocity);
 
-        if (body.isStatic) {
+        Body.setStatic(body, body.isStatic);
+        Sleeping.set(body, body.isSleeping);
+    };
+
+    /**
+     * Sets the body as static, including isStatic flag and setting mass and inertia to Infinity
+     * @method setStatic
+     * @param {bool} isStatic
+     */
+    Body.setStatic = function(body, isStatic) {
+        body.isStatic = isStatic;
+
+        if (isStatic) {
             body.restitution = 0;
             body.friction = 1;
             body.mass = body.inertia = body.density = Infinity;
             body.inverseMass = body.inverseInertia = 0;
             body.render.lineWidth = 1;
         }
-
-        Sleeping.set(body, body.isSleeping);
     };
 
     /**
