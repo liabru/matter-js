@@ -264,4 +264,32 @@ var Body = {};
         Bounds.update(body.bounds, body.vertices, body.velocity);
     };
 
+    /**
+     * Scales the body, including updating physical properties (mass, area, axes, inertia), from a point (default is centre)
+     * @method translate
+     * @param {body} body
+     * @param {number} scaleX
+     * @param {number} scaleY
+     * @param {vector} point
+     */
+    Body.scale = function(body, scaleX, scaleY, point) {
+        // scale vertices
+        Vertices.scale(body.vertices, scaleX, scaleY, point);
+
+        // update properties
+        body.axes = Axes.fromVertices(body.vertices);
+        body.area = Vertices.area(body.vertices);
+        body.mass = body.density * body.area;
+        body.inverseMass = 1 / body.mass;
+
+        // update inertia (requires vertices to be at origin)
+        Vertices.translate(body.vertices, { x: -body.position.x, y: -body.position.y });
+        body.inertia = Vertices.inertia(body.vertices, body.mass);
+        body.inverseInertia = 1 / body.inertia;
+        Vertices.translate(body.vertices, { x: body.position.x, y: body.position.y });
+
+        // update bounds
+        Bounds.update(body.bounds, body.vertices, body.velocity);
+    };
+
 })();

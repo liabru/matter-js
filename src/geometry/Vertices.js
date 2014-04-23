@@ -167,4 +167,31 @@ var Vertices = {};
         return true;
     };
 
+    /**
+     * Scales the vertices from a point (default is centre)
+     * @method scale
+     * @param {vertices} vertices
+     * @param {number} scaleX
+     * @param {number} scaleY
+     * @param {vector} point
+     */
+     Vertices.scale = function(vertices, scaleX, scaleY, point) {
+        if (scaleX === 1 && scaleY === 1)
+            return vertices;
+
+        point = point || Vertices.centre(vertices);
+
+        var vertex,
+            delta;
+
+        for (var i = 0; i < vertices.length; i++) {
+            vertex = vertices[i];
+            delta = Vector.sub(vertex, point);
+            vertices[i].x = point.x + delta.x * scaleX;
+            vertices[i].y = point.y + delta.y * scaleY;
+        }
+
+        return vertices;
+     };
+
 })();
