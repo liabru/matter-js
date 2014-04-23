@@ -42,6 +42,7 @@ var Body = {};
             frictionAir: 0.01,
             groupId: 0,
             slop: 0.05,
+            timeScale: 1,
             render: {
                 visible: true,
                 sprite: {
@@ -186,7 +187,7 @@ var Body = {};
      * @param {number} correction
      */
     Body.update = function(body, deltaTime, correction) {
-        var deltaTimeSquared = deltaTime * deltaTime;
+        var deltaTimeSquared = deltaTime * deltaTime * body.timeScale;
 
         // from the previous step
         var frictionAir = 1 - body.frictionAir,
