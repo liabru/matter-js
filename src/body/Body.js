@@ -56,7 +56,7 @@ var Body = {};
 
         var body = Common.extend(defaults, options);
 
-        Body.updateProperties(body);
+        _initProperties(body);
 
         return body;
     };
@@ -80,11 +80,12 @@ var Body = {};
     };
 
     /**
-     * Description
-     * @method updateProperties
+     * Initialises body properties
+     * @method _initProperties
+     * @private
      * @param {body} body
      */
-    Body.updateProperties = function(body) {
+    var _initProperties = function(body) {
         // calculated properties
         body.vertices = body.vertices || Vertices.fromPath(body.render.path);
         body.axes = body.axes || Axes.fromVertices(body.vertices);
