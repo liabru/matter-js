@@ -126,6 +126,10 @@ var Engine = {};
             // time correction for time scaling
             if (timeScalePrev !== 0)
                 correction *= timing.timeScale / timeScalePrev;
+
+            if (timing.timeScale === 0)
+                correction = 0;
+
             timeScalePrev = timing.timeScale;
 
             // update engine timing object
@@ -239,7 +243,7 @@ var Engine = {};
         
         // iteratively resolve position between collisions
         for (i = 0; i < engine.positionIterations; i++) {
-            Resolver.solvePosition(pairs.list, timing.timeScale * timing.correction);
+            Resolver.solvePosition(pairs.list, timing.timeScale);
         }
         Resolver.postSolvePosition(allBodies);
 
