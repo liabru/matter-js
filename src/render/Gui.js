@@ -97,6 +97,29 @@ var Gui = {};
                 Events.trigger(gui, 'save');
             },
 
+            saveFile: function() {
+                if (_serializer) {
+                    var json = _serializer.stringify(engine.world);
+
+                    // limit precision of floats
+                    json = json.replace(/\d+\.(\d+)/g, function(match, frac) {
+                        if (frac.length > 2)
+                            return Number.parseFloat(match).toFixed(2);
+                        return match;
+                    });
+
+                    var blob = new Blob([json], { type: 'application/json' }),
+                        anchor = document.createElement('a');
+
+                    anchor.download = "world.json";
+                    anchor.href = (window.webkitURL || window.URL).createObjectURL(blob);
+                    anchor.dataset.downloadurl = ['application/json', anchor.download, anchor.href].join(':');
+                    anchor.click();
+                }
+
+                Events.trigger(gui, 'save');
+            },
+
             load: function() {
                 var loadedWorld;
 
@@ -117,6 +140,39 @@ var Gui = {};
                 * @param {} event.name The name of the event
                 */
                 Events.trigger(gui, 'load');
+            },
+
+            loadFile: function() {
+                var element = document.createElement('div');
+                element.innerHTML = '<input type="file">';
+                var fileInput = element.firstChild;
+
+                fileInput.addEventListener('change', function(e) {
+                    var file = fileInput.files[0];
+
+                    if (file.name.match(/\.(txt|json)$/)) {
+                        var reader = new FileReader();
+
+                        reader.onload = function(e) {
+                            var loadedWorld;
+
+                            if (_serializer)
+                                loadedWorld = _serializer.parse(reader.result);
+
+                            if (loadedWorld) {
+                                Engine.merge(engine, { world: loadedWorld });
+                            }
+
+                            Events.trigger(gui, 'load');
+                        }
+
+                        reader.readAsText(file);    
+                    } else {
+                        alert("File not supported, JSON text files only");
+                    }
+                });
+
+                fileInput.click();
             }
         };
 
@@ -152,6 +208,8 @@ var Gui = {};
         var worldGui = datGui.addFolder('World');
         worldGui.add(funcs, 'load');
         worldGui.add(funcs, 'save');
+        worldGui.add(funcs, 'loadFile');
+        worldGui.add(funcs, 'saveFile');
         worldGui.add(funcs, 'clear');
         worldGui.open();
         
