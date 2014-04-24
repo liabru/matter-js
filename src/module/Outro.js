@@ -36,6 +36,7 @@ Matter.Gui = Gui;
 Matter.Render = Render;
 Matter.RenderPixi = RenderPixi;
 Matter.Events = Events;
+Matter.Query = Query;
 
 // CommonJS module
 if (typeof exports !== 'undefined') {
