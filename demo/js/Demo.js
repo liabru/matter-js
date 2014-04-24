@@ -15,7 +15,8 @@
         Bounds = Matter.Bounds,
         Vector = Matter.Vector,
         Vertices = Matter.Vertices,
-        MouseConstraint = Matter.MouseConstraint;
+        MouseConstraint = Matter.MouseConstraint,
+        Query = Matter.Query;
 
     var Demo = {};
 
@@ -741,6 +742,62 @@
         renderOptions.background = './img/wall-bg.jpg';
         renderOptions.showAngleIndicator = false;
         renderOptions.wireframes = false;
+    };
+
+    Demo.raycasting = function() {
+        var _world = _engine.world;
+        
+        Demo.reset();
+        
+        var stack = Composites.stack(20, 20, 15, 4, 0, 0, function(x, y, column, row) {
+            switch (Math.round(Common.random(0, 1))) {
+
+            case 0:
+                if (Math.random() < 0.8) {
+                    return Bodies.rectangle(x, y, Common.random(20, 50), Common.random(20, 50));
+                } else {
+                    return Bodies.rectangle(x, y, Common.random(80, 120), Common.random(20, 30));
+                }
+                break;
+            case 1:
+                var sides = Math.round(Common.random(1, 8));
+                sides = (sides === 3) ? 4 : sides;
+                return Bodies.polygon(x, y, sides, Common.random(20, 50));
+            }
+        });
+        
+        World.add(_world, stack);
+
+        Events.on(_engine, 'afterRender', function() {
+            var mouse = _engine.input.mouse,
+                context = _engine.render.context,
+                bodies = Composite.allBodies(_engine.world),
+                startPoint = { x: 400, y: 100 },
+                endPoint = mouse.position;
+
+            var collisions = Query.ray(bodies, startPoint, endPoint);
+
+            context.beginPath();
+            context.moveTo(startPoint.x, startPoint.y);
+            context.lineTo(endPoint.x, endPoint.y);
+            if (collisions.length > 0) {
+                context.strokeStyle = '#fff';
+            } else {
+                context.strokeStyle = '#555';
+            }
+            context.lineWidth = 0.5;
+            context.stroke();
+
+            for (var i = 0; i < collisions.length; i++) {
+                var collision = collisions[i];
+                context.rect(collision.bodyA.position.x - 4.5, collision.bodyA.position.y - 4.5, 8, 8);
+            }
+
+            context.fillStyle = 'rgba(255,165,0,0.7)';
+            context.fill();
+        });
+        
+        var renderOptions = _engine.render.options;
     };
 
     // the functions for the demo interface and controls below
