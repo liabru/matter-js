@@ -91,7 +91,8 @@ var Engine = {};
             correction,
             counterTimestamp = 0,
             frameCounter = 0,
-            deltaHistory = [];
+            deltaHistory = [],
+            timeScalePrev = 1;
 
         (function render(timestamp){
             _requestAnimationFrame(render);
@@ -129,8 +130,13 @@ var Engine = {};
             delta = delta < engine.timing.deltaMin ? engine.timing.deltaMin : delta;
             delta = delta > engine.timing.deltaMax ? engine.timing.deltaMax : delta;
 
-            // verlet time correction
+            // time correction for delta
             correction = delta / timing.delta;
+
+            // time correction for time scaling
+            if (timeScalePrev !== 0)
+                correction *= engine.timeScale / timeScalePrev;
+            timeScalePrev = engine.timeScale;
 
             // update engine timing object
             timing.timestamp = timestamp;
@@ -296,7 +302,7 @@ var Engine = {};
         
         // iteratively resolve position between collisions
         for (i = 0; i < engine.positionIterations; i++) {
-            Resolver.solvePosition(pairs.list);
+            Resolver.solvePosition(pairs.list, engine.timeScale * engine.timing.correction);
         }
         Resolver.postSolvePosition(allBodies);
 

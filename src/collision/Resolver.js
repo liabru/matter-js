@@ -16,8 +16,9 @@ var Resolver = {};
      * Description
      * @method solvePosition
      * @param {pair[]} pairs
+     * @param {number} timeScale
      */
-    Resolver.solvePosition = function(pairs) {
+    Resolver.solvePosition = function(pairs, timeScale) {
         var i,
             pair,
             collision,
@@ -59,7 +60,7 @@ var Resolver = {};
             bodyA = collision.bodyA;
             bodyB = collision.bodyB;
             normal = collision.normal;
-            positionImpulse = (pair.separation * _positionDampen) - pair.slop;
+            positionImpulse = ((pair.separation * _positionDampen) - pair.slop) * timeScale;
         
             if (bodyA.isStatic || bodyB.isStatic)
                 positionImpulse *= 2;
