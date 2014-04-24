@@ -163,4 +163,15 @@ var Vector = {};
         return { x: -vector.x, y: -vector.y };
     };
 
+    /**
+     * Returns the angle in radians between the two vectors relative to the x-axis
+     * @method angle
+     * @param {vector} vectorA
+     * @param {vector} vectorB
+     * @return {number} The angle in radians
+     */
+    Vector.angle = function(vectorA, vectorB) {
+        return Math.atan2(vectorB.y - vectorA.y, vectorB.x - vectorA.x);
+    };
+
 })();
