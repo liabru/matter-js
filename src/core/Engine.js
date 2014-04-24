@@ -5,9 +5,7 @@
 * @class Engine
 */
 
-// TODO: multiple event handlers, before & after handlers
 // TODO: viewports
-// TODO: frameskipping
 
 var Engine = {};
 
@@ -109,15 +107,6 @@ var Engine = {};
                 timestamp: timestamp
             };
 
-            /**
-            * Fired at the start of a tick, before any updates to the engine or timing
-            *
-            * @event beforeTick
-            * @param {} event An event object
-            * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
-            * @param {} event.source The source object of the event
-            * @param {} event.name The name of the event
-            */
             Events.trigger(engine, 'beforeTick', event);
 
             delta = (timestamp - timing.timestamp) || _delta;
@@ -152,24 +141,6 @@ var Engine = {};
                 frameCounter = 0;
             }
 
-            /**
-            * Fired after engine timing updated, but just before engine state updated
-            *
-            * @event tick
-            * @param {} event An event object
-            * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
-            * @param {} event.source The source object of the event
-            * @param {} event.name The name of the event
-            */
-            /**
-            * Fired just before an update
-            *
-            * @event beforeUpdate
-            * @param {} event An event object
-            * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
-            * @param {} event.source The source object of the event
-            * @param {} event.name The name of the event
-            */
             Events.trigger(engine, 'tick beforeUpdate', event);
 
             // if world has been modified, clear the render scene graph
@@ -183,48 +154,12 @@ var Engine = {};
             _triggerCollisionEvents(engine);
             _triggerMouseEvents(engine);
 
-            /**
-            * Fired after engine update and all collision events
-            *
-            * @event afterUpdate
-            * @param {} event An event object
-            * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
-            * @param {} event.source The source object of the event
-            * @param {} event.name The name of the event
-            */
-            /**
-            * Fired just before rendering
-            *
-            * @event beforeRender
-            * @param {} event An event object
-            * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
-            * @param {} event.source The source object of the event
-            * @param {} event.name The name of the event
-            */
             Events.trigger(engine, 'afterUpdate beforeRender', event);
 
             // render
             if (engine.render.options.enabled)
                 engine.render.controller.world(engine);
 
-            /**
-            * Fired after rendering
-            *
-            * @event afterRender
-            * @param {} event An event object
-            * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
-            * @param {} event.source The source object of the event
-            * @param {} event.name The name of the event
-            */
-            /**
-            * Fired after engine update and after rendering
-            *
-            * @event afterTick
-            * @param {} event An event object
-            * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
-            * @param {} event.source The source object of the event
-            * @param {} event.name The name of the event
-            */
             Events.trigger(engine, 'afterTick afterRender', event);
         })();
     };
@@ -373,45 +308,18 @@ var Engine = {};
         var mouse = engine.input.mouse,
             mouseEvents = mouse.sourceEvents;
 
-        /**
-        * Fired when the mouse has moved (or a touch moves) during the last step
-        *
-        * @event mousemove
-        * @param {} event An event object
-        * @param {mouse} event.mouse The engine's mouse instance
-        * @param {} event.source The source object of the event
-        * @param {} event.name The name of the event
-        */
         if (mouseEvents.mousemove) {
             Events.trigger(engine, 'mousemove', {
                 mouse: mouse
             });
         }
 
-        /**
-        * Fired when the mouse is down (or a touch has started) during the last step
-        *
-        * @event mousedown
-        * @param {} event An event object
-        * @param {mouse} event.mouse The engine's mouse instance
-        * @param {} event.source The source object of the event
-        * @param {} event.name The name of the event
-        */
         if (mouseEvents.mousedown) {
             Events.trigger(engine, 'mousedown', {
                 mouse: mouse
             });
         }
 
-        /**
-        * Fired when the mouse is up (or a touch has ended) during the last step
-        *
-        * @event mouseup
-        * @param {} event An event object
-        * @param {mouse} event.mouse The engine's mouse instance
-        * @param {} event.source The source object of the event
-        * @param {} event.name The name of the event
-        */
         if (mouseEvents.mouseup) {
             Events.trigger(engine, 'mouseup', {
                 mouse: mouse
@@ -431,53 +339,162 @@ var Engine = {};
     var _triggerCollisionEvents = function(engine) {
         var pairs = engine.pairs;
 
-        /**
-        * Fired after engine update, provides a list of all pairs that have started to collide in the current tick (if any)
-        *
-        * @event collisionStart
-        * @param {} event An event object
-        * @param {} event.pairs List of affected pairs
-        * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
-        * @param {} event.source The source object of the event
-        * @param {} event.name The name of the event
-        */
         if (pairs.collisionStart.length > 0) {
             Events.trigger(engine, 'collisionStart', {
                 pairs: pairs.collisionStart
             });
         }
 
-        /**
-        * Fired after engine update, provides a list of all pairs that are colliding in the current tick (if any)
-        *
-        * @event collisionActive
-        * @param {} event An event object
-        * @param {} event.pairs List of affected pairs
-        * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
-        * @param {} event.source The source object of the event
-        * @param {} event.name The name of the event
-        */
         if (pairs.collisionActive.length > 0) {
             Events.trigger(engine, 'collisionActive', {
                 pairs: pairs.collisionActive
             });
         }
 
-        /**
-        * Fired after engine update, provides a list of all pairs that have ended collision in the current tick (if any)
-        *
-        * @event collisionEnd
-        * @param {} event An event object
-        * @param {} event.pairs List of affected pairs
-        * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
-        * @param {} event.source The source object of the event
-        * @param {} event.name The name of the event
-        */
         if (pairs.collisionEnd.length > 0) {
             Events.trigger(engine, 'collisionEnd', {
                 pairs: pairs.collisionEnd
             });
         }
     };
+
+    /*
+    *
+    *  Events Documentation
+    *
+    */
+
+    /**
+    * Fired at the start of a tick, before any updates to the engine or timing
+    *
+    * @event beforeTick
+    * @param {} event An event object
+    * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired after engine timing updated, but just before engine state updated
+    *
+    * @event tick
+    * @param {} event An event object
+    * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired just before an update
+    *
+    * @event beforeUpdate
+    * @param {} event An event object
+    * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired after engine update and all collision events
+    *
+    * @event afterUpdate
+    * @param {} event An event object
+    * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired just before rendering
+    *
+    * @event beforeRender
+    * @param {} event An event object
+    * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired after rendering
+    *
+    * @event afterRender
+    * @param {} event An event object
+    * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired after engine update and after rendering
+    *
+    * @event afterTick
+    * @param {} event An event object
+    * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired when the mouse has moved (or a touch moves) during the last step
+    *
+    * @event mousemove
+    * @param {} event An event object
+    * @param {mouse} event.mouse The engine's mouse instance
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired when the mouse is down (or a touch has started) during the last step
+    *
+    * @event mousedown
+    * @param {} event An event object
+    * @param {mouse} event.mouse The engine's mouse instance
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired when the mouse is up (or a touch has ended) during the last step
+    *
+    * @event mouseup
+    * @param {} event An event object
+    * @param {mouse} event.mouse The engine's mouse instance
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired after engine update, provides a list of all pairs that have started to collide in the current tick (if any)
+    *
+    * @event collisionStart
+    * @param {} event An event object
+    * @param {} event.pairs List of affected pairs
+    * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired after engine update, provides a list of all pairs that are colliding in the current tick (if any)
+    *
+    * @event collisionActive
+    * @param {} event An event object
+    * @param {} event.pairs List of affected pairs
+    * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired after engine update, provides a list of all pairs that have ended collision in the current tick (if any)
+    *
+    * @event collisionEnd
+    * @param {} event An event object
+    * @param {} event.pairs List of affected pairs
+    * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
 
 })();
