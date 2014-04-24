@@ -49,7 +49,8 @@ var Engine = {};
                 delta: _delta,
                 correction: 1,
                 deltaMin: 1000 / _fps,
-                deltaMax: 1000 / (_fps * 0.5)
+                deltaMax: 1000 / (_fps * 0.5),
+                timeScale: 1
             },
             render: {
                 element: element,
@@ -127,16 +128,16 @@ var Engine = {};
             delta = Math.min.apply(null, deltaHistory);
             
             // limit delta
-            delta = delta < engine.timing.deltaMin ? engine.timing.deltaMin : delta;
-            delta = delta > engine.timing.deltaMax ? engine.timing.deltaMax : delta;
+            delta = delta < timing.deltaMin ? timing.deltaMin : delta;
+            delta = delta > timing.deltaMax ? timing.deltaMax : delta;
 
             // time correction for delta
             correction = delta / timing.delta;
 
             // time correction for time scaling
             if (timeScalePrev !== 0)
-                correction *= engine.timeScale / timeScalePrev;
-            timeScalePrev = engine.timeScale;
+                correction *= timing.timeScale / timeScalePrev;
+            timeScalePrev = timing.timeScale;
 
             // update engine timing object
             timing.timestamp = timestamp;
@@ -238,6 +239,7 @@ var Engine = {};
      */
     Engine.update = function(engine, delta, correction) {
         var world = engine.world,
+            timing = engine.timing,
             broadphase = engine.broadphase[engine.broadphase.current],
             broadphasePairs = [],
             i;
@@ -257,11 +259,11 @@ var Engine = {};
         Body.applyGravityAll(allBodies, world.gravity);
 
         // update all body position and rotation by integration
-        Body.updateAll(allBodies, delta * engine.timeScale, correction, world.bounds);
+        Body.updateAll(allBodies, delta * timing.timeScale, correction, world.bounds);
 
         // update all constraints
         for (i = 0; i < engine.constraintIterations; i++) {
-            Constraint.solveAll(allConstraints, engine.timeScale);
+            Constraint.solveAll(allConstraints, timing.timeScale);
         }
         Constraint.postSolveAll(allBodies);
 
@@ -286,7 +288,7 @@ var Engine = {};
 
         // update collision pairs
         var pairs = engine.pairs,
-            timestamp = engine.timing.timestamp;
+            timestamp = timing.timestamp;
         Pairs.update(pairs, collisions, timestamp);
         Pairs.removeOld(pairs, timestamp);
 
@@ -302,7 +304,7 @@ var Engine = {};
         
         // iteratively resolve position between collisions
         for (i = 0; i < engine.positionIterations; i++) {
-            Resolver.solvePosition(pairs.list, engine.timeScale * engine.timing.correction);
+            Resolver.solvePosition(pairs.list, timing.timeScale * timing.correction);
         }
         Resolver.postSolvePosition(allBodies);
 

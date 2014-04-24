@@ -168,7 +168,7 @@ var Gui = {};
                 Composite.setModified(engine.world, true, false, false);
             });
 
-        physics.add(engine, 'timeScale', 0, 1.2).step(0.05);
+        physics.add(engine.timing, 'timeScale', 0, 1.2).step(0.05);
         physics.add(engine, 'velocityIterations', 1, 10).step(1);
         physics.add(engine, 'positionIterations', 1, 10).step(1);
         physics.add(engine, 'enabled');
