@@ -22,7 +22,7 @@ var Composites = {};
      * @return {composite} A new composite containing objects created in the callback
      */
     Composites.stack = function(xx, yy, columns, rows, columnGap, rowGap, callback) {
-        var stack = Composite.create(),
+        var stack = Composite.create({ label: 'Stack' }),
             x = xx,
             y = yy,
             lastBody,
@@ -92,6 +92,8 @@ var Composites = {};
         
             Composite.addConstraint(composite, Constraint.create(constraint));
         }
+
+        composite.label += ' Chain';
         
         return composite;
     };
@@ -141,6 +143,8 @@ var Composites = {};
                 }
             }
         }
+
+        composite.label += ' Mesh';
         
         return composite;
     };
@@ -196,7 +200,7 @@ var Composites = {};
      * @return {composite} A new composite newtonsCradle body
      */
     Composites.newtonsCradle = function(xx, yy, number, size, length) {
-        var newtonsCradle = Composite.create();
+        var newtonsCradle = Composite.create({ label: 'Newtons Cradle' });
 
         for (var i = 0; i < number; i++) {
             var separation = 1.9,
@@ -228,7 +232,7 @@ var Composites = {};
             wheelBOffset = width * 0.5 - wheelBase,
             wheelYOffset = 0;
     
-        var car = Composite.create(),
+        var car = Composite.create({ label: 'Car' }),
             body = Bodies.trapezoid(xx, yy, width, height, 0.3, { groupId: groupId, friction: 0.01 });
     
         var wheelA = Bodies.circle(xx + wheelAOffset, yy + wheelYOffset, wheelSize, { 
@@ -292,6 +296,8 @@ var Composites = {};
         });
 
         Composites.mesh(softBody, columns, rows, crossBrace, constraintOptions);
+
+        softBody.label = 'Soft Body';
 
         return softBody;
     };

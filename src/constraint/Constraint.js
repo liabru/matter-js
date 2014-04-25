@@ -54,7 +54,7 @@ var Constraint = {};
 
         // option defaults
         constraint.id = constraint.id || Constraint.nextId();
-        constraint.label = constraint.label;
+        constraint.label = constraint.label || 'Constraint';
         constraint.type = 'constraint';
         constraint.stiffness = constraint.stiffness || 1;
         constraint.angularStiffness = constraint.angularStiffness || 0;

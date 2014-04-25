@@ -25,6 +25,7 @@ var Bodies = {};
         options = options || {};
 
         var rectangle = { 
+            label: 'Rectangle Body',
             position: { x: x, y: y },
             render: {
                 path: 'L 0 0 L ' + width + ' 0 L ' + width + ' ' + height + ' L 0 ' + height
@@ -56,6 +57,7 @@ var Bodies = {};
             x3 = x2 + x1;
 
         var trapezoid = { 
+            label: 'Trapezoid Body',
             position: { x: x, y: y },
             render: {
                 path: 'L 0 0 L ' + x1 + ' ' + (-height) + ' L ' + x2 + ' ' + (-height) + ' L ' + x3 + ' 0'
@@ -77,6 +79,7 @@ var Bodies = {};
      */
     Bodies.circle = function(x, y, radius, options, maxSides) {
         options = options || {};
+        options.label = 'Circle Body';
         
         // approximate circles with polygons until true circles implemented in SAT
 
@@ -122,6 +125,7 @@ var Bodies = {};
         }
 
         var polygon = { 
+            label: 'Polygon Body',
             position: { x: x, y: y },
             render: {
                 path: path
