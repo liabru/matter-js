@@ -76,6 +76,8 @@
  *
  *   * Functions cannot ever be serialized. Resurrect will throw an
  *   error if a function is found when traversing a data structure.
+ *
+ * @see http://nullprogram.com/blog/2013/03/28/
  */
 
 /**
@@ -97,6 +99,13 @@ function Resurrect(options) {
     this.buildcode = this.prefix + '.';
     this.valuecode = this.prefix + 'v';
 }
+
+/**
+ * Portable access to the global object (window, global).
+ * Uses indirect eval.
+ * @constant
+ */
+Resurrect.GLOBAL = (0, eval)('this');
 
 /* Helper Objects */
 
@@ -158,7 +167,8 @@ Resurrect.NamespaceResolver.prototype.getName = function(object) {
 };
 
 /* Set the default resolver searches the global object. */
-Resurrect.prototype.resolver = new Resurrect.NamespaceResolver(window);
+Resurrect.prototype.resolver =
+    new Resurrect.NamespaceResolver(Resurrect.GLOBAL);
 
 /**
  * Create a DOM node from HTML source; behaves like a constructor.
@@ -259,11 +269,12 @@ Resurrect.prototype.builder = function(name, value) {
  * Build a value from a deserialized builder.
  * @method
  * @see http://stackoverflow.com/a/14378462
+ * @see http://nullprogram.com/blog/2013/03/24/
  */
 Resurrect.prototype.build = function(ref) {
     var type = ref[this.buildcode].split(/\./).reduce(function(object, name) {
         return object[name];
-    }, window);
+    }, Resurrect.GLOBAL);
     /* Brilliant hack by kybernetikos: */
     var args = [null].concat(ref[this.valuecode]);
     var factory = type.bind.apply(type, args);
@@ -329,6 +340,7 @@ Resurrect.prototype.visit = function(root, f) {
  * Manage special atom values, possibly returning an encoding.
  */
 Resurrect.prototype.handleAtom = function(atom) {
+    var Node = Resurrect.GLOBAL.Node || function() {};
     if (Resurrect.isFunction(atom)) {
         throw new this.Error("Can't serialize functions.");
     } else if (atom instanceof Node) {
@@ -348,11 +360,14 @@ Resurrect.prototype.handleAtom = function(atom) {
 
 /**
  * Serialize an arbitrary JavaScript object, carefully preserving it.
+ * @param object
+ * @param {(Function|Array)} replacer
+ * @param {string} space
  * @method
  */
-Resurrect.prototype.stringify = function(object) {
+Resurrect.prototype.stringify = function(object, replacer, space) {
     if (Resurrect.isAtom(object)) {
-        return JSON.stringify(this.handleAtom(object));
+        return JSON.stringify(this.handleAtom(object), replacer, space);
     } else {
         this.table = [];
         this.visit(object, this.handleAtom.bind(this));
@@ -367,7 +382,7 @@ Resurrect.prototype.stringify = function(object) {
         }
         var table = this.table;
         this.table = null;
-        return JSON.stringify(table);
+        return JSON.stringify(table, replacer, space);
     }
 };
 
