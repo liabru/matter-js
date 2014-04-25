@@ -25,7 +25,7 @@ h1 {
     padding: 0 5px;
 }
 
-a, a:link, a:visited, a:active, a:hover {
+.nav a, .nav a:link, .nav a:visited, .nav a:active, .nav a:hover {
     color: #aaa;
     text-decoration: none;
     border-bottom: 1px solid #555;
@@ -35,7 +35,7 @@ a, a:link, a:visited, a:active, a:hover {
 .container {
     max-width: 800px;
     margin: 0 auto;
-    padding: 6% 300px 0 6%;
+    padding: 6% 280px 0 280px;
 }
 
 .is-mobile .container {
@@ -97,4 +97,33 @@ canvas:active {
     padding: 20px 40px;
     width: 200px;
     color: #000;
+}
+
+.inspector-container {
+    position: absolute;
+    overflow: auto;
+    width: 220px;
+    height: 100%;
+    left: 0;
+    background: #444;
+    padding: 20px;
+    font-family: Arial;
+    font-size: 12px;
+    color: #aaa;
+}
+
+.ins-control-group {
+    display: block;
+    clear: both;
+    overflow: hidden;
+}
+
+.ins-button {
+    display: block;
+    float: left;
+    margin: 20px 0 20px 10px;
+    padding: 10px;
+    background: #3a3a3a;
+    border: 0;
+    color: #ddd;
 }

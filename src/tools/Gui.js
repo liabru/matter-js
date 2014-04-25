@@ -27,12 +27,7 @@ var Gui = {};
             restitution: 0,
             friction: 0.1,
             frictionAir: 0.01,
-            renderer: 'canvas',
-            editMode: false,
-            edit: {
-                selectedBody: null,
-                selectedConstraint: null
-            }
+            renderer: 'canvas'
         };
 
         var _datGuiSupported = window.dat && window.localStorage;
