@@ -162,31 +162,7 @@ var Gui = {};
         var render = datGui.addFolder('Render');
 
         render.add(gui, 'renderer', ['canvas', 'webgl'])
-            .onFinishChange(function(value) {
-                var controller;
-
-                if (value === 'canvas')
-                    controller = Render;
-
-                if (value === 'webgl')
-                    controller = RenderPixi;
-
-                // remove old canvas
-                engine.render.element.removeChild(engine.render.canvas);
-
-                // create new renderer using the same options object
-                var options = engine.render.options;
-
-                engine.render = controller.create({
-                    element: engine.render.element,
-                    options: options
-                });
-
-                engine.render.options = options;
-
-                // bind the mouse to the new canvas
-                Mouse.setElement(engine.input.mouse, engine.render.canvas);
-            });
+            .onFinishChange(function(value) { _setRenderer(gui, value); });
 
         render.add(engine.render.options, 'wireframes');
         render.add(engine.render.options, 'showDebug');
@@ -202,6 +178,33 @@ var Gui = {};
         render.add(engine.render.options, 'showShadows');
         render.add(engine.render.options, 'enabled');
         render.open();
+    };
+
+    var _setRenderer = function(gui, rendererName) {
+        var engine = gui.engine,
+            controller;
+
+        if (rendererName === 'canvas')
+            controller = Render;
+
+        if (rendererName === 'webgl')
+            controller = RenderPixi;
+
+        // remove old canvas
+        engine.render.element.removeChild(engine.render.canvas);
+
+        // create new renderer using the same options object
+        var options = engine.render.options;
+
+        engine.render = controller.create({
+            element: engine.render.element,
+            options: options
+        });
+
+        engine.render.options = options;
+
+        // bind the mouse to the new canvas
+        Mouse.setElement(engine.input.mouse, engine.render.canvas);
     };
 
     var _addBody = function(gui) {
