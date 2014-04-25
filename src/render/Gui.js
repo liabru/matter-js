@@ -17,25 +17,9 @@ var Gui = {};
      * @return {gui} A container for a configured dat.gui
      */
     Gui.create = function(engine, options) {
-        var _datGuiSupported = window.dat && window.localStorage,
-            _serializer;
-        
-        if (!_datGuiSupported) {
-            console.log("Could not create GUI. Check dat.gui library is loaded first.");
-            return;
-        }
-
-        var datGui = new dat.GUI(options);
-        
-        if (Resurrect) {
-            _serializer = new Resurrect({ prefix: '$' });
-            _serializer.parse = _serializer.resurrect;
-        } else {
-            _serializer = JSON;
-        }
-
         var gui = {
-            datGui: datGui,
+            engine: engine,
+            datGui: null,
             amount: 1,
             size: 40,
             sides: 4,
@@ -43,137 +27,80 @@ var Gui = {};
             restitution: 0,
             friction: 0.1,
             frictionAir: 0.01,
-            renderer: 'canvas'
+            renderer: 'canvas',
+            editMode: false,
+            edit: {
+                selectedBody: null,
+                selectedConstraint: null
+            }
         };
 
+        var _datGuiSupported = window.dat && window.localStorage;
+        
+        if (!_datGuiSupported) {
+            console.log("Could not create GUI. Check dat.gui library is loaded first.");
+            return;
+        }
+
+        var datGui = gui.datGui = new dat.GUI(options);
+        
+        if (Resurrect) {
+            gui.serializer = new Resurrect({ prefix: '$' });
+            gui.serializer.parse = gui.serializer.resurrect;
+        } else {
+            gui.serializer = JSON;
+        }
+
+        _initDatGui(gui);
+
+        return gui;
+    };
+    
+    /**
+     * Description
+     * @method update
+     * @param {gui} gui
+     * @param {datGui} datGui
+     */
+    Gui.update = function(gui, datGui) {
+        var i;
+        datGui = datGui || gui.datGui;
+        
+        for (i in datGui.__folders) {
+            Gui.update(gui, datGui.__folders[i]);
+        }
+        
+        for (i in datGui.__controllers) {
+            var controller = datGui.__controllers[i];
+            if (controller.updateDisplay)
+                controller.updateDisplay();
+        }
+    };
+
+    /**
+     * Description
+     * @method closeAll
+     * @param {gui} gui
+     */
+    Gui.closeAll = function(gui) {
+        var datGui = gui.datGui;
+        
+        for (var i in datGui.__folders) {
+            datGui.__folders[i].close();
+        }
+    };
+
+    var _initDatGui = function(gui) {
+        var engine = gui.engine,
+            datGui = gui.datGui;
+
         var funcs = {
-
-            addBody: function() {
-                var options = { 
-                    density: gui.density,
-                    friction: gui.friction,
-                    frictionAir: gui.frictionAir,
-                    restitution: gui.restitution
-                };
-
-                for (var i = 0; i < gui.amount; i++) {
-                    World.add(engine.world, Bodies.polygon(120 + i * gui.size + i * 50, 200, gui.sides, gui.size, options));
-                }
-            },
-
-            clear: function() {
-                World.clear(engine.world, true);
-                Engine.clear(engine);
-
-                // clear scene graph (if defined in controller)
-                var renderController = engine.render.controller;
-                if (renderController.clear)
-                    renderController.clear(engine.render);
-
-                /**
-                * Fired after the gui's clear button pressed
-                *
-                * @event clear
-                * @param {} event An event object
-                * @param {} event.source The source object of the event
-                * @param {} event.name The name of the event
-                */
-                Events.trigger(gui, 'clear');
-            },
-
-            save: function() {
-                if (localStorage && _serializer) {
-                    localStorage.setItem('world', _serializer.stringify(engine.world));
-                }
-
-                /**
-                * Fired after the gui's save button pressed
-                *
-                * @event save
-                * @param {} event An event object
-                * @param {} event.source The source object of the event
-                * @param {} event.name The name of the event
-                */
-                Events.trigger(gui, 'save');
-            },
-
-            saveFile: function() {
-                if (_serializer) {
-                    var json = _serializer.stringify(engine.world);
-
-                    // limit precision of floats
-                    json = json.replace(/\d+\.(\d+)/g, function(match, frac) {
-                        if (frac.length > 2)
-                            return Number.parseFloat(match).toFixed(2);
-                        return match;
-                    });
-
-                    var blob = new Blob([json], { type: 'application/json' }),
-                        anchor = document.createElement('a');
-
-                    anchor.download = "world.json";
-                    anchor.href = (window.webkitURL || window.URL).createObjectURL(blob);
-                    anchor.dataset.downloadurl = ['application/json', anchor.download, anchor.href].join(':');
-                    anchor.click();
-                }
-
-                Events.trigger(gui, 'save');
-            },
-
-            load: function() {
-                var loadedWorld;
-
-                if (localStorage && _serializer) {
-                    loadedWorld = _serializer.parse(localStorage.getItem('world'));
-                }
-
-                if (loadedWorld) {
-                    Engine.merge(engine, { world: loadedWorld });
-                }
-
-                /**
-                * Fired after the gui's load button pressed
-                *
-                * @event load
-                * @param {} event An event object
-                * @param {} event.source The source object of the event
-                * @param {} event.name The name of the event
-                */
-                Events.trigger(gui, 'load');
-            },
-
-            loadFile: function() {
-                var element = document.createElement('div');
-                element.innerHTML = '<input type="file">';
-                var fileInput = element.firstChild;
-
-                fileInput.addEventListener('change', function(e) {
-                    var file = fileInput.files[0];
-
-                    if (file.name.match(/\.(txt|json)$/)) {
-                        var reader = new FileReader();
-
-                        reader.onload = function(e) {
-                            var loadedWorld;
-
-                            if (_serializer)
-                                loadedWorld = _serializer.parse(reader.result);
-
-                            if (loadedWorld) {
-                                Engine.merge(engine, { world: loadedWorld });
-                            }
-
-                            Events.trigger(gui, 'load');
-                        }
-
-                        reader.readAsText(file);    
-                    } else {
-                        alert("File not supported, JSON text files only");
-                    }
-                });
-
-                fileInput.click();
-            }
+            addBody: function() { _addBody(gui); },
+            clear: function() { _clear(gui); },
+            save: function() { _save(gui); },
+            saveFile: function() { _saveFile(gui); },
+            load: function() { _load(gui); },
+            loadFile: function() { _loadFile(gui); }
         };
 
         var metrics = datGui.addFolder('Metrics');
@@ -226,7 +153,7 @@ var Gui = {};
                 Composite.setModified(engine.world, true, false, false);
             });
 
-        physics.add(engine.timing, 'timeScale', 0, 1.2).step(0.05);
+        physics.add(engine.timing, 'timeScale', 0, 1.2).step(0.05).listen();
         physics.add(engine, 'velocityIterations', 1, 10).step(1);
         physics.add(engine, 'positionIterations', 1, 10).step(1);
         physics.add(engine, 'enabled');
@@ -275,44 +202,156 @@ var Gui = {};
         render.add(engine.render.options, 'showShadows');
         render.add(engine.render.options, 'enabled');
         render.open();
-
-        //datGui.remember(world)
-        
-        return gui;
     };
-    
-    /**
-     * Description
-     * @method update
-     * @param {gui} gui
-     * @param {datGui} datGui
-     */
-    Gui.update = function(gui, datGui) {
-        var i;
-        datGui = datGui || gui.datGui;
-        
-        for (i in datGui.__folders) {
-            Gui.update(gui, datGui.__folders[i]);
-        }
-        
-        for (i in datGui.__controllers) {
-            var controller = datGui.__controllers[i];
-            if (controller.updateDisplay)
-                controller.updateDisplay();
+
+    var _addBody = function(gui) {
+        var engine = gui.engine;
+
+        var options = { 
+            density: gui.density,
+            friction: gui.friction,
+            frictionAir: gui.frictionAir,
+            restitution: gui.restitution
+        };
+
+        for (var i = 0; i < gui.amount; i++) {
+            World.add(engine.world, Bodies.polygon(120 + i * gui.size + i * 50, 200, gui.sides, gui.size, options));
         }
     };
 
-    /**
-     * Description
-     * @method closeAll
-     * @param {gui} gui
-     */
-    Gui.closeAll = function(gui) {
-        var datGui = gui.datGui;
-        
-        for (var i in datGui.__folders) {
-            datGui.__folders[i].close();
-        }
+    var _clear = function(gui) {
+        var engine = gui.engine;
+
+        World.clear(engine.world, true);
+        Engine.clear(engine);
+
+        // clear scene graph (if defined in controller)
+        var renderController = engine.render.controller;
+        if (renderController.clear)
+            renderController.clear(engine.render);
+
+        Events.trigger(gui, 'clear');
     };
+
+    var _save = function(gui) {
+        var engine = gui.engine;
+
+        if (localStorage && gui.serializer) {
+            localStorage.setItem('world', gui.serializer.stringify(engine.world));
+        }
+
+        Events.trigger(gui, 'save');
+    };
+
+    var _saveFile = function(gui) {
+        var engine = gui.engine;
+
+        if (gui.serializer) {
+            var json = gui.serializer.stringify(engine.world, function(key, value) {
+                // skip non-required values
+                if (key === 'path')
+                    return undefined;
+
+                // limit precision of floats
+                if (!/^#/.exec(key) && typeof value === 'number') {
+                    return parseFloat(value.toFixed(2));
+                }
+                return value;
+            });
+
+            var blob = new Blob([json], { type: 'application/json' }),
+                anchor = document.createElement('a');
+
+            anchor.download = "world.json";
+            anchor.href = (window.webkitURL || window.URL).createObjectURL(blob);
+            anchor.dataset.downloadurl = ['application/json', anchor.download, anchor.href].join(':');
+            anchor.click();
+        }
+
+        Events.trigger(gui, 'save');
+    };
+
+    var _load = function(gui) {
+        var engine = gui.engine,
+            loadedWorld;
+
+        if (localStorage && gui.serializer) {
+            loadedWorld = gui.serializer.parse(localStorage.getItem('world'));
+        }
+
+        if (loadedWorld) {
+            Engine.merge(engine, { world: loadedWorld });
+        }
+
+        Events.trigger(gui, 'load');
+    };
+
+    var _loadFile = function(gui) {
+        var engine = gui.engine;
+
+        var element = document.createElement('div');
+        element.innerHTML = '<input type="file">';
+        var fileInput = element.firstChild;
+
+        fileInput.addEventListener('change', function(e) {
+            var file = fileInput.files[0];
+
+            if (file.name.match(/\.(txt|json)$/)) {
+                var reader = new FileReader();
+
+                reader.onload = function(e) {
+                    var loadedWorld;
+
+                    if (gui.serializer)
+                        loadedWorld = gui.serializer.parse(reader.result);
+
+                    if (loadedWorld) {
+                        Engine.merge(engine, { world: loadedWorld });
+                    }
+
+                    Events.trigger(gui, 'load');
+                }
+
+                reader.readAsText(file);    
+            } else {
+                alert("File not supported, JSON text files only");
+            }
+        });
+
+        fileInput.click();
+    };
+
+    /*
+    *
+    *  Events Documentation
+    *
+    */
+
+    /**
+    * Fired after the gui's clear button pressed
+    *
+    * @event clear
+    * @param {} event An event object
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired after the gui's save button pressed
+    *
+    * @event save
+    * @param {} event An event object
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired after the gui's load button pressed
+    *
+    * @event load
+    * @param {} event An event object
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
 
 })();
