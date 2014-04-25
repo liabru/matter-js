@@ -358,4 +358,38 @@ var Composite = {};
         return composites;
     };
 
+    /**
+     * Searches the composite recursively for an object matching the type and id supplied, null if not found
+     * @method get
+     * @param {composite} composite
+     * @param {string} type
+     * @param {number} id
+     * @return {object} The requested object, if found
+     */
+    Composite.get = function(composite, type, id) {
+        var objects,
+            object;
+
+        switch (type) {
+            case 'body':
+            objects = Composite.allBodies(composite);
+            break;
+            case 'constraint':
+            objects = Composite.allConstraints(composite);
+            break;
+            case 'composite':
+            objects = Composite.allComposites(composite);
+            break;
+        }
+
+        if (!objects)
+            return null;
+
+        object = objects.filter(function(object) { 
+            return object.id.toString() === id.toString(); 
+        });
+
+        return object.length === 0 ? null : object[0];
+    };
+
 })();
