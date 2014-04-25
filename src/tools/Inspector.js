@@ -36,6 +36,13 @@ var Inspector = {};
             selected: []
         };
 
+        if (Resurrect) {
+            inspector.serializer = new Resurrect({ prefix: '$' });
+            inspector.serializer.parse = inspector.serializer.resurrect;
+        } else {
+            inspector.serializer = JSON;
+        }
+
         _initControls(inspector);
         _initEvents(inspector);
         
@@ -109,6 +116,14 @@ var Inspector = {};
                 $(this).text('Pause');
                 _setSelectedObjects(inspector, []);
             }
+        });
+
+        controls.exportButton.click(function() {
+            _exportFile(inspector);
+        });
+
+        controls.importButton.click(function() {
+            _importFile(inspector);
         });
 
         Events.on(engine, 'tick', function() {
@@ -427,6 +442,69 @@ var Inspector = {};
         }
 
         return node;
+    };
+
+    var _exportFile = function(inspector) {
+        var engine = inspector.engine;
+
+        if (inspector.serializer) {
+            var json = inspector.serializer.stringify(engine.world, function(key, value) {
+                // skip non-required values
+                if (key === 'path')
+                    return undefined;
+
+                // limit precision of floats
+                if (!/^#/.exec(key) && typeof value === 'number') {
+                    return parseFloat(value.toFixed(2));
+                }
+                return value;
+            });
+
+            var blob = new Blob([json], { type: 'application/json' }),
+                anchor = document.createElement('a');
+
+            anchor.download = "world.json";
+            anchor.href = (window.webkitURL || window.URL).createObjectURL(blob);
+            anchor.dataset.downloadurl = ['application/json', anchor.download, anchor.href].join(':');
+            anchor.click();
+        }
+
+        Events.trigger(inspector, 'save');
+    };
+
+    var _importFile = function(inspector) {
+        var engine = inspector.engine;
+
+        var element = document.createElement('div');
+        element.innerHTML = '<input type="file">';
+        var fileInput = element.firstChild;
+
+        fileInput.addEventListener('change', function(e) {
+            var file = fileInput.files[0];
+
+            if (file.name.match(/\.(txt|json)$/)) {
+                var reader = new FileReader();
+
+                reader.onload = function(e) {
+                    var loadedWorld;
+
+                    if (inspector.serializer)
+                        loadedWorld = inspector.serializer.parse(reader.result);
+
+                    if (loadedWorld) {
+                        Engine.merge(engine, { world: loadedWorld });
+                    }
+
+                    Events.trigger(inspector, 'load');
+                }
+
+                reader.readAsText(file);    
+            } else {
+                alert("File not supported, JSON text files only");
+            }
+        });
+
+        fileInput.click();
     };
 
 })();

@@ -93,9 +93,7 @@ var Gui = {};
             addBody: function() { _addBody(gui); },
             clear: function() { _clear(gui); },
             save: function() { _save(gui); },
-            saveFile: function() { _saveFile(gui); },
-            load: function() { _load(gui); },
-            loadFile: function() { _loadFile(gui); }
+            load: function() { _load(gui); }
         };
 
         var metrics = datGui.addFolder('Metrics');
@@ -130,8 +128,6 @@ var Gui = {};
         var worldGui = datGui.addFolder('World');
         worldGui.add(funcs, 'load');
         worldGui.add(funcs, 'save');
-        worldGui.add(funcs, 'loadFile');
-        worldGui.add(funcs, 'saveFile');
         worldGui.add(funcs, 'clear');
         worldGui.open();
         
@@ -241,34 +237,6 @@ var Gui = {};
         Events.trigger(gui, 'save');
     };
 
-    var _saveFile = function(gui) {
-        var engine = gui.engine;
-
-        if (gui.serializer) {
-            var json = gui.serializer.stringify(engine.world, function(key, value) {
-                // skip non-required values
-                if (key === 'path')
-                    return undefined;
-
-                // limit precision of floats
-                if (!/^#/.exec(key) && typeof value === 'number') {
-                    return parseFloat(value.toFixed(2));
-                }
-                return value;
-            });
-
-            var blob = new Blob([json], { type: 'application/json' }),
-                anchor = document.createElement('a');
-
-            anchor.download = "world.json";
-            anchor.href = (window.webkitURL || window.URL).createObjectURL(blob);
-            anchor.dataset.downloadurl = ['application/json', anchor.download, anchor.href].join(':');
-            anchor.click();
-        }
-
-        Events.trigger(gui, 'save');
-    };
-
     var _load = function(gui) {
         var engine = gui.engine,
             loadedWorld;
@@ -282,41 +250,6 @@ var Gui = {};
         }
 
         Events.trigger(gui, 'load');
-    };
-
-    var _loadFile = function(gui) {
-        var engine = gui.engine;
-
-        var element = document.createElement('div');
-        element.innerHTML = '<input type="file">';
-        var fileInput = element.firstChild;
-
-        fileInput.addEventListener('change', function(e) {
-            var file = fileInput.files[0];
-
-            if (file.name.match(/\.(txt|json)$/)) {
-                var reader = new FileReader();
-
-                reader.onload = function(e) {
-                    var loadedWorld;
-
-                    if (gui.serializer)
-                        loadedWorld = gui.serializer.parse(reader.result);
-
-                    if (loadedWorld) {
-                        Engine.merge(engine, { world: loadedWorld });
-                    }
-
-                    Events.trigger(gui, 'load');
-                }
-
-                reader.readAsText(file);    
-            } else {
-                alert("File not supported, JSON text files only");
-            }
-        });
-
-        fileInput.click();
     };
 
     /*
