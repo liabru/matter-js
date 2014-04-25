@@ -20,6 +20,7 @@ var MouseConstraint = {};
         var mouse = engine.input.mouse;
 
         var constraint = Constraint.create({ 
+            label: 'Mouse Constraint',
             pointA: mouse.position,
             pointB: { x: 0, y: 0 },
             length: 0.01, 

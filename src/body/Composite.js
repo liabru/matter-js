@@ -27,7 +27,8 @@ var Composite = {};
             isModified: false,
             bodies: [], 
             constraints: [], 
-            composites: [] 
+            composites: [],
+            label: null
         }, options);
     };
 

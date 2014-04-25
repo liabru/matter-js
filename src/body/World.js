@@ -20,6 +20,7 @@ var World = {};
         var composite = Composite.create();
 
         var defaults = {
+            label: 'World',
             gravity: { x: 0, y: 1 },
             bounds: { 
                 min: { x: 0, y: 0 }, 
