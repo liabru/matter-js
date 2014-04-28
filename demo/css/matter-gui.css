@@ -1,0 +1,92 @@
+body .dg.main.taller-than-window .close-button {
+    border-top: 1px solid #444;
+}
+
+body .dg.main .close-button {
+    background-color: #444;
+}
+ 
+body .dg.main .close-button:hover {
+    background-color: #555;
+}
+
+body .dg {
+    color: #aaa;
+    text-shadow: none !important;
+}
+
+body .dg.main::-webkit-scrollbar {
+    background: #3d3d3d;
+}
+
+body .dg.main::-webkit-scrollbar-thumb {
+    background: transparent;
+    width: 12px;
+    border-left: 22px solid rgba(0,0,0,0.2);
+}
+ 
+body .dg li:not(.folder) {
+    background: #3d3d3d;
+    border-bottom: 0px;
+}
+
+body .dg .cr.function {
+    border-top: 1px solid #444;
+}
+ 
+body .dg li.save-row .button {
+    text-shadow: none !important;
+}
+
+body .dg li.title {
+    padding-left: 22px;
+    background: #444 url(data:image/gif;base64,R0lGODlhBQAFAJEAAP////Pz8////////yH5BAEAAAIALAAAAAAFAAUAAAIIlI+hKgFxoCgAOw==) 10px 10px no-repeat;
+}
+
+body .dg .cr.function:hover,
+body .dg .cr.boolean:hover {
+    background: #555;
+}
+ 
+body .dg .c select {
+    margin-top: 2px;
+    margin-left: -5px;
+    padding: 3px 5px;
+}
+
+body .dg .c select,
+body .dg .c input[type=text],
+body .dg .cr.number input[type=text] {
+    background: #333;
+    color: #999;
+    border: 0;
+}
+ 
+body .dg .c input[type=text]:hover {
+    background: #444;
+}
+ 
+body .dg .c input[type=text]:focus {
+    background: #444;
+    color: #fff;
+}
+ 
+body .dg .c .slider {
+    background: #555;
+}
+
+body .dg .c .slider:hover {
+    background: #666;
+}
+
+body .dg .c .slider-fg {
+    background: #777;
+}
+
+body .dg .c .slider:hover .slider-fg {
+    background: #999;
+}
+
+body .dg li.folder {
+    border-left: 0;
+}
