@@ -21,7 +21,7 @@ var Inspector = {};
      */
     Inspector.create = function(engine, options) {
         if (!jQuery || !$.fn.jstree) {
-            console.log("Could not create inspector. Check jQuery and jsTree libraries are loaded first.");
+            console.log('Could not create inspector. Check jQuery and jsTree libraries are loaded first.');
             return;
         }
 
@@ -60,38 +60,38 @@ var Inspector = {};
         var engine = inspector.engine;
 
         var worldTreeOptions = {
-            "core": {
-                "check_callback": true
+            'core': {
+                'check_callback': true
             },
-            "dnd": {
-                "copy": false
+            'dnd': {
+                'copy': false
             },
-            "types": {
-                "body": {
-                    "valid_children": []
+            'types': {
+                'body': {
+                    'valid_children': []
                 },
-                "constraint": {
-                    "valid_children": []
+                'constraint': {
+                    'valid_children': []
                 },
-                "composite": {
-                    "valid_children": []
+                'composite': {
+                    'valid_children': []
                 },
-                "bodies": {
-                    "valid_children": ['body']
+                'bodies': {
+                    'valid_children': ['body']
                 },
-                "constraints": {
-                    "valid_children": ['constraint']
+                'constraints': {
+                    'valid_children': ['constraint']
                 },
-                "composites": {
-                    "valid_children": ['composite']
+                'composites': {
+                    'valid_children': ['composite']
                 }
             },
-            "plugins" : ["dnd", "types", "unique"]
+            'plugins' : ['dnd', 'types', 'unique']
         };
 
         var $inspectorContainer = $('<div class="ins-container">'),
             $worldTree = $('<div class="ins-world-tree">').jstree(worldTreeOptions),
-            $buttonGroup = $('<div class="ins-control-group">')
+            $buttonGroup = $('<div class="ins-control-group">'),
             $importButton = $('<button class="ins-import-button ins-button">Import</button>'),
             $exportButton = $('<button class="ins-export-button ins-button">Export</button>'),
             $pauseButton = $('<button class="ins-pause-button ins-button">Pause</button>');
@@ -115,7 +115,7 @@ var Inspector = {};
 
         controls.worldTree.on('changed.jstree', function(event, data) {
             var selected = [],
-                worldTree = controls.worldTree.data("jstree");
+                worldTree = controls.worldTree.data('jstree');
 
             if (data.action !== 'select_node')
                 return;
@@ -129,20 +129,24 @@ var Inspector = {};
                     var nodeId = data.selected[i],
                         objectType = nodeId.split('_')[0],
                         objectId = nodeId.split('_')[1],
-                        worldObject = Composite.get(engine.world, objectType, objectId);
+                        worldObject = Composite.get(engine.world, objectId, objectType);
 
                     switch (objectType) {
-                        case 'body':
-                        case 'constraint':
+
+                    case 'body':
+                    case 'constraint':
 
                         selected.push(worldObject);
 
                         break;
 
-                        case 'composite':
-                        case 'composites':
-                        case 'bodies':
-                        case 'constraints':
+                    case 'composite':
+                    case 'composites':
+                    case 'bodies':
+                    case 'constraints':
+
+                        if (objectType === 'composite')
+                            selected.push(worldObject);
 
                         var node = worldTree.get_node(nodeId),
                             children = worldTree.get_node(nodeId).children;
@@ -151,6 +155,7 @@ var Inspector = {};
                             worldTree.select_node(children[j], false);
 
                         break;
+
                     }
                 }
 
@@ -159,12 +164,28 @@ var Inspector = {};
             }, 1);
         });
 
-        $(document).on('dnd_move.vakata', function(event, data) {
-            var worldTree = controls.worldTree.data("jstree"),
-                parentNodeId = worldTree.get_parent(data.data.nodes[0]),
-                objectType = parentNodeId.split('_')[0];
+        $(document).on('dnd_stop.vakata', function(event, data) {
+            var worldTree = controls.worldTree.data('jstree');
 
-            // TODO: composite.move
+            for (var i = 0; i < data.data.nodes.length; i++) {
+                var node = worldTree.get_node(data.data.nodes[i]),
+                    parentNode = worldTree.get_node(worldTree.get_parent(data.data.nodes[i])),
+                    prevCompositeId = node.data.compositeId,
+                    newCompositeId = parentNode.data.compositeId;
+
+                if (prevCompositeId === newCompositeId)
+                    continue;
+
+                var nodeId = data.data.nodes[i],
+                    objectType = nodeId.split('_')[0],
+                    objectId = nodeId.split('_')[1],
+                    worldObject = Composite.get(engine.world, objectId, objectType),
+                    prevComposite = Composite.get(engine.world, prevCompositeId, 'composite'),
+                    newComposite = Composite.get(engine.world, newCompositeId, 'composite');
+
+                Composite.move(prevComposite, worldObject, newComposite);
+                node.data.compositeId = newCompositeId;
+            }
         });
 
         controls.pauseButton.click(function() {
@@ -194,7 +215,8 @@ var Inspector = {};
         Events.on(engine, 'tick', function() {
             if (engine.world.isModified) {
                 var data = _generateCompositeTreeNode(engine.world);
-                _updateTree(controls.worldTree.data("jstree"), data);
+                _updateTree(controls.worldTree.data('jstree'), data);
+                _setSelectedObjects(inspector, []);
             }
 
             if (key.isPressed('del') || key.isPressed('backspace')) {
@@ -230,18 +252,18 @@ var Inspector = {};
                     bodies = Composite.allBodies(engine.world),
                     constraints = Composite.allConstraints(engine.world),
                     isUnionSelect = _key.shift || _key.control,
-                    worldTree = inspector.controls.worldTree.data("jstree");
+                    worldTree = inspector.controls.worldTree.data('jstree'),
+                    i;
 
-                $body.removeClass('ins-cursor-move');
+                $body.removeClass('ins-cursor-move ins-cursor-rotate ins-cursor-scale');
 
                 if (mouse.button === 0) {
                     var hasSelected = false;
 
-                    for (var i = 0; i < bodies.length; i++) {
+                    for (i = 0; i < bodies.length; i++) {
                         var body = bodies[i];
 
-                        if (Bounds.contains(body.bounds, mouse.position) 
-                              && Vertices.contains(body.vertices, mouse.position)) {
+                        if (Bounds.contains(body.bounds, mouse.position) && Vertices.contains(body.vertices, mouse.position)) {
 
                             if (isUnionSelect) {
                                 _addSelectedObject(inspector, body);
@@ -288,6 +310,8 @@ var Inspector = {};
                         }
 
                         if (!hasSelected) {
+                            var worldTree = inspector.controls.worldTree.data('jstree');
+                            worldTree.deselect_all(true);
                             _setSelectedObjects(inspector, []);
 
                             inspector.selectStart = Common.clone(mouse.position);
@@ -305,7 +329,7 @@ var Inspector = {};
                 if (mouse.button === 0 && inspector.selected.length > 0) {
                     $body.addClass('ins-cursor-move');
 
-                    for (var i = 0; i < inspector.selected.length; i++) {
+                    for (i = 0; i < inspector.selected.length; i++) {
                         var item = inspector.selected[i],
                             data = item.data;
 
@@ -330,11 +354,70 @@ var Inspector = {};
             }
         });
 
+        var mousePrevPosition = { x: 0, y: 0 };
+
         Events.on(engine, 'mousemove', function(event) {
             var mouse = event.mouse,
-                selected = inspector.selected;
+                selected = inspector.selected,
+                item,
+                data,
+                i;
 
             if (inspector.isPaused) {
+
+                $body.removeClass('ins-cursor-move ins-cursor-rotate ins-cursor-scale');
+
+                if (_key.shift && _key.isPressed('r')) {
+                    $body.addClass('ins-cursor-rotate');
+
+                    // roate mode
+                    for (i = 0; i < selected.length; i++) {
+                        item = selected[i];
+                        data = item.data;
+
+                        switch (data.type) {
+
+                        case 'body':
+
+                            var angle = Common.sign(mouse.position.x - mousePrevPosition.x) * 0.05;
+                            Body.rotate(data, angle);
+
+                            break;
+
+                        }
+                    }
+
+                    mousePrevPosition = Common.clone(mouse.position);
+                    return;
+                }
+
+                if (_key.shift && _key.isPressed('s')) {
+                    $body.addClass('ins-cursor-scale');
+
+                    // scale mode
+                    for (i = 0; i < selected.length; i++) {
+                        item = selected[i];
+                        data = item.data;
+
+                        switch (data.type) {
+
+                        case 'body':
+
+                            var scale = 1 + Common.sign(mouse.position.x - mousePrevPosition.x) * 0.02;
+                            Body.scale(data, scale, scale);
+
+                            if (data.circleRadius)
+                                data.circleRadius *= scale;
+
+                            break;
+
+                        }
+                    }
+
+                    mousePrevPosition = Common.clone(mouse.position);
+                    return;
+                }
+
                 if (mouse.button !== 0 || mouse.sourceEvents.mousedown || mouse.sourceEvents.mouseup)
                     return;
 
@@ -346,12 +429,16 @@ var Inspector = {};
                     return;
                 }
 
-                for (var i = 0; i < selected.length; i++) {
-                    var item = selected[i],
-                        data = item.data;
+                $body.addClass('ins-cursor-move');
+
+                // translate mode
+                for (i = 0; i < selected.length; i++) {
+                    item = selected[i];
+                    data = item.data;
 
                     switch (data.type) {
-                        case 'body':
+
+                    case 'body':
 
                         var delta = {
                             x: mouse.position.x - data.position.x - item.mousedownOffset.x,
@@ -362,7 +449,7 @@ var Inspector = {};
 
                         break;
 
-                        case 'constraint':
+                    case 'constraint':
 
                         var point = data.pointA;
                         if (data.bodyA)
@@ -377,6 +464,7 @@ var Inspector = {};
                         data.length = Vector.magnitude(Vector.sub(initialPointA, initialPointB));
 
                         break;
+
                     }
                 }
             }
@@ -395,8 +483,7 @@ var Inspector = {};
             var doPrevent = false;
             if (event.keyCode === 8) {
                 var d = event.srcElement || event.target;
-                if ((d.tagName.toUpperCase() === 'INPUT' && (d.type.toUpperCase() === 'TEXT' || d.type.toUpperCase() === 'PASSWORD' || d.type.toUpperCase() === 'FILE' || d.type.toUpperCase() === 'EMAIL' )) 
-                     || d.tagName.toUpperCase() === 'TEXTAREA') {
+                if ((d.tagName.toUpperCase() === 'INPUT' && (d.type.toUpperCase() === 'TEXT' || d.type.toUpperCase() === 'PASSWORD' || d.type.toUpperCase() === 'FILE' || d.type.toUpperCase() === 'EMAIL' )) || d.tagName.toUpperCase() === 'TEXTAREA') {
                     doPrevent = d.readOnly || d.disabled;
                 }
                 else {
@@ -423,19 +510,20 @@ var Inspector = {};
     };
 
     var _setSelectedObjects = function(inspector, objects) {
-        var worldTree = inspector.controls.worldTree.data("jstree"),
-            selectedItems = [];
+        var worldTree = inspector.controls.worldTree.data('jstree'),
+            selectedItems = [],
+            data;
 
         for (var i = 0; i < inspector.selected.length; i++) {
-            var data = inspector.selected[i].data;
-            worldTree.deselect_node(data.type + "_" + data.id, true);
+            data = inspector.selected[i].data;
+            worldTree.deselect_node(data.type + '_' + data.id, true);
         }
 
         inspector.selected = [];
         console.clear();
 
         for (i = 0; i < objects.length; i++) {
-            var data = objects[i];
+            data = objects[i];
 
             // add the object to the selection
             _addSelectedObject(inspector, data);
@@ -450,20 +538,21 @@ var Inspector = {};
     };
 
     var _addSelectedObject = function(inspector, object) {
-        var worldTree = inspector.controls.worldTree.data("jstree");
+        var worldTree = inspector.controls.worldTree.data('jstree');
 
         inspector.selected.push({
             data: object
         });
 
-        worldTree.select_node(object.type + "_" + object.id, true);
+        worldTree.select_node(object.type + '_' + object.id, true);
     };
 
     var _render = function(inspector) {
         var engine = inspector.engine,
             mouse = engine.input.mouse,
             context = engine.render.context,
-            selected = inspector.selected;
+            selected = inspector.selected,
+            bounds;
 
         for (var i = 0; i < selected.length; i++) {
             var item = selected[i].data;
@@ -473,10 +562,11 @@ var Inspector = {};
             context.strokeStyle = 'rgba(255,165,0,0.8)';
 
             switch (item.type) {
-                case 'body':
+
+            case 'body':
 
                 // render body selections
-                var bounds = item.bounds;
+                bounds = item.bounds;
                 context.beginPath();
                 context.rect(Math.floor(bounds.min.x - 3), Math.floor(bounds.min.y - 3), 
                              Math.floor(bounds.max.x - bounds.min.x + 6), Math.floor(bounds.max.y - bounds.min.y + 6));
@@ -485,7 +575,7 @@ var Inspector = {};
 
                 break;
 
-                case 'constraint':
+            case 'constraint':
 
                 // render constraint selections
                 var point = item.pointA;
@@ -497,6 +587,7 @@ var Inspector = {};
                 context.stroke();
 
                 break;
+
             }
 
             context.translate(-0.5, -0.5);
@@ -508,7 +599,7 @@ var Inspector = {};
             context.lineWidth = 1;
             context.setLineDash([1,2]);
             context.strokeStyle = 'rgba(255,165,0,0.5)';
-            var bounds = inspector.selectBounds;
+            bounds = inspector.selectBounds;
             context.beginPath();
             context.rect(Math.floor(bounds.min.x), Math.floor(bounds.min.y), 
                          Math.floor(bounds.max.x - bounds.min.x), Math.floor(bounds.max.y - bounds.min.y));
@@ -525,9 +616,12 @@ var Inspector = {};
         tree.refresh(-1);
     };
 
-    var _generateCompositeTreeNode = function(composite) {
+    var _generateCompositeTreeNode = function(composite, compositeId) {
         var node = {
             id: 'composite_' + composite.id,
+            data: {
+                compositeId: compositeId,
+            },
             type: 'composite',
             text: (composite.label ? composite.label : 'Composite') + ' ' + composite.id,
             children: [],
@@ -536,25 +630,28 @@ var Inspector = {};
             }
         };
 
-        var childNode = _generateBodiesTreeNode(composite.bodies);
+        var childNode = _generateBodiesTreeNode(composite.bodies, composite.id);
         childNode.id = 'bodies_' + composite.id;
         node.children.push(childNode);
 
-        childNode = _generateConstraintsTreeNode(composite.constraints);
+        childNode = _generateConstraintsTreeNode(composite.constraints, composite.id);
         childNode.id = 'constraints_' + composite.id;
         node.children.push(childNode);
 
-        childNode = _generateCompositesTreeNode(composite.composites);
+        childNode = _generateCompositesTreeNode(composite.composites, composite.id);
         childNode.id = 'composites_' + composite.id;
         node.children.push(childNode);
 
         return node;
     };
 
-    var _generateCompositesTreeNode = function(composites) {
+    var _generateCompositesTreeNode = function(composites, compositeId) {
         var node = {
             type: 'composites',
             text: 'Composites',
+            data: {
+                compositeId: compositeId,
+            },
             children: [],
             'li_attr': {
                 'class': 'jstree-node-type-composites'
@@ -563,16 +660,19 @@ var Inspector = {};
 
         for (var i = 0; i < composites.length; i++) {
             var composite = composites[i];
-            node.children.push(_generateCompositeTreeNode(composite));
+            node.children.push(_generateCompositeTreeNode(composite, compositeId));
         }
 
         return node;
     };
 
-    var _generateBodiesTreeNode = function(bodies) {
+    var _generateBodiesTreeNode = function(bodies, compositeId) {
         var node = {
             type: 'bodies',
             text: 'Bodies',
+            data: {
+                compositeId: compositeId,
+            },
             children: [],
             'li_attr': {
                 'class': 'jstree-node-type-bodies'
@@ -584,6 +684,9 @@ var Inspector = {};
             node.children.push({
                 type: 'body',
                 id: 'body_' + body.id,
+                data: {
+                    compositeId: compositeId,
+                },
                 text: (body.label ? body.label : 'Body') + ' ' + body.id,
                 'li_attr': {
                     'class': 'jstree-node-type-body'
@@ -594,10 +697,13 @@ var Inspector = {};
         return node;
     };
 
-    var _generateConstraintsTreeNode = function(constraints) {
+    var _generateConstraintsTreeNode = function(constraints, compositeId) {
         var node = {
             type: 'constraints',
             text: 'Constraints',
+            data: {
+                compositeId: compositeId,
+            },
             children: [],
             'li_attr': {
                 'class': 'jstree-node-type-constraints'
@@ -609,6 +715,9 @@ var Inspector = {};
             node.children.push({
                 type: 'constraint',
                 id: 'constraint_' + constraint.id,
+                data: {
+                    compositeId: compositeId,
+                },
                 text: (constraint.label ? constraint.label : 'Constraint') + ' ' + constraint.id,
                 'li_attr': {
                     'class': 'jstree-node-type-constraint'
@@ -642,7 +751,7 @@ var Inspector = {};
             var blob = new Blob([json], { type: 'application/json' }),
                 anchor = document.createElement('a');
 
-            anchor.download = "world.json";
+            anchor.download = 'world.json';
             anchor.href = (window.webkitURL || window.URL).createObjectURL(blob);
             anchor.dataset.downloadurl = ['application/json', anchor.download, anchor.href].join(':');
             anchor.click();
@@ -675,11 +784,11 @@ var Inspector = {};
                     }
 
                     Events.trigger(inspector, 'import');
-                }
+                };
 
                 reader.readAsText(file);    
             } else {
-                alert("File not supported, JSON text files only");
+                alert('File not supported, JSON text files only');
             }
         });
 

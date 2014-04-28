@@ -2,6 +2,14 @@
     cursor: move !important;
 }
 
+.ins-cursor-rotate canvas {
+    cursor: ew-resize !important;
+}
+
+.ins-cursor-scale canvas {
+    cursor: nwse-resize !important;
+}
+
 .ins-container {
     position: fixed;
     overflow: auto;
@@ -9,7 +17,6 @@
     height: 98%;
     left: 0;
     background: #3d3d3d;
-    border-right: 2px solid #444;
     padding: 1% 20px;
     font-family: Arial;
     font-size: 12px;
@@ -18,14 +25,11 @@
 
 .ins-world-tree {
     overflow: auto;
-    /* height: 90%; */
-    /* position: relative; */
     position: absolute;
     left: -17px;
     right: 0px;
     top: 92px;
     bottom: 8px;
-    /* width: 260px; */
 }
 
 .ins-control-group {
@@ -57,26 +61,40 @@
 
 .jstree-default .jstree-wholerow-clicked,
 .jstree-default .jstree-clicked {
-    /*background: #4a4a4a;*/
-    /*background: #373737;*/
     background: transparent;
     border-radius: 0;
     box-shadow: none;
     transition: none;
 }
 
-.jstree-default .jstree-clicked:before {
+.jstree-default .jstree-open > .jstree-children > .jstree-node > .jstree-anchor:before {
     content: '';
     display: block;
-    /* width: 100%; */
     position: absolute;
     z-index: -1;
     left: 0;
-    right: 0;
+    right: 2px;
     height: 26px;
-    background: #373737;
+    background: transparent;
     border-radius: 0;
     box-shadow: none;
+    border-right: none;
+}
+
+.jstree-anchor.jstree-clicked:before {
+    background: #373737 !important;
+}
+
+.jstree-node-type-body > .jstree-anchor:before {
+    border-right: 3px solid #e1115f !important;
+}
+
+.jstree-node-type-constraint > .jstree-anchor:before {
+    border-right: 3px solid #1ed36f !important;
+}
+
+.jstree-node-type-composite > .jstree-anchor:before {
+    border-right: 3px solid #2fa1d6 !important;
 }
 
 .jstree-default .jstree-node,
@@ -114,16 +132,20 @@
 .ins-container *::-webkit-scrollbar-thumb:vertical {
     border-left: 5px solid rgba(0,0,0,0.2);
     width: 6px;
-    /*background: rgba(0,0,0,0.2);*/
 }
 
 .ins-container *::-webkit-scrollbar-thumb:horizontal {
     border-top: 5px solid rgba(0,0,0,0.2);
     height: 6px;
-    /*background: rgba(0,0,0,0.2);*/
 }
 
 .ins-container *::-webkit-scrollbar-track,
 .ins-container *::-webkit-scrollbar-corner {
     background: transparent;
+}
+
+#vakata-dnd {
+    font-family: Arial;
+    font-size: 12px;
+    color: #aaa;
 }

@@ -21,6 +21,10 @@ h1 {
     font-size: 30px;
 }
 
+.is-mobile h1 {
+    font-size: 18px;
+}
+
 .nav-sep {
     padding: 0 5px;
 }
@@ -35,7 +39,7 @@ h1 {
 .container {
     max-width: 800px;
     margin: 0 auto;
-    padding: 6% 280px 0 280px;
+    padding: 64px 280px 0 280px;
 }
 
 .is-mobile .container {
