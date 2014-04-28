@@ -19,7 +19,10 @@ var Bounds = {};
             min: { x: 0, y: 0 }, 
             max: { x: 0, y: 0 }
         };
-        Bounds.update(bounds, vertices);
+
+        if (vertices)
+            Bounds.update(bounds, vertices);
+        
         return bounds;
     };
 
