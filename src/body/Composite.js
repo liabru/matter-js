@@ -393,4 +393,18 @@ var Composite = {};
         return object.length === 0 ? null : object[0];
     };
 
+    /**
+     * Moves the given object(s) from compositeA to compositeB (equal to a remove followed by an add)
+     * @method move
+     * @param {compositeA} compositeA
+     * @param {object[]} objects
+     * @param {compositeB} compositeB
+     * @return {composite} Returns compositeA
+     */
+    Composite.move = function(compositeA, objects, compositeB) {
+        Composite.remove(compositeA, objects);
+        Composite.add(compositeB, objects);
+        return compositeA;
+    };
+
 })();
