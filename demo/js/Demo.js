@@ -818,6 +818,19 @@
                 _mouseConstraint = MouseConstraint.create(_engine);
                 World.add(_engine.world, _mouseConstraint);
             });
+
+            Events.on(_inspector, 'import', function() {
+                _mouseConstraint = MouseConstraint.create(_engine);
+                World.add(_engine.world, _mouseConstraint);
+            });
+
+            Events.on(_inspector, 'selectStart', function() {
+                _mouseConstraint.constraint.render.visible = false;
+            });
+
+            Events.on(_inspector, 'selectEnd', function() {
+                _mouseConstraint.constraint.render.visible = true;
+            });
         }
 
         // go fullscreen when using a mobile device

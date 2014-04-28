@@ -1,0 +1,129 @@
+.ins-cursor-move canvas {
+    cursor: move !important;
+}
+
+.ins-container {
+    position: fixed;
+    overflow: auto;
+    width: 220px;
+    height: 98%;
+    left: 0;
+    background: #3d3d3d;
+    border-right: 2px solid #444;
+    padding: 1% 20px;
+    font-family: Arial;
+    font-size: 12px;
+    color: #aaa;
+}
+
+.ins-world-tree {
+    overflow: auto;
+    /* height: 90%; */
+    /* position: relative; */
+    position: absolute;
+    left: -17px;
+    right: 0px;
+    top: 92px;
+    bottom: 8px;
+    /* width: 260px; */
+}
+
+.ins-control-group {
+    display: block;
+    clear: both;
+    overflow: hidden;
+}
+
+.ins-button {
+    display: block;
+    float: left;
+    margin: 20px 0 20px 10px;
+    padding: 10px;
+    background: #3a3a3a;
+    border: 0;
+    color: #ddd;
+}
+
+.jstree-default .jstree-wholerow-hovered,
+.jstree-default .jstree-hovered {
+    background: transparent;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.jstree-default .jstree-wholerow {
+    height: 26px;
+}
+
+.jstree-default .jstree-wholerow-clicked,
+.jstree-default .jstree-clicked {
+    /*background: #4a4a4a;*/
+    /*background: #373737;*/
+    background: transparent;
+    border-radius: 0;
+    box-shadow: none;
+    transition: none;
+}
+
+.jstree-default .jstree-clicked:before {
+    content: '';
+    display: block;
+    /* width: 100%; */
+    position: absolute;
+    z-index: -1;
+    left: 0;
+    right: 0;
+    height: 26px;
+    background: #373737;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.jstree-default .jstree-node,
+.jstree-default .jstree-leaf .jstree-ocl {
+  background: transparent;
+}
+.jstree-default .jstree-open .jstree-ocl {
+  background-position: -36px -4px;
+}
+.jstree-default .jstree-closed .jstree-ocl {
+  background-position: -4px -4px;
+}
+
+.jstree-anchor {
+    padding: 1px 0;
+    transition: none;
+}
+
+.jstree-anchor .jstree-icon {
+    display: none;
+}
+
+.jstree-node-type-bodies > .jstree-anchor,
+.jstree-node-type-constraints > .jstree-anchor,
+.jstree-node-type-composites > .jstree-anchor {
+    color: #888;
+    font-weight: bold;
+}
+
+.ins-container *::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+.ins-container *::-webkit-scrollbar-thumb:vertical {
+    border-left: 5px solid rgba(0,0,0,0.2);
+    width: 6px;
+    /*background: rgba(0,0,0,0.2);*/
+}
+
+.ins-container *::-webkit-scrollbar-thumb:horizontal {
+    border-top: 5px solid rgba(0,0,0,0.2);
+    height: 6px;
+    /*background: rgba(0,0,0,0.2);*/
+}
+
+.ins-container *::-webkit-scrollbar-track,
+.ins-container *::-webkit-scrollbar-corner {
+    background: transparent;
+}

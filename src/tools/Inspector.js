@@ -9,7 +9,8 @@ var Inspector = {};
 
 (function() {
 
-    var _key;
+    var _key,
+        $body;
 
     /**
      * Creates a new inspector tool and inserts it into the page. Requires jQuery and jsTree.
@@ -24,7 +25,9 @@ var Inspector = {};
             return;
         }
 
+        $body = $('body');
         _key = window.key || {};
+        Inspector.instance = inspector;
 
         var inspector = {
             controls: {
@@ -33,7 +36,10 @@ var Inspector = {};
             },
             engine: engine,
             isPaused: false,
-            selected: []
+            selected: [],
+            selectStart: null,
+            selectEnd: null,
+            selectBounds: Bounds.create()
         };
 
         if (Resurrect) {
@@ -45,6 +51,7 @@ var Inspector = {};
 
         _initControls(inspector);
         _initEvents(inspector);
+        _setPaused(inspector, true);
         
         return inspector;
     };
@@ -52,8 +59,38 @@ var Inspector = {};
     var _initControls = function(inspector) {
         var engine = inspector.engine;
 
-        var $inspectorContainer = $('<div class="inspector-container">'),
-            $worldTree = $('<div class="world-tree">').jstree(),
+        var worldTreeOptions = {
+            "core": {
+                "check_callback": true
+            },
+            "dnd": {
+                "copy": false
+            },
+            "types": {
+                "body": {
+                    "valid_children": []
+                },
+                "constraint": {
+                    "valid_children": []
+                },
+                "composite": {
+                    "valid_children": []
+                },
+                "bodies": {
+                    "valid_children": ['body']
+                },
+                "constraints": {
+                    "valid_children": ['constraint']
+                },
+                "composites": {
+                    "valid_children": ['composite']
+                }
+            },
+            "plugins" : ["dnd", "types", "unique"]
+        };
+
+        var $inspectorContainer = $('<div class="ins-container">'),
+            $worldTree = $('<div class="ins-world-tree">').jstree(worldTreeOptions),
             $buttonGroup = $('<div class="ins-control-group">')
             $importButton = $('<button class="ins-import-button ins-button">Import</button>'),
             $exportButton = $('<button class="ins-export-button ins-button">Export</button>'),
@@ -61,7 +98,7 @@ var Inspector = {};
         
         $buttonGroup.append($pauseButton, $importButton, $exportButton);
         $inspectorContainer.prepend($buttonGroup, $worldTree);
-        $('body').prepend($inspectorContainer);
+        $body.prepend($inspectorContainer);
 
         inspector.controls.worldTree = $worldTree;
         inspector.controls.pauseButton = $pauseButton;
@@ -74,48 +111,64 @@ var Inspector = {};
         var engine = inspector.engine,
             controls = inspector.controls;
 
-        var mainSelection = [];
+        var selectTimeout;
 
         controls.worldTree.on('changed.jstree', function(event, data) {
-            var selected = [];
+            var selected = [],
+                worldTree = controls.worldTree.data("jstree");
 
-            data.selected = data.selected || [data.node.id];
+            if (data.action !== 'select_node')
+                return;
 
-            for (var i = 0; i < data.selected.length; i++) {
-                var nodeId = data.selected[i],
-                    objectType = nodeId.split('_')[0],
-                    objectId = nodeId.split('_')[1],
-                    worldObject = Composite.get(engine.world, objectType, objectId);
+            // defer selection update until selection has finished propagating
+            clearTimeout(selectTimeout);
+            selectTimeout = setTimeout(function() {
+                data.selected = worldTree.get_selected();
 
-                switch (objectType) {
-                    case 'body':
-                    case 'constraint':
+                for (var i = 0; i < data.selected.length; i++) {
+                    var nodeId = data.selected[i],
+                        objectType = nodeId.split('_')[0],
+                        objectId = nodeId.split('_')[1],
+                        worldObject = Composite.get(engine.world, objectType, objectId);
+
+                    switch (objectType) {
+                        case 'body':
+                        case 'constraint':
+
                         selected.push(worldObject);
-                    break;
+
+                        break;
+
+                        case 'composite':
+                        case 'composites':
+                        case 'bodies':
+                        case 'constraints':
+
+                        var node = worldTree.get_node(nodeId),
+                            children = worldTree.get_node(nodeId).children;
+
+                        for (var j = 0; j < children.length; j++) 
+                            worldTree.select_node(children[j], false);
+
+                        break;
+                    }
                 }
-            }
 
-            if (data.action === 'select_node')
-                _setSelectedObjects(inspector, mainSelection = selected);
-
-            if (data.action === 'hover_node' && mainSelection.length <= 1)
                 _setSelectedObjects(inspector, selected);
 
-            if (data.action === 'dehover_node')
-                _setSelectedObjects(inspector, mainSelection);
+            }, 1);
+        });
+
+        $(document).on('dnd_move.vakata', function(event, data) {
+            var worldTree = controls.worldTree.data("jstree"),
+                parentNodeId = worldTree.get_parent(data.data.nodes[0]),
+                objectType = parentNodeId.split('_')[0];
+
+            // TODO: composite.move
         });
 
         controls.pauseButton.click(function() {
-            if (!inspector.isPaused) {
-                engine.timing.timeScale = 0;
-                inspector.isPaused = true;
-                $(this).text('Play');
-            } else {
-                engine.timing.timeScale = 1;
-                inspector.isPaused = false;
-                $(this).text('Pause');
-                _setSelectedObjects(inspector, []);
-            }
+            _setPaused(inspector, !inspector.isPaused);
         });
 
         controls.exportButton.click(function() {
@@ -123,6 +176,18 @@ var Inspector = {};
         });
 
         controls.importButton.click(function() {
+            _importFile(inspector);
+        });
+
+        _key('shift+space', function() {
+            _setPaused(inspector, !inspector.isPaused);
+        });
+
+        _key('shift+e', function() {
+            _exportFile(inspector);
+        });
+
+        _key('shift+i', function() {
             _importFile(inspector);
         });
 
@@ -143,13 +208,31 @@ var Inspector = {};
             }
         });
 
+        Events.on(engine, 'mouseup', function(event) {
+            $body.removeClass('ins-cursor-move');
+
+            // select objects in region if making a region selection
+            if (inspector.selectStart !== null) {
+                var selected = Query.region(Composite.allBodies(engine.world), inspector.selectBounds);
+                _setSelectedObjects(inspector, selected);
+            }
+
+            // clear selection region
+            inspector.selectStart = null;
+            inspector.selectEnd = null;
+            Events.trigger(inspector, 'selectEnd');
+        });
+
         Events.on(engine, 'mousedown', function(event) {
             if (inspector.isPaused) {
                 var mouse = event.mouse,
                     engine = event.source,
                     bodies = Composite.allBodies(engine.world),
                     constraints = Composite.allConstraints(engine.world),
-                    isUnionSelect = _key.shift || _key.control;
+                    isUnionSelect = _key.shift || _key.control,
+                    worldTree = inspector.controls.worldTree.data("jstree");
+
+                $body.removeClass('ins-cursor-move');
 
                 if (mouse.button === 0) {
                     var hasSelected = false;
@@ -177,8 +260,12 @@ var Inspector = {};
                                 bodyA = constraint.bodyA,
                                 bodyB = constraint.bodyB;
 
+                            if (constraint.label.indexOf('Mouse Constraint') !== -1)
+                                continue;
+
                             var pointAWorld = constraint.pointA,
                                 pointBWorld = constraint.pointB;
+
                             if (bodyA) pointAWorld = Vector.add(bodyA.position, constraint.pointA);
                             if (bodyB) pointBWorld = Vector.add(bodyB.position, constraint.pointB);
 
@@ -200,12 +287,24 @@ var Inspector = {};
                             }
                         }
 
-                        if (!hasSelected)
+                        if (!hasSelected) {
                             _setSelectedObjects(inspector, []);
+
+                            inspector.selectStart = Common.clone(mouse.position);
+                            inspector.selectEnd = Common.clone(mouse.position);
+                            Bounds.update(inspector.selectBounds, [inspector.selectStart, inspector.selectEnd]);
+                        
+                            Events.trigger(inspector, 'selectStart');
+                        } else {
+                            inspector.selectStart = null;
+                            inspector.selectEnd = null;
+                        }
                     }
                 }
 
                 if (mouse.button === 0 && inspector.selected.length > 0) {
+                    $body.addClass('ins-cursor-move');
+
                     for (var i = 0; i < inspector.selected.length; i++) {
                         var item = inspector.selected[i],
                             data = item.data;
@@ -238,6 +337,14 @@ var Inspector = {};
             if (inspector.isPaused) {
                 if (mouse.button !== 0 || mouse.sourceEvents.mousedown || mouse.sourceEvents.mouseup)
                     return;
+
+                // update region selection
+                if (inspector.selectStart !== null) {
+                    inspector.selectEnd.x = mouse.position.x;
+                    inspector.selectEnd.y = mouse.position.y;
+                    Bounds.update(inspector.selectBounds, [inspector.selectStart, inspector.selectEnd]);
+                    return;
+                }
 
                 for (var i = 0; i < selected.length; i++) {
                     var item = selected[i],
@@ -303,30 +410,53 @@ var Inspector = {};
         });
     };
 
+    var _setPaused = function(inspector, isPaused) {
+        if (isPaused) {
+            inspector.engine.timing.timeScale = 0;
+            inspector.isPaused = true;
+            inspector.controls.pauseButton.text('Play');
+        } else {
+            inspector.engine.timing.timeScale = 1;
+            inspector.isPaused = false;
+            inspector.controls.pauseButton.text('Pause');
+        }
+    };
+
     var _setSelectedObjects = function(inspector, objects) {
         var worldTree = inspector.controls.worldTree.data("jstree"),
             selectedItems = [];
 
         for (var i = 0; i < inspector.selected.length; i++) {
-            var item = inspector.selected[i],
-                data = item.data;
-
+            var data = inspector.selected[i].data;
             worldTree.deselect_node(data.type + "_" + data.id, true);
         }
 
         inspector.selected = [];
+        console.clear();
 
         for (i = 0; i < objects.length; i++) {
             var data = objects[i];
+
+            // add the object to the selection
             _addSelectedObject(inspector, data);
-            worldTree.select_node(data.type + "_" + data.id, true);
+
+            // log selected objects to console for property inspection
+            if (i < 5) {
+                console.log(data.label + ' ' + data.id + ': %O', data);
+            } else if (i === 6) {
+                console.warn('Omitted inspecting ' + (objects.length - 5) + ' more objects');
+            }
         }
     };
 
     var _addSelectedObject = function(inspector, object) {
+        var worldTree = inspector.controls.worldTree.data("jstree");
+
         inspector.selected.push({
             data: object
         });
+
+        worldTree.select_node(object.type + "_" + object.id, true);
     };
 
     var _render = function(inspector) {
@@ -338,15 +468,18 @@ var Inspector = {};
         for (var i = 0; i < selected.length; i++) {
             var item = selected[i].data;
 
+            context.translate(0.5, 0.5);
+            context.lineWidth = 1;
+            context.strokeStyle = 'rgba(255,165,0,0.8)';
+
             switch (item.type) {
                 case 'body':
 
+                // render body selections
                 var bounds = item.bounds;
-
                 context.beginPath();
-                context.rect(bounds.min.x, bounds.min.y, bounds.max.x - bounds.min.x, bounds.max.y - bounds.min.y);
-                context.lineWidth = 2;
-                context.strokeStyle = 'rgba(255,165,0,0.7)';
+                context.rect(Math.floor(bounds.min.x - 3), Math.floor(bounds.min.y - 3), 
+                             Math.floor(bounds.max.x - bounds.min.x + 6), Math.floor(bounds.max.y - bounds.min.y + 6));
                 context.closePath();
                 context.stroke();
 
@@ -354,20 +487,35 @@ var Inspector = {};
 
                 case 'constraint':
 
+                // render constraint selections
                 var point = item.pointA;
-
                 if (item.bodyA)
                     point = item.pointB;
-
                 context.beginPath();
                 context.arc(point.x, point.y, 10, 0, 2 * Math.PI);
-                context.lineWidth = 2;
-                context.strokeStyle = 'rgba(255,165,0,0.7)';
                 context.closePath();
                 context.stroke();
 
                 break;
             }
+
+            context.translate(-0.5, -0.5);
+        }
+
+        // render selection region
+        if (inspector.selectStart !== null) {
+            context.translate(0.5, 0.5);
+            context.lineWidth = 1;
+            context.setLineDash([1,2]);
+            context.strokeStyle = 'rgba(255,165,0,0.5)';
+            var bounds = inspector.selectBounds;
+            context.beginPath();
+            context.rect(Math.floor(bounds.min.x), Math.floor(bounds.min.y), 
+                         Math.floor(bounds.max.x - bounds.min.x), Math.floor(bounds.max.y - bounds.min.y));
+            context.closePath();
+            context.stroke();
+            context.setLineDash([0]);
+            context.translate(-0.5, -0.5);
         }
     };
 
@@ -380,26 +528,37 @@ var Inspector = {};
     var _generateCompositeTreeNode = function(composite) {
         var node = {
             id: 'composite_' + composite.id,
+            type: 'composite',
             text: (composite.label ? composite.label : 'Composite') + ' ' + composite.id,
-            children: []
+            children: [],
+            'li_attr': {
+                'class': 'jstree-node-type-composite'
+            }
         };
 
-        if (composite.bodies.length > 0)
-            node.children.push(_generateBodiesTreeNode(composite.bodies));
+        var childNode = _generateBodiesTreeNode(composite.bodies);
+        childNode.id = 'bodies_' + composite.id;
+        node.children.push(childNode);
 
-        if (composite.constraints.length > 0)
-            node.children.push(_generateConstraintsTreeNode(composite.constraints));
+        childNode = _generateConstraintsTreeNode(composite.constraints);
+        childNode.id = 'constraints_' + composite.id;
+        node.children.push(childNode);
 
-        if (composite.composites.length > 0)
-            node.children.push(_generateCompositesTreeNode(composite.composites));
+        childNode = _generateCompositesTreeNode(composite.composites);
+        childNode.id = 'composites_' + composite.id;
+        node.children.push(childNode);
 
         return node;
     };
 
     var _generateCompositesTreeNode = function(composites) {
         var node = {
+            type: 'composites',
             text: 'Composites',
-            children: []
+            children: [],
+            'li_attr': {
+                'class': 'jstree-node-type-composites'
+            }
         };
 
         for (var i = 0; i < composites.length; i++) {
@@ -412,15 +571,23 @@ var Inspector = {};
 
     var _generateBodiesTreeNode = function(bodies) {
         var node = {
+            type: 'bodies',
             text: 'Bodies',
-            children: []
+            children: [],
+            'li_attr': {
+                'class': 'jstree-node-type-bodies'
+            }
         };
 
         for (var i = 0; i < bodies.length; i++) {
             var body = bodies[i];
             node.children.push({
+                type: 'body',
                 id: 'body_' + body.id,
                 text: (body.label ? body.label : 'Body') + ' ' + body.id,
+                'li_attr': {
+                    'class': 'jstree-node-type-body'
+                }
             });
         }
 
@@ -429,15 +596,23 @@ var Inspector = {};
 
     var _generateConstraintsTreeNode = function(constraints) {
         var node = {
+            type: 'constraints',
             text: 'Constraints',
-            children: []
+            children: [],
+            'li_attr': {
+                'class': 'jstree-node-type-constraints'
+            }
         };
 
         for (var i = 0; i < constraints.length; i++) {
             var constraint = constraints[i];
             node.children.push({
+                type: 'constraint',
                 id: 'constraint_' + constraint.id,
                 text: (constraint.label ? constraint.label : 'Constraint') + ' ' + constraint.id,
+                'li_attr': {
+                    'class': 'jstree-node-type-constraint'
+                }
             });
         }
 
@@ -445,10 +620,14 @@ var Inspector = {};
     };
 
     var _exportFile = function(inspector) {
-        var engine = inspector.engine;
+        var engine = inspector.engine,
+            toExport = [];
 
         if (inspector.serializer) {
-            var json = inspector.serializer.stringify(engine.world, function(key, value) {
+            for (var i = 0; i < inspector.selected.length; i++)
+                toExport.push(inspector.selected[i].data);
+
+            var json = inspector.serializer.stringify(toExport, function(key, value) {
                 // skip non-required values
                 if (key === 'path')
                     return undefined;
@@ -458,7 +637,7 @@ var Inspector = {};
                     return parseFloat(value.toFixed(2));
                 }
                 return value;
-            });
+            }, 4);
 
             var blob = new Blob([json], { type: 'application/json' }),
                 anchor = document.createElement('a');
@@ -467,9 +646,9 @@ var Inspector = {};
             anchor.href = (window.webkitURL || window.URL).createObjectURL(blob);
             anchor.dataset.downloadurl = ['application/json', anchor.download, anchor.href].join(':');
             anchor.click();
-        }
 
-        Events.trigger(inspector, 'save');
+            Events.trigger(inspector, 'export');
+        }
     };
 
     var _importFile = function(inspector) {
@@ -495,7 +674,7 @@ var Inspector = {};
                         Engine.merge(engine, { world: loadedWorld });
                     }
 
-                    Events.trigger(inspector, 'load');
+                    Events.trigger(inspector, 'import');
                 }
 
                 reader.readAsText(file);    
@@ -506,5 +685,47 @@ var Inspector = {};
 
         fileInput.click();
     };
+
+    /*
+    *
+    *  Events Documentation
+    *
+    */
+
+    /**
+    * Fired after the inspector's import button pressed
+    *
+    * @event export
+    * @param {} event An event object
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired after the inspector's export button pressed
+    *
+    * @event import
+    * @param {} event An event object
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired after the inspector user starts making a selection
+    *
+    * @event selectStart
+    * @param {} event An event object
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired after the inspector user ends making a selection
+    *
+    * @event selectEnd
+    * @param {} event An event object
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
 
 })();
