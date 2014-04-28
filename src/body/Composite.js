@@ -363,11 +363,11 @@ var Composite = {};
      * Searches the composite recursively for an object matching the type and id supplied, null if not found
      * @method get
      * @param {composite} composite
-     * @param {string} type
      * @param {number} id
+     * @param {string} type
      * @return {object} The requested object, if found
      */
-    Composite.get = function(composite, type, id) {
+    Composite.get = function(composite, id, type) {
         var objects,
             object;
 
@@ -379,7 +379,7 @@ var Composite = {};
             objects = Composite.allConstraints(composite);
             break;
             case 'composite':
-            objects = Composite.allComposites(composite);
+            objects = Composite.allComposites(composite).concat(composite);
             break;
         }
 
