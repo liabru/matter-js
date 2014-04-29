@@ -905,10 +905,10 @@
         if (renderController.clear)
             renderController.clear(_engine.render);
 
-        if (Events) {
+        /*if (Events) {
             // clear all events
-            //Events.off(_engine);
-        }
+            Events.off(_engine);
+        }*/
 
         _engine.enableSleeping = false;
         _engine.world.gravity.y = 1;

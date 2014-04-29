@@ -175,7 +175,7 @@ var Vertices = {};
      * @param {number} scaleY
      * @param {vector} point
      */
-     Vertices.scale = function(vertices, scaleX, scaleY, point) {
+    Vertices.scale = function(vertices, scaleX, scaleY, point) {
         if (scaleX === 1 && scaleY === 1)
             return vertices;
 
@@ -192,6 +192,6 @@ var Vertices = {};
         }
 
         return vertices;
-     };
+    };
 
 })();

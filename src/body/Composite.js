@@ -372,13 +372,13 @@ var Composite = {};
             object;
 
         switch (type) {
-            case 'body':
+        case 'body':
             objects = Composite.allBodies(composite);
             break;
-            case 'constraint':
+        case 'constraint':
             objects = Composite.allConstraints(composite);
             break;
-            case 'composite':
+        case 'composite':
             objects = Composite.allComposites(composite).concat(composite);
             break;
         }

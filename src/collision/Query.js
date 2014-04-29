@@ -17,8 +17,9 @@ var Query = {};
      * @return {object[]} Collisions
      */
     Query.ray = function(bodies, startPoint, endPoint, rayWidth) {
+        rayWidth = rayWidth || Number.MIN_VALUE;
+
         var rayAngle = Vector.angle(startPoint, endPoint),
-            rayWidth = rayWidth || Number.MIN_VALUE,
             rayLength = Vector.magnitude(Vector.sub(startPoint, endPoint)),
             rayX = (endPoint.x + startPoint.x) * 0.5,
             rayY = (endPoint.y + startPoint.y) * 0.5,
