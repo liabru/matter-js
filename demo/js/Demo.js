@@ -808,16 +808,20 @@
         var demoSelect = document.getElementById('demo-select'),
             demoReset = document.getElementById('demo-reset');
 
-        // create a dat.gui using Matter helper
-        if (!_isMobile) {
+        // create a Matter.Gui
+        if (!_isMobile && Gui) {
             _gui = Gui.create(_engine);
-            _inspector = Inspector.create(_engine);
 
             // need to add mouse constraint back in after gui clear or load is pressed
             Events.on(_gui, 'clear load', function() {
                 _mouseConstraint = MouseConstraint.create(_engine);
                 World.add(_engine.world, _mouseConstraint);
             });
+        }
+
+        // create a Matter.Inspector
+        if (!_isMobile && Inspector) {
+            _inspector = Inspector.create(_engine);
 
             Events.on(_inspector, 'import', function() {
                 _mouseConstraint = MouseConstraint.create(_engine);

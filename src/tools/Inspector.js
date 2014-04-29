@@ -25,10 +25,6 @@ var Inspector = {};
             return;
         }
 
-        $body = $('body');
-        _key = window.key || {};
-        Inspector.instance = inspector;
-
         var inspector = {
             controls: {
                 container: null,
@@ -39,7 +35,8 @@ var Inspector = {};
             selected: [],
             selectStart: null,
             selectEnd: null,
-            selectBounds: Bounds.create()
+            selectBounds: Bounds.create(),
+            root: Composite.create()
         };
 
         if (Resurrect) {
@@ -49,15 +46,94 @@ var Inspector = {};
             inspector.serializer = JSON;
         }
 
+        $body = $('body');
+        _key = window.key || {};
+        Inspector.instance = inspector;
+
+        Composite.add(inspector.root, engine.world);
+        engine.world.parent = null;
+
         _initControls(inspector);
-        _initEvents(inspector);
+        _initEngineEvents(inspector);
+        _initTree(inspector);
+        _initKeybinds(inspector);
         _setPaused(inspector, true);
         
         return inspector;
     };
 
     var _initControls = function(inspector) {
-        var engine = inspector.engine;
+        var engine = inspector.engine,
+            controls = inspector.controls;
+
+        var $inspectorContainer = $('<div class="ins-container">'),
+            $buttonGroup = $('<div class="ins-control-group">'),
+            $importButton = $('<button class="ins-import-button ins-button">Import</button>'),
+            $exportButton = $('<button class="ins-export-button ins-button">Export</button>'),
+            $pauseButton = $('<button class="ins-pause-button ins-button">Pause</button>');
+        
+        $buttonGroup.append($pauseButton, $importButton, $exportButton);
+        $inspectorContainer.prepend($buttonGroup);
+        $body.prepend($inspectorContainer);
+
+        controls.pauseButton = $pauseButton;
+        controls.importButton = $importButton;
+        controls.exportButton = $exportButton;
+        controls.container = $inspectorContainer;
+
+        controls.pauseButton.click(function() {
+            _setPaused(inspector, !inspector.isPaused);
+        });
+
+        controls.exportButton.click(function() {
+            _exportFile(inspector);
+        });
+
+        controls.importButton.click(function() {
+            _importFile(inspector);
+        });
+    };
+
+    var _initKeybinds = function(inspector) {
+        var engine = inspector.engine,
+            controls = inspector.controls;
+
+        _key('shift+space', function() {
+            _setPaused(inspector, !inspector.isPaused);
+        });
+
+        _key('shift+o', function() {
+            _exportFile(inspector);
+        });
+
+        _key('shift+i', function() {
+            _importFile(inspector);
+        });
+
+        // prevent the backspace key from navigating back
+        // http://stackoverflow.com/questions/1495219/how-can-i-prevent-the-backspace-key-from-navigating-back
+        $(document).unbind('keydown').bind('keydown', function (event) {
+            var doPrevent = false;
+            if (event.keyCode === 8) {
+                var d = event.srcElement || event.target;
+                if ((d.tagName.toUpperCase() === 'INPUT' && (d.type.toUpperCase() === 'TEXT' || d.type.toUpperCase() === 'PASSWORD' || d.type.toUpperCase() === 'FILE' || d.type.toUpperCase() === 'EMAIL' )) || d.tagName.toUpperCase() === 'TEXTAREA') {
+                    doPrevent = d.readOnly || d.disabled;
+                }
+                else {
+                    doPrevent = true;
+                }
+            }
+
+            if (doPrevent) {
+                event.preventDefault();
+            }
+        });
+    };
+
+    var _initTree = function(inspector) {
+        var engine = inspector.engine,
+            controls = inspector.controls,
+            deferTimeout;
 
         var worldTreeOptions = {
             'core': {
@@ -89,29 +165,8 @@ var Inspector = {};
             'plugins' : ['dnd', 'types', 'unique']
         };
 
-        var $inspectorContainer = $('<div class="ins-container">'),
-            $worldTree = $('<div class="ins-world-tree">').jstree(worldTreeOptions),
-            $buttonGroup = $('<div class="ins-control-group">'),
-            $importButton = $('<button class="ins-import-button ins-button">Import</button>'),
-            $exportButton = $('<button class="ins-export-button ins-button">Export</button>'),
-            $pauseButton = $('<button class="ins-pause-button ins-button">Pause</button>');
-        
-        $buttonGroup.append($pauseButton, $importButton, $exportButton);
-        $inspectorContainer.prepend($buttonGroup, $worldTree);
-        $body.prepend($inspectorContainer);
-
-        inspector.controls.worldTree = $worldTree;
-        inspector.controls.pauseButton = $pauseButton;
-        inspector.controls.importButton = $importButton;
-        inspector.controls.exportButton = $exportButton;
-        inspector.controls.container = $inspectorContainer;
-    };
-
-    var _initEvents = function(inspector) {
-        var engine = inspector.engine,
-            controls = inspector.controls;
-
-        var selectTimeout;
+        controls.worldTree = $('<div class="ins-world-tree">').jstree(worldTreeOptions);
+        controls.container.prepend(controls.worldTree);
 
         controls.worldTree.on('changed.jstree', function(event, data) {
             var selected = [],
@@ -121,8 +176,8 @@ var Inspector = {};
                 return;
 
             // defer selection update until selection has finished propagating
-            clearTimeout(selectTimeout);
-            selectTimeout = setTimeout(function() {
+            clearTimeout(deferTimeout);
+            deferTimeout = setTimeout(function() {
                 data.selected = worldTree.get_selected();
 
                 for (var i = 0; i < data.selected.length; i++) {
@@ -165,52 +220,40 @@ var Inspector = {};
         });
 
         $(document).on('dnd_stop.vakata', function(event, data) {
-            var worldTree = controls.worldTree.data('jstree');
+            var worldTree = controls.worldTree.data('jstree'),
+                nodes = data.data.nodes;
 
-            for (var i = 0; i < data.data.nodes.length; i++) {
-                var node = worldTree.get_node(data.data.nodes[i]),
-                    parentNode = worldTree.get_node(worldTree.get_parent(data.data.nodes[i])),
+            // handle drag and drop
+            // move items between composites
+            for (var i = 0; i < nodes.length; i++) {
+                var node = worldTree.get_node(nodes[i]),
+                    parentNode = worldTree.get_node(worldTree.get_parent(nodes[i])),
                     prevCompositeId = node.data.compositeId,
                     newCompositeId = parentNode.data.compositeId;
 
                 if (prevCompositeId === newCompositeId)
                     continue;
 
-                var nodeId = data.data.nodes[i],
+                var nodeId = nodes[i],
                     objectType = nodeId.split('_')[0],
                     objectId = nodeId.split('_')[1],
-                    worldObject = Composite.get(engine.world, objectId, objectType),
-                    prevComposite = Composite.get(engine.world, prevCompositeId, 'composite'),
-                    newComposite = Composite.get(engine.world, newCompositeId, 'composite');
+                    worldObject = Composite.get(inspector.root, objectId, objectType),
+                    prevComposite = Composite.get(inspector.root, prevCompositeId, 'composite'),
+                    newComposite = Composite.get(inspector.root, newCompositeId, 'composite');
 
                 Composite.move(prevComposite, worldObject, newComposite);
                 node.data.compositeId = newCompositeId;
             }
         });
 
-        controls.pauseButton.click(function() {
-            _setPaused(inspector, !inspector.isPaused);
+        controls.worldTree.on('dblclick.jstree', function(event, data) {
+            _setPaused(inspector, true);
         });
+    };
 
-        controls.exportButton.click(function() {
-            _exportFile(inspector);
-        });
-
-        controls.importButton.click(function() {
-            _importFile(inspector);
-        });
-
-        _key('shift+space', function() {
-            _setPaused(inspector, !inspector.isPaused);
-        });
-
-        _key('shift+e', function() {
-            _exportFile(inspector);
-        });
-
-        _key('shift+i', function() {
-            _importFile(inspector);
-        });
+    var _initEngineEvents = function(inspector) {
+        var engine = inspector.engine,
+            controls = inspector.controls;
 
         Events.on(engine, 'tick', function() {
             if (engine.world.isModified) {
@@ -220,12 +263,20 @@ var Inspector = {};
             }
 
             if (key.isPressed('del') || key.isPressed('backspace')) {
-                var objects = [];
+                var objects = [],
+                    worldTree = inspector.controls.worldTree.data('jstree');
 
-                for (var i = 0; i < inspector.selected.length; i++)
-                    objects.push(inspector.selected[i].data);
+                for (var i = 0; i < inspector.selected.length; i++) {
+                    var object = inspector.selected[i].data;
 
-                Composite.remove(engine.world, objects, true);
+                    if (object === inspector.engine.world)
+                        continue;
+
+                    objects.push(object);
+                    worldTree.delete_node(object.type + '_' + object.id);
+                }
+
+                Composite.remove(inspector.root, objects, true);
                 _setSelectedObjects(inspector, []);
             }
         });
@@ -246,29 +297,61 @@ var Inspector = {};
         });
 
         Events.on(engine, 'mousedown', function(event) {
-            if (inspector.isPaused) {
-                var mouse = event.mouse,
-                    engine = event.source,
-                    bodies = Composite.allBodies(engine.world),
-                    constraints = Composite.allConstraints(engine.world),
-                    isUnionSelect = _key.shift || _key.control,
-                    worldTree = inspector.controls.worldTree.data('jstree'),
-                    i;
+            var mouse = event.mouse,
+                engine = event.source,
+                bodies = Composite.allBodies(engine.world),
+                constraints = Composite.allConstraints(engine.world),
+                isUnionSelect = _key.shift || _key.control,
+                worldTree = inspector.controls.worldTree.data('jstree'),
+                i;
 
-                $body.removeClass('ins-cursor-move ins-cursor-rotate ins-cursor-scale');
+            $body.removeClass('ins-cursor-move ins-cursor-rotate ins-cursor-scale');
 
-                if (mouse.button === 0) {
-                    var hasSelected = false;
+            if (mouse.button === 2) {
+                var hasSelected = false;
 
-                    for (i = 0; i < bodies.length; i++) {
-                        var body = bodies[i];
+                for (i = 0; i < bodies.length; i++) {
+                    var body = bodies[i];
 
-                        if (Bounds.contains(body.bounds, mouse.position) && Vertices.contains(body.vertices, mouse.position)) {
+                    if (Bounds.contains(body.bounds, mouse.position) && Vertices.contains(body.vertices, mouse.position)) {
 
+                        if (isUnionSelect) {
+                            _addSelectedObject(inspector, body);
+                        } else {
+                            _setSelectedObjects(inspector, [body]);
+                        }
+
+                        hasSelected = true;
+                        break;
+                    }
+                }
+
+                if (!hasSelected) {
+                    for (i = 0; i < constraints.length; i++) {
+                        var constraint = constraints[i],
+                            bodyA = constraint.bodyA,
+                            bodyB = constraint.bodyB;
+
+                        if (constraint.label.indexOf('Mouse Constraint') !== -1)
+                            continue;
+
+                        var pointAWorld = constraint.pointA,
+                            pointBWorld = constraint.pointB;
+
+                        if (bodyA) pointAWorld = Vector.add(bodyA.position, constraint.pointA);
+                        if (bodyB) pointBWorld = Vector.add(bodyB.position, constraint.pointB);
+
+                        if (!pointAWorld || !pointBWorld)
+                            continue;
+
+                        var distA = Vector.magnitudeSquared(Vector.sub(mouse.position, pointAWorld)),
+                            distB = Vector.magnitudeSquared(Vector.sub(mouse.position, pointBWorld));
+
+                        if (distA < 100 || distB < 100) {
                             if (isUnionSelect) {
-                                _addSelectedObject(inspector, body);
+                                _addSelectedObject(inspector, constraint);
                             } else {
-                                _setSelectedObjects(inspector, [body]);
+                                _setSelectedObjects(inspector, [constraint]);
                             }
 
                             hasSelected = true;
@@ -277,78 +360,43 @@ var Inspector = {};
                     }
 
                     if (!hasSelected) {
-                        for (i = 0; i < constraints.length; i++) {
-                            var constraint = constraints[i],
-                                bodyA = constraint.bodyA,
-                                bodyB = constraint.bodyB;
+                        worldTree.deselect_all(true);
+                        _setSelectedObjects(inspector, []);
 
-                            if (constraint.label.indexOf('Mouse Constraint') !== -1)
-                                continue;
-
-                            var pointAWorld = constraint.pointA,
-                                pointBWorld = constraint.pointB;
-
-                            if (bodyA) pointAWorld = Vector.add(bodyA.position, constraint.pointA);
-                            if (bodyB) pointBWorld = Vector.add(bodyB.position, constraint.pointB);
-
-                            if (!pointAWorld || !pointBWorld)
-                                continue;
-
-                            var distA = Vector.magnitudeSquared(Vector.sub(mouse.position, pointAWorld)),
-                                distB = Vector.magnitudeSquared(Vector.sub(mouse.position, pointBWorld));
-
-                            if (distA < 100 || distB < 100) {
-                                if (isUnionSelect) {
-                                    _addSelectedObject(inspector, constraint);
-                                } else {
-                                    _setSelectedObjects(inspector, [constraint]);
-                                }
-
-                                hasSelected = true;
-                                break;
-                            }
-                        }
-
-                        if (!hasSelected) {
-                            var worldTree = inspector.controls.worldTree.data('jstree');
-                            worldTree.deselect_all(true);
-                            _setSelectedObjects(inspector, []);
-
-                            inspector.selectStart = Common.clone(mouse.position);
-                            inspector.selectEnd = Common.clone(mouse.position);
-                            Bounds.update(inspector.selectBounds, [inspector.selectStart, inspector.selectEnd]);
-                        
-                            Events.trigger(inspector, 'selectStart');
-                        } else {
-                            inspector.selectStart = null;
-                            inspector.selectEnd = null;
-                        }
+                        inspector.selectStart = Common.clone(mouse.position);
+                        inspector.selectEnd = Common.clone(mouse.position);
+                        Bounds.update(inspector.selectBounds, [inspector.selectStart, inspector.selectEnd]);
+                    
+                        Events.trigger(inspector, 'selectStart');
+                    } else {
+                        inspector.selectStart = null;
+                        inspector.selectEnd = null;
                     }
                 }
+            }
 
-                if (mouse.button === 0 && inspector.selected.length > 0) {
-                    $body.addClass('ins-cursor-move');
+            if (mouse.button === 2 && inspector.selected.length > 0) {
+                $body.addClass('ins-cursor-move');
 
-                    for (i = 0; i < inspector.selected.length; i++) {
-                        var item = inspector.selected[i],
-                            data = item.data;
+                for (i = 0; i < inspector.selected.length; i++) {
+                    var item = inspector.selected[i],
+                        data = item.data;
 
-                        if (data.position) {
-                            item.mousedownOffset = {
-                                x: mouse.position.x - data.position.x,
-                                y: mouse.position.y - data.position.y
-                            };
-                        } else if (data.pointA && !data.bodyA) {
-                            item.mousedownOffset = {
-                                x: mouse.position.x - data.pointA.x,
-                                y: mouse.position.y - data.pointA.y
-                            };
-                        } else if (data.pointB && !data.bodyB) {
-                            item.mousedownOffset = {
-                                x: mouse.position.x - data.pointB.x,
-                                y: mouse.position.y - data.pointB.y
-                            };
-                        }
+                    if (data.position) {
+                        item.mousedownOffset = {
+                            x: mouse.position.x - data.position.x,
+                            y: mouse.position.y - data.position.y
+                        };
+                    } else if (data.pointA && !data.bodyA) {
+                        item.mousedownOffset = {
+                            x: mouse.position.x - data.pointA.x,
+                            y: mouse.position.y - data.pointA.y
+                        };
+                    } else if (data.pointB && !data.bodyB) {
+                        item.mousedownOffset = {
+                            x: mouse.position.x - data.pointB.x,
+                            y: mouse.position.y - data.pointB.y
+                        };
                     }
                 }
             }
@@ -363,75 +411,12 @@ var Inspector = {};
                 data,
                 i;
 
-            if (inspector.isPaused) {
+            $body.removeClass('ins-cursor-move ins-cursor-rotate ins-cursor-scale');
 
-                $body.removeClass('ins-cursor-move ins-cursor-rotate ins-cursor-scale');
+            if (_key.shift && _key.isPressed('r')) {
+                $body.addClass('ins-cursor-rotate');
 
-                if (_key.shift && _key.isPressed('r')) {
-                    $body.addClass('ins-cursor-rotate');
-
-                    // roate mode
-                    for (i = 0; i < selected.length; i++) {
-                        item = selected[i];
-                        data = item.data;
-
-                        switch (data.type) {
-
-                        case 'body':
-
-                            var angle = Common.sign(mouse.position.x - mousePrevPosition.x) * 0.05;
-                            Body.rotate(data, angle);
-
-                            break;
-
-                        }
-                    }
-
-                    mousePrevPosition = Common.clone(mouse.position);
-                    return;
-                }
-
-                if (_key.shift && _key.isPressed('s')) {
-                    $body.addClass('ins-cursor-scale');
-
-                    // scale mode
-                    for (i = 0; i < selected.length; i++) {
-                        item = selected[i];
-                        data = item.data;
-
-                        switch (data.type) {
-
-                        case 'body':
-
-                            var scale = 1 + Common.sign(mouse.position.x - mousePrevPosition.x) * 0.02;
-                            Body.scale(data, scale, scale);
-
-                            if (data.circleRadius)
-                                data.circleRadius *= scale;
-
-                            break;
-
-                        }
-                    }
-
-                    mousePrevPosition = Common.clone(mouse.position);
-                    return;
-                }
-
-                if (mouse.button !== 0 || mouse.sourceEvents.mousedown || mouse.sourceEvents.mouseup)
-                    return;
-
-                // update region selection
-                if (inspector.selectStart !== null) {
-                    inspector.selectEnd.x = mouse.position.x;
-                    inspector.selectEnd.y = mouse.position.y;
-                    Bounds.update(inspector.selectBounds, [inspector.selectStart, inspector.selectEnd]);
-                    return;
-                }
-
-                $body.addClass('ins-cursor-move');
-
-                // translate mode
+                // roate mode
                 for (i = 0; i < selected.length; i++) {
                     item = selected[i];
                     data = item.data;
@@ -440,32 +425,94 @@ var Inspector = {};
 
                     case 'body':
 
-                        var delta = {
-                            x: mouse.position.x - data.position.x - item.mousedownOffset.x,
-                            y: mouse.position.y - data.position.y - item.mousedownOffset.y
-                        };
-
-                        Body.translate(data, delta);
-
-                        break;
-
-                    case 'constraint':
-
-                        var point = data.pointA;
-                        if (data.bodyA)
-                            point = data.pointB;
-
-                        point.x = mouse.position.x - item.mousedownOffset.x;
-                        point.y = mouse.position.y - item.mousedownOffset.y;
-
-                        var initialPointA = data.bodyA ? Vector.add(data.bodyA.position, data.pointA) : data.pointA,
-                            initialPointB = data.bodyB ? Vector.add(data.bodyB.position, data.pointB) : data.pointB;
-
-                        data.length = Vector.magnitude(Vector.sub(initialPointA, initialPointB));
+                        var angle = Common.sign(mouse.position.x - mousePrevPosition.x) * 0.05;
+                        Body.rotate(data, angle);
 
                         break;
 
                     }
+                }
+
+                mousePrevPosition = Common.clone(mouse.position);
+                return;
+            }
+
+            if (_key.shift && _key.isPressed('s')) {
+                $body.addClass('ins-cursor-scale');
+
+                // scale mode
+                for (i = 0; i < selected.length; i++) {
+                    item = selected[i];
+                    data = item.data;
+
+                    switch (data.type) {
+
+                    case 'body':
+
+                        var scale = 1 + Common.sign(mouse.position.x - mousePrevPosition.x) * 0.02;
+                        Body.scale(data, scale, scale);
+
+                        if (data.circleRadius)
+                            data.circleRadius *= scale;
+
+                        break;
+
+                    }
+                }
+
+                mousePrevPosition = Common.clone(mouse.position);
+                return;
+            }
+
+            if (mouse.button !== 2 || mouse.sourceEvents.mousedown || mouse.sourceEvents.mouseup)
+                return;
+
+            // update region selection
+            if (inspector.selectStart !== null) {
+                inspector.selectEnd.x = mouse.position.x;
+                inspector.selectEnd.y = mouse.position.y;
+                Bounds.update(inspector.selectBounds, [inspector.selectStart, inspector.selectEnd]);
+                return;
+            }
+
+            $body.addClass('ins-cursor-move');
+
+            // translate mode
+            for (i = 0; i < selected.length; i++) {
+                item = selected[i];
+                data = item.data;
+
+                switch (data.type) {
+
+                case 'body':
+
+                    var delta = {
+                        x: mouse.position.x - data.position.x - item.mousedownOffset.x,
+                        y: mouse.position.y - data.position.y - item.mousedownOffset.y
+                    };
+
+                    Body.translate(data, delta);
+                    data.positionPrev.x = data.position.x;
+                    data.positionPrev.y = data.position.y;
+
+                    break;
+
+                case 'constraint':
+
+                    var point = data.pointA;
+                    if (data.bodyA)
+                        point = data.pointB;
+
+                    point.x = mouse.position.x - item.mousedownOffset.x;
+                    point.y = mouse.position.y - item.mousedownOffset.y;
+
+                    var initialPointA = data.bodyA ? Vector.add(data.bodyA.position, data.pointA) : data.pointA,
+                        initialPointB = data.bodyB ? Vector.add(data.bodyB.position, data.pointB) : data.pointB;
+
+                    data.length = Vector.magnitude(Vector.sub(initialPointA, initialPointB));
+
+                    break;
+
                 }
             }
         });
@@ -476,25 +523,6 @@ var Inspector = {};
                 _render(inspector);
             });
         }
-
-        // prevent the backspace key from navigating back
-        // http://stackoverflow.com/questions/1495219/how-can-i-prevent-the-backspace-key-from-navigating-back
-        $(document).unbind('keydown').bind('keydown', function (event) {
-            var doPrevent = false;
-            if (event.keyCode === 8) {
-                var d = event.srcElement || event.target;
-                if ((d.tagName.toUpperCase() === 'INPUT' && (d.type.toUpperCase() === 'TEXT' || d.type.toUpperCase() === 'PASSWORD' || d.type.toUpperCase() === 'FILE' || d.type.toUpperCase() === 'EMAIL' )) || d.tagName.toUpperCase() === 'TEXTAREA') {
-                    doPrevent = d.readOnly || d.disabled;
-                }
-                else {
-                    doPrevent = true;
-                }
-            }
-
-            if (doPrevent) {
-                event.preventDefault();
-            }
-        });
     };
 
     var _setPaused = function(inspector, isPaused) {
@@ -525,6 +553,9 @@ var Inspector = {};
         for (i = 0; i < objects.length; i++) {
             data = objects[i];
 
+            if (!data)
+                continue;
+
             // add the object to the selection
             _addSelectedObject(inspector, data);
 
@@ -538,6 +569,9 @@ var Inspector = {};
     };
 
     var _addSelectedObject = function(inspector, object) {
+        if (!object)
+            return;
+
         var worldTree = inspector.controls.worldTree.data('jstree');
 
         inspector.selected.push({
@@ -612,7 +646,8 @@ var Inspector = {};
 
     var _updateTree = function(tree, data) {
         data.state = data.state || { opened: true };
-        tree.settings.core.data = data;
+        tree.settings.core.data = tree.settings.core.data || [data];
+        tree.settings.core.data[tree.settings.core.data.length - 1] = data;
         tree.refresh(-1);
     };
 
@@ -774,16 +809,32 @@ var Inspector = {};
                 var reader = new FileReader();
 
                 reader.onload = function(e) {
-                    var loadedWorld;
+                    var importedObjects;
 
                     if (inspector.serializer)
-                        loadedWorld = inspector.serializer.parse(reader.result);
+                        importedObjects = inspector.serializer.parse(reader.result);
 
-                    if (loadedWorld) {
-                        Engine.merge(engine, { world: loadedWorld });
+                    if (importedObjects) {
+                        var importedComposite = Composite.create({
+                            label: 'Imported Objects'
+                        });
+
+                        for (var i = 0; i < importedObjects.length; i++) {
+                            var object = importedObjects[i];
+                            if (object.type === 'body') {
+                                object.id = Body.nextId();
+                                Composite.add(importedComposite, object);
+                            }
+                        }
+
+                        var worldTree = inspector.controls.worldTree.data('jstree'),
+                            data = _generateCompositeTreeNode(importedComposite),
+                            coreData = worldTree.settings.core.data;
+
+                        coreData.unshift(data);
+                        worldTree.refresh(-1);
+                        Composite.add(inspector.root, importedComposite);
                     }
-
-                    Events.trigger(inspector, 'import');
                 };
 
                 reader.readAsText(file);    

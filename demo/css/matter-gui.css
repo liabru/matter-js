@@ -1,5 +1,6 @@
 body .dg.main.taller-than-window .close-button {
     border-top: 1px solid #444;
+    border-right: 4px solid #444;
 }
 
 body .dg.main .close-button {
@@ -17,17 +18,21 @@ body .dg {
 
 body .dg.main::-webkit-scrollbar {
     background: #3d3d3d;
+    width: 9px;
 }
 
 body .dg.main::-webkit-scrollbar-thumb {
     background: transparent;
-    width: 12px;
-    border-left: 22px solid rgba(0,0,0,0.2);
+    width: 5px;
+    border-left: 5px solid #3d3d3d;
+    border-right: 6px solid rgba(0,0,0,0.2);
+    border-radius: 0;
 }
  
 body .dg li:not(.folder) {
     background: #3d3d3d;
     border-bottom: 0px;
+    padding: 0 0 0 12px;
 }
 
 body .dg .cr.function {
@@ -92,4 +97,8 @@ body .dg .c .slider:hover .slider-fg {
 
 body .dg li.folder {
     border-left: 0;
+}
+
+body .dg.a {
+    border-right:4px solid #3d3d3d;
 }
