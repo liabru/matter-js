@@ -396,4 +396,24 @@ var Composite = {};
         return compositeA;
     };
 
+    /**
+     * Assigns new ids for all objects in the composite, recursively
+     * @method rebase
+     * @param {composite} composite
+     * @return {composite} Returns composite
+     */
+    Composite.rebase = function(composite) {
+        var objects = Composite.allBodies(composite)
+                        .concat(Composite.allConstraints(composite))
+                        .concat(Composite.allComposites(composite));
+
+        for (var i = 0; i < objects.length; i++) {
+            objects[i].id = Common.nextId();
+        }
+
+        Composite.setModified(composite, true, true, false);
+
+        return composite;
+    };
+
 })();
