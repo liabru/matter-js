@@ -9,8 +9,7 @@ var Body = {};
 
 (function() {
 
-    var _nextId = 0,
-        _nextGroupId = 1;
+    var _nextGroupId = 1;
 
     /**
      * Description to be written.
@@ -20,7 +19,7 @@ var Body = {};
      */
     Body.create = function(options) {
         var defaults = {
-            id: Body.nextId(),
+            id: Common.nextId(),
             type: 'body',
             label: 'Body',
             angle: 0,
@@ -62,15 +61,6 @@ var Body = {};
         return body;
     };
 
-    /**
-     * Description
-     * @method nextId
-     * @return {Number} Unique bodyID
-     */
-    Body.nextId = function() {
-        return _nextId++;
-    };
-    
     /**
      * Description
      * @method nextGroupId

@@ -8,6 +8,8 @@ var Common = {};
 
 (function() {
 
+    Common._nextId = 0;
+
     /**
      * Description
      * @method extend
@@ -265,6 +267,15 @@ var Common = {};
         }
 
         console.log('%c [Matter] ' + type + ': ' + message, style);
+    };
+
+    /**
+     * Returns the next unique sequential ID
+     * @method nextId
+     * @return {Number} Unique sequential ID
+     */
+    Common.nextId = function() {
+        return Common._nextId++;
     };
 
 })();

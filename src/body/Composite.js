@@ -11,8 +11,6 @@ var Composite = {};
 
 (function() {
 
-    var _nextId = 0;
-
     /**
      * Description
      * @method create
@@ -21,7 +19,7 @@ var Composite = {};
      */
     Composite.create = function(options) {
         return Common.extend({ 
-            id: Composite.nextId(),
+            id: Common.nextId(),
             type: 'composite',
             parent: null,
             isModified: false,
@@ -30,15 +28,6 @@ var Composite = {};
             composites: [],
             label: 'Composite'
         }, options);
-    };
-
-    /**
-     * Returns the next unique compositeID
-     * @method nextId
-     * @return {Number} Unique compositeID
-     */
-    Composite.nextId = function() {
-        return _nextId++;
     };
 
     /**

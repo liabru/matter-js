@@ -18,8 +18,7 @@ var Constraint = {};
 (function() {
 
     var _minLength = 0.000001,
-        _minDifference = 0.001,
-        _nextId = 0;
+        _minDifference = 0.001;
 
     /**
      * Description
@@ -53,7 +52,7 @@ var Constraint = {};
         constraint.render = Common.extend(render, constraint.render);
 
         // option defaults
-        constraint.id = constraint.id || Constraint.nextId();
+        constraint.id = constraint.id || Common.nextId();
         constraint.label = constraint.label || 'Constraint';
         constraint.type = 'constraint';
         constraint.stiffness = constraint.stiffness || 1;
@@ -254,15 +253,6 @@ var Constraint = {};
             impulse.x = 0;
             impulse.y = 0;
         }
-    };
-
-    /**
-     * Returns the next unique constraintId
-     * @method nextId
-     * @return {Number} Unique constraintId
-     */
-    Constraint.nextId = function() {
-        return _nextId++;
     };
 
 })();
