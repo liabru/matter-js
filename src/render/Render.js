@@ -690,6 +690,76 @@ var Render = {};
 
     /**
      * Description
+     * @method inspector
+     * @param {inspector} inspector
+     * @param {RenderingContext} context
+     */
+    Render.inspector = function(inspector, context) {
+        var engine = inspector.engine,
+            mouse = engine.input.mouse,
+            selected = inspector.selected,
+            c = context,
+            options = engine.render.options,
+            bounds;
+
+        for (var i = 0; i < selected.length; i++) {
+            var item = selected[i].data;
+
+            context.translate(0.5, 0.5);
+            context.lineWidth = 1;
+            context.strokeStyle = 'rgba(255,165,0,0.8)';
+
+            switch (item.type) {
+
+            case 'body':
+
+                // render body selections
+                bounds = item.bounds;
+                context.beginPath();
+                context.rect(Math.floor(bounds.min.x - 3), Math.floor(bounds.min.y - 3), 
+                             Math.floor(bounds.max.x - bounds.min.x + 6), Math.floor(bounds.max.y - bounds.min.y + 6));
+                context.closePath();
+                context.stroke();
+
+                break;
+
+            case 'constraint':
+
+                // render constraint selections
+                var point = item.pointA;
+                if (item.bodyA)
+                    point = item.pointB;
+                context.beginPath();
+                context.arc(point.x, point.y, 10, 0, 2 * Math.PI);
+                context.closePath();
+                context.stroke();
+
+                break;
+
+            }
+
+            context.translate(-0.5, -0.5);
+        }
+
+        // render selection region
+        if (inspector.selectStart !== null) {
+            context.translate(0.5, 0.5);
+            context.lineWidth = 1;
+            context.setLineDash([1,2]);
+            context.strokeStyle = 'rgba(255,165,0,0.5)';
+            bounds = inspector.selectBounds;
+            context.beginPath();
+            context.rect(Math.floor(bounds.min.x), Math.floor(bounds.min.y), 
+                         Math.floor(bounds.max.x - bounds.min.x), Math.floor(bounds.max.y - bounds.min.y));
+            context.closePath();
+            context.stroke();
+            context.setLineDash([0]);
+            context.translate(-0.5, -0.5);
+        }
+    };
+
+    /**
+     * Description
      * @method _createCanvas
      * @private
      * @param {} width

@@ -910,6 +910,9 @@
             Events.off(_engine);
         }*/
 
+        // reset id pool
+        Common._nextId = 0;
+
         _engine.enableSleeping = false;
         _engine.world.gravity.y = 1;
 

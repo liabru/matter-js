@@ -39,6 +39,8 @@ var Inspector = {};
             root: Composite.create()
         };
 
+        inspector = Common.extend(inspector, options);
+
         if (Resurrect) {
             inspector.serializer = new Resurrect({ prefix: '$' });
             inspector.serializer.parse = inspector.serializer.resurrect;
@@ -50,6 +52,8 @@ var Inspector = {};
         _key = window.key || {};
         Inspector.instance = inspector;
 
+        $body.addClass('ins-auto-hide gui-auto-hide');
+
         Composite.add(inspector.root, engine.world);
         engine.world.parent = null;
 
@@ -57,8 +61,7 @@ var Inspector = {};
         _initEngineEvents(inspector);
         _initTree(inspector);
         _initKeybinds(inspector);
-        _setPaused(inspector, true);
-        
+
         return inspector;
     };
 
@@ -70,15 +73,17 @@ var Inspector = {};
             $buttonGroup = $('<div class="ins-control-group">'),
             $importButton = $('<button class="ins-import-button ins-button">Import</button>'),
             $exportButton = $('<button class="ins-export-button ins-button">Export</button>'),
-            $pauseButton = $('<button class="ins-pause-button ins-button">Pause</button>');
+            $pauseButton = $('<button class="ins-pause-button ins-button">Pause</button>'),
+            $helpButton = $('<button class="ins-help-button ins-button">Help</button>');
         
-        $buttonGroup.append($pauseButton, $importButton, $exportButton);
+        $buttonGroup.append($pauseButton, $importButton, $exportButton, $helpButton);
         $inspectorContainer.prepend($buttonGroup);
         $body.prepend($inspectorContainer);
 
         controls.pauseButton = $pauseButton;
         controls.importButton = $importButton;
         controls.exportButton = $exportButton;
+        controls.helpButton = $helpButton;
         controls.container = $inspectorContainer;
 
         controls.pauseButton.click(function() {
@@ -91,6 +96,24 @@ var Inspector = {};
 
         controls.importButton.click(function() {
             _importFile(inspector);
+        });
+
+        controls.helpButton.click(function() {
+            var help = "matter-inspector quick help \n\n";
+
+            help += "drag nodes in the tree to move them between composites \n\n";
+            help += "[shift + space] to pause or play simulation \n";
+            help += "[right click] and drag to select objects \n";
+            help += "[del] or [backspace] to delete selected objects \n";
+            help += "[shift + s] to scale-xy selected objects with mouse \n";
+            help += "[shift + s + d] to scale-x selected objects with mouse \n";
+            help += "[shift + s + f] to scale-y selected objects with mouse \n";
+            help += "[shift + r] to rotate selected objects with mouse \n";
+            help += "[shift + i] to import objects \n";
+            help += "[shift + o] to export selected objects\n";
+            help += "\nnote: inspector will only render if the renderer in use supports it";
+
+            alert(help);
         });
     };
 
@@ -187,22 +210,15 @@ var Inspector = {};
                         worldObject = Composite.get(engine.world, objectId, objectType);
 
                     switch (objectType) {
-
                     case 'body':
                     case 'constraint':
-
+                    case 'composite':
                         selected.push(worldObject);
-
                         break;
 
-                    case 'composite':
                     case 'composites':
                     case 'bodies':
                     case 'constraints':
-
-                        if (objectType === 'composite')
-                            selected.push(worldObject);
-
                         var node = worldTree.get_node(nodeId),
                             children = worldTree.get_node(nodeId).children;
 
@@ -210,7 +226,6 @@ var Inspector = {};
                             worldTree.select_node(children[j], false);
 
                         break;
-
                     }
                 }
 
@@ -243,6 +258,15 @@ var Inspector = {};
 
                 Composite.move(prevComposite, worldObject, newComposite);
                 node.data.compositeId = newCompositeId;
+
+                /*if (newComposite === engine.world) {
+                    // if moved to the world, remove old tree node
+                    // it will be regenerated automatically
+                    worldTree.set_id(nodeId, nodeId + "-dupe");
+                    //setTimeout(function() {
+                    //    worldTree.delete_node(nodeId);
+                    //}, 1);
+                }*/
             }
         });
 
@@ -450,7 +474,18 @@ var Inspector = {};
                     case 'body':
 
                         var scale = 1 + Common.sign(mouse.position.x - mousePrevPosition.x) * 0.02;
-                        Body.scale(data, scale, scale);
+
+                        if (_key.isPressed('d')) {
+                            scaleX = scale;
+                            scaleY = 1;
+                        } else if (_key.isPressed('f')) {
+                            scaleX = 1;
+                            scaleY = scale;
+                        } else {
+                            scaleX = scaleY = scale;
+                        }
+
+                        Body.scale(data, scaleX, scaleY);
 
                         if (data.circleRadius)
                             data.circleRadius *= scale;
@@ -517,12 +552,13 @@ var Inspector = {};
             }
         });
 
-        // can only render if a render context is exposed
-        if (engine.render && engine.render.context) {
-            Events.on(engine, 'afterRender', function() {
-                _render(inspector);
-            });
-        }
+        // render hook
+        Events.on(engine, 'afterRender', function() {
+            var renderController = engine.render.controller,
+                context = engine.render.context;
+            if (renderController.inspector)
+                renderController.inspector(inspector, context);
+        });
     };
 
     var _setPaused = function(inspector, isPaused) {
@@ -579,69 +615,6 @@ var Inspector = {};
         });
 
         worldTree.select_node(object.type + '_' + object.id, true);
-    };
-
-    var _render = function(inspector) {
-        var engine = inspector.engine,
-            mouse = engine.input.mouse,
-            context = engine.render.context,
-            selected = inspector.selected,
-            bounds;
-
-        for (var i = 0; i < selected.length; i++) {
-            var item = selected[i].data;
-
-            context.translate(0.5, 0.5);
-            context.lineWidth = 1;
-            context.strokeStyle = 'rgba(255,165,0,0.8)';
-
-            switch (item.type) {
-
-            case 'body':
-
-                // render body selections
-                bounds = item.bounds;
-                context.beginPath();
-                context.rect(Math.floor(bounds.min.x - 3), Math.floor(bounds.min.y - 3), 
-                             Math.floor(bounds.max.x - bounds.min.x + 6), Math.floor(bounds.max.y - bounds.min.y + 6));
-                context.closePath();
-                context.stroke();
-
-                break;
-
-            case 'constraint':
-
-                // render constraint selections
-                var point = item.pointA;
-                if (item.bodyA)
-                    point = item.pointB;
-                context.beginPath();
-                context.arc(point.x, point.y, 10, 0, 2 * Math.PI);
-                context.closePath();
-                context.stroke();
-
-                break;
-
-            }
-
-            context.translate(-0.5, -0.5);
-        }
-
-        // render selection region
-        if (inspector.selectStart !== null) {
-            context.translate(0.5, 0.5);
-            context.lineWidth = 1;
-            context.setLineDash([1,2]);
-            context.strokeStyle = 'rgba(255,165,0,0.5)';
-            bounds = inspector.selectBounds;
-            context.beginPath();
-            context.rect(Math.floor(bounds.min.x), Math.floor(bounds.min.y), 
-                         Math.floor(bounds.max.x - bounds.min.x), Math.floor(bounds.max.y - bounds.min.y));
-            context.closePath();
-            context.stroke();
-            context.setLineDash([0]);
-            context.translate(-0.5, -0.5);
-        }
     };
 
     var _updateTree = function(tree, data) {
@@ -768,10 +741,23 @@ var Inspector = {};
             toExport = [];
 
         if (inspector.serializer) {
-            for (var i = 0; i < inspector.selected.length; i++)
-                toExport.push(inspector.selected[i].data);
+            var exportComposite = Composite.create({
+                    label: 'Exported Objects'
+                });
 
-            var json = inspector.serializer.stringify(toExport, function(key, value) {
+            // add everything else
+            for (var i = 0; i < inspector.selected.length; i++) {
+                var object = inspector.selected[i].data;
+
+                // skip if it's already in the composite tree
+                // this means orphans will be added in the root
+                if (Composite.get(exportComposite, object.id, object.type))
+                    continue;
+
+                Composite.add(exportComposite, object);
+            }
+
+            var json = inspector.serializer.stringify(exportComposite, function(key, value) {
                 // skip non-required values
                 if (key === 'path')
                     return undefined;
@@ -809,23 +795,14 @@ var Inspector = {};
                 var reader = new FileReader();
 
                 reader.onload = function(e) {
-                    var importedObjects;
+                    var importedComposite;
 
                     if (inspector.serializer)
-                        importedObjects = inspector.serializer.parse(reader.result);
+                        importedComposite = inspector.serializer.parse(reader.result);
 
-                    if (importedObjects) {
-                        var importedComposite = Composite.create({
-                            label: 'Imported Objects'
-                        });
-
-                        for (var i = 0; i < importedObjects.length; i++) {
-                            var object = importedObjects[i];
-                            if (object.type === 'body') {
-                                object.id = Body.nextId();
-                                Composite.add(importedComposite, object);
-                            }
-                        }
+                    if (importedComposite) {
+                        Composite.rebase(importedComposite);
+                        importedComposite.label = 'Imported Objects';
 
                         var worldTree = inspector.controls.worldTree.data('jstree'),
                             data = _generateCompositeTreeNode(importedComposite),

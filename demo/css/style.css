@@ -42,6 +42,14 @@ h1 {
     padding: 64px 280px 0 280px;
 }
 
+.ins-auto-hide .container {
+    padding-left: 32px;
+}
+
+.gui-auto-hide .container {
+    padding-right: 32px;
+}
+
 .is-mobile .container {
     padding: 6% 6% 0 6%;
 }

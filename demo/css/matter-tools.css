@@ -1,0 +1,357 @@
+/*
+*	Matter.Gui
+*/
+
+body .dg.main {
+    box-shadow: 0 0 8px rgba(0,0,0,0.7);
+}
+
+body.gui-auto-hide .dg.ac {
+    right: -233px;
+
+    -webkit-transition: all 500ms cubic-bezier(0.965, 0.025, 0.735, 0.415); 
+       -moz-transition: all 500ms cubic-bezier(0.965, 0.025, 0.735, 0.415); 
+         -o-transition: all 500ms cubic-bezier(0.965, 0.025, 0.735, 0.415); 
+            transition: all 500ms cubic-bezier(0.965, 0.025, 0.735, 0.415); /* custom */
+
+    -webkit-transition-timing-function: cubic-bezier(0.965, 0.025, 0.735, 0.415); 
+       -moz-transition-timing-function: cubic-bezier(0.965, 0.025, 0.735, 0.415); 
+         -o-transition-timing-function: cubic-bezier(0.965, 0.025, 0.735, 0.415); 
+            transition-timing-function: cubic-bezier(0.965, 0.025, 0.735, 0.415); /* custom */
+    
+    transition-delay: 3s;
+    -webkit-transition-delay: 3s;
+}
+
+body .dg.ac:hover,
+body.gui-show .dg.ac {
+    right: 0px;
+
+    -webkit-transition: all 500ms cubic-bezier(0.095, 0.665, 0.400, 0.835); 
+       -moz-transition: all 500ms cubic-bezier(0.095, 0.665, 0.400, 0.835); 
+         -o-transition: all 500ms cubic-bezier(0.095, 0.665, 0.400, 0.835); 
+            transition: all 500ms cubic-bezier(0.095, 0.665, 0.400, 0.835); /* custom */
+
+    -webkit-transition-timing-function: cubic-bezier(0.095, 0.665, 0.400, 0.835); 
+       -moz-transition-timing-function: cubic-bezier(0.095, 0.665, 0.400, 0.835); 
+         -o-transition-timing-function: cubic-bezier(0.095, 0.665, 0.400, 0.835); 
+            transition-timing-function: cubic-bezier(0.095, 0.665, 0.400, 0.835); /* custom */
+
+    transition-delay: 0;
+    -webkit-transition-delay: 0;
+}
+
+
+body .dg.main.taller-than-window .close-button {
+    border-top: 1px solid #444;
+    border-right: 4px solid #444;
+}
+
+body .dg.main .close-button {
+    background-color: #444;
+}
+ 
+body .dg.main .close-button:hover {
+    background-color: #555;
+}
+
+body .dg.main::-webkit-scrollbar {
+    background: #3d3d3d;
+    width: 9px;
+}
+
+body .dg.main::-webkit-scrollbar-thumb {
+    background: transparent;
+    width: 5px;
+    border-left: 5px solid #3d3d3d;
+    border-right: 6px solid rgba(0,0,0,0.2);
+    border-radius: 0;
+}
+ 
+body .dg {
+    color: #aaa;
+    text-shadow: none !important;
+}
+
+body .dg li:not(.folder) {
+    background: #3d3d3d;
+    border-bottom: 0px;
+    padding: 0 0 0 12px;
+}
+
+body .dg .cr.function {
+    border-top: 1px solid #444;
+}
+ 
+body .dg li.save-row .button {
+    text-shadow: none !important;
+}
+
+body .dg li.title {
+    padding-left: 22px;
+    background: #444 url(data:image/gif;base64,R0lGODlhBQAFAJEAAP////Pz8////////yH5BAEAAAIALAAAAAAFAAUAAAIIlI+hKgFxoCgAOw==) 10px 10px no-repeat;
+}
+
+body .dg .cr.boolean:hover {
+    background: #3d3d3d;
+}
+
+body .dg .cr.function:hover {
+    background: #555;
+}
+
+body .dg .c select {
+    margin-top: 2px;
+    margin-left: -5px;
+    padding: 3px 5px;
+}
+
+body .dg .c select,
+body .dg .c input[type=text],
+body .dg .cr.number input[type=text] {
+    background: #333;
+    color: #999;
+    border: 0;
+}
+ 
+body .dg .c input[type=text]:hover {
+    background: #444;
+}
+ 
+body .dg .c input[type=text]:focus {
+    background: #444;
+    color: #fff;
+}
+ 
+body .dg .c .slider {
+    background: #555;
+}
+
+body .dg .c .slider:hover {
+    background: #666;
+}
+
+body .dg .c .slider-fg {
+    background: #777;
+}
+
+body .dg .c .slider:hover .slider-fg {
+    background: #999;
+}
+
+body .dg li.folder {
+    border-left: 0;
+}
+
+body .dg.a {
+    border-right:4px solid #3d3d3d;
+}
+
+/*
+*	Matter.Inspector
+*/
+
+.ins-cursor-move canvas {
+    cursor: move !important;
+}
+
+.ins-cursor-rotate canvas {
+    cursor: ew-resize !important;
+}
+
+.ins-cursor-scale canvas {
+    cursor: nwse-resize !important;
+}
+
+.ins-container {
+    position: fixed;
+    overflow: auto;
+    width: 220px;
+    bottom: 0;
+    top: 0;
+    left: 0;
+    background: #3d3d3d;
+    padding: 1% 20px;
+    font-family: Arial;
+    font-size: 12px;
+    color: #aaa;
+    border-right: 2px solid #3d3d3d;
+    box-shadow: 0 0 8px rgba(0,0,0,0.7);
+}
+
+.ins-auto-hide .ins-container {
+    left: -245px;
+    border-right: 1px dotted #888;
+
+    -webkit-transition: all 500ms cubic-bezier(0.965, 0.025, 0.735, 0.415); 
+       -moz-transition: all 500ms cubic-bezier(0.965, 0.025, 0.735, 0.415); 
+         -o-transition: all 500ms cubic-bezier(0.965, 0.025, 0.735, 0.415); 
+            transition: all 500ms cubic-bezier(0.965, 0.025, 0.735, 0.415); /* custom */
+
+    -webkit-transition-timing-function: cubic-bezier(0.965, 0.025, 0.735, 0.415); 
+       -moz-transition-timing-function: cubic-bezier(0.965, 0.025, 0.735, 0.415); 
+         -o-transition-timing-function: cubic-bezier(0.965, 0.025, 0.735, 0.415); 
+            transition-timing-function: cubic-bezier(0.965, 0.025, 0.735, 0.415); /* custom */
+
+    transition-delay: 3s;
+    -webkit-transition-delay: 3s;
+}
+
+.ins-container:hover,
+.ins-show .ins-container {
+    left: 0px;
+    border-right: 0px dotted #888;
+
+    -webkit-transition: all 500ms cubic-bezier(0.095, 0.665, 0.400, 0.835); 
+       -moz-transition: all 500ms cubic-bezier(0.095, 0.665, 0.400, 0.835); 
+         -o-transition: all 500ms cubic-bezier(0.095, 0.665, 0.400, 0.835); 
+            transition: all 500ms cubic-bezier(0.095, 0.665, 0.400, 0.835); /* custom */
+
+    -webkit-transition-timing-function: cubic-bezier(0.095, 0.665, 0.400, 0.835); 
+       -moz-transition-timing-function: cubic-bezier(0.095, 0.665, 0.400, 0.835); 
+         -o-transition-timing-function: cubic-bezier(0.095, 0.665, 0.400, 0.835); 
+            transition-timing-function: cubic-bezier(0.095, 0.665, 0.400, 0.835); /* custom */
+
+    transition-delay: 0;
+    -webkit-transition-delay: 0;
+}
+
+.ins-world-tree {
+    overflow: auto;
+    position: absolute;
+    left: -24px;
+    right: 0px;
+    top: 60px;
+    bottom: 8px;
+}
+
+.ins-control-group {
+    display: block;
+    clear: both;
+    overflow: hidden;
+    margin: 8px 0;
+}
+
+.ins-button {
+    display: block;
+    float: left;
+    margin: 0 2px;
+    font-size: 11px;
+    padding: 6px 8px;
+    min-width: 51px;
+    text-align: center;
+    background: #333;
+    border: 0;
+    color: #aaa;
+    border-radius: 2px;
+    border-bottom: 2px solid #2e2e2e;
+}
+
+.ins-button:hover {
+    background: #3a3a3a;
+    border-bottom: 2px solid #2fa1d6;
+}
+
+.jstree-default .jstree-wholerow-hovered,
+.jstree-default .jstree-hovered {
+    background: transparent;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.jstree-default .jstree-wholerow {
+    height: 26px;
+}
+
+.jstree-default .jstree-wholerow-clicked,
+.jstree-default .jstree-clicked {
+    background: transparent;
+    border-radius: 0;
+    box-shadow: none;
+    transition: none;
+}
+
+.jstree-default .jstree-open > .jstree-children > .jstree-node > .jstree-anchor:before {
+    content: '';
+    display: block;
+    position: absolute;
+    z-index: -1;
+    left: 0;
+    right: 1px;
+    height: 26px;
+    background: transparent;
+    border-radius: 0;
+    box-shadow: none;
+    border-right: none;
+}
+
+.jstree-default .jstree-anchor.jstree-clicked:before {
+    background: #373737 !important;
+}
+
+.jstree-default .jstree-node-type-body > .jstree-anchor:before {
+    border-right: 3px solid #e1115f !important;
+}
+
+.jstree-default .jstree-node-type-constraint > .jstree-anchor:before {
+    border-right: 3px solid #1ed36f !important;
+}
+
+.jstree-default .jstree-node-type-composite > .jstree-anchor:before {
+    border-right: 3px solid #2fa1d6 !important;
+}
+
+.jstree-default .jstree-node,
+.jstree-default .jstree-leaf .jstree-ocl {
+  background: transparent;
+}
+.jstree-default .jstree-open .jstree-ocl {
+  background-position: -36px -4px;
+}
+.jstree-default .jstree-closed .jstree-ocl {
+  background-position: -4px -4px;
+}
+
+.jstree-anchor {
+    padding: 1px 0;
+    transition: none;
+}
+
+.jstree-anchor .jstree-icon {
+    display: none;
+}
+
+.jstree-node-type-bodies > .jstree-anchor,
+.jstree-node-type-constraints > .jstree-anchor,
+.jstree-node-type-composites > .jstree-anchor {
+    color: #888;
+    font-weight: bold;
+}
+
+.ins-container *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+.ins-container *::-webkit-scrollbar-thumb:vertical {
+    border-left: 3px solid #3d3d3d;
+    background: rgba(0,0,0,0.2);
+    width: 10px;
+}
+
+.ins-container *::-webkit-scrollbar-thumb:horizontal {
+    border-top: 3px solid #3d3d3d;
+    background: rgba(0,0,0,0.2);
+    height: 10px;
+}
+
+.ins-container *::-webkit-scrollbar-track,
+.ins-container *::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+#vakata-dnd {
+    font-family: Arial;
+    font-size: 12px;
+    color: #aaa;
+}
