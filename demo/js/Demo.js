@@ -26,6 +26,7 @@
         _inspector,
         _sceneName,
         _mouseConstraint,
+        _sceneEvents = [],
         _isMobile = /(ipad|iphone|ipod|android)/gi.test(navigator.userAgent);
     
     // initialise the demo
@@ -631,65 +632,89 @@
             }
         };
 
-        // an example of using beforeUpdate event on an engine
-        Events.on(_engine, 'beforeUpdate', function(event) {
-            var engine = event.source;
+        _sceneEvents.push(
 
-            // apply random forces every 5 secs
-            if (event.timestamp % 5000 < 50)
-                shakeScene(engine);
-        });
+            // an example of using beforeUpdate event on an engine
+            Events.on(_engine, 'beforeUpdate', function(event) {
+                var engine = event.source;
 
-        // an example of using collisionStart event on an engine
-        Events.on(_engine, 'collisionStart', function(event) {
-            var pairs = event.pairs;
+                // apply random forces every 5 secs
+                if (event.timestamp % 5000 < 50)
+                    shakeScene(engine);
+            })
 
-            // change object colours to show those starting a collision
-            for (var i = 0; i < pairs.length; i++) {
-                var pair = pairs[i];
-                pair.bodyA.render.fillStyle = '#bbbbbb';
-                pair.bodyB.render.fillStyle = '#bbbbbb';
-            }
-        });
+        );
 
-        // an example of using collisionActive event on an engine
-        Events.on(_engine, 'collisionActive', function(event) {
-            var pairs = event.pairs;
+        _sceneEvents.push(
 
-            // change object colours to show those in an active collision (e.g. resting contact)
-            for (var i = 0; i < pairs.length; i++) {
-                var pair = pairs[i];
-                pair.bodyA.render.fillStyle = '#aaaaaa';
-                pair.bodyB.render.fillStyle = '#aaaaaa';
-            }
-        });
+            // an example of using collisionStart event on an engine
+            Events.on(_engine, 'collisionStart', function(event) {
+                var pairs = event.pairs;
 
-        // an example of using collisionEnd event on an engine
-        Events.on(_engine, 'collisionEnd', function(event) {
-            var pairs = event.pairs;
+                // change object colours to show those starting a collision
+                for (var i = 0; i < pairs.length; i++) {
+                    var pair = pairs[i];
+                    pair.bodyA.render.fillStyle = '#bbbbbb';
+                    pair.bodyB.render.fillStyle = '#bbbbbb';
+                }
+            })
 
-            // change object colours to show those ending a collision
-            for (var i = 0; i < pairs.length; i++) {
-                var pair = pairs[i];
-                pair.bodyA.render.fillStyle = '#999999';
-                pair.bodyB.render.fillStyle = '#999999';
-            }
-        });
+        );
 
-        // an example of using mouse events on an engine.input.mouse
-        Events.on(_engine, 'mousedown', function(event) {
-            var mousePosition = event.mouse.position;
-            console.log('mousedown at ' + mousePosition.x + ' ' + mousePosition.y);
-            _engine.render.options.background = 'cornsilk';
-            shakeScene(_engine);
-        });
+        _sceneEvents.push(
 
-        // an example of using mouse events on an engine.input.mouse
-        Events.on(_engine, 'mouseup', function(event) {
-            var mousePosition = event.mouse.position;
-            _engine.render.options.background = "white";
-            console.log('mouseup at ' + mousePosition.x + ' ' + mousePosition.y);
-        });
+            // an example of using collisionActive event on an engine
+            Events.on(_engine, 'collisionActive', function(event) {
+                var pairs = event.pairs;
+
+                // change object colours to show those in an active collision (e.g. resting contact)
+                for (var i = 0; i < pairs.length; i++) {
+                    var pair = pairs[i];
+                    pair.bodyA.render.fillStyle = '#aaaaaa';
+                    pair.bodyB.render.fillStyle = '#aaaaaa';
+                }
+            })
+
+        );
+
+        _sceneEvents.push(
+
+            // an example of using collisionEnd event on an engine
+            Events.on(_engine, 'collisionEnd', function(event) {
+                var pairs = event.pairs;
+
+                // change object colours to show those ending a collision
+                for (var i = 0; i < pairs.length; i++) {
+                    var pair = pairs[i];
+                    pair.bodyA.render.fillStyle = '#999999';
+                    pair.bodyB.render.fillStyle = '#999999';
+                }
+            })
+
+        );
+
+        _sceneEvents.push(
+
+            // an example of using mouse events on an engine.input.mouse
+            Events.on(_engine, 'mousedown', function(event) {
+                var mousePosition = event.mouse.position;
+                console.log('mousedown at ' + mousePosition.x + ' ' + mousePosition.y);
+                _engine.render.options.background = 'cornsilk';
+                shakeScene(_engine);
+            })
+
+        );
+
+        _sceneEvents.push(
+
+            // an example of using mouse events on an engine.input.mouse
+            Events.on(_engine, 'mouseup', function(event) {
+                var mousePosition = event.mouse.position;
+                _engine.render.options.background = "white";
+                console.log('mouseup at ' + mousePosition.x + ' ' + mousePosition.y);
+            })
+
+        );
     };
 
     Demo.sprites = function() {
@@ -770,34 +795,36 @@
         
         World.add(_world, stack);
 
-        Events.on(_engine, 'afterRender', function() {
-            var mouse = _engine.input.mouse,
-                context = _engine.render.context,
-                bodies = Composite.allBodies(_engine.world),
-                startPoint = { x: 400, y: 100 },
-                endPoint = mouse.position;
+        _sceneEvents.push(
+            Events.on(_engine, 'afterRender', function() {
+                var mouse = _engine.input.mouse,
+                    context = _engine.render.context,
+                    bodies = Composite.allBodies(_engine.world),
+                    startPoint = { x: 400, y: 100 },
+                    endPoint = mouse.position;
 
-            var collisions = Query.ray(bodies, startPoint, endPoint);
+                var collisions = Query.ray(bodies, startPoint, endPoint);
 
-            context.beginPath();
-            context.moveTo(startPoint.x, startPoint.y);
-            context.lineTo(endPoint.x, endPoint.y);
-            if (collisions.length > 0) {
-                context.strokeStyle = '#fff';
-            } else {
-                context.strokeStyle = '#555';
-            }
-            context.lineWidth = 0.5;
-            context.stroke();
+                context.beginPath();
+                context.moveTo(startPoint.x, startPoint.y);
+                context.lineTo(endPoint.x, endPoint.y);
+                if (collisions.length > 0) {
+                    context.strokeStyle = '#fff';
+                } else {
+                    context.strokeStyle = '#555';
+                }
+                context.lineWidth = 0.5;
+                context.stroke();
 
-            for (var i = 0; i < collisions.length; i++) {
-                var collision = collisions[i];
-                context.rect(collision.bodyA.position.x - 4.5, collision.bodyA.position.y - 4.5, 8, 8);
-            }
+                for (var i = 0; i < collisions.length; i++) {
+                    var collision = collisions[i];
+                    context.rect(collision.bodyA.position.x - 4.5, collision.bodyA.position.y - 4.5, 8, 8);
+                }
 
-            context.fillStyle = 'rgba(255,165,0,0.7)';
-            context.fill();
-        });
+                context.fillStyle = 'rgba(255,165,0,0.7)';
+                context.fill();
+            })
+        );
         
         var renderOptions = _engine.render.options;
     };
@@ -905,10 +932,10 @@
         if (renderController.clear)
             renderController.clear(_engine.render);
 
-        /*if (Events) {
-            // clear all events
-            Events.off(_engine);
-        }*/
+        // clear all scene events
+        for (var i = 0; i < _sceneEvents.length; i++)
+            Events.off(_engine, _sceneEvents[i]);
+        _sceneEvents = [];
 
         // reset id pool
         Common._nextId = 0;
