@@ -118,6 +118,14 @@ var Body = {};
             body.mass = body.inertia = body.density = Infinity;
             body.inverseMass = body.inverseInertia = 0;
             body.render.lineWidth = 1;
+
+            body.positionPrev.x = body.position.x;
+            body.positionPrev.y = body.position.y;
+            body.anglePrev = body.angle;
+            body.angularVelocity = 0;
+            body.speed = 0;
+            body.angularSpeed = 0;
+            body.motion = 0;
         }
     };
 
