@@ -707,7 +707,8 @@ var Render = {};
 
             context.translate(0.5, 0.5);
             context.lineWidth = 1;
-            context.strokeStyle = 'rgba(255,165,0,0.8)';
+            context.strokeStyle = 'rgba(255,165,0,0.9)';
+            context.setLineDash([1,2]);
 
             switch (item.type) {
 
@@ -738,6 +739,7 @@ var Render = {};
 
             }
 
+            context.setLineDash([0]);
             context.translate(-0.5, -0.5);
         }
 
@@ -745,15 +747,15 @@ var Render = {};
         if (inspector.selectStart !== null) {
             context.translate(0.5, 0.5);
             context.lineWidth = 1;
-            context.setLineDash([1,2]);
-            context.strokeStyle = 'rgba(255,165,0,0.5)';
+            context.strokeStyle = 'rgba(255,165,0,0.6)';
+            context.fillStyle = 'rgba(255,165,0,0.1)';
             bounds = inspector.selectBounds;
             context.beginPath();
             context.rect(Math.floor(bounds.min.x), Math.floor(bounds.min.y), 
                          Math.floor(bounds.max.x - bounds.min.x), Math.floor(bounds.max.y - bounds.min.y));
             context.closePath();
             context.stroke();
-            context.setLineDash([0]);
+            context.fill();
             context.translate(-0.5, -0.5);
         }
     };

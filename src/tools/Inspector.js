@@ -10,6 +10,7 @@ var Inspector = {};
 (function() {
 
     var _key,
+        _isWebkit = 'WebkitAppearance' in document.documentElement.style,
         $body;
 
     /**
@@ -36,13 +37,17 @@ var Inspector = {};
             selectStart: null,
             selectEnd: null,
             selectBounds: Bounds.create(),
-            root: Composite.create()
+            autoHide: true,
+            hasTransitions: _isWebkit ? true : false,
+            root: Composite.create({
+                label: 'Root'
+            })
         };
 
         inspector = Common.extend(inspector, options);
 
         if (Resurrect) {
-            inspector.serializer = new Resurrect({ prefix: '$' });
+            inspector.serializer = new Resurrect({ prefix: '$', cleanup: true });
             inspector.serializer.parse = inspector.serializer.resurrect;
         } else {
             inspector.serializer = JSON;
@@ -52,7 +57,8 @@ var Inspector = {};
         _key = window.key || {};
         Inspector.instance = inspector;
 
-        $body.addClass('ins-auto-hide gui-auto-hide');
+        $body.toggleClass('ins-auto-hide gui-auto-hide', inspector.autoHide);
+        $body.toggleClass('ins-transitions gui-transitions', inspector.hasTransitions);
 
         Composite.add(inspector.root, engine.world);
         engine.world.parent = null;
@@ -71,19 +77,21 @@ var Inspector = {};
 
         var $inspectorContainer = $('<div class="ins-container">'),
             $buttonGroup = $('<div class="ins-control-group">'),
+            $searchBox = $('<input class="ins-search-box" type="search" placeholder="search">'),
             $importButton = $('<button class="ins-import-button ins-button">Import</button>'),
             $exportButton = $('<button class="ins-export-button ins-button">Export</button>'),
             $pauseButton = $('<button class="ins-pause-button ins-button">Pause</button>'),
             $helpButton = $('<button class="ins-help-button ins-button">Help</button>');
         
         $buttonGroup.append($pauseButton, $importButton, $exportButton, $helpButton);
-        $inspectorContainer.prepend($buttonGroup);
+        $inspectorContainer.prepend($buttonGroup, $searchBox);
         $body.prepend($inspectorContainer);
 
         controls.pauseButton = $pauseButton;
         controls.importButton = $importButton;
         controls.exportButton = $exportButton;
         controls.helpButton = $helpButton;
+        controls.searchBox = $searchBox;
         controls.container = $inspectorContainer;
 
         controls.pauseButton.click(function() {
@@ -99,22 +107,46 @@ var Inspector = {};
         });
 
         controls.helpButton.click(function() {
-            var help = "matter-inspector quick help \n\n";
-
-            help += "drag nodes in the tree to move them between composites \n\n";
-            help += "[shift + space] to pause or play simulation \n";
-            help += "[right click] and drag to select objects \n";
-            help += "[del] or [backspace] to delete selected objects \n";
-            help += "[shift + s] to scale-xy selected objects with mouse \n";
-            help += "[shift + s + d] to scale-x selected objects with mouse \n";
-            help += "[shift + s + f] to scale-y selected objects with mouse \n";
-            help += "[shift + r] to rotate selected objects with mouse \n";
-            help += "[shift + i] to import objects \n";
-            help += "[shift + o] to export selected objects\n";
-            help += "\nnote: inspector will only render if the renderer in use supports it";
-
-            alert(help);
+            _showHelp(inspector);
         });
+
+        var searchTimeout;
+
+        controls.searchBox.keyup(function () {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(function () {
+                var value = controls.searchBox.val(),
+                    worldTree = controls.worldTree.data('jstree');
+                worldTree.search(value);
+            }, 250);
+        });
+    };
+
+    var _showHelp = function(inspector) {
+        var help = "Matter Tools \n\n";
+
+        help += "Drag nodes in the tree to move them between composites.  \n\n";
+        help += "Use browser's developer console to inspect selected objects. \n\n";
+        help += "Note: selections only render if renderer supports it. \n\n";
+
+        help += "[shift + space] pause or play simulation. \n";
+        help += "[right click] and drag to select objects. \n";
+        help += "[del] or [backspace] delete selected objects. \n\n";
+
+        help += "[shift + s] scale-xy selected objects with mouse. \n";
+        help += "[shift + s + d] scale-x selected objects with mouse. \n";
+        help += "[shift + s + f] scale-y selected objects with mouse. \n";
+        help += "[shift + r] rotate selected objects with mouse. \n\n";
+
+        help += "[shift + q] set selected objects as static (can't be undone). \n";
+        help += "[shift + i] import objects. \n";
+        help += "[shift + o] export selected objects. \n";
+        help += "[shift + h] toggle Matter.Gui. \n";
+        help += "[shift + y] toggle auto-hide. \n\n";
+
+        help += "[shift + j] show this help message.";
+
+        alert(help);
     };
 
     var _initKeybinds = function(inspector) {
@@ -133,13 +165,39 @@ var Inspector = {};
             _importFile(inspector);
         });
 
+        _key('shift+j', function() {
+            _showHelp(inspector);
+        });
+
+        _key('shift+y', function() {
+            inspector.autoHide = !inspector.autoHide;
+            $body.toggleClass('ins-auto-hide gui-auto-hide', inspector.autoHide);
+        });
+
+        _key('shift+q', function() {
+            var worldTree = inspector.controls.worldTree.data('jstree');
+            for (var i = 0; i < inspector.selected.length; i++) {
+                var object = inspector.selected[i].data;
+                if (object.type === 'body' && !object.isStatic)
+                    Body.setStatic(object, true);
+            }
+        });
+
+        _key('del', function() {
+            _deleteSelectedObjects(inspector);
+        });
+
+        _key('backspace', function() {
+            _deleteSelectedObjects(inspector);
+        });
+
         // prevent the backspace key from navigating back
         // http://stackoverflow.com/questions/1495219/how-can-i-prevent-the-backspace-key-from-navigating-back
         $(document).unbind('keydown').bind('keydown', function (event) {
             var doPrevent = false;
             if (event.keyCode === 8) {
                 var d = event.srcElement || event.target;
-                if ((d.tagName.toUpperCase() === 'INPUT' && (d.type.toUpperCase() === 'TEXT' || d.type.toUpperCase() === 'PASSWORD' || d.type.toUpperCase() === 'FILE' || d.type.toUpperCase() === 'EMAIL' )) || d.tagName.toUpperCase() === 'TEXTAREA') {
+                if ((d.tagName.toUpperCase() === 'INPUT' && (d.type.toUpperCase() === 'TEXT' || d.type.toUpperCase() === 'PASSWORD' || d.type.toUpperCase() === 'FILE' || d.type.toUpperCase() === 'EMAIL' || d.type.toUpperCase() === 'SEARCH')) || d.tagName.toUpperCase() === 'TEXTAREA') {
                     doPrevent = d.readOnly || d.disabled;
                 }
                 else {
@@ -165,7 +223,14 @@ var Inspector = {};
             'dnd': {
                 'copy': false
             },
+            'search': {
+                'show_only_matches': true,
+                'fuzzy': false
+            },
             'types': {
+                '#': {
+                    'valid_children': []
+                },
                 'body': {
                     'valid_children': []
                 },
@@ -185,7 +250,7 @@ var Inspector = {};
                     'valid_children': ['composite']
                 }
             },
-            'plugins' : ['dnd', 'types', 'unique']
+            'plugins' : ['dnd', 'types', 'unique', 'search']
         };
 
         controls.worldTree = $('<div class="ins-world-tree">').jstree(worldTreeOptions);
@@ -214,17 +279,6 @@ var Inspector = {};
                     case 'constraint':
                     case 'composite':
                         selected.push(worldObject);
-                        break;
-
-                    case 'composites':
-                    case 'bodies':
-                    case 'constraints':
-                        var node = worldTree.get_node(nodeId),
-                            children = worldTree.get_node(nodeId).children;
-
-                        for (var j = 0; j < children.length; j++) 
-                            worldTree.select_node(children[j], false);
-
                         break;
                     }
                 }
@@ -257,21 +311,34 @@ var Inspector = {};
                     newComposite = Composite.get(inspector.root, newCompositeId, 'composite');
 
                 Composite.move(prevComposite, worldObject, newComposite);
-                node.data.compositeId = newCompositeId;
-
-                /*if (newComposite === engine.world) {
-                    // if moved to the world, remove old tree node
-                    // it will be regenerated automatically
-                    worldTree.set_id(nodeId, nodeId + "-dupe");
-                    //setTimeout(function() {
-                    //    worldTree.delete_node(nodeId);
-                    //}, 1);
-                }*/
             }
         });
 
         controls.worldTree.on('dblclick.jstree', function(event, data) {
-            _setPaused(inspector, true);
+            var worldTree = controls.worldTree.data('jstree'),
+                selected = worldTree.get_selected();
+
+            // select all children of double clicked node
+            for (var i = 0; i < selected.length; i++) {
+                var nodeId = selected[i],
+                    objectType = nodeId.split('_')[0],
+                    objectId = nodeId.split('_')[1],
+                    worldObject = Composite.get(engine.world, objectId, objectType);
+
+                switch (objectType) {
+                case 'composite':
+                case 'composites':
+                case 'bodies':
+                case 'constraints':
+                    var node = worldTree.get_node(nodeId),
+                        children = worldTree.get_node(nodeId).children;
+
+                    for (var j = 0; j < children.length; j++) 
+                        worldTree.select_node(children[j], false);
+
+                    break;
+                }
+            }
         });
     };
 
@@ -281,26 +348,8 @@ var Inspector = {};
 
         Events.on(engine, 'tick', function() {
             if (engine.world.isModified) {
-                var data = _generateCompositeTreeNode(engine.world);
+                var data = _generateCompositeTreeNode(inspector.root, null, true);
                 _updateTree(controls.worldTree.data('jstree'), data);
-                _setSelectedObjects(inspector, []);
-            }
-
-            if (key.isPressed('del') || key.isPressed('backspace')) {
-                var objects = [],
-                    worldTree = inspector.controls.worldTree.data('jstree');
-
-                for (var i = 0; i < inspector.selected.length; i++) {
-                    var object = inspector.selected[i].data;
-
-                    if (object === inspector.engine.world)
-                        continue;
-
-                    objects.push(object);
-                    worldTree.delete_node(object.type + '_' + object.id);
-                }
-
-                Composite.remove(inspector.root, objects, true);
                 _setSelectedObjects(inspector, []);
             }
         });
@@ -561,6 +610,24 @@ var Inspector = {};
         });
     };
 
+    var _deleteSelectedObjects = function(inspector) {
+        var objects = [],
+            worldTree = inspector.controls.worldTree.data('jstree');
+
+        for (var i = 0; i < inspector.selected.length; i++) {
+            var object = inspector.selected[i].data;
+
+            if (object === inspector.engine.world)
+                continue;
+
+            objects.push(object);
+            worldTree.delete_node(object.type + '_' + object.id);
+        }
+
+        Composite.remove(inspector.root, objects, true);
+        _setSelectedObjects(inspector, []);
+    };
+
     var _setPaused = function(inspector, isPaused) {
         if (isPaused) {
             inspector.engine.timing.timeScale = 0;
@@ -618,37 +685,41 @@ var Inspector = {};
     };
 
     var _updateTree = function(tree, data) {
-        data.state = data.state || { opened: true };
-        tree.settings.core.data = tree.settings.core.data || [data];
-        tree.settings.core.data[tree.settings.core.data.length - 1] = data;
+        data[0].state = data[0].state || { opened: true };
+        tree.settings.core.data = data;
         tree.refresh(-1);
     };
 
-    var _generateCompositeTreeNode = function(composite, compositeId) {
-        var node = {
-            id: 'composite_' + composite.id,
-            data: {
-                compositeId: compositeId,
-            },
-            type: 'composite',
-            text: (composite.label ? composite.label : 'Composite') + ' ' + composite.id,
-            children: [],
-            'li_attr': {
-                'class': 'jstree-node-type-composite'
-            }
-        };
+    var _generateCompositeTreeNode = function(composite, compositeId, isRoot) {
+        var children = [],
+            node = {
+                id: 'composite_' + composite.id,
+                data: {
+                    compositeId: compositeId,
+                },
+                type: 'composite',
+                text: (composite.label ? composite.label : 'Composite') + ' ' + composite.id,
+                'li_attr': {
+                    'class': 'jstree-node-type-composite'
+                }
+            };
 
-        var childNode = _generateBodiesTreeNode(composite.bodies, composite.id);
+        var childNode = _generateCompositesTreeNode(composite.composites, composite.id);
+        childNode.id = 'composites_' + composite.id;
+        children.push(childNode);
+
+        if (isRoot)
+            return childNode.children;
+
+        childNode = _generateBodiesTreeNode(composite.bodies, composite.id);
         childNode.id = 'bodies_' + composite.id;
-        node.children.push(childNode);
+        children.push(childNode);
 
         childNode = _generateConstraintsTreeNode(composite.constraints, composite.id);
         childNode.id = 'constraints_' + composite.id;
-        node.children.push(childNode);
+        children.push(childNode);
 
-        childNode = _generateCompositesTreeNode(composite.composites, composite.id);
-        childNode.id = 'composites_' + composite.id;
-        node.children.push(childNode);
+        node.children = children;
 
         return node;
     };
@@ -741,11 +812,17 @@ var Inspector = {};
             toExport = [];
 
         if (inspector.serializer) {
-            var exportComposite = Composite.create({
+            if (inspector.selected.length === 0) {
+                alert('No objects were selected, so export could not be created.');
+                return;
+            }
+
+            var fileName = "export-objects",
+                exportComposite = Composite.create({
                     label: 'Exported Objects'
                 });
 
-            // add everything else
+            // add everything else, must be in top-down order
             for (var i = 0; i < inspector.selected.length; i++) {
                 var object = inspector.selected[i].data;
 
@@ -755,7 +832,14 @@ var Inspector = {};
                     continue;
 
                 Composite.add(exportComposite, object);
+
+                // better filename for small exports
+                if (inspector.selected.length === 1)
+                    fileName = 'export-' + object.label + '-' + object.id;
             }
+
+            // santise filename
+            fileName = fileName.toLowerCase().replace(/[^\w\-]/g, '') + '.json';
 
             var json = inspector.serializer.stringify(exportComposite, function(key, value) {
                 // skip non-required values
@@ -764,15 +848,23 @@ var Inspector = {};
 
                 // limit precision of floats
                 if (!/^#/.exec(key) && typeof value === 'number') {
-                    return parseFloat(value.toFixed(2));
+                    var fixed = parseFloat(value.toFixed(3));
+
+                    // do not limit if limiting will cause value to zero
+                    // TODO: this should ideally dynamically find the SF precision required
+                    if (fixed === 0 && value !== 0)
+                        return value;
+
+                    return fixed;
                 }
+
                 return value;
-            }, 4);
+            });
 
             var blob = new Blob([json], { type: 'application/json' }),
                 anchor = document.createElement('a');
 
-            anchor.download = 'world.json';
+            anchor.download = fileName;
             anchor.href = (window.webkitURL || window.URL).createObjectURL(blob);
             anchor.dataset.downloadurl = ['application/json', anchor.download, anchor.href].join(':');
             anchor.click();
@@ -804,13 +896,17 @@ var Inspector = {};
                         Composite.rebase(importedComposite);
                         importedComposite.label = 'Imported Objects';
 
-                        var worldTree = inspector.controls.worldTree.data('jstree'),
-                            data = _generateCompositeTreeNode(importedComposite),
-                            coreData = worldTree.settings.core.data;
-
-                        coreData.unshift(data);
-                        worldTree.refresh(-1);
                         Composite.add(inspector.root, importedComposite);
+
+                        // move imported composite to the start
+                        // so that it appears top of tree
+                        inspector.root.composites.splice(inspector.root.composites.length - 1, 1);
+                        inspector.root.composites.unshift(importedComposite);
+
+                        var worldTree = inspector.controls.worldTree.data('jstree'),
+                            data = _generateCompositeTreeNode(inspector.root, null, true);
+
+                        _updateTree(worldTree, data);
                     }
                 };
 
