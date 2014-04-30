@@ -279,7 +279,7 @@ var Engine = {};
             for (var i = 0; i < bodies.length; i++) {
                 var body = bodies[i];
                 Sleeping.set(body, false);
-                body.id = Body.nextId();
+                body.id = Common.nextId();
             }
         }
     };
