@@ -17,9 +17,18 @@ var Gui = {};
      * @return {gui} A container for a configured dat.gui
      */
     Gui.create = function(engine, options) {
+        var _datGuiSupported = window.dat && window.localStorage;
+
+        if (!_datGuiSupported) {
+            console.log("Could not create GUI. Check dat.gui library is loaded first.");
+            return;
+        }
+
+        var datGui = new dat.GUI(options);
+
         var gui = {
             engine: engine,
-            datGui: null,
+            datGui: datGui,
             amount: 1,
             size: 40,
             sides: 4,
@@ -27,23 +36,13 @@ var Gui = {};
             restitution: 0,
             friction: 0.1,
             frictionAir: 0.01,
+            offset: { x: 0, y: 0 },
             renderer: 'canvas'
         };
-
-        var _datGuiSupported = window.dat && window.localStorage;
-        
-        if (!_datGuiSupported) {
-            console.log("Could not create GUI. Check dat.gui library is loaded first.");
-            return;
-        }
-
-        var datGui = gui.datGui = new dat.GUI(options);
         
         if (Resurrect) {
-            gui.serializer = new Resurrect({ prefix: '$' });
+            gui.serializer = new Resurrect({ prefix: '$', cleanup: true });
             gui.serializer.parse = gui.serializer.resurrect;
-        } else {
-            gui.serializer = JSON;
         }
 
         _initDatGui(gui);
@@ -209,7 +208,7 @@ var Gui = {};
         };
 
         for (var i = 0; i < gui.amount; i++) {
-            World.add(engine.world, Bodies.polygon(120 + i * gui.size + i * 50, 200, gui.sides, gui.size, options));
+            World.add(engine.world, Bodies.polygon(gui.offset.x + 120 + i * gui.size + i * 50, gui.offset.y + 200, gui.sides, gui.size, options));
         }
     };
 
