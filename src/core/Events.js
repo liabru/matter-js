@@ -26,23 +26,43 @@ var Events = {};
             object.events[name] = object.events[name] || [];
             object.events[name].push(callback);
         }
+
+        return callback;
     };
 
     /**
-     * Clears all callbacks for the given event names if supplied, otherwise all events
+     * Removes the given event callback. If no callback, clears all callbacks in eventNames. If no eventNames, clears all events.
      * @method off
      * @param {} object
      * @param {string} eventNames
+     * @param {function} callback
      */
-    Events.off = function(object, eventNames) {
+    Events.off = function(object, eventNames, callback) {
         if (!eventNames) {
             object.events = {};
             return;
         }
 
+        // handle Events.off(object, callback)
+        if (typeof eventNames === 'function') {
+            callback = eventNames;
+            eventNames = Common.keys(object.events).join(' ');
+        }
+
         var names = eventNames.split(' ');
+
         for (var i = 0; i < names.length; i++) {
-            object.events[names[i]] = [];
+            var callbacks = object.events[names[i]],
+                newCallbacks = [];
+
+            if (callback) {
+                for (var j = 0; j < callbacks.length; j++) {
+                    if (callbacks[j] !== callback)
+                        newCallbacks.push(callbacks[j]);
+                }
+            }
+
+            object.events[names[i]] = newCallbacks;
         }
     };
 
