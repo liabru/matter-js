@@ -36,7 +36,8 @@ var Mouse;
                 event.preventDefault();
             }
 
-            mouse.position = position;
+            mouse.position.x = position.x;
+            mouse.position.y = position.y;
             mouse.sourceEvents.mousemove = event;
         };
         
@@ -51,7 +52,10 @@ var Mouse;
                 mouse.button = event.button;
             }
 
-            mouse.position = mouse.mousedownPosition = position;
+            mouse.position.x = position.x;
+            mouse.position.y = position.y;
+            mouse.mousedownPosition.x = position.x;
+            mouse.mousedownPosition.y = position.y;
             mouse.sourceEvents.mousedown = event;
         };
         
@@ -64,7 +68,10 @@ var Mouse;
             }
             
             mouse.button = -1;
-            mouse.position = mouse.mouseupPosition = position;
+            mouse.position.x = position.x;
+            mouse.position.y = position.y;
+            mouse.mouseupPosition.x = position.x;
+            mouse.mouseupPosition.y = position.y;
             mouse.sourceEvents.mouseup = event;
         };
 
