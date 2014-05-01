@@ -2,7 +2,6 @@
 
     // Matter aliases
     var Engine = Matter.Engine,
-        Gui = Matter.Gui,
         World = Matter.World,
         Bodies = Matter.Bodies,
         Body = Matter.Body,
@@ -16,8 +15,11 @@
         Vector = Matter.Vector,
         Vertices = Matter.Vertices,
         MouseConstraint = Matter.MouseConstraint,
-        Query = Matter.Query,
-        Inspector = Matter.Inspector;
+        Query = Matter.Query;
+
+    // MatterTools aliases
+    var Gui = MatterTools.Gui,
+        Inspector = MatterTools.Inspector;
 
     var Demo = {};
 
@@ -27,6 +29,7 @@
         _sceneName,
         _mouseConstraint,
         _sceneEvents = [],
+        _useInspector = false,
         _isMobile = /(ipad|iphone|ipod|android)/gi.test(navigator.userAgent);
     
     // initialise the demo
@@ -930,7 +933,7 @@
         }
 
         // create a Matter.Inspector
-        if (!_isMobile && Inspector) {
+        if (!_isMobile && Inspector && _useInspector) {
             _inspector = Inspector.create(_engine);
 
             Events.on(_inspector, 'import', function() {
@@ -1024,8 +1027,10 @@
         Common._nextId = 0;
 
         // reset mouse offset
-        _engine.input.mouse.offset.x = 0;
-        _engine.input.mouse.offset.y = 0;
+        if (_engine.input.mouse.offset) {
+            _engine.input.mouse.offset.x = 0;
+            _engine.input.mouse.offset.y = 0;
+        }
 
         _engine.enableSleeping = false;
         _engine.world.gravity.y = 1;

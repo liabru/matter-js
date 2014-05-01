@@ -39,7 +39,7 @@ h1 {
 .container {
     max-width: 800px;
     margin: 0 auto;
-    padding: 64px 280px 0 280px;
+    padding: 48px 280px 0 32px;
 }
 
 .ins-auto-hide .container {

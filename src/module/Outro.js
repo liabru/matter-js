@@ -32,12 +32,10 @@ Matter.Axes = Axes;
 Matter.Bounds = Bounds;
 Matter.Vector = Vector;
 Matter.Vertices = Vertices;
-Matter.Gui = Gui;
 Matter.Render = Render;
 Matter.RenderPixi = RenderPixi;
 Matter.Events = Events;
 Matter.Query = Query;
-Matter.Inspector = Inspector;
 
 // CommonJS module
 if (typeof exports !== 'undefined') {
