@@ -1,5 +1,5 @@
 /**
-* matter.js 0.7.0-edge 2014-04-01
+* matter.js 0.7.0-edge 2014-05-01
 * http://brm.io/matter-js/
 * License: MIT
 */
@@ -51,8 +51,7 @@ var Body = {};
 
 (function() {
 
-    var _nextId = 0,
-        _nextGroupId = 1;
+    var _nextGroupId = 1;
 
     /**
      * Description to be written.
@@ -62,8 +61,9 @@ var Body = {};
      */
     Body.create = function(options) {
         var defaults = {
-            id: Body.nextId(),
+            id: Common.nextId(),
             type: 'body',
+            label: 'Body',
             angle: 0,
             position: { x: 0, y: 0 },
             force: { x: 0, y: 0 },
@@ -84,6 +84,7 @@ var Body = {};
             frictionAir: 0.01,
             groupId: 0,
             slop: 0.05,
+            timeScale: 1,
             render: {
                 visible: true,
                 sprite: {
@@ -97,20 +98,11 @@ var Body = {};
 
         var body = Common.extend(defaults, options);
 
-        Body.updateProperties(body);
+        _initProperties(body);
 
         return body;
     };
 
-    /**
-     * Description
-     * @method nextId
-     * @return {Number} Unique bodyID
-     */
-    Body.nextId = function() {
-        return _nextId++;
-    };
-    
     /**
      * Description
      * @method nextGroupId
@@ -121,11 +113,12 @@ var Body = {};
     };
 
     /**
-     * Description
-     * @method updateProperties
+     * Initialises body properties
+     * @method _initProperties
+     * @private
      * @param {body} body
      */
-    Body.updateProperties = function(body) {
+    var _initProperties = function(body) {
         // calculated properties
         body.vertices = body.vertices || Vertices.fromPath(body.render.path);
         body.axes = body.axes || Axes.fromVertices(body.vertices);
@@ -149,15 +142,33 @@ var Body = {};
         Axes.rotate(body.axes, body.angle);
         Bounds.update(body.bounds, body.vertices, body.velocity);
 
-        if (body.isStatic) {
+        Body.setStatic(body, body.isStatic);
+        Sleeping.set(body, body.isSleeping);
+    };
+
+    /**
+     * Sets the body as static, including isStatic flag and setting mass and inertia to Infinity
+     * @method setStatic
+     * @param {bool} isStatic
+     */
+    Body.setStatic = function(body, isStatic) {
+        body.isStatic = isStatic;
+
+        if (isStatic) {
             body.restitution = 0;
             body.friction = 1;
             body.mass = body.inertia = body.density = Infinity;
             body.inverseMass = body.inverseInertia = 0;
             body.render.lineWidth = 1;
-        }
 
-        Sleeping.set(body, body.isSleeping);
+            body.positionPrev.x = body.position.x;
+            body.positionPrev.y = body.position.y;
+            body.anglePrev = body.angle;
+            body.angularVelocity = 0;
+            body.speed = 0;
+            body.angularSpeed = 0;
+            body.motion = 0;
+        }
     };
 
     /**
@@ -228,7 +239,7 @@ var Body = {};
      * @param {number} correction
      */
     Body.update = function(body, deltaTime, correction) {
-        var deltaTimeSquared = deltaTime * deltaTime;
+        var deltaTimeSquared = deltaTime * deltaTime * body.timeScale;
 
         // from the previous step
         var frictionAir = 1 - body.frictionAir,
@@ -305,6 +316,34 @@ var Body = {};
         Bounds.update(body.bounds, body.vertices, body.velocity);
     };
 
+    /**
+     * Scales the body, including updating physical properties (mass, area, axes, inertia), from a point (default is centre)
+     * @method translate
+     * @param {body} body
+     * @param {number} scaleX
+     * @param {number} scaleY
+     * @param {vector} point
+     */
+    Body.scale = function(body, scaleX, scaleY, point) {
+        // scale vertices
+        Vertices.scale(body.vertices, scaleX, scaleY, point);
+
+        // update properties
+        body.axes = Axes.fromVertices(body.vertices);
+        body.area = Vertices.area(body.vertices);
+        body.mass = body.density * body.area;
+        body.inverseMass = 1 / body.mass;
+
+        // update inertia (requires vertices to be at origin)
+        Vertices.translate(body.vertices, { x: -body.position.x, y: -body.position.y });
+        body.inertia = Vertices.inertia(body.vertices, body.mass);
+        body.inverseInertia = 1 / body.inertia;
+        Vertices.translate(body.vertices, { x: body.position.x, y: body.position.y });
+
+        // update bounds
+        Bounds.update(body.bounds, body.vertices, body.velocity);
+    };
+
 })();
 
 ;   // End src/body/Body.js
@@ -325,8 +364,6 @@ var Composite = {};
 
 (function() {
 
-    var _nextId = 0;
-
     /**
      * Description
      * @method create
@@ -335,23 +372,15 @@ var Composite = {};
      */
     Composite.create = function(options) {
         return Common.extend({ 
-            id: Composite.nextId(),
+            id: Common.nextId(),
             type: 'composite',
             parent: null,
             isModified: false,
             bodies: [], 
             constraints: [], 
-            composites: [] 
+            composites: [],
+            label: 'Composite'
         }, options);
-    };
-
-    /**
-     * Returns the next unique compositeID
-     * @method nextId
-     * @return {Number} Unique compositeID
-     */
-    Composite.nextId = function() {
-        return _nextId++;
     };
 
     /**
@@ -672,6 +701,74 @@ var Composite = {};
         return composites;
     };
 
+    /**
+     * Searches the composite recursively for an object matching the type and id supplied, null if not found
+     * @method get
+     * @param {composite} composite
+     * @param {number} id
+     * @param {string} type
+     * @return {object} The requested object, if found
+     */
+    Composite.get = function(composite, id, type) {
+        var objects,
+            object;
+
+        switch (type) {
+        case 'body':
+            objects = Composite.allBodies(composite);
+            break;
+        case 'constraint':
+            objects = Composite.allConstraints(composite);
+            break;
+        case 'composite':
+            objects = Composite.allComposites(composite).concat(composite);
+            break;
+        }
+
+        if (!objects)
+            return null;
+
+        object = objects.filter(function(object) { 
+            return object.id.toString() === id.toString(); 
+        });
+
+        return object.length === 0 ? null : object[0];
+    };
+
+    /**
+     * Moves the given object(s) from compositeA to compositeB (equal to a remove followed by an add)
+     * @method move
+     * @param {compositeA} compositeA
+     * @param {object[]} objects
+     * @param {compositeB} compositeB
+     * @return {composite} Returns compositeA
+     */
+    Composite.move = function(compositeA, objects, compositeB) {
+        Composite.remove(compositeA, objects);
+        Composite.add(compositeB, objects);
+        return compositeA;
+    };
+
+    /**
+     * Assigns new ids for all objects in the composite, recursively
+     * @method rebase
+     * @param {composite} composite
+     * @return {composite} Returns composite
+     */
+    Composite.rebase = function(composite) {
+        var objects = Composite.allBodies(composite)
+                        .concat(Composite.allConstraints(composite))
+                        .concat(Composite.allComposites(composite));
+
+        for (var i = 0; i < objects.length; i++) {
+            objects[i].id = Common.nextId();
+        }
+
+        Composite.setModified(composite, true, true, false);
+
+        return composite;
+    };
+
 })();
 
 ;   // End src/body/Composite.js
@@ -701,6 +798,7 @@ var World = {};
         var composite = Composite.create();
 
         var defaults = {
+            label: 'World',
             gravity: { x: 0, y: 1 },
             bounds: { 
                 min: { x: 0, y: 0 }, 
@@ -1497,6 +1595,77 @@ var Pairs = {};
 ;   // End src/collision/Pairs.js
 
 
+// Begin src/collision/Query.js
+
+/**
+* Functions for performing collision queries
+*
+* @class Query
+*/
+
+var Query = {};
+
+(function() {
+
+    /**
+     * Casts a ray segment against a set of bodies and returns all collisions, ray width is optional. Intersection points are not provided.
+     * @method ray
+     * @param {body[]} bodies
+     * @param {vector} startPoint
+     * @param {vector} endPoint
+     * @return {object[]} Collisions
+     */
+    Query.ray = function(bodies, startPoint, endPoint, rayWidth) {
+        rayWidth = rayWidth || Number.MIN_VALUE;
+
+        var rayAngle = Vector.angle(startPoint, endPoint),
+            rayLength = Vector.magnitude(Vector.sub(startPoint, endPoint)),
+            rayX = (endPoint.x + startPoint.x) * 0.5,
+            rayY = (endPoint.y + startPoint.y) * 0.5,
+            ray = Bodies.rectangle(rayX, rayY, rayLength, rayWidth, { angle: rayAngle }),
+            collisions = [];
+
+        for (var i = 0; i < bodies.length; i++) {
+            var bodyA = bodies[i];
+
+            if (Bounds.overlaps(bodyA.bounds, ray.bounds)) {
+                var collision = SAT.collides(bodyA, ray);
+                if (collision.collided) {
+                    collision.body = collision.bodyA = collision.bodyB = bodyA;
+                    collisions.push(collision);
+                }
+            }
+        }
+
+        return collisions;
+    };
+
+    /**
+     * Returns all bodies whose bounds are inside (or outside if set) the given set of bounds, from the given set of bodies
+     * @method region
+     * @param {body[]} bodies
+     * @param {bounds} bounds
+     * @param {bool} outside
+     * @return {body[]} The bodies matching the query
+     */
+    Query.region = function(bodies, bounds, outside) {
+        var result = [];
+
+        for (var i = 0; i < bodies.length; i++) {
+            var body = bodies[i],
+                overlaps = Bounds.overlaps(body.bounds, bounds);
+            if ((overlaps && !outside) || (!overlaps && outside))
+                result.push(body);
+        }
+
+        return result;
+    };
+
+})();
+
+;   // End src/collision/Query.js
+
+
 // Begin src/collision/Resolver.js
 
 /**
@@ -1517,8 +1686,9 @@ var Resolver = {};
      * Description
      * @method solvePosition
      * @param {pair[]} pairs
+     * @param {number} timeScale
      */
-    Resolver.solvePosition = function(pairs) {
+    Resolver.solvePosition = function(pairs, timeScale) {
         var i,
             pair,
             collision,
@@ -1560,7 +1730,7 @@ var Resolver = {};
             bodyA = collision.bodyA;
             bodyB = collision.bodyB;
             normal = collision.normal;
-            positionImpulse = (pair.separation * _positionDampen) - pair.slop;
+            positionImpulse = ((pair.separation * _positionDampen) - pair.slop) * timeScale;
         
             if (bodyA.isStatic || bodyB.isStatic)
                 positionImpulse *= 2;
@@ -2050,8 +2220,7 @@ var Constraint = {};
 (function() {
 
     var _minLength = 0.000001,
-        _minDifference = 0.001,
-        _nextId = 0;
+        _minDifference = 0.001;
 
     /**
      * Description
@@ -2085,7 +2254,8 @@ var Constraint = {};
         constraint.render = Common.extend(render, constraint.render);
 
         // option defaults
-        constraint.id = constraint.id || Constraint.nextId();
+        constraint.id = constraint.id || Common.nextId();
+        constraint.label = constraint.label || 'Constraint';
         constraint.type = 'constraint';
         constraint.stiffness = constraint.stiffness || 1;
         constraint.angularStiffness = constraint.angularStiffness || 0;
@@ -2099,10 +2269,11 @@ var Constraint = {};
      * Description
      * @method solveAll
      * @param {constraint[]} constraints
+     * @param {number} timeScale
      */
-    Constraint.solveAll = function(constraints) {
+    Constraint.solveAll = function(constraints, timeScale) {
         for (var i = 0; i < constraints.length; i++) {
-            Constraint.solve(constraints[i]);
+            Constraint.solve(constraints[i], timeScale);
         }
     };
 
@@ -2110,8 +2281,9 @@ var Constraint = {};
      * Description
      * @method solve
      * @param {constraint} constraint
+     * @param {number} timeScale
      */
-    Constraint.solve = function(constraint) {
+    Constraint.solve = function(constraint, timeScale) {
         var bodyA = constraint.bodyA,
             bodyB = constraint.bodyB,
             pointA = constraint.pointA,
@@ -2148,10 +2320,10 @@ var Constraint = {};
         // solve distance constraint with Gauss-Siedel method
         var difference = (currentLength - constraint.length) / currentLength,
             normal = Vector.div(delta, currentLength),
-            force = Vector.mult(delta, difference * 0.5 * constraint.stiffness);
+            force = Vector.mult(delta, difference * 0.5 * constraint.stiffness * timeScale * timeScale);
         
         // if difference is very small, we can skip
-        if (Math.abs(1 - (currentLength / constraint.length)) < _minDifference)
+        if (Math.abs(1 - (currentLength / constraint.length)) < _minDifference * timeScale)
             return;
 
         var velocityPointA,
@@ -2285,15 +2457,6 @@ var Constraint = {};
         }
     };
 
-    /**
-     * Returns the next unique constraintId
-     * @method nextId
-     * @return {Number} Unique constraintId
-     */
-    Constraint.nextId = function() {
-        return _nextId++;
-    };
-
 })();
 
 ;   // End src/constraint/Constraint.js
@@ -2323,6 +2486,7 @@ var MouseConstraint = {};
         var mouse = engine.input.mouse;
 
         var constraint = Constraint.create({ 
+            label: 'Mouse Constraint',
             pointA: mouse.position,
             pointB: { x: 0, y: 0 },
             length: 0.01, 
@@ -2403,6 +2567,8 @@ var MouseConstraint = {};
 var Common = {};
 
 (function() {
+
+    Common._nextId = 0;
 
     /**
      * Description
@@ -2663,6 +2829,15 @@ var Common = {};
         console.log('%c [Matter] ' + type + ': ' + message, style);
     };
 
+    /**
+     * Returns the next unique sequential ID
+     * @method nextId
+     * @return {Number} Unique sequential ID
+     */
+    Common.nextId = function() {
+        return Common._nextId++;
+    };
+
 })();
 
 ;   // End src/core/Common.js
@@ -2677,9 +2852,7 @@ var Common = {};
 * @class Engine
 */
 
-// TODO: multiple event handlers, before & after handlers
 // TODO: viewports
-// TODO: frameskipping
 
 var Engine = {};
 
@@ -2721,7 +2894,8 @@ var Engine = {};
                 delta: _delta,
                 correction: 1,
                 deltaMin: 1000 / _fps,
-                deltaMax: 1000 / (_fps * 0.5)
+                deltaMax: 1000 / (_fps * 0.5),
+                timeScale: 1
             },
             render: {
                 element: element,
@@ -2763,7 +2937,8 @@ var Engine = {};
             correction,
             counterTimestamp = 0,
             frameCounter = 0,
-            deltaHistory = [];
+            deltaHistory = [],
+            timeScalePrev = 1;
 
         (function render(timestamp){
             _requestAnimationFrame(render);
@@ -2779,15 +2954,6 @@ var Engine = {};
                 timestamp: timestamp
             };
 
-            /**
-            * Fired at the start of a tick, before any updates to the engine or timing
-            *
-            * @event beforeTick
-            * @param {} event An event object
-            * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
-            * @param {} event.source The source object of the event
-            * @param {} event.name The name of the event
-            */
             Events.trigger(engine, 'beforeTick', event);
 
             delta = (timestamp - timing.timestamp) || _delta;
@@ -2798,11 +2964,20 @@ var Engine = {};
             delta = Math.min.apply(null, deltaHistory);
             
             // limit delta
-            delta = delta < engine.timing.deltaMin ? engine.timing.deltaMin : delta;
-            delta = delta > engine.timing.deltaMax ? engine.timing.deltaMax : delta;
+            delta = delta < timing.deltaMin ? timing.deltaMin : delta;
+            delta = delta > timing.deltaMax ? timing.deltaMax : delta;
 
-            // verlet time correction
+            // time correction for delta
             correction = delta / timing.delta;
+
+            // time correction for time scaling
+            if (timeScalePrev !== 0)
+                correction *= timing.timeScale / timeScalePrev;
+
+            if (timing.timeScale === 0)
+                correction = 0;
+
+            timeScalePrev = timing.timeScale;
 
             // update engine timing object
             timing.timestamp = timestamp;
@@ -2817,24 +2992,6 @@ var Engine = {};
                 frameCounter = 0;
             }
 
-            /**
-            * Fired after engine timing updated, but just before engine state updated
-            *
-            * @event tick
-            * @param {} event An event object
-            * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
-            * @param {} event.source The source object of the event
-            * @param {} event.name The name of the event
-            */
-            /**
-            * Fired just before an update
-            *
-            * @event beforeUpdate
-            * @param {} event An event object
-            * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
-            * @param {} event.source The source object of the event
-            * @param {} event.name The name of the event
-            */
             Events.trigger(engine, 'tick beforeUpdate', event);
 
             // if world has been modified, clear the render scene graph
@@ -2848,48 +3005,12 @@ var Engine = {};
             _triggerCollisionEvents(engine);
             _triggerMouseEvents(engine);
 
-            /**
-            * Fired after engine update and all collision events
-            *
-            * @event afterUpdate
-            * @param {} event An event object
-            * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
-            * @param {} event.source The source object of the event
-            * @param {} event.name The name of the event
-            */
-            /**
-            * Fired just before rendering
-            *
-            * @event beforeRender
-            * @param {} event An event object
-            * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
-            * @param {} event.source The source object of the event
-            * @param {} event.name The name of the event
-            */
             Events.trigger(engine, 'afterUpdate beforeRender', event);
 
             // render
             if (engine.render.options.enabled)
                 engine.render.controller.world(engine);
 
-            /**
-            * Fired after rendering
-            *
-            * @event afterRender
-            * @param {} event An event object
-            * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
-            * @param {} event.source The source object of the event
-            * @param {} event.name The name of the event
-            */
-            /**
-            * Fired after engine update and after rendering
-            *
-            * @event afterTick
-            * @param {} event An event object
-            * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
-            * @param {} event.source The source object of the event
-            * @param {} event.name The name of the event
-            */
             Events.trigger(engine, 'afterTick afterRender', event);
         })();
     };
@@ -2904,6 +3025,7 @@ var Engine = {};
      */
     Engine.update = function(engine, delta, correction) {
         var world = engine.world,
+            timing = engine.timing,
             broadphase = engine.broadphase[engine.broadphase.current],
             broadphasePairs = [],
             i;
@@ -2923,11 +3045,11 @@ var Engine = {};
         Body.applyGravityAll(allBodies, world.gravity);
 
         // update all body position and rotation by integration
-        Body.updateAll(allBodies, delta * engine.timeScale, correction, world.bounds);
+        Body.updateAll(allBodies, delta * timing.timeScale, correction, world.bounds);
 
         // update all constraints
         for (i = 0; i < engine.constraintIterations; i++) {
-            Constraint.solveAll(allConstraints);
+            Constraint.solveAll(allConstraints, timing.timeScale);
         }
         Constraint.postSolveAll(allBodies);
 
@@ -2952,7 +3074,7 @@ var Engine = {};
 
         // update collision pairs
         var pairs = engine.pairs,
-            timestamp = engine.timing.timestamp;
+            timestamp = timing.timestamp;
         Pairs.update(pairs, collisions, timestamp);
         Pairs.removeOld(pairs, timestamp);
 
@@ -2968,7 +3090,7 @@ var Engine = {};
         
         // iteratively resolve position between collisions
         for (i = 0; i < engine.positionIterations; i++) {
-            Resolver.solvePosition(pairs.list);
+            Resolver.solvePosition(pairs.list, timing.timeScale);
         }
         Resolver.postSolvePosition(allBodies);
 
@@ -3004,7 +3126,7 @@ var Engine = {};
             for (var i = 0; i < bodies.length; i++) {
                 var body = bodies[i];
                 Sleeping.set(body, false);
-                body.id = Body.nextId();
+                body.id = Common.nextId();
             }
         }
     };
@@ -3037,45 +3159,18 @@ var Engine = {};
         var mouse = engine.input.mouse,
             mouseEvents = mouse.sourceEvents;
 
-        /**
-        * Fired when the mouse has moved (or a touch moves) during the last step
-        *
-        * @event mousemove
-        * @param {} event An event object
-        * @param {mouse} event.mouse The engine's mouse instance
-        * @param {} event.source The source object of the event
-        * @param {} event.name The name of the event
-        */
         if (mouseEvents.mousemove) {
             Events.trigger(engine, 'mousemove', {
                 mouse: mouse
             });
         }
 
-        /**
-        * Fired when the mouse is down (or a touch has started) during the last step
-        *
-        * @event mousedown
-        * @param {} event An event object
-        * @param {mouse} event.mouse The engine's mouse instance
-        * @param {} event.source The source object of the event
-        * @param {} event.name The name of the event
-        */
         if (mouseEvents.mousedown) {
             Events.trigger(engine, 'mousedown', {
                 mouse: mouse
             });
         }
 
-        /**
-        * Fired when the mouse is up (or a touch has ended) during the last step
-        *
-        * @event mouseup
-        * @param {} event An event object
-        * @param {mouse} event.mouse The engine's mouse instance
-        * @param {} event.source The source object of the event
-        * @param {} event.name The name of the event
-        */
         if (mouseEvents.mouseup) {
             Events.trigger(engine, 'mouseup', {
                 mouse: mouse
@@ -3095,54 +3190,163 @@ var Engine = {};
     var _triggerCollisionEvents = function(engine) {
         var pairs = engine.pairs;
 
-        /**
-        * Fired after engine update, provides a list of all pairs that have started to collide in the current tick (if any)
-        *
-        * @event collisionStart
-        * @param {} event An event object
-        * @param {} event.pairs List of affected pairs
-        * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
-        * @param {} event.source The source object of the event
-        * @param {} event.name The name of the event
-        */
         if (pairs.collisionStart.length > 0) {
             Events.trigger(engine, 'collisionStart', {
                 pairs: pairs.collisionStart
             });
         }
 
-        /**
-        * Fired after engine update, provides a list of all pairs that are colliding in the current tick (if any)
-        *
-        * @event collisionActive
-        * @param {} event An event object
-        * @param {} event.pairs List of affected pairs
-        * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
-        * @param {} event.source The source object of the event
-        * @param {} event.name The name of the event
-        */
         if (pairs.collisionActive.length > 0) {
             Events.trigger(engine, 'collisionActive', {
                 pairs: pairs.collisionActive
             });
         }
 
-        /**
-        * Fired after engine update, provides a list of all pairs that have ended collision in the current tick (if any)
-        *
-        * @event collisionEnd
-        * @param {} event An event object
-        * @param {} event.pairs List of affected pairs
-        * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
-        * @param {} event.source The source object of the event
-        * @param {} event.name The name of the event
-        */
         if (pairs.collisionEnd.length > 0) {
             Events.trigger(engine, 'collisionEnd', {
                 pairs: pairs.collisionEnd
             });
         }
     };
+
+    /*
+    *
+    *  Events Documentation
+    *
+    */
+
+    /**
+    * Fired at the start of a tick, before any updates to the engine or timing
+    *
+    * @event beforeTick
+    * @param {} event An event object
+    * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired after engine timing updated, but just before engine state updated
+    *
+    * @event tick
+    * @param {} event An event object
+    * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired just before an update
+    *
+    * @event beforeUpdate
+    * @param {} event An event object
+    * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired after engine update and all collision events
+    *
+    * @event afterUpdate
+    * @param {} event An event object
+    * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired just before rendering
+    *
+    * @event beforeRender
+    * @param {} event An event object
+    * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired after rendering
+    *
+    * @event afterRender
+    * @param {} event An event object
+    * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired after engine update and after rendering
+    *
+    * @event afterTick
+    * @param {} event An event object
+    * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired when the mouse has moved (or a touch moves) during the last step
+    *
+    * @event mousemove
+    * @param {} event An event object
+    * @param {mouse} event.mouse The engine's mouse instance
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired when the mouse is down (or a touch has started) during the last step
+    *
+    * @event mousedown
+    * @param {} event An event object
+    * @param {mouse} event.mouse The engine's mouse instance
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired when the mouse is up (or a touch has ended) during the last step
+    *
+    * @event mouseup
+    * @param {} event An event object
+    * @param {mouse} event.mouse The engine's mouse instance
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired after engine update, provides a list of all pairs that have started to collide in the current tick (if any)
+    *
+    * @event collisionStart
+    * @param {} event An event object
+    * @param {} event.pairs List of affected pairs
+    * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired after engine update, provides a list of all pairs that are colliding in the current tick (if any)
+    *
+    * @event collisionActive
+    * @param {} event An event object
+    * @param {} event.pairs List of affected pairs
+    * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired after engine update, provides a list of all pairs that have ended collision in the current tick (if any)
+    *
+    * @event collisionEnd
+    * @param {} event An event object
+    * @param {} event.pairs List of affected pairs
+    * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
 
 })();
 
@@ -3179,23 +3383,43 @@ var Events = {};
             object.events[name] = object.events[name] || [];
             object.events[name].push(callback);
         }
+
+        return callback;
     };
 
     /**
-     * Clears all callbacks for the given event names if supplied, otherwise all events
+     * Removes the given event callback. If no callback, clears all callbacks in eventNames. If no eventNames, clears all events.
      * @method off
      * @param {} object
      * @param {string} eventNames
+     * @param {function} callback
      */
-    Events.off = function(object, eventNames) {
+    Events.off = function(object, eventNames, callback) {
         if (!eventNames) {
             object.events = {};
             return;
         }
 
+        // handle Events.off(object, callback)
+        if (typeof eventNames === 'function') {
+            callback = eventNames;
+            eventNames = Common.keys(object.events).join(' ');
+        }
+
         var names = eventNames.split(' ');
+
         for (var i = 0; i < names.length; i++) {
-            object.events[names[i]] = [];
+            var callbacks = object.events[names[i]],
+                newCallbacks = [];
+
+            if (callback) {
+                for (var j = 0; j < callbacks.length; j++) {
+                    if (callbacks[j] !== callback)
+                        newCallbacks.push(callbacks[j]);
+                }
+            }
+
+            object.events[names[i]] = newCallbacks;
         }
     };
 
@@ -3351,6 +3575,7 @@ var Mouse;
         this.position = { x: 0, y: 0 };
         this.mousedownPosition = { x: 0, y: 0 };
         this.mouseupPosition = { x: 0, y: 0 };
+        this.offset = { x: 0, y: 0 };
         this.button = -1;
 
         this.sourceEvents = {
@@ -3368,7 +3593,8 @@ var Mouse;
                 event.preventDefault();
             }
 
-            mouse.position = position;
+            mouse.position.x = position.x + mouse.offset.x;
+            mouse.position.y = position.y + mouse.offset.y;
             mouse.sourceEvents.mousemove = event;
         };
         
@@ -3383,7 +3609,10 @@ var Mouse;
                 mouse.button = event.button;
             }
 
-            mouse.position = mouse.mousedownPosition = position;
+            mouse.position.x = position.x + mouse.offset.x;
+            mouse.position.y = position.y + mouse.offset.y;
+            mouse.mousedownPosition.x = position.x + mouse.offset.x;
+            mouse.mousedownPosition.y = position.y + mouse.offset.y;
             mouse.sourceEvents.mousedown = event;
         };
         
@@ -3396,7 +3625,10 @@ var Mouse;
             }
             
             mouse.button = -1;
-            mouse.position = mouse.mouseupPosition = position;
+            mouse.position.x = position.x + mouse.offset.x;
+            mouse.position.y = position.y + mouse.offset.y;
+            mouse.mouseupPosition.x = position.x + mouse.offset.x;
+            mouse.mouseupPosition.y = position.y + mouse.offset.y;
             mouse.sourceEvents.mouseup = event;
         };
 
@@ -3620,6 +3852,7 @@ var Bodies = {};
         options = options || {};
 
         var rectangle = { 
+            label: 'Rectangle Body',
             position: { x: x, y: y },
             render: {
                 path: 'L 0 0 L ' + width + ' 0 L ' + width + ' ' + height + ' L 0 ' + height
@@ -3651,6 +3884,7 @@ var Bodies = {};
             x3 = x2 + x1;
 
         var trapezoid = { 
+            label: 'Trapezoid Body',
             position: { x: x, y: y },
             render: {
                 path: 'L 0 0 L ' + x1 + ' ' + (-height) + ' L ' + x2 + ' ' + (-height) + ' L ' + x3 + ' 0'
@@ -3672,6 +3906,7 @@ var Bodies = {};
      */
     Bodies.circle = function(x, y, radius, options, maxSides) {
         options = options || {};
+        options.label = 'Circle Body';
         
         // approximate circles with polygons until true circles implemented in SAT
 
@@ -3717,6 +3952,7 @@ var Bodies = {};
         }
 
         var polygon = { 
+            label: 'Polygon Body',
             position: { x: x, y: y },
             render: {
                 path: path
@@ -3757,7 +3993,7 @@ var Composites = {};
      * @return {composite} A new composite containing objects created in the callback
      */
     Composites.stack = function(xx, yy, columns, rows, columnGap, rowGap, callback) {
-        var stack = Composite.create(),
+        var stack = Composite.create({ label: 'Stack' }),
             x = xx,
             y = yy,
             lastBody,
@@ -3827,6 +4063,8 @@ var Composites = {};
         
             Composite.addConstraint(composite, Constraint.create(constraint));
         }
+
+        composite.label += ' Chain';
         
         return composite;
     };
@@ -3876,6 +4114,8 @@ var Composites = {};
                 }
             }
         }
+
+        composite.label += ' Mesh';
         
         return composite;
     };
@@ -3931,7 +4171,7 @@ var Composites = {};
      * @return {composite} A new composite newtonsCradle body
      */
     Composites.newtonsCradle = function(xx, yy, number, size, length) {
-        var newtonsCradle = Composite.create();
+        var newtonsCradle = Composite.create({ label: 'Newtons Cradle' });
 
         for (var i = 0; i < number; i++) {
             var separation = 1.9,
@@ -3963,7 +4203,7 @@ var Composites = {};
             wheelBOffset = width * 0.5 - wheelBase,
             wheelYOffset = 0;
     
-        var car = Composite.create(),
+        var car = Composite.create({ label: 'Car' }),
             body = Bodies.trapezoid(xx, yy, width, height, 0.3, { groupId: groupId, friction: 0.01 });
     
         var wheelA = Bodies.circle(xx + wheelAOffset, yy + wheelYOffset, wheelSize, { 
@@ -4027,6 +4267,8 @@ var Composites = {};
         });
 
         Composites.mesh(softBody, columns, rows, crossBrace, constraintOptions);
+
+        softBody.label = 'Soft Body';
 
         return softBody;
     };
@@ -4125,7 +4367,10 @@ var Bounds = {};
             min: { x: 0, y: 0 }, 
             max: { x: 0, y: 0 }
         };
-        Bounds.update(bounds, vertices);
+
+        if (vertices)
+            Bounds.update(bounds, vertices);
+        
         return bounds;
     };
 
@@ -4187,6 +4432,35 @@ var Bounds = {};
     Bounds.overlaps = function(boundsA, boundsB) {
         return (boundsA.min.x <= boundsB.max.x && boundsA.max.x >= boundsB.min.x
                 && boundsA.max.y >= boundsB.min.y && boundsA.min.y <= boundsB.max.y);
+    };
+
+    /**
+     * Translates the bounds by the given vector
+     * @method translate
+     * @param {bounds} bounds
+     * @param {vector} vector
+     */
+    Bounds.translate = function(bounds, vector) {
+        bounds.min.x += vector.x;
+        bounds.max.x += vector.x;
+        bounds.min.y += vector.y;
+        bounds.max.y += vector.y;
+    };
+
+    /**
+     * Shifts the bounds to the given position
+     * @method shift
+     * @param {bounds} bounds
+     * @param {vector} position
+     */
+    Bounds.shift = function(bounds, position) {
+        var deltaX = bounds.max.x - bounds.min.x,
+            deltaY = bounds.max.y - bounds.min.y;
+            
+        bounds.min.x = position.x;
+        bounds.max.x = position.x + deltaX;
+        bounds.min.y = position.y;
+        bounds.max.y = position.y + deltaY;
     };
     
 })();
@@ -4359,6 +4633,17 @@ var Vector = {};
      */
     Vector.neg = function(vector) {
         return { x: -vector.x, y: -vector.y };
+    };
+
+    /**
+     * Returns the angle in radians between the two vectors relative to the x-axis
+     * @method angle
+     * @param {vector} vectorA
+     * @param {vector} vectorB
+     * @return {number} The angle in radians
+     */
+    Vector.angle = function(vectorA, vectorB) {
+        return Math.atan2(vectorB.y - vectorA.y, vectorB.x - vectorA.x);
     };
 
 })();
@@ -4537,275 +4822,36 @@ var Vertices = {};
         return true;
     };
 
+    /**
+     * Scales the vertices from a point (default is centre)
+     * @method scale
+     * @param {vertices} vertices
+     * @param {number} scaleX
+     * @param {number} scaleY
+     * @param {vector} point
+     */
+    Vertices.scale = function(vertices, scaleX, scaleY, point) {
+        if (scaleX === 1 && scaleY === 1)
+            return vertices;
+
+        point = point || Vertices.centre(vertices);
+
+        var vertex,
+            delta;
+
+        for (var i = 0; i < vertices.length; i++) {
+            vertex = vertices[i];
+            delta = Vector.sub(vertex, point);
+            vertices[i].x = point.x + delta.x * scaleX;
+            vertices[i].y = point.y + delta.y * scaleY;
+        }
+
+        return vertices;
+    };
+
 })();
 
 ;   // End src/geometry/Vertices.js
-
-
-// Begin src/render/Gui.js
-
-/**
-* See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
-* and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
-*
-* @class Gui
-*/
-
-var Gui = {};
-
-(function() {
-
-    /**
-     * Description
-     * @method create
-     * @param {engine} engine
-     * @param {object} options
-     * @return {gui} A container for a configured dat.gui
-     */
-    Gui.create = function(engine, options) {
-        var _datGuiSupported = window.dat && window.localStorage,
-            _serializer;
-        
-        if (!_datGuiSupported) {
-            console.log("Could not create GUI. Check dat.gui library is loaded first.");
-            return;
-        }
-
-        var datGui = new dat.GUI(options);
-        
-        if (Resurrect) {
-            _serializer = new Resurrect({ prefix: '$' });
-            _serializer.parse = _serializer.resurrect;
-        } else {
-            _serializer = JSON;
-        }
-
-        var gui = {
-            datGui: datGui,
-            amount: 1,
-            size: 40,
-            sides: 4,
-            density: 0.001,
-            restitution: 0,
-            friction: 0.1,
-            frictionAir: 0.01,
-            renderer: 'canvas'
-        };
-
-        var funcs = {
-
-            addBody: function() {
-                var options = { 
-                    density: gui.density,
-                    friction: gui.friction,
-                    frictionAir: gui.frictionAir,
-                    restitution: gui.restitution
-                };
-
-                for (var i = 0; i < gui.amount; i++) {
-                    World.add(engine.world, Bodies.polygon(120 + i * gui.size + i * 50, 200, gui.sides, gui.size, options));
-                }
-            },
-
-            clear: function() {
-                World.clear(engine.world, true);
-                Engine.clear(engine);
-
-                // clear scene graph (if defined in controller)
-                var renderController = engine.render.controller;
-                if (renderController.clear)
-                    renderController.clear(engine.render);
-
-                /**
-                * Fired after the gui's clear button pressed
-                *
-                * @event clear
-                * @param {} event An event object
-                * @param {} event.source The source object of the event
-                * @param {} event.name The name of the event
-                */
-                Events.trigger(gui, 'clear');
-            },
-
-            save: function() {
-                if (localStorage && _serializer) {
-                    localStorage.setItem('world', _serializer.stringify(engine.world));
-                }
-
-                /**
-                * Fired after the gui's save button pressed
-                *
-                * @event save
-                * @param {} event An event object
-                * @param {} event.source The source object of the event
-                * @param {} event.name The name of the event
-                */
-                Events.trigger(gui, 'save');
-            },
-
-            load: function() {
-                var loadedWorld;
-
-                if (localStorage && _serializer) {
-                    loadedWorld = _serializer.parse(localStorage.getItem('world'));
-                }
-
-                if (loadedWorld) {
-                    Engine.merge(engine, { world: loadedWorld });
-                }
-
-                /**
-                * Fired after the gui's load button pressed
-                *
-                * @event load
-                * @param {} event An event object
-                * @param {} event.source The source object of the event
-                * @param {} event.name The name of the event
-                */
-                Events.trigger(gui, 'load');
-            }
-        };
-
-        var metrics = datGui.addFolder('Metrics');
-        metrics.add(engine.timing, 'fps').listen();
-
-        if (engine.metrics.extended) {
-            metrics.add(engine.timing, 'delta').listen();
-            metrics.add(engine.timing, 'correction').listen();
-            metrics.add(engine.metrics, 'bodies').listen();
-            metrics.add(engine.metrics, 'collisions').listen();
-            metrics.add(engine.metrics, 'pairs').listen();
-            metrics.add(engine.metrics, 'broadEff').listen();
-            metrics.add(engine.metrics, 'midEff').listen();
-            metrics.add(engine.metrics, 'narrowEff').listen();
-            metrics.add(engine.metrics, 'narrowReuse').listen();
-            metrics.close();
-        } else {
-            metrics.open();
-        }
-
-        var controls = datGui.addFolder('Add Body');
-        controls.add(gui, 'amount', 1, 5).step(1);
-        controls.add(gui, 'size', 5, 150).step(1);
-        controls.add(gui, 'sides', 1, 8).step(1);
-        controls.add(gui, 'density', 0.0001, 0.01).step(0.001);
-        controls.add(gui, 'friction', 0, 1).step(0.05);
-        controls.add(gui, 'frictionAir', 0, gui.frictionAir * 10).step(gui.frictionAir / 10);
-        controls.add(gui, 'restitution', 0, 1).step(0.1);
-        controls.add(funcs, 'addBody');
-        controls.open();
-
-        var worldGui = datGui.addFolder('World');
-        worldGui.add(funcs, 'load');
-        worldGui.add(funcs, 'save');
-        worldGui.add(funcs, 'clear');
-        worldGui.open();
-        
-        var gravity = worldGui.addFolder('Gravity');
-        gravity.add(engine.world.gravity, 'x', -1, 1).step(0.01);
-        gravity.add(engine.world.gravity, 'y', -1, 1).step(0.01);
-        gravity.open();
-
-        var physics = datGui.addFolder('Engine');
-        physics.add(engine, 'enableSleeping');
-
-        physics.add(engine.broadphase, 'current', ['grid', 'bruteForce'])
-            .onFinishChange(function(value) {
-                Composite.setModified(engine.world, true, false, false);
-            });
-
-        physics.add(engine, 'timeScale', 0.1, 2).step(0.1);
-        physics.add(engine, 'velocityIterations', 1, 10).step(1);
-        physics.add(engine, 'positionIterations', 1, 10).step(1);
-        physics.add(engine, 'enabled');
-        physics.open();
-
-        var render = datGui.addFolder('Render');
-
-        render.add(gui, 'renderer', ['canvas', 'webgl'])
-            .onFinishChange(function(value) {
-                var controller;
-
-                if (value === 'canvas')
-                    controller = Render;
-
-                if (value === 'webgl')
-                    controller = RenderPixi;
-
-                // remove old canvas
-                engine.render.element.removeChild(engine.render.canvas);
-
-                // create new renderer using the same options object
-                var options = engine.render.options;
-
-                engine.render = controller.create({
-                    element: engine.render.element,
-                    options: options
-                });
-
-                engine.render.options = options;
-
-                // bind the mouse to the new canvas
-                Mouse.setElement(engine.input.mouse, engine.render.canvas);
-            });
-
-        render.add(engine.render.options, 'wireframes');
-        render.add(engine.render.options, 'showDebug');
-        render.add(engine.render.options, 'showPositions');
-        render.add(engine.render.options, 'showBroadphase');
-        render.add(engine.render.options, 'showBounds');
-        render.add(engine.render.options, 'showVelocity');
-        render.add(engine.render.options, 'showCollisions');
-        render.add(engine.render.options, 'showAxes');
-        render.add(engine.render.options, 'showAngleIndicator');
-        render.add(engine.render.options, 'showSleeping');
-        render.add(engine.render.options, 'showIds');
-        render.add(engine.render.options, 'showShadows');
-        render.add(engine.render.options, 'enabled');
-        render.open();
-
-        //datGui.remember(world)
-        
-        return gui;
-    };
-    
-    /**
-     * Description
-     * @method update
-     * @param {gui} gui
-     * @param {datGui} datGui
-     */
-    Gui.update = function(gui, datGui) {
-        var i;
-        datGui = datGui || gui.datGui;
-        
-        for (i in datGui.__folders) {
-            Gui.update(gui, datGui.__folders[i]);
-        }
-        
-        for (i in datGui.__controllers) {
-            var controller = datGui.__controllers[i];
-            if (controller.updateDisplay)
-                controller.updateDisplay();
-        }
-    };
-
-    /**
-     * Description
-     * @method closeAll
-     * @param {gui} gui
-     */
-    Gui.closeAll = function(gui) {
-        var datGui = gui.datGui;
-        
-        for (var i in datGui.__folders) {
-            datGui.__folders[i].close();
-        }
-    };
-
-})();
-
-;   // End src/render/Gui.js
 
 
 // Begin src/render/Render.js
@@ -4840,6 +4886,7 @@ var Render = {};
                 height: 600,
                 background: '#fafafa',
                 wireframeBackground: '#222',
+                hasBounds: false,
                 enabled: true,
                 wireframes: true,
                 showSleeping: true,
@@ -4861,6 +4908,17 @@ var Render = {};
         render.canvas = render.canvas || _createCanvas(render.options.width, render.options.height);
         render.context = render.canvas.getContext('2d');
         render.textures = {};
+
+        render.bounds = render.bounds || { 
+            min: { 
+                x: 0,
+                y: 0
+            }, 
+            max: { 
+                x: render.options.width,
+                y: render.options.height
+            }
+        };
 
         Render.setBackground(render, render.options.background);
 
@@ -4913,8 +4971,10 @@ var Render = {};
             canvas = render.canvas,
             context = render.context,
             options = render.options,
-            bodies = Composite.allBodies(world),
-            constraints = Composite.allConstraints(world),
+            allBodies = Composite.allBodies(world),
+            allConstraints = Composite.allConstraints(world),
+            bodies = [],
+            constraints = [],
             i;
 
         if (options.wireframes) {
@@ -4929,8 +4989,39 @@ var Render = {};
         context.fillRect(0, 0, canvas.width, canvas.height);
         context.globalCompositeOperation = 'source-over';
 
-        /*if (options.showShadows && !options.wireframes)
-            Render.bodyShadows(engine, bodies, context);*/
+        // handle bounds
+        if (options.hasBounds) {
+            // filter out bodies that are not in view
+            for (i = 0; i < allBodies.length; i++) {
+                var body = allBodies[i];
+                if (Bounds.overlaps(body.bounds, render.bounds))
+                    bodies.push(body);
+            }
+
+            // filter out constraints that are not in view
+            for (i = 0; i < allConstraints.length; i++) {
+                var constraint = allConstraints[i],
+                    bodyA = constraint.bodyA,
+                    bodyB = constraint.bodyB,
+                    pointAWorld = constraint.pointA,
+                    pointBWorld = constraint.pointB;
+
+                if (bodyA) pointAWorld = Vector.add(bodyA.position, constraint.pointA);
+                if (bodyB) pointBWorld = Vector.add(bodyB.position, constraint.pointB);
+
+                if (!pointAWorld || !pointBWorld)
+                    continue;
+
+                if (Bounds.contains(render.bounds, pointAWorld) || Bounds.contains(render.bounds, pointBWorld))
+                    constraints.push(constraint);
+            }
+
+            // translate the view
+            context.translate(-render.bounds.min.x, -render.bounds.min.y);
+        } else {
+            constraints = allConstraints;
+            bodies = allBodies;
+        }
 
         if (!options.wireframes || (engine.enableSleeping && options.showSleeping)) {
             // fully featured rendering of bodies
@@ -4965,6 +5056,9 @@ var Render = {};
 
         if (options.showDebug)
             Render.debug(engine, context);
+
+        if (options.hasBounds)
+            context.translate(render.bounds.min.x, render.bounds.min.y);
     };
 
     /**
@@ -5502,6 +5596,85 @@ var Render = {};
 
     /**
      * Description
+     * @method inspector
+     * @param {inspector} inspector
+     * @param {RenderingContext} context
+     */
+    Render.inspector = function(inspector, context) {
+        var engine = inspector.engine,
+            mouse = engine.input.mouse,
+            selected = inspector.selected,
+            c = context,
+            render = engine.render,
+            options = render.options,
+            bounds;
+
+        if (options.hasBounds)
+            context.translate(-render.bounds.min.x, -render.bounds.min.y);
+
+        for (var i = 0; i < selected.length; i++) {
+            var item = selected[i].data;
+
+            context.translate(0.5, 0.5);
+            context.lineWidth = 1;
+            context.strokeStyle = 'rgba(255,165,0,0.9)';
+            context.setLineDash([1,2]);
+
+            switch (item.type) {
+
+            case 'body':
+
+                // render body selections
+                bounds = item.bounds;
+                context.beginPath();
+                context.rect(Math.floor(bounds.min.x - 3), Math.floor(bounds.min.y - 3), 
+                             Math.floor(bounds.max.x - bounds.min.x + 6), Math.floor(bounds.max.y - bounds.min.y + 6));
+                context.closePath();
+                context.stroke();
+
+                break;
+
+            case 'constraint':
+
+                // render constraint selections
+                var point = item.pointA;
+                if (item.bodyA)
+                    point = item.pointB;
+                context.beginPath();
+                context.arc(point.x, point.y, 10, 0, 2 * Math.PI);
+                context.closePath();
+                context.stroke();
+
+                break;
+
+            }
+
+            context.setLineDash([0]);
+            context.translate(-0.5, -0.5);
+        }
+
+        // render selection region
+        if (inspector.selectStart !== null) {
+            context.translate(0.5, 0.5);
+            context.lineWidth = 1;
+            context.strokeStyle = 'rgba(255,165,0,0.6)';
+            context.fillStyle = 'rgba(255,165,0,0.1)';
+            bounds = inspector.selectBounds;
+            context.beginPath();
+            context.rect(Math.floor(bounds.min.x), Math.floor(bounds.min.y), 
+                         Math.floor(bounds.max.x - bounds.min.x), Math.floor(bounds.max.y - bounds.min.y));
+            context.closePath();
+            context.stroke();
+            context.fill();
+            context.translate(-0.5, -0.5);
+        }
+
+        if (options.hasBounds)
+            context.translate(render.bounds.min.x, render.bounds.min.y);
+    };
+
+    /**
+     * Description
      * @method _createCanvas
      * @private
      * @param {} width
@@ -5919,6 +6092,1414 @@ var RenderPixi = {};
 ;   // End src/render/RenderPixi.js
 
 
+// Begin src/tools/Gui.js
+
+/**
+* See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
+* and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
+*
+* @class Gui
+*/
+
+var Gui = {};
+
+(function() {
+
+    /**
+     * Description
+     * @method create
+     * @param {engine} engine
+     * @param {object} options
+     * @return {gui} A container for a configured dat.gui
+     */
+    Gui.create = function(engine, options) {
+        var _datGuiSupported = window.dat && window.localStorage;
+
+        if (!_datGuiSupported) {
+            console.log("Could not create GUI. Check dat.gui library is loaded first.");
+            return;
+        }
+
+        var datGui = new dat.GUI(options);
+
+        var gui = {
+            engine: engine,
+            datGui: datGui,
+            amount: 1,
+            size: 40,
+            sides: 4,
+            density: 0.001,
+            restitution: 0,
+            friction: 0.1,
+            frictionAir: 0.01,
+            offset: { x: 0, y: 0 },
+            renderer: 'canvas'
+        };
+        
+        if (Resurrect) {
+            gui.serializer = new Resurrect({ prefix: '$', cleanup: true });
+            gui.serializer.parse = gui.serializer.resurrect;
+        }
+
+        _initDatGui(gui);
+
+        return gui;
+    };
+    
+    /**
+     * Description
+     * @method update
+     * @param {gui} gui
+     * @param {datGui} datGui
+     */
+    Gui.update = function(gui, datGui) {
+        var i;
+        datGui = datGui || gui.datGui;
+        
+        for (i in datGui.__folders) {
+            Gui.update(gui, datGui.__folders[i]);
+        }
+        
+        for (i in datGui.__controllers) {
+            var controller = datGui.__controllers[i];
+            if (controller.updateDisplay)
+                controller.updateDisplay();
+        }
+    };
+
+    /**
+     * Description
+     * @method closeAll
+     * @param {gui} gui
+     */
+    Gui.closeAll = function(gui) {
+        var datGui = gui.datGui;
+        
+        for (var i in datGui.__folders) {
+            datGui.__folders[i].close();
+        }
+    };
+
+    /**
+     * Saves world state to local storage
+     * @method saveState
+     * @param {object} serializer
+     * @param {engine} engine
+     * @param {string} key
+     */
+    Gui.saveState = function(serializer, engine, key) {
+        if (localStorage && serializer)
+            localStorage.setItem(key, Gui.serialise(serializer, engine.world));
+    };
+
+    /**
+     * Loads world state from local storage
+     * @method loadState
+     * @param {object} serializer
+     * @param {engine} engine
+     * @param {string} key
+     */
+    Gui.loadState = function(serializer, engine, key) {
+        var loadedWorld;
+
+        if (localStorage && serializer)
+            loadedWorld = serializer.parse(localStorage.getItem(key));
+
+        if (loadedWorld)
+            Engine.merge(engine, { world: loadedWorld });
+    };
+
+    /**
+     * Serialises the object using the given serializer and a Matter-specific replacer
+     * @method serialise
+     * @param {object} serializer
+     * @param {object} object
+     * @param {number} indent
+     * @return {string} The serialised object
+     */
+    Gui.serialise = function(serializer, object, indent) {
+        indent = indent || 0;
+        return serializer.stringify(object, function(key, value) {
+            // skip non-required values
+            if (key === 'path')
+                return undefined;
+
+            // limit precision of floats
+            if (!/^#/.exec(key) && typeof value === 'number') {
+                var fixed = parseFloat(value.toFixed(3));
+
+                // do not limit if limiting will cause value to zero
+                // TODO: this should ideally dynamically find the SF precision required
+                if (fixed === 0 && value !== 0)
+                    return value;
+
+                return fixed;
+            }
+
+            return value;
+        }, indent);
+    };
+
+    var _initDatGui = function(gui) {
+        var engine = gui.engine,
+            datGui = gui.datGui;
+
+        var funcs = {
+            addBody: function() { _addBody(gui); },
+            clear: function() { _clear(gui); },
+            save: function() { Gui.saveState(gui.serializer, engine, 'guiState'); Events.trigger(gui, 'save'); },
+            load: function() { Gui.loadState(gui.serializer, engine, 'guiState'); Events.trigger(gui, 'load'); },
+            inspect: function() { 
+                if (!Inspector.instance)
+                    gui.inspector = Inspector.create(gui.engine); 
+            }
+        };
+
+        var metrics = datGui.addFolder('Metrics');
+        metrics.add(engine.timing, 'fps').listen();
+
+        if (engine.metrics.extended) {
+            metrics.add(engine.timing, 'delta').listen();
+            metrics.add(engine.timing, 'correction').listen();
+            metrics.add(engine.metrics, 'bodies').listen();
+            metrics.add(engine.metrics, 'collisions').listen();
+            metrics.add(engine.metrics, 'pairs').listen();
+            metrics.add(engine.metrics, 'broadEff').listen();
+            metrics.add(engine.metrics, 'midEff').listen();
+            metrics.add(engine.metrics, 'narrowEff').listen();
+            metrics.add(engine.metrics, 'narrowReuse').listen();
+            metrics.close();
+        } else {
+            metrics.open();
+        }
+
+        var controls = datGui.addFolder('Add Body');
+        controls.add(gui, 'amount', 1, 5).step(1);
+        controls.add(gui, 'size', 5, 150).step(1);
+        controls.add(gui, 'sides', 1, 8).step(1);
+        controls.add(gui, 'density', 0.0001, 0.01).step(0.001);
+        controls.add(gui, 'friction', 0, 1).step(0.05);
+        controls.add(gui, 'frictionAir', 0, gui.frictionAir * 10).step(gui.frictionAir / 10);
+        controls.add(gui, 'restitution', 0, 1).step(0.1);
+        controls.add(funcs, 'addBody');
+        controls.open();
+
+        var worldGui = datGui.addFolder('World');
+        worldGui.add(funcs, 'inspect');
+        worldGui.add(funcs, 'load');
+        worldGui.add(funcs, 'save');
+        worldGui.add(funcs, 'clear');
+        worldGui.open();
+        
+        var gravity = worldGui.addFolder('Gravity');
+        gravity.add(engine.world.gravity, 'x', -1, 1).step(0.01);
+        gravity.add(engine.world.gravity, 'y', -1, 1).step(0.01);
+        gravity.open();
+
+        var physics = datGui.addFolder('Engine');
+        physics.add(engine, 'enableSleeping');
+
+        physics.add(engine.broadphase, 'current', ['grid', 'bruteForce'])
+            .onFinishChange(function(value) {
+                Composite.setModified(engine.world, true, false, false);
+            });
+
+        physics.add(engine.timing, 'timeScale', 0, 1.2).step(0.05).listen();
+        physics.add(engine, 'velocityIterations', 1, 10).step(1);
+        physics.add(engine, 'positionIterations', 1, 10).step(1);
+        physics.add(engine, 'enabled');
+        physics.open();
+
+        var render = datGui.addFolder('Render');
+
+        render.add(gui, 'renderer', ['canvas', 'webgl'])
+            .onFinishChange(function(value) { _setRenderer(gui, value); });
+
+        render.add(engine.render.options, 'wireframes');
+        render.add(engine.render.options, 'showDebug');
+        render.add(engine.render.options, 'showPositions');
+        render.add(engine.render.options, 'showBroadphase');
+        render.add(engine.render.options, 'showBounds');
+        render.add(engine.render.options, 'showVelocity');
+        render.add(engine.render.options, 'showCollisions');
+        render.add(engine.render.options, 'showAxes');
+        render.add(engine.render.options, 'showAngleIndicator');
+        render.add(engine.render.options, 'showSleeping');
+        render.add(engine.render.options, 'showIds');
+        render.add(engine.render.options, 'showShadows');
+        render.add(engine.render.options, 'enabled');
+        render.open();
+    };
+
+    var _setRenderer = function(gui, rendererName) {
+        var engine = gui.engine,
+            controller;
+
+        if (rendererName === 'canvas')
+            controller = Render;
+
+        if (rendererName === 'webgl')
+            controller = RenderPixi;
+
+        // remove old canvas
+        engine.render.element.removeChild(engine.render.canvas);
+
+        // create new renderer using the same options object
+        var options = engine.render.options;
+
+        engine.render = controller.create({
+            element: engine.render.element,
+            options: options
+        });
+
+        engine.render.options = options;
+
+        // bind the mouse to the new canvas
+        Mouse.setElement(engine.input.mouse, engine.render.canvas);
+    };
+
+    var _addBody = function(gui) {
+        var engine = gui.engine;
+
+        var options = { 
+            density: gui.density,
+            friction: gui.friction,
+            frictionAir: gui.frictionAir,
+            restitution: gui.restitution
+        };
+
+        for (var i = 0; i < gui.amount; i++) {
+            World.add(engine.world, Bodies.polygon(gui.offset.x + 120 + i * gui.size + i * 50, gui.offset.y + 200, gui.sides, gui.size, options));
+        }
+    };
+
+    var _clear = function(gui) {
+        var engine = gui.engine;
+
+        World.clear(engine.world, true);
+        Engine.clear(engine);
+
+        // clear scene graph (if defined in controller)
+        var renderController = engine.render.controller;
+        if (renderController.clear)
+            renderController.clear(engine.render);
+
+        Events.trigger(gui, 'clear');
+    };
+
+    /*
+    *
+    *  Events Documentation
+    *
+    */
+
+    /**
+    * Fired after the gui's clear button pressed
+    *
+    * @event clear
+    * @param {} event An event object
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired after the gui's save button pressed
+    *
+    * @event save
+    * @param {} event An event object
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired after the gui's load button pressed
+    *
+    * @event load
+    * @param {} event An event object
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+})();
+
+;   // End src/tools/Gui.js
+
+
+// Begin src/tools/Inspector.js
+
+/**
+* See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
+* and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
+*
+* @class Inspector
+*/
+
+var Inspector = {};
+
+(function() {
+
+    var _key,
+        _isWebkit = 'WebkitAppearance' in document.documentElement.style,
+        $body;
+
+    /**
+     * Creates a new inspector tool and inserts it into the page. Requires keymaster, jQuery, jsTree libraries.
+     * @method create
+     * @param {engine} engine
+     * @param {object} options
+     * @return {inspector} An inspector
+     */
+    Inspector.create = function(engine, options) {
+        if (!jQuery || !$.fn.jstree || !window.key) {
+            console.log('Could not create inspector. Check keymaster, jQuery, jsTree libraries are loaded first.');
+            return;
+        }
+
+        var inspector = {
+            engine: engine,
+            isPaused: false,
+            selected: [],
+            selectStart: null,
+            selectEnd: null,
+            selectBounds: Bounds.create(),
+            mousePrevPosition: { x: 0, y: 0 },
+            offset: { x: 0, y: 0 },
+            autoHide: true,
+            autoRewind: true,
+            hasTransitions: _isWebkit ? true : false,
+            bodyClass: '',
+            exportIndent: 0,
+            controls: {
+                container: null,
+                worldTree: null
+            },
+            root: Composite.create({
+                label: 'Root'
+            })
+        };
+
+        inspector = Common.extend(inspector, options);
+        Inspector.instance = inspector;
+
+        inspector.serializer = new Resurrect({ prefix: '$', cleanup: true });
+        inspector.serializer.parse = inspector.serializer.resurrect;
+        localStorage.removeItem('pauseState');
+
+        $body = $('body');
+        $body.toggleClass('ins-auto-hide gui-auto-hide', inspector.autoHide);
+        $body.toggleClass('ins-transitions gui-transitions', inspector.hasTransitions);
+
+        Composite.add(inspector.root, engine.world);
+        engine.world.isModified = true;
+        engine.world.parent = null;
+        _key = window.key;
+
+        _initControls(inspector);
+        _initEngineEvents(inspector);
+        _initTree(inspector);
+        _initKeybinds(inspector);
+
+        return inspector;
+    };
+
+    var _initControls = function(inspector) {
+        var engine = inspector.engine,
+            controls = inspector.controls;
+
+        var $inspectorContainer = $('<div class="ins-container">'),
+            $buttonGroup = $('<div class="ins-control-group">'),
+            $searchBox = $('<input class="ins-search-box" type="search" placeholder="search">'),
+            $importButton = $('<button class="ins-import-button ins-button">Import</button>'),
+            $exportButton = $('<button class="ins-export-button ins-button">Export</button>'),
+            $pauseButton = $('<button class="ins-pause-button ins-button">Pause</button>'),
+            $helpButton = $('<button class="ins-help-button ins-button">Help</button>'),
+            $addCompositeButton = $('<button class="ins-add-button ins-button">+</button>');
+        
+        $buttonGroup.append($pauseButton, $importButton, $exportButton, $helpButton);
+        $inspectorContainer.prepend($buttonGroup, $searchBox, $addCompositeButton);
+        $body.prepend($inspectorContainer);
+
+        controls.pauseButton = $pauseButton;
+        controls.importButton = $importButton;
+        controls.exportButton = $exportButton;
+        controls.helpButton = $helpButton;
+        controls.searchBox = $searchBox;
+        controls.container = $inspectorContainer;
+        controls.addCompositeButton = $addCompositeButton;
+
+        controls.pauseButton.click(function() {
+            _setPaused(inspector, !inspector.isPaused);
+        });
+
+        controls.exportButton.click(function() {
+            _exportFile(inspector);
+        });
+
+        controls.importButton.click(function() {
+            _importFile(inspector);
+        });
+
+        controls.helpButton.click(function() {
+            _showHelp(inspector);
+        });
+
+        controls.addCompositeButton.click(function() {
+            _addNewComposite(inspector);
+        });
+
+        var searchTimeout;
+        controls.searchBox.keyup(function () {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(function () {
+                var value = controls.searchBox.val(),
+                    worldTree = controls.worldTree.data('jstree');
+                worldTree.search(value);
+            }, 250);
+        });
+    };
+
+    var _showHelp = function(inspector) {
+        var help = "Matter Tools\n\n";
+
+        help += "Drag nodes in the tree to move them between composites.\n";
+        help += "Use browser's developer console to inspect selected objects.\n";
+        help += "Note: selections only render if renderer supports it.\n\n";
+
+        help += "[shift + space] pause or play simulation.\n";
+        help += "[right click] and drag on empty space to select a region.\n";
+        help += "[right click] and drag on an object to move it.\n";
+        help += "[right click + shift] and drag to move whole selection.\n";
+        help += "[del] or [backspace] delete selected objects.\n\n";
+
+        help += "[shift + s] scale-xy selected objects with mouse or arrows.\n";
+        help += "[shift + s + d] scale-x selected objects with mouse or arrows.\n";
+        help += "[shift + s + f] scale-y selected objects with mouse or arrows.\n";
+        help += "[shift + r] rotate selected objects with mouse or arrows.\n\n";
+
+        help += "[shift + q] set selected objects as static (can't be undone).\n";
+        help += "[shift + i] import objects.\n";
+        help += "[shift + o] export selected objects.\n";
+        help += "[shift + h] toggle Matter.Gui.\n";
+        help += "[shift + y] toggle auto-hide.\n";
+        help += "[shift + r] toggle auto-rewind on play/pause.\n\n";
+
+        help += "[shift + j] show this help message.";
+
+        alert(help);
+    };
+
+    var _initKeybinds = function(inspector) {
+        var engine = inspector.engine,
+            controls = inspector.controls;
+
+        _key('shift+space', function() {
+            _setPaused(inspector, !inspector.isPaused);
+        });
+
+        _key('shift+o', function() {
+            _exportFile(inspector);
+        });
+
+        _key('shift+i', function() {
+            _importFile(inspector);
+        });
+
+        _key('shift+j', function() {
+            _showHelp(inspector);
+        });
+
+        _key('shift+y', function() {
+            inspector.autoHide = !inspector.autoHide;
+            $body.toggleClass('ins-auto-hide gui-auto-hide', inspector.autoHide);
+        });
+
+        _key('shift+r', function() {
+            inspector.autoRewind = !inspector.autoRewind;
+            if (!inspector.autoRewind)
+                localStorage.removeItem('pauseState');
+        });
+
+        _key('shift+q', function() {
+            var worldTree = inspector.controls.worldTree.data('jstree');
+            for (var i = 0; i < inspector.selected.length; i++) {
+                var object = inspector.selected[i].data;
+                if (object.type === 'body' && !object.isStatic)
+                    Body.setStatic(object, true);
+            }
+        });
+
+        _key('del', function() {
+            _deleteSelectedObjects(inspector);
+        });
+
+        _key('backspace', function() {
+            _deleteSelectedObjects(inspector);
+        });
+
+        // prevent the backspace key from navigating back
+        // http://stackoverflow.com/questions/1495219/how-can-i-prevent-the-backspace-key-from-navigating-back
+        $(document).unbind('keydown').bind('keydown', function (event) {
+            var doPrevent = false;
+            if (event.keyCode === 8) {
+                var d = event.srcElement || event.target;
+                if ((d.tagName.toUpperCase() === 'INPUT' && (d.type.toUpperCase() === 'TEXT' || d.type.toUpperCase() === 'PASSWORD' || d.type.toUpperCase() === 'FILE' || d.type.toUpperCase() === 'EMAIL' || d.type.toUpperCase() === 'SEARCH')) || d.tagName.toUpperCase() === 'TEXTAREA') {
+                    doPrevent = d.readOnly || d.disabled;
+                }
+                else {
+                    doPrevent = true;
+                }
+            }
+
+            if (doPrevent) {
+                event.preventDefault();
+            }
+        });
+    };
+
+    var _initTree = function(inspector) {
+        var engine = inspector.engine,
+            controls = inspector.controls,
+            deferTimeout;
+
+        var worldTreeOptions = {
+            'core': {
+                'check_callback': true
+            },
+            'dnd': {
+                'copy': false
+            },
+            'search': {
+                'show_only_matches': true,
+                'fuzzy': false
+            },
+            'types': {
+                '#': {
+                    'valid_children': []
+                },
+                'body': {
+                    'valid_children': []
+                },
+                'constraint': {
+                    'valid_children': []
+                },
+                'composite': {
+                    'valid_children': []
+                },
+                'bodies': {
+                    'valid_children': ['body']
+                },
+                'constraints': {
+                    'valid_children': ['constraint']
+                },
+                'composites': {
+                    'valid_children': ['composite']
+                }
+            },
+            'plugins' : ['dnd', 'types', 'unique', 'search']
+        };
+
+        controls.worldTree = $('<div class="ins-world-tree">').jstree(worldTreeOptions);
+        controls.container.prepend(controls.worldTree);
+
+        controls.worldTree.on('changed.jstree', function(event, data) {
+            var selected = [],
+                worldTree = controls.worldTree.data('jstree');
+
+            if (data.action !== 'select_node')
+                return;
+
+            // defer selection update until selection has finished propagating
+            clearTimeout(deferTimeout);
+            deferTimeout = setTimeout(function() {
+                data.selected = worldTree.get_selected();
+
+                for (var i = 0; i < data.selected.length; i++) {
+                    var nodeId = data.selected[i],
+                        objectType = nodeId.split('_')[0],
+                        objectId = nodeId.split('_')[1],
+                        worldObject = Composite.get(engine.world, objectId, objectType);
+
+                    switch (objectType) {
+                    case 'body':
+                    case 'constraint':
+                    case 'composite':
+                        selected.push(worldObject);
+                        break;
+                    }
+                }
+
+                _setSelectedObjects(inspector, selected);
+
+            }, 1);
+        });
+
+        $(document).on('dnd_stop.vakata', function(event, data) {
+            var worldTree = controls.worldTree.data('jstree'),
+                nodes = data.data.nodes;
+
+            // handle drag and drop
+            // move items between composites
+            for (var i = 0; i < nodes.length; i++) {
+                var node = worldTree.get_node(nodes[i]),
+                    parentNode = worldTree.get_node(worldTree.get_parent(nodes[i])),
+                    prevCompositeId = node.data.compositeId,
+                    newCompositeId = parentNode.data.compositeId;
+
+                if (prevCompositeId === newCompositeId)
+                    continue;
+
+                var nodeId = nodes[i],
+                    objectType = nodeId.split('_')[0],
+                    objectId = nodeId.split('_')[1],
+                    worldObject = Composite.get(inspector.root, objectId, objectType),
+                    prevComposite = Composite.get(inspector.root, prevCompositeId, 'composite'),
+                    newComposite = Composite.get(inspector.root, newCompositeId, 'composite');
+
+                Composite.move(prevComposite, worldObject, newComposite);
+            }
+        });
+
+        controls.worldTree.on('dblclick.jstree', function(event, data) {
+            var worldTree = controls.worldTree.data('jstree'),
+                selected = worldTree.get_selected();
+
+            // select all children of double clicked node
+            for (var i = 0; i < selected.length; i++) {
+                var nodeId = selected[i],
+                    objectType = nodeId.split('_')[0],
+                    objectId = nodeId.split('_')[1],
+                    worldObject = Composite.get(engine.world, objectId, objectType);
+
+                switch (objectType) {
+                case 'composite':
+                case 'composites':
+                case 'bodies':
+                case 'constraints':
+                    var node = worldTree.get_node(nodeId),
+                        children = worldTree.get_node(nodeId).children;
+
+                    for (var j = 0; j < children.length; j++) 
+                        worldTree.select_node(children[j], false);
+
+                    break;
+                }
+            }
+        });
+    };
+
+    var _addBodyClass = function(inspector, classNames) {
+        // only apply changes to prevent DOM lag
+        if (inspector.bodyClass.indexOf(' ' + classNames) === -1) {
+            $body.addClass(classNames);
+            inspector.bodyClass = ' ' + $body.attr('class');
+        }
+    };
+
+    var _removeBodyClass = function(inspector, classNames) {
+        // only apply changes to prevent DOM lag
+        var updateRequired = false,
+            classes = classNames.split(' ');
+
+        for (var i = 0; i < classes.length; i++) {
+            updateRequired = inspector.bodyClass.indexOf(' ' + classes[i]) !== -1;
+            if (updateRequired)
+                break;
+        }
+
+        if (updateRequired) {
+            $body.removeClass(classNames);
+            inspector.bodyClass = ' ' + $body.attr('class');
+        }
+    };
+
+    var _getMousePosition = function(inspector) {
+        return Vector.add(inspector.engine.input.mouse.position, inspector.offset);
+    };
+
+    var _initEngineEvents = function(inspector) {
+        var engine = inspector.engine,
+            mouse = engine.input.mouse,
+            mousePosition = _getMousePosition(inspector),
+            controls = inspector.controls;
+
+        Events.on(engine, 'tick', function() {
+            // update mouse position reference
+            mousePosition = _getMousePosition(inspector);
+
+            var mouseDelta = mousePosition.x - inspector.mousePrevPosition.x,
+                keyDelta = _key.isPressed('up') + _key.isPressed('right') - _key.isPressed('down') - _key.isPressed('left'),
+                delta = mouseDelta + keyDelta;
+
+            // update interface when world changes
+            if (engine.world.isModified) {
+                var data = _generateCompositeTreeNode(inspector.root, null, true);
+                _updateTree(controls.worldTree.data('jstree'), data);
+                _setSelectedObjects(inspector, []);
+            }
+
+            // update region selection
+            if (inspector.selectStart !== null) {
+                inspector.selectEnd.x = mousePosition.x;
+                inspector.selectEnd.y = mousePosition.y;
+                Bounds.update(inspector.selectBounds, [inspector.selectStart, inspector.selectEnd]);
+            }
+
+            // rotate mode
+            if (_key.shift && _key.isPressed('r')) {
+                var rotateSpeed = 0.03,
+                    angle = Math.max(-2, Math.min(2, delta)) * rotateSpeed;
+
+                _addBodyClass(inspector, 'ins-cursor-rotate');
+                _rotateSelectedObjects(inspector, angle);
+            } else {
+                _removeBodyClass(inspector, 'ins-cursor-rotate');
+            }
+
+            // scale mode
+            if (_key.shift && _key.isPressed('s')) {
+                var scaleSpeed = 0.02,
+                    scale = 1 + Math.max(-2, Math.min(2, delta)) * scaleSpeed;
+
+                _addBodyClass(inspector, 'ins-cursor-scale');
+                
+                if (_key.isPressed('d')) {
+                    scaleX = scale;
+                    scaleY = 1;
+                } else if (_key.isPressed('f')) {
+                    scaleX = 1;
+                    scaleY = scale;
+                } else {
+                    scaleX = scaleY = scale;
+                }
+
+                _scaleSelectedObjects(inspector, scaleX, scaleY);
+            } else {
+                _removeBodyClass(inspector, 'ins-cursor-scale');
+            }
+
+            // translate mode
+            if (mouse.button === 2 && !mouse.sourceEvents.mousedown && !mouse.sourceEvents.mouseup) {
+                _addBodyClass(inspector, 'ins-cursor-move');
+                _moveSelectedObjects(inspector, mousePosition.x, mousePosition.y);
+            } else {
+                _removeBodyClass(inspector, 'ins-cursor-move');
+            }
+
+            inspector.mousePrevPosition = Common.clone(mousePosition);
+        });
+
+        Events.on(engine, 'mouseup', function(event) {
+            // select objects in region if making a region selection
+            if (inspector.selectStart !== null) {
+                var selected = Query.region(Composite.allBodies(engine.world), inspector.selectBounds);
+                _setSelectedObjects(inspector, selected);
+            }
+
+            // clear selection region
+            inspector.selectStart = null;
+            inspector.selectEnd = null;
+            Events.trigger(inspector, 'selectEnd');
+        });
+
+        Events.on(engine, 'mousedown', function(event) {
+            var engine = event.source,
+                bodies = Composite.allBodies(engine.world),
+                constraints = Composite.allConstraints(engine.world),
+                isUnionSelect = _key.shift || _key.control,
+                worldTree = inspector.controls.worldTree.data('jstree'),
+                i;
+
+            if (mouse.button === 2) {
+                var hasSelected = false;
+
+                for (i = 0; i < bodies.length; i++) {
+                    var body = bodies[i];
+
+                    if (Bounds.contains(body.bounds, mousePosition) && Vertices.contains(body.vertices, mousePosition)) {
+
+                        if (isUnionSelect) {
+                            _addSelectedObject(inspector, body);
+                        } else {
+                            _setSelectedObjects(inspector, [body]);
+                        }
+
+                        hasSelected = true;
+                        break;
+                    }
+                }
+
+                if (!hasSelected) {
+                    for (i = 0; i < constraints.length; i++) {
+                        var constraint = constraints[i],
+                            bodyA = constraint.bodyA,
+                            bodyB = constraint.bodyB;
+
+                        if (constraint.label.indexOf('Mouse Constraint') !== -1)
+                            continue;
+
+                        var pointAWorld = constraint.pointA,
+                            pointBWorld = constraint.pointB;
+
+                        if (bodyA) pointAWorld = Vector.add(bodyA.position, constraint.pointA);
+                        if (bodyB) pointBWorld = Vector.add(bodyB.position, constraint.pointB);
+
+                        if (!pointAWorld || !pointBWorld)
+                            continue;
+
+                        var distA = Vector.magnitudeSquared(Vector.sub(mousePosition, pointAWorld)),
+                            distB = Vector.magnitudeSquared(Vector.sub(mousePosition, pointBWorld));
+
+                        if (distA < 100 || distB < 100) {
+                            if (isUnionSelect) {
+                                _addSelectedObject(inspector, constraint);
+                            } else {
+                                _setSelectedObjects(inspector, [constraint]);
+                            }
+
+                            hasSelected = true;
+                            break;
+                        }
+                    }
+
+                    if (!hasSelected) {
+                        worldTree.deselect_all(true);
+                        _setSelectedObjects(inspector, []);
+
+                        inspector.selectStart = Common.clone(mousePosition);
+                        inspector.selectEnd = Common.clone(mousePosition);
+                        Bounds.update(inspector.selectBounds, [inspector.selectStart, inspector.selectEnd]);
+                    
+                        Events.trigger(inspector, 'selectStart');
+                    } else {
+                        inspector.selectStart = null;
+                        inspector.selectEnd = null;
+                    }
+                }
+            }
+
+            if (mouse.button === 2 && inspector.selected.length > 0) {
+                _addBodyClass(inspector, 'ins-cursor-move');
+
+                _updateSelectedMouseDownOffset(inspector);
+            }
+        });
+
+        // render hook
+        Events.on(engine, 'afterRender', function() {
+            var renderController = engine.render.controller,
+                context = engine.render.context;
+            if (renderController.inspector)
+                renderController.inspector(inspector, context);
+        });
+    };
+
+    var _deleteSelectedObjects = function(inspector) {
+        var objects = [],
+            object,
+            worldTree = inspector.controls.worldTree.data('jstree'),
+            i;
+
+        // delete objects in world
+        for (i = 0; i < inspector.selected.length; i++) {
+            object = inspector.selected[i].data;
+            if (object !== inspector.engine.world)
+                objects.push(object);
+        }
+
+        // also delete non-world composites (selected only in the UI tree)
+        var selectedNodes = worldTree.get_selected();
+        for (i = 0; i < selectedNodes.length; i++) {
+            var node = worldTree.get_node(selectedNodes[i]);
+            if (node.type === 'composite') {
+                node = worldTree.get_node(node.children[0]);
+                if (node.data) {
+                    var compositeId = node.data.compositeId;
+                    object = Composite.get(inspector.root, compositeId, 'composite');
+                    if (object && object !== inspector.engine.world) {
+                        objects.push(object);
+                        worldTree.delete_node(selectedNodes[i]);
+                    }
+                }
+            }
+        }
+
+        Composite.remove(inspector.root, objects, true);
+        _setSelectedObjects(inspector, []);
+    };
+
+    var _updateSelectedMouseDownOffset = function(inspector) {
+        var selected = inspector.selected,
+            mouse = inspector.engine.input.mouse,
+            mousePosition = _getMousePosition(inspector),
+            item,
+            data;
+
+        for (var i = 0; i < selected.length; i++) {
+            item = selected[i];
+            data = item.data;
+
+            if (data.position) {
+                item.mousedownOffset = {
+                    x: mousePosition.x - data.position.x,
+                    y: mousePosition.y - data.position.y
+                };
+            } else if (data.pointA && !data.bodyA) {
+                item.mousedownOffset = {
+                    x: mousePosition.x - data.pointA.x,
+                    y: mousePosition.y - data.pointA.y
+                };
+            } else if (data.pointB && !data.bodyB) {
+                item.mousedownOffset = {
+                    x: mousePosition.x - data.pointB.x,
+                    y: mousePosition.y - data.pointB.y
+                };
+            }
+        }
+    };
+
+    var _moveSelectedObjects = function(inspector, x, y) {
+        var selected = inspector.selected,
+            mouse = inspector.engine.input.mouse,
+            mousePosition = _getMousePosition(inspector),
+            item,
+            data;
+
+        for (var i = 0; i < selected.length; i++) {
+            item = selected[i];
+            data = item.data;
+
+            if (!item.mousedownOffset)
+                continue;
+
+            switch (data.type) {
+
+            case 'body':
+                var delta = {
+                    x: x - data.position.x - item.mousedownOffset.x,
+                    y: y - data.position.y - item.mousedownOffset.y
+                };
+
+                Body.translate(data, delta);
+                data.positionPrev.x = data.position.x;
+                data.positionPrev.y = data.position.y;
+
+                break;
+
+            case 'constraint':
+                var point = data.pointA;
+                if (data.bodyA)
+                    point = data.pointB;
+
+                point.x = x - item.mousedownOffset.x;
+                point.y = y - item.mousedownOffset.y;
+
+                var initialPointA = data.bodyA ? Vector.add(data.bodyA.position, data.pointA) : data.pointA,
+                    initialPointB = data.bodyB ? Vector.add(data.bodyB.position, data.pointB) : data.pointB;
+
+                data.length = Vector.magnitude(Vector.sub(initialPointA, initialPointB));
+
+                break;
+
+            }
+        }
+    };
+
+    var _scaleSelectedObjects = function(inspector, scaleX, scaleY) {
+        var selected = inspector.selected,
+            item,
+            data;
+
+        for (var i = 0; i < selected.length; i++) {
+            item = selected[i];
+            data = item.data;
+
+            switch (data.type) {
+            case 'body':
+                Body.scale(data, scaleX, scaleY, data.position);
+
+                if (data.circleRadius)
+                    data.circleRadius *= scaleX;
+
+                break;
+            }
+        }
+    };
+
+    var _rotateSelectedObjects = function(inspector, angle) {
+        var selected = inspector.selected,
+            item,
+            data;
+
+        for (var i = 0; i < selected.length; i++) {
+            item = selected[i];
+            data = item.data;
+
+            switch (data.type) {
+            case 'body':
+                Body.rotate(data, angle);
+                break;
+            }
+        }
+    };
+
+    var _setPaused = function(inspector, isPaused) {
+        if (isPaused) {
+            if (inspector.autoRewind) {
+                _setSelectedObjects(inspector, []);
+                Gui.loadState(inspector.serializer, inspector.engine, 'pauseState');
+            }
+
+            inspector.engine.timing.timeScale = 0;
+            inspector.isPaused = true;
+            inspector.controls.pauseButton.text('Play');
+
+            Events.trigger(inspector, 'paused');
+        } else {
+            if (inspector.autoRewind) {
+                Gui.saveState(inspector.serializer, inspector.engine, 'pauseState');
+            }
+
+            inspector.engine.timing.timeScale = 1;
+            inspector.isPaused = false;
+            inspector.controls.pauseButton.text('Pause');
+
+            Events.trigger(inspector, 'play');
+        }
+    };
+
+    var _setSelectedObjects = function(inspector, objects) {
+        var worldTree = inspector.controls.worldTree.data('jstree'),
+            selectedItems = [],
+            data,
+            i;
+
+        for (i = 0; i < inspector.selected.length; i++) {
+            data = inspector.selected[i].data;
+            worldTree.deselect_node(data.type + '_' + data.id, true);
+        }
+
+        inspector.selected = [];
+        console.clear();
+
+        for (i = 0; i < objects.length; i++) {
+            data = objects[i];
+
+            if (data) {
+                // add the object to the selection
+                _addSelectedObject(inspector, data);
+
+                // log selected objects to console for property inspection
+                if (i < 5) {
+                    console.log(data.label + ' ' + data.id + ': %O', data);
+                } else if (i === 6) {
+                    console.warn('Omitted inspecting ' + (objects.length - 5) + ' more objects');
+                }
+            }
+        }
+    };
+
+    var _addSelectedObject = function(inspector, object) {
+        if (!object)
+            return;
+
+        var worldTree = inspector.controls.worldTree.data('jstree');
+        inspector.selected.push({ data: object });
+        worldTree.select_node(object.type + '_' + object.id, true);
+    };
+
+    var _updateTree = function(tree, data) {
+        data[0].state = data[0].state || { opened: true };
+        tree.settings.core.data = data;
+        tree.refresh(-1);
+    };
+
+    var _generateCompositeTreeNode = function(composite, compositeId, isRoot) {
+        var children = [],
+            node = {
+                id: 'composite_' + composite.id,
+                data: {
+                    compositeId: compositeId,
+                },
+                type: 'composite',
+                text: (composite.label ? composite.label : 'Composite') + ' ' + composite.id,
+                'li_attr': {
+                    'class': 'jstree-node-type-composite'
+                }
+            };
+
+        var childNode = _generateCompositesTreeNode(composite.composites, composite.id);
+        childNode.id = 'composites_' + composite.id;
+        children.push(childNode);
+
+        if (isRoot)
+            return childNode.children;
+
+        childNode = _generateBodiesTreeNode(composite.bodies, composite.id);
+        childNode.id = 'bodies_' + composite.id;
+        children.push(childNode);
+
+        childNode = _generateConstraintsTreeNode(composite.constraints, composite.id);
+        childNode.id = 'constraints_' + composite.id;
+        children.push(childNode);
+
+        node.children = children;
+
+        return node;
+    };
+
+    var _generateCompositesTreeNode = function(composites, compositeId) {
+        var node = {
+            type: 'composites',
+            text: 'Composites',
+            data: {
+                compositeId: compositeId,
+            },
+            children: [],
+            'li_attr': {
+                'class': 'jstree-node-type-composites'
+            }
+        };
+
+        for (var i = 0; i < composites.length; i++) {
+            var composite = composites[i];
+            node.children.push(_generateCompositeTreeNode(composite, compositeId));
+        }
+
+        return node;
+    };
+
+    var _generateBodiesTreeNode = function(bodies, compositeId) {
+        var node = {
+            type: 'bodies',
+            text: 'Bodies',
+            data: {
+                compositeId: compositeId,
+            },
+            children: [],
+            'li_attr': {
+                'class': 'jstree-node-type-bodies'
+            }
+        };
+
+        for (var i = 0; i < bodies.length; i++) {
+            var body = bodies[i];
+            node.children.push({
+                type: 'body',
+                id: 'body_' + body.id,
+                data: {
+                    compositeId: compositeId,
+                },
+                text: (body.label ? body.label : 'Body') + ' ' + body.id,
+                'li_attr': {
+                    'class': 'jstree-node-type-body'
+                }
+            });
+        }
+
+        return node;
+    };
+
+    var _generateConstraintsTreeNode = function(constraints, compositeId) {
+        var node = {
+            type: 'constraints',
+            text: 'Constraints',
+            data: {
+                compositeId: compositeId,
+            },
+            children: [],
+            'li_attr': {
+                'class': 'jstree-node-type-constraints'
+            }
+        };
+
+        for (var i = 0; i < constraints.length; i++) {
+            var constraint = constraints[i];
+            node.children.push({
+                type: 'constraint',
+                id: 'constraint_' + constraint.id,
+                data: {
+                    compositeId: compositeId,
+                },
+                text: (constraint.label ? constraint.label : 'Constraint') + ' ' + constraint.id,
+                'li_attr': {
+                    'class': 'jstree-node-type-constraint'
+                }
+            });
+        }
+
+        return node;
+    };
+
+    var _addNewComposite = function(inspector) {
+        var newComposite = Composite.create();
+
+        Composite.add(inspector.root, newComposite);
+
+        // move new composite to the start so that it appears top of tree
+        inspector.root.composites.splice(inspector.root.composites.length - 1, 1);
+        inspector.root.composites.unshift(newComposite);
+
+        Composite.setModified(inspector.engine.world, true, true, false);
+    };
+
+    var _exportFile = function(inspector) {
+        var engine = inspector.engine,
+            toExport = [];
+
+        if (inspector.selected.length === 0) {
+            alert('No objects were selected, so export could not be created. Can only export objects that are in the World composite.');
+            return;
+        }
+
+        var fileName = 'export-objects',
+            exportComposite = Composite.create({
+                label: 'Exported Objects'
+            });
+
+        // add everything else, must be in top-down order
+        for (var i = 0; i < inspector.selected.length; i++) {
+            var object = inspector.selected[i].data;
+
+            // skip if it's already in the composite tree
+            // this means orphans will be added in the root
+            if (Composite.get(exportComposite, object.id, object.type))
+                continue;
+
+            Composite.add(exportComposite, object);
+
+            // better filename for small exports
+            if (inspector.selected.length === 1)
+                fileName = 'export-' + object.label + '-' + object.id;
+        }
+
+        // santise filename
+        fileName = fileName.toLowerCase().replace(/[^\w\-]/g, '') + '.json';
+
+        // serialise
+        var json = Gui.serialise(inspector.serializer, exportComposite, inspector.exportIndent);
+
+        // launch export download
+        if (_isWebkit) {
+            var blob = new Blob([json], { type: 'application/json' }),
+                anchor = document.createElement('a');
+            anchor.download = fileName;
+            anchor.href = (window.webkitURL || window.URL).createObjectURL(blob);
+            anchor.dataset.downloadurl = ['application/json', anchor.download, anchor.href].join(':');
+            anchor.click();
+        } else {
+            window.open('data:application/json;charset=utf-8,' + escape(json));
+        }
+
+        Events.trigger(inspector, 'export');
+    };
+
+    var _importFile = function(inspector) {
+        var engine = inspector.engine,
+            element = document.createElement('div'),
+            fileInput;
+
+        element.innerHTML = '<input type="file">';
+        fileInput = element.firstChild;
+
+        fileInput.addEventListener('change', function(e) {
+            var file = fileInput.files[0];
+
+            if (file.name.match(/\.(txt|json)$/)) {
+                var reader = new FileReader();
+
+                reader.onload = function(e) {
+                    var importedComposite = inspector.serializer.parse(reader.result);
+
+                    if (importedComposite) {
+                        importedComposite.label = 'Imported Objects';
+
+                        Composite.rebase(importedComposite);
+                        Composite.add(inspector.root, importedComposite);
+
+                        // move imported composite to the start so that it appears top of tree
+                        inspector.root.composites.splice(inspector.root.composites.length - 1, 1);
+                        inspector.root.composites.unshift(importedComposite);
+
+                        var worldTree = inspector.controls.worldTree.data('jstree'),
+                            data = _generateCompositeTreeNode(inspector.root, null, true);
+                        _updateTree(worldTree, data);
+                    }
+                };
+
+                reader.readAsText(file);    
+            } else {
+                alert('File not supported, .json or .txt JSON files only');
+            }
+        });
+
+        fileInput.click();
+    };
+
+    /*
+    *
+    *  Events Documentation
+    *
+    */
+
+    /**
+    * Fired after the inspector's import button pressed
+    *
+    * @event export
+    * @param {} event An event object
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired after the inspector's export button pressed
+    *
+    * @event import
+    * @param {} event An event object
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired after the inspector user starts making a selection
+    *
+    * @event selectStart
+    * @param {} event An event object
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired after the inspector user ends making a selection
+    *
+    * @event selectEnd
+    * @param {} event An event object
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired after the inspector is paused
+    *
+    * @event pause
+    * @param {} event An event object
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired after the inspector is played
+    *
+    * @event play
+    * @param {} event An event object
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+})();
+
+;   // End src/tools/Inspector.js
+
+
 // aliases
 
 World.add = Composite.add;
@@ -5957,6 +7538,8 @@ Matter.Gui = Gui;
 Matter.Render = Render;
 Matter.RenderPixi = RenderPixi;
 Matter.Events = Events;
+Matter.Query = Query;
+Matter.Inspector = Inspector;
 
 // CommonJS module
 if (typeof exports !== 'undefined') {
