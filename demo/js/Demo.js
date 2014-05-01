@@ -107,6 +107,89 @@
         var renderOptions = _engine.render.options;
     };
 
+    Demo.views = function() {
+        var _world = _engine.world;
+        
+        Demo.reset();
+        
+        var stack = Composites.stack(20, 20, 15, 4, 0, 0, function(x, y, column, row) {
+            switch (Math.round(Common.random(0, 1))) {
+
+            case 0:
+                if (Math.random() < 0.8) {
+                    return Bodies.rectangle(x, y, Common.random(20, 50), Common.random(20, 50));
+                } else {
+                    return Bodies.rectangle(x, y, Common.random(80, 120), Common.random(20, 30));
+                }
+                break;
+            case 1:
+                var sides = Math.round(Common.random(1, 8));
+                sides = (sides === 3) ? 4 : sides;
+                return Bodies.polygon(x, y, sides, Common.random(20, 50));
+            }
+        });
+        
+        World.add(_world, stack);
+
+        // get the centre of the viewport
+        var viewCentre = {
+            x: _engine.render.options.width * 0.5,
+            y: _engine.render.options.height * 0.5
+        };
+
+        // make the world bounds a little bigger than the render bounds
+        _world.bounds.min.x = -300;
+        _world.bounds.min.y = -300;
+        _world.bounds.max.x = 1100;
+        _world.bounds.max.y = 900;
+
+        // use the engine tick event to control our view
+        _sceneEvents.push(
+            Events.on(_engine, 'tick', function() {
+                var world = _engine.world,
+                    mouse = _engine.input.mouse,
+                    render = _engine.render;
+
+                // get vector from mouse relative to centre of view
+                var mouseRelative = Vector.sub(mouse.position, mouse.offset),
+                    deltaCentre = Vector.sub(mouseRelative, viewCentre);
+
+                // only translate the view if mouse has moved 200px from the centre
+                if (Vector.magnitude(deltaCentre) > 200) {
+
+                    // create a vector to translate the view, allowing the user to control view speed
+                    var translate = {
+                        x: Math.pow(Math.abs(deltaCentre.x), 1.5) * 0.001 * Common.sign(deltaCentre.x),
+                        y: Math.pow(Math.abs(deltaCentre.y), 1.5) * 0.001 * Common.sign(deltaCentre.y)
+                    };
+
+                    // prevent the view moving outside the world bounds
+                    if (render.bounds.min.x + translate.x < world.bounds.min.x)
+                        translate.x = world.bounds.min.x - render.bounds.min.x;
+
+                    if (render.bounds.max.x + translate.x > world.bounds.max.x)
+                        translate.x = world.bounds.max.x - render.bounds.max.x;
+
+                    if (render.bounds.min.y + translate.y < world.bounds.min.y)
+                        translate.y = world.bounds.min.y - render.bounds.min.y;
+
+                    if (render.bounds.max.y + translate.y > world.bounds.max.y)
+                        translate.y = world.bounds.max.y - render.bounds.max.y;
+
+                    Bounds.translate(render.bounds, translate);
+
+                    // we must update the mouse offset too
+                    mouse.offset.x = render.bounds.min.x;
+                    mouse.offset.y = render.bounds.min.y;
+                }
+            })
+        );
+
+        // must enable renderOptions.hasBounds for views to work
+        var renderOptions = _engine.render.options;
+        renderOptions.hasBounds = true;
+    };
+
     Demo.mixedSolid = function() {
         var _world = _engine.world;
         
