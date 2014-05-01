@@ -1023,6 +1023,10 @@
         // reset id pool
         Common._nextId = 0;
 
+        // reset mouse offset
+        _engine.input.mouse.offset.x = 0;
+        _engine.input.mouse.offset.y = 0;
+
         _engine.enableSleeping = false;
         _engine.world.gravity.y = 1;
 
@@ -1039,6 +1043,7 @@
         
         var renderOptions = _engine.render.options;
         renderOptions.wireframes = true;
+        renderOptions.hasBounds = false;
         renderOptions.showDebug = false;
         renderOptions.showBroadphase = false;
         renderOptions.showBounds = false;
