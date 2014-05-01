@@ -28,6 +28,7 @@ var Render = {};
                 height: 600,
                 background: '#fafafa',
                 wireframeBackground: '#222',
+                hasBounds: false,
                 enabled: true,
                 wireframes: true,
                 showSleeping: true,
@@ -49,6 +50,17 @@ var Render = {};
         render.canvas = render.canvas || _createCanvas(render.options.width, render.options.height);
         render.context = render.canvas.getContext('2d');
         render.textures = {};
+
+        render.bounds = render.bounds || { 
+            min: { 
+                x: 0,
+                y: 0
+            }, 
+            max: { 
+                x: render.options.width,
+                y: render.options.height
+            }
+        };
 
         Render.setBackground(render, render.options.background);
 
@@ -101,8 +113,10 @@ var Render = {};
             canvas = render.canvas,
             context = render.context,
             options = render.options,
-            bodies = Composite.allBodies(world),
-            constraints = Composite.allConstraints(world),
+            allBodies = Composite.allBodies(world),
+            allConstraints = Composite.allConstraints(world),
+            bodies = [],
+            constraints = [],
             i;
 
         if (options.wireframes) {
@@ -117,8 +131,39 @@ var Render = {};
         context.fillRect(0, 0, canvas.width, canvas.height);
         context.globalCompositeOperation = 'source-over';
 
-        /*if (options.showShadows && !options.wireframes)
-            Render.bodyShadows(engine, bodies, context);*/
+        // handle bounds
+        if (options.hasBounds) {
+            // filter out bodies that are not in view
+            for (i = 0; i < allBodies.length; i++) {
+                var body = allBodies[i];
+                if (Bounds.overlaps(body.bounds, render.bounds))
+                    bodies.push(body);
+            }
+
+            // filter out constraints that are not in view
+            for (i = 0; i < allConstraints.length; i++) {
+                var constraint = allConstraints[i],
+                    bodyA = constraint.bodyA,
+                    bodyB = constraint.bodyB,
+                    pointAWorld = constraint.pointA,
+                    pointBWorld = constraint.pointB;
+
+                if (bodyA) pointAWorld = Vector.add(bodyA.position, constraint.pointA);
+                if (bodyB) pointBWorld = Vector.add(bodyB.position, constraint.pointB);
+
+                if (!pointAWorld || !pointBWorld)
+                    continue;
+
+                if (Bounds.contains(render.bounds, pointAWorld) || Bounds.contains(render.bounds, pointBWorld))
+                    constraints.push(constraint);
+            }
+
+            // translate the view
+            context.translate(-render.bounds.min.x, -render.bounds.min.y);
+        } else {
+            constraints = allConstraints;
+            bodies = allBodies;
+        }
 
         if (!options.wireframes || (engine.enableSleeping && options.showSleeping)) {
             // fully featured rendering of bodies
@@ -153,6 +198,9 @@ var Render = {};
 
         if (options.showDebug)
             Render.debug(engine, context);
+
+        if (options.hasBounds)
+            context.translate(render.bounds.min.x, render.bounds.min.y);
     };
 
     /**
@@ -699,8 +747,12 @@ var Render = {};
             mouse = engine.input.mouse,
             selected = inspector.selected,
             c = context,
-            options = engine.render.options,
+            render = engine.render,
+            options = render.options,
             bounds;
+
+        if (options.hasBounds)
+            context.translate(-render.bounds.min.x, -render.bounds.min.y);
 
         for (var i = 0; i < selected.length; i++) {
             var item = selected[i].data;
@@ -758,6 +810,9 @@ var Render = {};
             context.fill();
             context.translate(-0.5, -0.5);
         }
+
+        if (options.hasBounds)
+            context.translate(render.bounds.min.x, render.bounds.min.y);
     };
 
     /**
