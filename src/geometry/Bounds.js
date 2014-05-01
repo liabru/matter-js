@@ -85,5 +85,34 @@ var Bounds = {};
         return (boundsA.min.x <= boundsB.max.x && boundsA.max.x >= boundsB.min.x
                 && boundsA.max.y >= boundsB.min.y && boundsA.min.y <= boundsB.max.y);
     };
+
+    /**
+     * Translates the bounds by the given vector
+     * @method translate
+     * @param {bounds} bounds
+     * @param {vector} vector
+     */
+    Bounds.translate = function(bounds, vector) {
+        bounds.min.x += vector.x;
+        bounds.max.x += vector.x;
+        bounds.min.y += vector.y;
+        bounds.max.y += vector.y;
+    };
+
+    /**
+     * Shifts the bounds to the given position
+     * @method shift
+     * @param {bounds} bounds
+     * @param {vector} position
+     */
+    Bounds.shift = function(bounds, position) {
+        var deltaX = bounds.max.x - bounds.min.x,
+            deltaY = bounds.max.y - bounds.min.y;
+            
+        bounds.min.x = position.x;
+        bounds.max.x = position.x + deltaX;
+        bounds.min.y = position.y;
+        bounds.max.y = position.y + deltaY;
+    };
     
 })();
