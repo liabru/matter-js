@@ -19,6 +19,7 @@ var Mouse;
         this.position = { x: 0, y: 0 };
         this.mousedownPosition = { x: 0, y: 0 };
         this.mouseupPosition = { x: 0, y: 0 };
+        this.offset = { x: 0, y: 0 };
         this.button = -1;
 
         this.sourceEvents = {
@@ -36,8 +37,8 @@ var Mouse;
                 event.preventDefault();
             }
 
-            mouse.position.x = position.x;
-            mouse.position.y = position.y;
+            mouse.position.x = position.x + mouse.offset.x;
+            mouse.position.y = position.y + mouse.offset.y;
             mouse.sourceEvents.mousemove = event;
         };
         
@@ -52,10 +53,10 @@ var Mouse;
                 mouse.button = event.button;
             }
 
-            mouse.position.x = position.x;
-            mouse.position.y = position.y;
-            mouse.mousedownPosition.x = position.x;
-            mouse.mousedownPosition.y = position.y;
+            mouse.position.x = position.x + mouse.offset.x;
+            mouse.position.y = position.y + mouse.offset.y;
+            mouse.mousedownPosition.x = position.x + mouse.offset.x;
+            mouse.mousedownPosition.y = position.y + mouse.offset.y;
             mouse.sourceEvents.mousedown = event;
         };
         
@@ -68,10 +69,10 @@ var Mouse;
             }
             
             mouse.button = -1;
-            mouse.position.x = position.x;
-            mouse.position.y = position.y;
-            mouse.mouseupPosition.x = position.x;
-            mouse.mouseupPosition.y = position.y;
+            mouse.position.x = position.x + mouse.offset.x;
+            mouse.position.y = position.y + mouse.offset.y;
+            mouse.mouseupPosition.x = position.x + mouse.offset.x;
+            mouse.mouseupPosition.y = position.y + mouse.offset.y;
             mouse.sourceEvents.mouseup = event;
         };
 
