@@ -84,6 +84,66 @@ var Gui = {};
         }
     };
 
+    /**
+     * Saves world state to local storage
+     * @method saveState
+     * @param {object} serializer
+     * @param {engine} engine
+     * @param {string} key
+     */
+    Gui.saveState = function(serializer, engine, key) {
+        if (localStorage && serializer)
+            localStorage.setItem(key, Gui.serialise(serializer, engine.world));
+    };
+
+    /**
+     * Loads world state from local storage
+     * @method loadState
+     * @param {object} serializer
+     * @param {engine} engine
+     * @param {string} key
+     */
+    Gui.loadState = function(serializer, engine, key) {
+        var loadedWorld;
+
+        if (localStorage && serializer)
+            loadedWorld = serializer.parse(localStorage.getItem(key));
+
+        if (loadedWorld)
+            Engine.merge(engine, { world: loadedWorld });
+    };
+
+    /**
+     * Serialises the object using the given serializer and a Matter-specific replacer
+     * @method serialise
+     * @param {object} serializer
+     * @param {object} object
+     * @param {number} indent
+     * @return {string} The serialised object
+     */
+    Gui.serialise = function(serializer, object, indent) {
+        indent = indent || 0;
+        return serializer.stringify(object, function(key, value) {
+            // skip non-required values
+            if (key === 'path')
+                return undefined;
+
+            // limit precision of floats
+            if (!/^#/.exec(key) && typeof value === 'number') {
+                var fixed = parseFloat(value.toFixed(3));
+
+                // do not limit if limiting will cause value to zero
+                // TODO: this should ideally dynamically find the SF precision required
+                if (fixed === 0 && value !== 0)
+                    return value;
+
+                return fixed;
+            }
+
+            return value;
+        }, indent);
+    };
+
     var _initDatGui = function(gui) {
         var engine = gui.engine,
             datGui = gui.datGui;
@@ -91,8 +151,12 @@ var Gui = {};
         var funcs = {
             addBody: function() { _addBody(gui); },
             clear: function() { _clear(gui); },
-            save: function() { _save(gui); },
-            load: function() { _load(gui); }
+            save: function() { Gui.saveState(gui.serializer, engine, 'guiState'); Events.trigger(gui, 'save'); },
+            load: function() { Gui.loadState(gui.serializer, engine, 'guiState'); Events.trigger(gui, 'load'); },
+            inspect: function() { 
+                if (!Inspector.instance)
+                    gui.inspector = Inspector.create(gui.engine); 
+            }
         };
 
         var metrics = datGui.addFolder('Metrics');
@@ -125,6 +189,7 @@ var Gui = {};
         controls.open();
 
         var worldGui = datGui.addFolder('World');
+        worldGui.add(funcs, 'inspect');
         worldGui.add(funcs, 'load');
         worldGui.add(funcs, 'save');
         worldGui.add(funcs, 'clear');
@@ -224,31 +289,6 @@ var Gui = {};
             renderController.clear(engine.render);
 
         Events.trigger(gui, 'clear');
-    };
-
-    var _save = function(gui) {
-        var engine = gui.engine;
-
-        if (localStorage && gui.serializer) {
-            localStorage.setItem('world', gui.serializer.stringify(engine.world));
-        }
-
-        Events.trigger(gui, 'save');
-    };
-
-    var _load = function(gui) {
-        var engine = gui.engine,
-            loadedWorld;
-
-        if (localStorage && gui.serializer) {
-            loadedWorld = gui.serializer.parse(localStorage.getItem('world'));
-        }
-
-        if (loadedWorld) {
-            Engine.merge(engine, { world: loadedWorld });
-        }
-
-        Events.trigger(gui, 'load');
     };
 
     /*

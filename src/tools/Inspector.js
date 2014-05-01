@@ -14,54 +14,56 @@ var Inspector = {};
         $body;
 
     /**
-     * Creates a new inspector tool and inserts it into the page. Requires jQuery and jsTree.
+     * Creates a new inspector tool and inserts it into the page. Requires keymaster, jQuery, jsTree libraries.
      * @method create
      * @param {engine} engine
      * @param {object} options
-     * @return {inspector} A container for a configured dat.inspector
+     * @return {inspector} An inspector
      */
     Inspector.create = function(engine, options) {
-        if (!jQuery || !$.fn.jstree) {
-            console.log('Could not create inspector. Check jQuery and jsTree libraries are loaded first.');
+        if (!jQuery || !$.fn.jstree || !window.key) {
+            console.log('Could not create inspector. Check keymaster, jQuery, jsTree libraries are loaded first.');
             return;
         }
 
         var inspector = {
-            controls: {
-                container: null,
-                worldTree: null
-            },
             engine: engine,
             isPaused: false,
             selected: [],
             selectStart: null,
             selectEnd: null,
             selectBounds: Bounds.create(),
+            mousePrevPosition: { x: 0, y: 0 },
+            offset: { x: 0, y: 0 },
             autoHide: true,
+            autoRewind: true,
             hasTransitions: _isWebkit ? true : false,
+            bodyClass: '',
+            exportIndent: 0,
+            controls: {
+                container: null,
+                worldTree: null
+            },
             root: Composite.create({
                 label: 'Root'
             })
         };
 
         inspector = Common.extend(inspector, options);
-
-        if (Resurrect) {
-            inspector.serializer = new Resurrect({ prefix: '$', cleanup: true });
-            inspector.serializer.parse = inspector.serializer.resurrect;
-        } else {
-            inspector.serializer = JSON;
-        }
-
-        $body = $('body');
-        _key = window.key || {};
         Inspector.instance = inspector;
 
+        inspector.serializer = new Resurrect({ prefix: '$', cleanup: true });
+        inspector.serializer.parse = inspector.serializer.resurrect;
+        localStorage.removeItem('pauseState');
+
+        $body = $('body');
         $body.toggleClass('ins-auto-hide gui-auto-hide', inspector.autoHide);
         $body.toggleClass('ins-transitions gui-transitions', inspector.hasTransitions);
 
         Composite.add(inspector.root, engine.world);
+        engine.world.isModified = true;
         engine.world.parent = null;
+        _key = window.key;
 
         _initControls(inspector);
         _initEngineEvents(inspector);
@@ -81,10 +83,11 @@ var Inspector = {};
             $importButton = $('<button class="ins-import-button ins-button">Import</button>'),
             $exportButton = $('<button class="ins-export-button ins-button">Export</button>'),
             $pauseButton = $('<button class="ins-pause-button ins-button">Pause</button>'),
-            $helpButton = $('<button class="ins-help-button ins-button">Help</button>');
+            $helpButton = $('<button class="ins-help-button ins-button">Help</button>'),
+            $addCompositeButton = $('<button class="ins-add-button ins-button">+</button>');
         
         $buttonGroup.append($pauseButton, $importButton, $exportButton, $helpButton);
-        $inspectorContainer.prepend($buttonGroup, $searchBox);
+        $inspectorContainer.prepend($buttonGroup, $searchBox, $addCompositeButton);
         $body.prepend($inspectorContainer);
 
         controls.pauseButton = $pauseButton;
@@ -93,6 +96,7 @@ var Inspector = {};
         controls.helpButton = $helpButton;
         controls.searchBox = $searchBox;
         controls.container = $inspectorContainer;
+        controls.addCompositeButton = $addCompositeButton;
 
         controls.pauseButton.click(function() {
             _setPaused(inspector, !inspector.isPaused);
@@ -110,8 +114,11 @@ var Inspector = {};
             _showHelp(inspector);
         });
 
-        var searchTimeout;
+        controls.addCompositeButton.click(function() {
+            _addNewComposite(inspector);
+        });
 
+        var searchTimeout;
         controls.searchBox.keyup(function () {
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(function () {
@@ -123,26 +130,29 @@ var Inspector = {};
     };
 
     var _showHelp = function(inspector) {
-        var help = "Matter Tools \n\n";
+        var help = "Matter Tools\n\n";
 
-        help += "Drag nodes in the tree to move them between composites.  \n\n";
-        help += "Use browser's developer console to inspect selected objects. \n\n";
-        help += "Note: selections only render if renderer supports it. \n\n";
+        help += "Drag nodes in the tree to move them between composites.\n";
+        help += "Use browser's developer console to inspect selected objects.\n";
+        help += "Note: selections only render if renderer supports it.\n\n";
 
-        help += "[shift + space] pause or play simulation. \n";
-        help += "[right click] and drag to select objects. \n";
-        help += "[del] or [backspace] delete selected objects. \n\n";
+        help += "[shift + space] pause or play simulation.\n";
+        help += "[right click] and drag on empty space to select a region.\n";
+        help += "[right click] and drag on an object to move it.\n";
+        help += "[right click + shift] and drag to move whole selection.\n";
+        help += "[del] or [backspace] delete selected objects.\n\n";
 
-        help += "[shift + s] scale-xy selected objects with mouse. \n";
-        help += "[shift + s + d] scale-x selected objects with mouse. \n";
-        help += "[shift + s + f] scale-y selected objects with mouse. \n";
-        help += "[shift + r] rotate selected objects with mouse. \n\n";
+        help += "[shift + s] scale-xy selected objects with mouse or arrows.\n";
+        help += "[shift + s + d] scale-x selected objects with mouse or arrows.\n";
+        help += "[shift + s + f] scale-y selected objects with mouse or arrows.\n";
+        help += "[shift + r] rotate selected objects with mouse or arrows.\n\n";
 
-        help += "[shift + q] set selected objects as static (can't be undone). \n";
-        help += "[shift + i] import objects. \n";
-        help += "[shift + o] export selected objects. \n";
-        help += "[shift + h] toggle Matter.Gui. \n";
-        help += "[shift + y] toggle auto-hide. \n\n";
+        help += "[shift + q] set selected objects as static (can't be undone).\n";
+        help += "[shift + i] import objects.\n";
+        help += "[shift + o] export selected objects.\n";
+        help += "[shift + h] toggle Matter.Gui.\n";
+        help += "[shift + y] toggle auto-hide.\n";
+        help += "[shift + r] toggle auto-rewind on play/pause.\n\n";
 
         help += "[shift + j] show this help message.";
 
@@ -172,6 +182,12 @@ var Inspector = {};
         _key('shift+y', function() {
             inspector.autoHide = !inspector.autoHide;
             $body.toggleClass('ins-auto-hide gui-auto-hide', inspector.autoHide);
+        });
+
+        _key('shift+r', function() {
+            inspector.autoRewind = !inspector.autoRewind;
+            if (!inspector.autoRewind)
+                localStorage.removeItem('pauseState');
         });
 
         _key('shift+q', function() {
@@ -342,21 +358,108 @@ var Inspector = {};
         });
     };
 
+    var _addBodyClass = function(inspector, classNames) {
+        // only apply changes to prevent DOM lag
+        if (inspector.bodyClass.indexOf(' ' + classNames) === -1) {
+            $body.addClass(classNames);
+            inspector.bodyClass = ' ' + $body.attr('class');
+        }
+    };
+
+    var _removeBodyClass = function(inspector, classNames) {
+        // only apply changes to prevent DOM lag
+        var updateRequired = false,
+            classes = classNames.split(' ');
+
+        for (var i = 0; i < classes.length; i++) {
+            updateRequired = inspector.bodyClass.indexOf(' ' + classes[i]) !== -1;
+            if (updateRequired)
+                break;
+        }
+
+        if (updateRequired) {
+            $body.removeClass(classNames);
+            inspector.bodyClass = ' ' + $body.attr('class');
+        }
+    };
+
+    var _getMousePosition = function(inspector) {
+        return Vector.add(inspector.engine.input.mouse.position, inspector.offset);
+    };
+
     var _initEngineEvents = function(inspector) {
         var engine = inspector.engine,
+            mouse = engine.input.mouse,
+            mousePosition = _getMousePosition(inspector),
             controls = inspector.controls;
 
         Events.on(engine, 'tick', function() {
+            // update mouse position reference
+            mousePosition = _getMousePosition(inspector);
+
+            var mouseDelta = mousePosition.x - inspector.mousePrevPosition.x,
+                keyDelta = _key.isPressed('up') + _key.isPressed('right') - _key.isPressed('down') - _key.isPressed('left'),
+                delta = mouseDelta + keyDelta;
+
+            // update interface when world changes
             if (engine.world.isModified) {
                 var data = _generateCompositeTreeNode(inspector.root, null, true);
                 _updateTree(controls.worldTree.data('jstree'), data);
                 _setSelectedObjects(inspector, []);
             }
+
+            // update region selection
+            if (inspector.selectStart !== null) {
+                inspector.selectEnd.x = mousePosition.x;
+                inspector.selectEnd.y = mousePosition.y;
+                Bounds.update(inspector.selectBounds, [inspector.selectStart, inspector.selectEnd]);
+            }
+
+            // rotate mode
+            if (_key.shift && _key.isPressed('r')) {
+                var rotateSpeed = 0.03,
+                    angle = Math.max(-2, Math.min(2, delta)) * rotateSpeed;
+
+                _addBodyClass(inspector, 'ins-cursor-rotate');
+                _rotateSelectedObjects(inspector, angle);
+            } else {
+                _removeBodyClass(inspector, 'ins-cursor-rotate');
+            }
+
+            // scale mode
+            if (_key.shift && _key.isPressed('s')) {
+                var scaleSpeed = 0.02,
+                    scale = 1 + Math.max(-2, Math.min(2, delta)) * scaleSpeed;
+
+                _addBodyClass(inspector, 'ins-cursor-scale');
+                
+                if (_key.isPressed('d')) {
+                    scaleX = scale;
+                    scaleY = 1;
+                } else if (_key.isPressed('f')) {
+                    scaleX = 1;
+                    scaleY = scale;
+                } else {
+                    scaleX = scaleY = scale;
+                }
+
+                _scaleSelectedObjects(inspector, scaleX, scaleY);
+            } else {
+                _removeBodyClass(inspector, 'ins-cursor-scale');
+            }
+
+            // translate mode
+            if (mouse.button === 2 && !mouse.sourceEvents.mousedown && !mouse.sourceEvents.mouseup) {
+                _addBodyClass(inspector, 'ins-cursor-move');
+                _moveSelectedObjects(inspector, mousePosition.x, mousePosition.y);
+            } else {
+                _removeBodyClass(inspector, 'ins-cursor-move');
+            }
+
+            inspector.mousePrevPosition = Common.clone(mousePosition);
         });
 
         Events.on(engine, 'mouseup', function(event) {
-            $body.removeClass('ins-cursor-move');
-
             // select objects in region if making a region selection
             if (inspector.selectStart !== null) {
                 var selected = Query.region(Composite.allBodies(engine.world), inspector.selectBounds);
@@ -370,15 +473,12 @@ var Inspector = {};
         });
 
         Events.on(engine, 'mousedown', function(event) {
-            var mouse = event.mouse,
-                engine = event.source,
+            var engine = event.source,
                 bodies = Composite.allBodies(engine.world),
                 constraints = Composite.allConstraints(engine.world),
                 isUnionSelect = _key.shift || _key.control,
                 worldTree = inspector.controls.worldTree.data('jstree'),
                 i;
-
-            $body.removeClass('ins-cursor-move ins-cursor-rotate ins-cursor-scale');
 
             if (mouse.button === 2) {
                 var hasSelected = false;
@@ -386,7 +486,7 @@ var Inspector = {};
                 for (i = 0; i < bodies.length; i++) {
                     var body = bodies[i];
 
-                    if (Bounds.contains(body.bounds, mouse.position) && Vertices.contains(body.vertices, mouse.position)) {
+                    if (Bounds.contains(body.bounds, mousePosition) && Vertices.contains(body.vertices, mousePosition)) {
 
                         if (isUnionSelect) {
                             _addSelectedObject(inspector, body);
@@ -417,8 +517,8 @@ var Inspector = {};
                         if (!pointAWorld || !pointBWorld)
                             continue;
 
-                        var distA = Vector.magnitudeSquared(Vector.sub(mouse.position, pointAWorld)),
-                            distB = Vector.magnitudeSquared(Vector.sub(mouse.position, pointBWorld));
+                        var distA = Vector.magnitudeSquared(Vector.sub(mousePosition, pointAWorld)),
+                            distB = Vector.magnitudeSquared(Vector.sub(mousePosition, pointBWorld));
 
                         if (distA < 100 || distB < 100) {
                             if (isUnionSelect) {
@@ -436,8 +536,8 @@ var Inspector = {};
                         worldTree.deselect_all(true);
                         _setSelectedObjects(inspector, []);
 
-                        inspector.selectStart = Common.clone(mouse.position);
-                        inspector.selectEnd = Common.clone(mouse.position);
+                        inspector.selectStart = Common.clone(mousePosition);
+                        inspector.selectEnd = Common.clone(mousePosition);
                         Bounds.update(inspector.selectBounds, [inspector.selectStart, inspector.selectEnd]);
                     
                         Events.trigger(inspector, 'selectStart');
@@ -449,155 +549,9 @@ var Inspector = {};
             }
 
             if (mouse.button === 2 && inspector.selected.length > 0) {
-                $body.addClass('ins-cursor-move');
+                _addBodyClass(inspector, 'ins-cursor-move');
 
-                for (i = 0; i < inspector.selected.length; i++) {
-                    var item = inspector.selected[i],
-                        data = item.data;
-
-                    if (data.position) {
-                        item.mousedownOffset = {
-                            x: mouse.position.x - data.position.x,
-                            y: mouse.position.y - data.position.y
-                        };
-                    } else if (data.pointA && !data.bodyA) {
-                        item.mousedownOffset = {
-                            x: mouse.position.x - data.pointA.x,
-                            y: mouse.position.y - data.pointA.y
-                        };
-                    } else if (data.pointB && !data.bodyB) {
-                        item.mousedownOffset = {
-                            x: mouse.position.x - data.pointB.x,
-                            y: mouse.position.y - data.pointB.y
-                        };
-                    }
-                }
-            }
-        });
-
-        var mousePrevPosition = { x: 0, y: 0 };
-
-        Events.on(engine, 'mousemove', function(event) {
-            var mouse = event.mouse,
-                selected = inspector.selected,
-                item,
-                data,
-                i;
-
-            $body.removeClass('ins-cursor-move ins-cursor-rotate ins-cursor-scale');
-
-            if (_key.shift && _key.isPressed('r')) {
-                $body.addClass('ins-cursor-rotate');
-
-                // roate mode
-                for (i = 0; i < selected.length; i++) {
-                    item = selected[i];
-                    data = item.data;
-
-                    switch (data.type) {
-
-                    case 'body':
-
-                        var angle = Common.sign(mouse.position.x - mousePrevPosition.x) * 0.05;
-                        Body.rotate(data, angle);
-
-                        break;
-
-                    }
-                }
-
-                mousePrevPosition = Common.clone(mouse.position);
-                return;
-            }
-
-            if (_key.shift && _key.isPressed('s')) {
-                $body.addClass('ins-cursor-scale');
-
-                // scale mode
-                for (i = 0; i < selected.length; i++) {
-                    item = selected[i];
-                    data = item.data;
-
-                    switch (data.type) {
-
-                    case 'body':
-
-                        var scale = 1 + Common.sign(mouse.position.x - mousePrevPosition.x) * 0.02;
-
-                        if (_key.isPressed('d')) {
-                            scaleX = scale;
-                            scaleY = 1;
-                        } else if (_key.isPressed('f')) {
-                            scaleX = 1;
-                            scaleY = scale;
-                        } else {
-                            scaleX = scaleY = scale;
-                        }
-
-                        Body.scale(data, scaleX, scaleY);
-
-                        if (data.circleRadius)
-                            data.circleRadius *= scale;
-
-                        break;
-
-                    }
-                }
-
-                mousePrevPosition = Common.clone(mouse.position);
-                return;
-            }
-
-            if (mouse.button !== 2 || mouse.sourceEvents.mousedown || mouse.sourceEvents.mouseup)
-                return;
-
-            // update region selection
-            if (inspector.selectStart !== null) {
-                inspector.selectEnd.x = mouse.position.x;
-                inspector.selectEnd.y = mouse.position.y;
-                Bounds.update(inspector.selectBounds, [inspector.selectStart, inspector.selectEnd]);
-                return;
-            }
-
-            $body.addClass('ins-cursor-move');
-
-            // translate mode
-            for (i = 0; i < selected.length; i++) {
-                item = selected[i];
-                data = item.data;
-
-                switch (data.type) {
-
-                case 'body':
-
-                    var delta = {
-                        x: mouse.position.x - data.position.x - item.mousedownOffset.x,
-                        y: mouse.position.y - data.position.y - item.mousedownOffset.y
-                    };
-
-                    Body.translate(data, delta);
-                    data.positionPrev.x = data.position.x;
-                    data.positionPrev.y = data.position.y;
-
-                    break;
-
-                case 'constraint':
-
-                    var point = data.pointA;
-                    if (data.bodyA)
-                        point = data.pointB;
-
-                    point.x = mouse.position.x - item.mousedownOffset.x;
-                    point.y = mouse.position.y - item.mousedownOffset.y;
-
-                    var initialPointA = data.bodyA ? Vector.add(data.bodyA.position, data.pointA) : data.pointA,
-                        initialPointB = data.bodyB ? Vector.add(data.bodyB.position, data.pointB) : data.pointB;
-
-                    data.length = Vector.magnitude(Vector.sub(initialPointA, initialPointB));
-
-                    break;
-
-                }
+                _updateSelectedMouseDownOffset(inspector);
             }
         });
 
@@ -612,40 +566,185 @@ var Inspector = {};
 
     var _deleteSelectedObjects = function(inspector) {
         var objects = [],
-            worldTree = inspector.controls.worldTree.data('jstree');
+            object,
+            worldTree = inspector.controls.worldTree.data('jstree'),
+            i;
 
-        for (var i = 0; i < inspector.selected.length; i++) {
-            var object = inspector.selected[i].data;
+        // delete objects in world
+        for (i = 0; i < inspector.selected.length; i++) {
+            object = inspector.selected[i].data;
+            if (object !== inspector.engine.world)
+                objects.push(object);
+        }
 
-            if (object === inspector.engine.world)
-                continue;
-
-            objects.push(object);
-            worldTree.delete_node(object.type + '_' + object.id);
+        // also delete non-world composites (selected only in the UI tree)
+        var selectedNodes = worldTree.get_selected();
+        for (i = 0; i < selectedNodes.length; i++) {
+            var node = worldTree.get_node(selectedNodes[i]);
+            if (node.type === 'composite') {
+                node = worldTree.get_node(node.children[0]);
+                if (node.data) {
+                    var compositeId = node.data.compositeId;
+                    object = Composite.get(inspector.root, compositeId, 'composite');
+                    if (object && object !== inspector.engine.world) {
+                        objects.push(object);
+                        worldTree.delete_node(selectedNodes[i]);
+                    }
+                }
+            }
         }
 
         Composite.remove(inspector.root, objects, true);
         _setSelectedObjects(inspector, []);
     };
 
+    var _updateSelectedMouseDownOffset = function(inspector) {
+        var selected = inspector.selected,
+            mouse = inspector.engine.input.mouse,
+            mousePosition = _getMousePosition(inspector),
+            item,
+            data;
+
+        for (var i = 0; i < selected.length; i++) {
+            item = selected[i];
+            data = item.data;
+
+            if (data.position) {
+                item.mousedownOffset = {
+                    x: mousePosition.x - data.position.x,
+                    y: mousePosition.y - data.position.y
+                };
+            } else if (data.pointA && !data.bodyA) {
+                item.mousedownOffset = {
+                    x: mousePosition.x - data.pointA.x,
+                    y: mousePosition.y - data.pointA.y
+                };
+            } else if (data.pointB && !data.bodyB) {
+                item.mousedownOffset = {
+                    x: mousePosition.x - data.pointB.x,
+                    y: mousePosition.y - data.pointB.y
+                };
+            }
+        }
+    };
+
+    var _moveSelectedObjects = function(inspector, x, y) {
+        var selected = inspector.selected,
+            mouse = inspector.engine.input.mouse,
+            mousePosition = _getMousePosition(inspector),
+            item,
+            data;
+
+        for (var i = 0; i < selected.length; i++) {
+            item = selected[i];
+            data = item.data;
+
+            if (!item.mousedownOffset)
+                continue;
+
+            switch (data.type) {
+
+            case 'body':
+                var delta = {
+                    x: x - data.position.x - item.mousedownOffset.x,
+                    y: y - data.position.y - item.mousedownOffset.y
+                };
+
+                Body.translate(data, delta);
+                data.positionPrev.x = data.position.x;
+                data.positionPrev.y = data.position.y;
+
+                break;
+
+            case 'constraint':
+                var point = data.pointA;
+                if (data.bodyA)
+                    point = data.pointB;
+
+                point.x = x - item.mousedownOffset.x;
+                point.y = y - item.mousedownOffset.y;
+
+                var initialPointA = data.bodyA ? Vector.add(data.bodyA.position, data.pointA) : data.pointA,
+                    initialPointB = data.bodyB ? Vector.add(data.bodyB.position, data.pointB) : data.pointB;
+
+                data.length = Vector.magnitude(Vector.sub(initialPointA, initialPointB));
+
+                break;
+
+            }
+        }
+    };
+
+    var _scaleSelectedObjects = function(inspector, scaleX, scaleY) {
+        var selected = inspector.selected,
+            item,
+            data;
+
+        for (var i = 0; i < selected.length; i++) {
+            item = selected[i];
+            data = item.data;
+
+            switch (data.type) {
+            case 'body':
+                Body.scale(data, scaleX, scaleY, data.position);
+
+                if (data.circleRadius)
+                    data.circleRadius *= scaleX;
+
+                break;
+            }
+        }
+    };
+
+    var _rotateSelectedObjects = function(inspector, angle) {
+        var selected = inspector.selected,
+            item,
+            data;
+
+        for (var i = 0; i < selected.length; i++) {
+            item = selected[i];
+            data = item.data;
+
+            switch (data.type) {
+            case 'body':
+                Body.rotate(data, angle);
+                break;
+            }
+        }
+    };
+
     var _setPaused = function(inspector, isPaused) {
         if (isPaused) {
+            if (inspector.autoRewind) {
+                _setSelectedObjects(inspector, []);
+                Gui.loadState(inspector.serializer, inspector.engine, 'pauseState');
+            }
+
             inspector.engine.timing.timeScale = 0;
             inspector.isPaused = true;
             inspector.controls.pauseButton.text('Play');
+
+            Events.trigger(inspector, 'paused');
         } else {
+            if (inspector.autoRewind) {
+                Gui.saveState(inspector.serializer, inspector.engine, 'pauseState');
+            }
+
             inspector.engine.timing.timeScale = 1;
             inspector.isPaused = false;
             inspector.controls.pauseButton.text('Pause');
+
+            Events.trigger(inspector, 'play');
         }
     };
 
     var _setSelectedObjects = function(inspector, objects) {
         var worldTree = inspector.controls.worldTree.data('jstree'),
             selectedItems = [],
-            data;
+            data,
+            i;
 
-        for (var i = 0; i < inspector.selected.length; i++) {
+        for (i = 0; i < inspector.selected.length; i++) {
             data = inspector.selected[i].data;
             worldTree.deselect_node(data.type + '_' + data.id, true);
         }
@@ -656,17 +755,16 @@ var Inspector = {};
         for (i = 0; i < objects.length; i++) {
             data = objects[i];
 
-            if (!data)
-                continue;
+            if (data) {
+                // add the object to the selection
+                _addSelectedObject(inspector, data);
 
-            // add the object to the selection
-            _addSelectedObject(inspector, data);
-
-            // log selected objects to console for property inspection
-            if (i < 5) {
-                console.log(data.label + ' ' + data.id + ': %O', data);
-            } else if (i === 6) {
-                console.warn('Omitted inspecting ' + (objects.length - 5) + ' more objects');
+                // log selected objects to console for property inspection
+                if (i < 5) {
+                    console.log(data.label + ' ' + data.id + ': %O', data);
+                } else if (i === 6) {
+                    console.warn('Omitted inspecting ' + (objects.length - 5) + ' more objects');
+                }
             }
         }
     };
@@ -676,11 +774,7 @@ var Inspector = {};
             return;
 
         var worldTree = inspector.controls.worldTree.data('jstree');
-
-        inspector.selected.push({
-            data: object
-        });
-
+        inspector.selected.push({ data: object });
         worldTree.select_node(object.type + '_' + object.id, true);
     };
 
@@ -807,78 +901,76 @@ var Inspector = {};
         return node;
     };
 
+    var _addNewComposite = function(inspector) {
+        var newComposite = Composite.create();
+
+        Composite.add(inspector.root, newComposite);
+
+        // move new composite to the start so that it appears top of tree
+        inspector.root.composites.splice(inspector.root.composites.length - 1, 1);
+        inspector.root.composites.unshift(newComposite);
+
+        Composite.setModified(inspector.engine.world, true, true, false);
+    };
+
     var _exportFile = function(inspector) {
         var engine = inspector.engine,
             toExport = [];
 
-        if (inspector.serializer) {
-            if (inspector.selected.length === 0) {
-                alert('No objects were selected, so export could not be created.');
-                return;
-            }
+        if (inspector.selected.length === 0) {
+            alert('No objects were selected, so export could not be created. Can only export objects that are in the World composite.');
+            return;
+        }
 
-            var fileName = "export-objects",
-                exportComposite = Composite.create({
-                    label: 'Exported Objects'
-                });
-
-            // add everything else, must be in top-down order
-            for (var i = 0; i < inspector.selected.length; i++) {
-                var object = inspector.selected[i].data;
-
-                // skip if it's already in the composite tree
-                // this means orphans will be added in the root
-                if (Composite.get(exportComposite, object.id, object.type))
-                    continue;
-
-                Composite.add(exportComposite, object);
-
-                // better filename for small exports
-                if (inspector.selected.length === 1)
-                    fileName = 'export-' + object.label + '-' + object.id;
-            }
-
-            // santise filename
-            fileName = fileName.toLowerCase().replace(/[^\w\-]/g, '') + '.json';
-
-            var json = inspector.serializer.stringify(exportComposite, function(key, value) {
-                // skip non-required values
-                if (key === 'path')
-                    return undefined;
-
-                // limit precision of floats
-                if (!/^#/.exec(key) && typeof value === 'number') {
-                    var fixed = parseFloat(value.toFixed(3));
-
-                    // do not limit if limiting will cause value to zero
-                    // TODO: this should ideally dynamically find the SF precision required
-                    if (fixed === 0 && value !== 0)
-                        return value;
-
-                    return fixed;
-                }
-
-                return value;
+        var fileName = 'export-objects',
+            exportComposite = Composite.create({
+                label: 'Exported Objects'
             });
 
+        // add everything else, must be in top-down order
+        for (var i = 0; i < inspector.selected.length; i++) {
+            var object = inspector.selected[i].data;
+
+            // skip if it's already in the composite tree
+            // this means orphans will be added in the root
+            if (Composite.get(exportComposite, object.id, object.type))
+                continue;
+
+            Composite.add(exportComposite, object);
+
+            // better filename for small exports
+            if (inspector.selected.length === 1)
+                fileName = 'export-' + object.label + '-' + object.id;
+        }
+
+        // santise filename
+        fileName = fileName.toLowerCase().replace(/[^\w\-]/g, '') + '.json';
+
+        // serialise
+        var json = Gui.serialise(inspector.serializer, exportComposite, inspector.exportIndent);
+
+        // launch export download
+        if (_isWebkit) {
             var blob = new Blob([json], { type: 'application/json' }),
                 anchor = document.createElement('a');
-
             anchor.download = fileName;
             anchor.href = (window.webkitURL || window.URL).createObjectURL(blob);
             anchor.dataset.downloadurl = ['application/json', anchor.download, anchor.href].join(':');
             anchor.click();
-
-            Events.trigger(inspector, 'export');
+        } else {
+            window.open('data:application/json;charset=utf-8,' + escape(json));
         }
+
+        Events.trigger(inspector, 'export');
     };
 
     var _importFile = function(inspector) {
-        var engine = inspector.engine;
+        var engine = inspector.engine,
+            element = document.createElement('div'),
+            fileInput;
 
-        var element = document.createElement('div');
         element.innerHTML = '<input type="file">';
-        var fileInput = element.firstChild;
+        fileInput = element.firstChild;
 
         fileInput.addEventListener('change', function(e) {
             var file = fileInput.files[0];
@@ -887,32 +979,27 @@ var Inspector = {};
                 var reader = new FileReader();
 
                 reader.onload = function(e) {
-                    var importedComposite;
-
-                    if (inspector.serializer)
-                        importedComposite = inspector.serializer.parse(reader.result);
+                    var importedComposite = inspector.serializer.parse(reader.result);
 
                     if (importedComposite) {
-                        Composite.rebase(importedComposite);
                         importedComposite.label = 'Imported Objects';
 
+                        Composite.rebase(importedComposite);
                         Composite.add(inspector.root, importedComposite);
 
-                        // move imported composite to the start
-                        // so that it appears top of tree
+                        // move imported composite to the start so that it appears top of tree
                         inspector.root.composites.splice(inspector.root.composites.length - 1, 1);
                         inspector.root.composites.unshift(importedComposite);
 
                         var worldTree = inspector.controls.worldTree.data('jstree'),
                             data = _generateCompositeTreeNode(inspector.root, null, true);
-
                         _updateTree(worldTree, data);
                     }
                 };
 
                 reader.readAsText(file);    
             } else {
-                alert('File not supported, JSON text files only');
+                alert('File not supported, .json or .txt JSON files only');
             }
         });
 
@@ -956,6 +1043,24 @@ var Inspector = {};
     * Fired after the inspector user ends making a selection
     *
     * @event selectEnd
+    * @param {} event An event object
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired after the inspector is paused
+    *
+    * @event pause
+    * @param {} event An event object
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired after the inspector is played
+    *
+    * @event play
     * @param {} event An event object
     * @param {} event.source The source object of the event
     * @param {} event.name The name of the event
