@@ -23,6 +23,7 @@ var Body = {};
             type: 'body',
             label: 'Body',
             angle: 0,
+            vertices: Vertices.fromPath('L 0 0 L 40 0 L 40 40 L 0 40'),
             position: { x: 0, y: 0 },
             force: { x: 0, y: 0 },
             torque: 0,
@@ -49,7 +50,6 @@ var Body = {};
                     xScale: 1,
                     yScale: 1
                 },
-                path: 'L 0 0 L 40 0 L 40 40 L 0 40',
                 lineWidth: 1.5
             }
         };
@@ -78,7 +78,6 @@ var Body = {};
      */
     var _initProperties = function(body) {
         // calculated properties
-        body.vertices = body.vertices || Vertices.fromPath(body.render.path);
         body.axes = body.axes || Axes.fromVertices(body.vertices);
         body.area = Vertices.area(body.vertices);
         body.bounds = Bounds.create(body.vertices);

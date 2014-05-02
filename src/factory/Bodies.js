@@ -27,9 +27,7 @@ var Bodies = {};
         var rectangle = { 
             label: 'Rectangle Body',
             position: { x: x, y: y },
-            render: {
-                path: 'L 0 0 L ' + width + ' 0 L ' + width + ' ' + height + ' L 0 ' + height
-            }
+            vertices: Vertices.fromPath('L 0 0 L ' + width + ' 0 L ' + width + ' ' + height + ' L 0 ' + height)
         };
 
         return Body.create(Common.extend({}, rectangle, options));
@@ -59,9 +57,7 @@ var Bodies = {};
         var trapezoid = { 
             label: 'Trapezoid Body',
             position: { x: x, y: y },
-            render: {
-                path: 'L 0 0 L ' + x1 + ' ' + (-height) + ' L ' + x2 + ' ' + (-height) + ' L ' + x3 + ' 0'
-            }
+            vertices: Vertices.fromPath('L 0 0 L ' + x1 + ' ' + (-height) + ' L ' + x2 + ' ' + (-height) + ' L ' + x3 + ' 0')
         };
 
         return Body.create(Common.extend({}, trapezoid, options));
@@ -127,9 +123,7 @@ var Bodies = {};
         var polygon = { 
             label: 'Polygon Body',
             position: { x: x, y: y },
-            render: {
-                path: path
-            }
+            vertices: Vertices.fromPath(path)
         };
 
         return Body.create(Common.extend({}, polygon, options));
