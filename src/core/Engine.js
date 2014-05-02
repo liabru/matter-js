@@ -81,33 +81,33 @@ var Engine = {};
     };
 
     /**
-     * A simple game loop utility, that calls `Engine.update` and `Engine.render` on the `requestAnimationFrame` event automatically.
+     * An optional utility function that provides a game loop, that handles updating the engine for you.
+     * Calls `Engine.update` and `Engine.render` on the `requestAnimationFrame` event automatically.
      * Handles time correction and non-fixed dynamic timing (if enabled). 
      * Triggers `beforeTick`, `tick` and `afterTick` events.
      * @method run
      * @param {engine} engine
      */
     Engine.run = function(engine) {
-        var timing = engine.timing,
-            delta,
-            correction = 1,
-            counterTimestamp = 0,
+        var counterTimestamp = 0,
             frameCounter = 0,
             deltaHistory = [],
+            timePrev,
             timeScalePrev = 1;
 
-        (function render(timestamp){
+        (function render(time){
             _requestAnimationFrame(render);
 
             if (!engine.enabled)
                 return;
 
-            // timestamp is undefined on the first update
-            timestamp = timestamp || 0;
+            var timing = engine.timing,
+                delta,
+                correction;
 
             // create an event object
             var event = {
-                timestamp: timestamp
+                timestamp: time
             };
 
             Events.trigger(engine, 'beforeTick', event);
@@ -116,8 +116,9 @@ var Engine = {};
                 // fixed timestep
                 delta = timing.delta;
             } else {
-                // dynamic timestep
-                delta = (timestamp - timing.timestamp) || _delta;
+                // dynamic timestep based on wall clock between calls
+                delta = (time - timePrev) || timing.delta;
+                timePrev = time;
 
                 // optimistically filter delta over a few frames, to improve stability
                 deltaHistory.push(delta);
@@ -130,6 +131,9 @@ var Engine = {};
 
                 // time correction for delta
                 correction = delta / timing.delta;
+
+                // update engine timing object
+                timing.delta = delta;
             }
 
             // time correction for time scaling
@@ -140,17 +144,12 @@ var Engine = {};
                 correction = 0;
 
             timeScalePrev = timing.timeScale;
-
-            // update engine timing object
-            timing.timestamp = timestamp;
-            timing.correction = correction;
-            timing.delta = delta;
             
             // fps counter
             frameCounter += 1;
-            if (timestamp - counterTimestamp >= 1000) {
-                timing.fps = frameCounter * ((timestamp - counterTimestamp) / 1000);
-                counterTimestamp = timestamp;
+            if (time - counterTimestamp >= 1000) {
+                timing.fps = frameCounter * ((time - counterTimestamp) / 1000);
+                counterTimestamp = time;
                 frameCounter = 0;
             }
 
@@ -175,7 +174,7 @@ var Engine = {};
     };
 
     /**
-     * Moves the simulation forward in time by `delta`. Triggers `beforeUpdate` and `afterUpdate` events.
+     * Moves the simulation forward in time by `delta` ms. Triggers `beforeUpdate` and `afterUpdate` events.
      * @method update
      * @param {engine} engine
      * @param {number} delta
@@ -190,6 +189,10 @@ var Engine = {};
             broadphase = engine.broadphase[engine.broadphase.current],
             broadphasePairs = [],
             i;
+
+        // increment timestamp
+        timing.timestamp += delta;
+        timing.correction = correction;
 
         // create an event object
         var event = {
