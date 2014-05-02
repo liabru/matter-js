@@ -183,7 +183,7 @@ var Engine = {};
      * @return engine
      */
     Engine.update = function(engine, delta, correction) {
-        correction = correction || 1;
+        correction = (typeof correction !== 'undefined') ? correction : 1;
 
         var world = engine.world,
             timing = engine.timing,
