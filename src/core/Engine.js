@@ -48,7 +48,8 @@ var Engine = {};
                 correction: 1,
                 deltaMin: 1000 / _fps,
                 deltaMax: 1000 / (_fps * 0.5),
-                timeScale: 1
+                timeScale: 1,
+                isFixed: false
             },
             render: {
                 element: element,
@@ -87,7 +88,7 @@ var Engine = {};
     Engine.run = function(engine) {
         var timing = engine.timing,
             delta,
-            correction,
+            correction = 1,
             counterTimestamp = 0,
             frameCounter = 0,
             deltaHistory = [],
@@ -109,19 +110,25 @@ var Engine = {};
 
             Events.trigger(engine, 'beforeTick', event);
 
-            delta = (timestamp - timing.timestamp) || _delta;
+            if (timing.isFixed) {
+                // fixed timestep
+                delta = timing.delta;
+            } else {
+                // dynamic timestep
+                delta = (timestamp - timing.timestamp) || _delta;
 
-            // optimistically filter delta over a few frames, to improve stability
-            deltaHistory.push(delta);
-            deltaHistory = deltaHistory.slice(-_deltaSampleSize);
-            delta = Math.min.apply(null, deltaHistory);
-            
-            // limit delta
-            delta = delta < timing.deltaMin ? timing.deltaMin : delta;
-            delta = delta > timing.deltaMax ? timing.deltaMax : delta;
+                // optimistically filter delta over a few frames, to improve stability
+                deltaHistory.push(delta);
+                deltaHistory = deltaHistory.slice(-_deltaSampleSize);
+                delta = Math.min.apply(null, deltaHistory);
+                
+                // limit delta
+                delta = delta < timing.deltaMin ? timing.deltaMin : delta;
+                delta = delta > timing.deltaMax ? timing.deltaMax : delta;
 
-            // time correction for delta
-            correction = delta / timing.delta;
+                // time correction for delta
+                correction = delta / timing.delta;
+            }
 
             // time correction for time scaling
             if (timeScalePrev !== 0)
