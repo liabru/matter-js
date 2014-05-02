@@ -81,7 +81,9 @@ var Engine = {};
     };
 
     /**
-     * Description
+     * A simple game loop utility, that calls `Engine.update` and `Engine.render` on the `requestAnimationFrame` event automatically.
+     * Handles time correction and non-fixed dynamic timing (if enabled). 
+     * Triggers `beforeTick`, `tick` and `afterTick` events.
      * @method run
      * @param {engine} engine
      */
@@ -152,7 +154,7 @@ var Engine = {};
                 frameCounter = 0;
             }
 
-            Events.trigger(engine, 'tick beforeUpdate', event);
+            Events.trigger(engine, 'tick', event);
 
             // if world has been modified, clear the render scene graph
             if (engine.world.isModified)
@@ -165,18 +167,15 @@ var Engine = {};
             _triggerCollisionEvents(engine);
             _triggerMouseEvents(engine);
 
-            Events.trigger(engine, 'afterUpdate beforeRender', event);
-
             // render
-            if (engine.render.options.enabled)
-                engine.render.controller.world(engine);
+            Engine.render(engine);
 
-            Events.trigger(engine, 'afterTick afterRender', event);
+            Events.trigger(engine, 'afterTick', event);
         })();
     };
 
     /**
-     * Description
+     * Moves the simulation forward in time by `delta`. Triggers `beforeUpdate` and `afterUpdate` events.
      * @method update
      * @param {engine} engine
      * @param {number} delta
@@ -189,6 +188,13 @@ var Engine = {};
             broadphase = engine.broadphase[engine.broadphase.current],
             broadphasePairs = [],
             i;
+
+        // create an event object
+        var event = {
+            timestamp: engine.timing.timestamp
+        };
+
+        Events.trigger(engine, 'beforeUpdate', event);
 
         // get lists of all bodies and constraints, no matter what composites they are in
         var allBodies = Composite.allBodies(world),
@@ -264,7 +270,26 @@ var Engine = {};
         if (world.isModified)
             Composite.setModified(world, false, false, true);
 
+        Events.trigger(engine, 'afterUpdate', event);
+
         return engine;
+    };
+
+    /**
+     * Renders the world by calling its defined renderer `engine.render.controller`. Triggers `beforeRender` and `afterRender` events.
+     * @method render
+     * @param {engine} engineA
+     * @param {engine} engineB
+     */
+    Engine.render = function(engine) {
+        // create an event object
+        var event = {
+            timestamp: engine.timing.timestamp
+        };
+
+        Events.trigger(engine, 'beforeRender', event);
+        engine.render.controller.world(engine);
+        Events.trigger(engine, 'afterRender', event);
     };
     
     /**
