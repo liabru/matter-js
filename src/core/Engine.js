@@ -183,6 +183,8 @@ var Engine = {};
      * @return engine
      */
     Engine.update = function(engine, delta, correction) {
+        correction = correction || 1;
+
         var world = engine.world,
             timing = engine.timing,
             broadphase = engine.broadphase[engine.broadphase.current],
