@@ -48,23 +48,30 @@ var Vertices = {};
      * @return {vector} The centre point
      */
     Vertices.centre = function(vertices) {
-        var cx = 0, cy = 0;
+        var area = Vertices.area(vertices, true),
+            centre = { x: 0, y: 0 },
+            cross,
+            temp,
+            j;
 
         for (var i = 0; i < vertices.length; i++) {
-            cx += vertices[i].x;
-            cy += vertices[i].y;
+            j = (i + 1) % vertices.length;
+            cross = Vector.cross(vertices[i], vertices[j]);
+            temp = Vector.mult(Vector.add(vertices[i], vertices[j]), cross);
+            centre = Vector.add(centre, temp);
         }
 
-        return { x: cx / vertices.length, y: cy / vertices.length };
+        return Vector.div(centre, 6 * area);
     };
 
     /**
      * Description
      * @method area
      * @param {vertices} vertices
+     * @param {bool} signed
      * @return {number} The area
      */
-    Vertices.area = function(vertices) {
+    Vertices.area = function(vertices, signed) {
         var area = 0,
             j = vertices.length - 1;
 
@@ -72,6 +79,9 @@ var Vertices = {};
             area += (vertices[j].x - vertices[i].x) * (vertices[j].y + vertices[i].y);
             j = i;
         }
+
+        if (signed)
+            return area / 2;
 
         return Math.abs(area) / 2;
     };
