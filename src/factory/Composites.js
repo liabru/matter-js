@@ -233,7 +233,13 @@ var Composites = {};
             wheelYOffset = 0;
     
         var car = Composite.create({ label: 'Car' }),
-            body = Bodies.trapezoid(xx, yy, width, height, 0.3, { groupId: groupId, friction: 0.01 });
+            body = Bodies.trapezoid(xx, yy, width, height, 0.3, { 
+                groupId: groupId, 
+                friction: 0.01,
+                chamfer: {
+                    radius: 10
+                }
+            });
     
         var wheelA = Bodies.circle(xx + wheelAOffset, yy + wheelYOffset, wheelSize, { 
             groupId: groupId, 

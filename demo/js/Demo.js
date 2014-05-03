@@ -81,33 +81,102 @@
 
     Demo.mixed = function() {
         var _world = _engine.world;
-        
-        Demo.reset();
-        
-        var stack = Composites.stack(20, 20, 15, 4, 0, 0, function(x, y, column, row) {
-            switch (Math.round(Common.random(0, 1))) {
 
+        Demo.reset();
+
+        var stack = Composites.stack(20, 20, 15, 4, 0, 0, function(x, y, column, row) {
+            var sides = Math.round(Common.random(1, 8));
+
+            // triangles can be a little unstable, so avoid until fixed
+            // TODO: make triangles more stable
+            sides = (sides === 3) ? 4 : sides;
+
+            // round the edges of some bodies
+            var chamfer = null;
+            if (sides > 2 && Math.random() > 0.7) {
+                chamfer = {
+                    radius: 10
+                };
+            }
+
+            switch (Math.round(Common.random(0, 1))) {
             case 0:
                 if (Math.random() < 0.8) {
-                    return Bodies.rectangle(x, y, Common.random(20, 50), Common.random(20, 50));
+                    return Bodies.rectangle(x, y, Common.random(25, 50), Common.random(25, 50), { chamfer: chamfer });
                 } else {
-                    return Bodies.rectangle(x, y, Common.random(80, 120), Common.random(20, 30));
+                    return Bodies.rectangle(x, y, Common.random(80, 120), Common.random(25, 30), { chamfer: chamfer });
                 }
                 break;
             case 1:
-                var sides = Math.round(Common.random(1, 8));
-
-                // triangles can be a little unstable, so avoid until fixed
-                // TODO: make triangles more stable
-                sides = (sides === 3) ? 4 : sides;
-
-                return Bodies.polygon(x, y, sides, Common.random(20, 50));
+                return Bodies.polygon(x, y, sides, Common.random(25, 50), { chamfer: chamfer });
             }
         });
-        
+
         World.add(_world, stack);
         
         var renderOptions = _engine.render.options;
+    };
+
+    Demo.rounded = function() {
+        var _world = _engine.world;
+
+        Demo.reset();
+
+        //_engine.timing.timeScale = 0;
+
+        World.add(_world, [
+            Bodies.rectangle(200, 200, 100, 100, { 
+                chamfer:  {
+                    radius: 20
+                }
+            }),
+
+            Bodies.rectangle(300, 200, 100, 100, { 
+                chamfer:  {
+                    radius: [90, 0, 0, 0]
+                }
+            }),
+
+            Bodies.rectangle(400, 200, 200, 200, { 
+                chamfer:  {
+                    radius: [150, 20, 40, 20]
+                }
+            }),
+
+            Bodies.rectangle(200, 200, 200, 200, { 
+                chamfer:  {
+                    radius: [150, 20, 150, 20]
+                }
+            }),
+
+            Bodies.rectangle(300, 200, 200, 50, { 
+                chamfer:  {
+                    radius: [25, 25, 0, 0]
+                }
+            }),
+
+            Bodies.polygon(200, 100, 8, 80, { 
+                chamfer:  {
+                    radius: 30
+                }
+            }),
+
+            Bodies.polygon(300, 100, 5, 80, { 
+                chamfer:  {
+                    radius: [10, 40, 20, 40, 10]
+                }
+            }),
+
+            Bodies.polygon(400, 200, 3, 50, { 
+                chamfer:  {
+                    radius: [20, 0, 20]
+                }
+            })
+        ]);
+
+        var renderOptions = _engine.render.options;
+        renderOptions.showAxes = true;
+        renderOptions.showCollisions = true;
     };
 
     Demo.views = function() {
@@ -293,15 +362,15 @@
         
         Demo.reset();
         
-        scale = 0.8;
+        scale = 0.9;
         World.add(_world, Composites.car(150, 100, 100 * scale, 40 * scale, 30 * scale));
         
-        scale = 0.7;
+        scale = 0.8;
         World.add(_world, Composites.car(350, 300, 100 * scale, 40 * scale, 30 * scale));
         
         World.add(_world, [
-            Bodies.rectangle(200, 150, 700, 20, { isStatic: true, angle: Math.PI * 0.06 }),
-            Bodies.rectangle(500, 350, 700, 20, { isStatic: true, angle: -Math.PI * 0.06 }),
+            Bodies.rectangle(200, 150, 650, 20, { isStatic: true, angle: Math.PI * 0.06 }),
+            Bodies.rectangle(500, 350, 650, 20, { isStatic: true, angle: -Math.PI * 0.06 }),
             Bodies.rectangle(340, 580, 700, 20, { isStatic: true, angle: Math.PI * 0.04 })
         ]);
         
@@ -937,6 +1006,11 @@
             _inspector = Inspector.create(_engine);
 
             Events.on(_inspector, 'import', function() {
+                _mouseConstraint = MouseConstraint.create(_engine);
+                World.add(_engine.world, _mouseConstraint);
+            });
+
+            Events.on(_inspector, 'play', function() {
                 _mouseConstraint = MouseConstraint.create(_engine);
                 World.add(_engine.world, _mouseConstraint);
             });
