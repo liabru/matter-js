@@ -22,12 +22,14 @@ var Mouse;
         this.mouseupPosition = { x: 0, y: 0 };
         this.offset = { x: 0, y: 0 };
         this.scale = { x: 1, y: 1 };
+        this.wheelDelta = 0;
         this.button = -1;
 
         this.sourceEvents = {
             mousemove: null,
             mousedown: null,
-            mouseup: null
+            mouseup: null,
+            mousewheel: null
         };
         
         this.mousemove = function(event) { 
@@ -84,6 +86,11 @@ var Mouse;
             mouse.sourceEvents.mouseup = event;
         };
 
+        this.mousewheel = function(event) {
+            mouse.wheelDelta = Math.max(-1, Math.min(1, event.wheelDelta || -event.detail));
+            event.preventDefault();
+        };
+
         Mouse.setElement(mouse, mouse.element);
     };
 
@@ -110,6 +117,9 @@ var Mouse;
         element.addEventListener('mousedown', mouse.mousedown);
         element.addEventListener('mouseup', mouse.mouseup);
         
+        element.addEventListener("mousewheel", mouse.mousewheel);
+        element.addEventListener("DOMMouseScroll", mouse.mousewheel);
+
         element.addEventListener('touchmove', mouse.mousemove);
         element.addEventListener('touchstart', mouse.mousedown);
         element.addEventListener('touchend', mouse.mouseup);
@@ -124,6 +134,8 @@ var Mouse;
         mouse.sourceEvents.mousemove = null;
         mouse.sourceEvents.mousedown = null;
         mouse.sourceEvents.mouseup = null;
+        mouse.sourceEvents.mousewheel = null;
+        mouse.wheelDelta = 0;
     };
 
     /**
