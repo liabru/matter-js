@@ -41,8 +41,8 @@ var Mouse;
 
             mouse.absolute.x = position.x;
             mouse.absolute.y = position.y;
-            mouse.position.x = (position.x + mouse.offset.x) * mouse.scale.x;
-            mouse.position.y = (position.y + mouse.offset.y) * mouse.scale.y;
+            mouse.position.x = mouse.absolute.x * mouse.scale.x + mouse.offset.x;
+            mouse.position.y = mouse.absolute.y * mouse.scale.y + mouse.offset.y;
             mouse.sourceEvents.mousemove = event;
         };
         
@@ -59,8 +59,8 @@ var Mouse;
 
             mouse.absolute.x = position.x;
             mouse.absolute.y = position.y;
-            mouse.position.x = (position.x + mouse.offset.x) * mouse.scale.x;
-            mouse.position.y = (position.y + mouse.offset.y) * mouse.scale.y;
+            mouse.position.x = mouse.absolute.x * mouse.scale.x + mouse.offset.x;
+            mouse.position.y = mouse.absolute.y * mouse.scale.y + mouse.offset.y;
             mouse.mousedownPosition.x = mouse.position.x;
             mouse.mousedownPosition.y = mouse.position.y;
             mouse.sourceEvents.mousedown = event;
@@ -77,8 +77,8 @@ var Mouse;
             mouse.button = -1;
             mouse.absolute.x = position.x;
             mouse.absolute.y = position.y;
-            mouse.position.x = (position.x + mouse.offset.x) * mouse.scale.x;
-            mouse.position.y = (position.y + mouse.offset.y) * mouse.scale.y;
+            mouse.position.x = mouse.absolute.x * mouse.scale.x + mouse.offset.x;
+            mouse.position.y = mouse.absolute.y * mouse.scale.y + mouse.offset.y;
             mouse.mouseupPosition.x = mouse.position.x;
             mouse.mouseupPosition.y = mouse.position.y;
             mouse.sourceEvents.mouseup = event;
@@ -134,8 +134,8 @@ var Mouse;
     Mouse.setOffset = function(mouse, offset) {
         mouse.offset.x = offset.x;
         mouse.offset.y = offset.y;
-        mouse.position.x = (mouse.absolute.x + mouse.offset.x) * mouse.scale.x;
-        mouse.position.y = (mouse.absolute.y + mouse.offset.y) * mouse.scale.y;
+        mouse.position.x = mouse.absolute.x * mouse.scale.x + mouse.offset.x;
+        mouse.position.y = mouse.absolute.y * mouse.scale.y + mouse.offset.y;
     };
 
     /**
@@ -146,8 +146,8 @@ var Mouse;
     Mouse.setScale = function(mouse, scale) {
         mouse.scale.x = scale.x;
         mouse.scale.y = scale.y;
-        mouse.position.x = (mouse.absolute.x + mouse.offset.x) * mouse.scale.x;
-        mouse.position.y = (mouse.absolute.y + mouse.offset.y) * mouse.scale.y;
+        mouse.position.x = mouse.absolute.x * mouse.scale.x + mouse.offset.x;
+        mouse.position.y = mouse.absolute.y * mouse.scale.y + mouse.offset.y;
     };
     
     /**
@@ -160,8 +160,9 @@ var Mouse;
      */
     var _getRelativeMousePosition = function(event, element) {
         var elementBounds = element.getBoundingClientRect(),
-            scrollX = (window.pageXOffset !== undefined) ? window.pageXOffset : (document.documentElement || document.body.parentNode || document.body).scrollLeft,
-            scrollY = (window.pageYOffset !== undefined) ? window.pageYOffset : (document.documentElement || document.body.parentNode || document.body).scrollTop,
+            rootNode = (document.documentElement || document.body.parentNode || document.body),
+            scrollX = (window.pageXOffset !== undefined) ? window.pageXOffset : rootNode.scrollLeft,
+            scrollY = (window.pageYOffset !== undefined) ? window.pageYOffset : rootNode.scrollTop,
             touches = event.changedTouches,
             x, y;
         
