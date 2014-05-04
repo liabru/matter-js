@@ -15,6 +15,7 @@
         Vector = Matter.Vector,
         Vertices = Matter.Vertices,
         MouseConstraint = Matter.MouseConstraint,
+        Mouse = Matter.Mouse,
         Query = Matter.Query;
 
     // MatterTools aliases
@@ -204,7 +205,7 @@
         World.add(_world, stack);
 
         // get the centre of the viewport
-        var viewCentre = {
+        var viewportCentre = {
             x: _engine.render.options.width * 0.5,
             y: _engine.render.options.height * 0.5
         };
@@ -215,25 +216,64 @@
         _world.bounds.max.x = 1100;
         _world.bounds.max.y = 900;
 
+        // keep track of current bounds scale (view zoom)
+        var boundsScaleTarget = 1,
+            boundsScale = {
+                x: 1,
+                y: 1
+            };
+
         // use the engine tick event to control our view
         _sceneEvents.push(
-            Events.on(_engine, 'tick', function() {
+            Events.on(_engine, 'beforeTick', function() {
                 var world = _engine.world,
                     mouse = _engine.input.mouse,
-                    render = _engine.render;
+                    render = _engine.render,
+                    translate;
 
-                // get vector from mouse relative to centre of view
-                var mouseRelative = Vector.sub(mouse.position, mouse.offset),
-                    deltaCentre = Vector.sub(mouseRelative, viewCentre);
+                // mouse wheel controls zoom
+                var scaleFactor = mouse.wheelDelta * -0.1;
+                if (scaleFactor !== 0) {
+                    if ((scaleFactor < 0 && boundsScale.x >= 0.6) || (scaleFactor > 0 && boundsScale.x <= 1.4)) {
+                        boundsScaleTarget += scaleFactor;
+                    }
+                }
 
-                // only translate the view if mouse has moved 200px from the centre
-                if (Vector.magnitude(deltaCentre) > 200) {
+                // if scale has changed
+                if (Math.abs(boundsScale.x - boundsScaleTarget) > 0.01) {
+                    // smoothly tween scale factor
+                    scaleFactor = (boundsScaleTarget - boundsScale.x) * 0.2;
+                    boundsScale.x += scaleFactor;
+                    boundsScale.y += scaleFactor;
 
-                    // create a vector to translate the view, allowing the user to control view speed
-                    var translate = {
-                        x: Math.pow(Math.abs(deltaCentre.x), 1.5) * 0.001 * Common.sign(deltaCentre.x),
-                        y: Math.pow(Math.abs(deltaCentre.y), 1.5) * 0.001 * Common.sign(deltaCentre.y)
+                    // scale the render bounds
+                    render.bounds.max.x = render.bounds.min.x + render.options.width * boundsScale.x;
+                    render.bounds.max.y = render.bounds.min.y + render.options.height * boundsScale.y;
+
+                    // translate so zoom is from centre of view
+                    translate = {
+                        x: render.options.width * scaleFactor * -0.5,
+                        y: render.options.height * scaleFactor * -0.5
                     };
+
+                    Bounds.translate(render.bounds, translate);
+
+                    // update mouse
+                    Mouse.setScale(mouse, boundsScale);
+                    Mouse.setOffset(mouse, render.bounds.min);
+                }
+
+                // get vector from mouse relative to centre of viewport
+                var deltaCentre = Vector.sub(mouse.absolute, viewportCentre),
+                    centreDist = Vector.magnitude(deltaCentre);
+
+                // translate the view if mouse has moved over 50px from the centre of viewport
+                if (centreDist > 50) {
+                    // create a vector to translate the view, allowing the user to control view speed
+                    var direction = Vector.normalise(deltaCentre),
+                        speed = Math.min(10, Math.pow(centreDist - 50, 2) * 0.0002);
+
+                    translate = Vector.mult(direction, speed);
 
                     // prevent the view moving outside the world bounds
                     if (render.bounds.min.x + translate.x < world.bounds.min.x)
@@ -248,11 +288,11 @@
                     if (render.bounds.max.y + translate.y > world.bounds.max.y)
                         translate.y = world.bounds.max.y - render.bounds.max.y;
 
+                    // move the view
                     Bounds.translate(render.bounds, translate);
 
-                    // we must update the mouse offset too
-                    mouse.offset.x = render.bounds.min.x;
-                    mouse.offset.y = render.bounds.min.y;
+                    // we must update the mouse too
+                    Mouse.setOffset(mouse, render.bounds.min);
                 }
             })
         );
@@ -1100,11 +1140,9 @@
         // reset id pool
         Common._nextId = 0;
 
-        // reset mouse offset
-        if (_engine.input.mouse.offset) {
-            _engine.input.mouse.offset.x = 0;
-            _engine.input.mouse.offset.y = 0;
-        }
+        // reset mouse offset and scale (only required for Demo.views)
+        Mouse.setScale(_engine.input.mouse, { x: 1, y: 1 });
+        Mouse.setOffset(_engine.input.mouse, { x: 0, y: 0 });
 
         _engine.enableSleeping = false;
         _engine.world.gravity.y = 1;
