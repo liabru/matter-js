@@ -30,7 +30,7 @@
         _sceneName,
         _mouseConstraint,
         _sceneEvents = [],
-        _useInspector = false,
+        _useInspector = window.location.hash.indexOf('-inspect') !== -1,
         _isMobile = /(ipad|iphone|ipod|android)/gi.test(navigator.userAgent);
     
     // initialise the demo
@@ -61,7 +61,7 @@
         
         // get the scene function name from hash
         if (window.location.hash.length !== 0) 
-            _sceneName = window.location.hash.replace('#', '');
+            _sceneName = window.location.hash.replace('#', '').replace('-inspect', '');
 
         // set up a scene with bodies
         Demo[_sceneName]();
@@ -1225,6 +1225,8 @@
 
         _engine.enableSleeping = false;
         _engine.world.gravity.y = 1;
+        _engine.world.gravity.x = 0;
+        _engine.timing.timeScale = 1;
 
         var offset = 5;
         World.add(_world, [
