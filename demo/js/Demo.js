@@ -123,8 +123,6 @@
 
         Demo.reset();
 
-        //_engine.timing.timeScale = 0;
-
         World.add(_world, [
             Bodies.rectangle(200, 200, 100, 100, { 
                 chamfer:  {
@@ -576,7 +574,88 @@
         
         var renderOptions = _engine.render.options;
         renderOptions.showVelocity = true;
-        //renderOptions.showAngleIndicator = false;
+    };
+
+    Demo.timescale = function() {
+        var _world = _engine.world;
+        
+        Demo.reset();
+
+        var explosion = function(engine) {
+            var bodies = Composite.allBodies(engine.world);
+
+            for (var i = 0; i < bodies.length; i++) {
+                var body = bodies[i];
+
+                if (!body.isStatic && body.position.y >= 500) {
+                    var forceMagnitude = 0.04 * body.mass;
+
+                    Body.applyForce(body, { x: 0, y: 0 }, { 
+                        x: (forceMagnitude + Math.random() * forceMagnitude) * Common.choose([1, -1]), 
+                        y: -forceMagnitude + Math.random() * -forceMagnitude
+                    });
+                }
+            }
+        };
+
+        var timeScaleTarget = 1,
+            counter = 0;
+
+        _sceneEvents.push(
+            Events.on(_engine, 'tick', function(event) {
+                // tween the timescale for bullet time slow-mo
+                _engine.timing.timeScale += (timeScaleTarget - _engine.timing.timeScale) * 0.05;
+
+                counter += 1;
+
+                // every 1.5 sec
+                if (counter >= 60 * 1.5) {
+
+                    // flip the timescale
+                    if (timeScaleTarget < 1) {
+                        timeScaleTarget = 1;
+                    } else {
+                        timeScaleTarget = 0.05;
+                    }
+
+                    // create some random forces
+                    explosion(_engine);
+
+                    // reset counter
+                    counter = 0;
+                }
+            })
+        );
+
+        var bodyOptions = {
+            frictionAir: 0, 
+            friction: 0.0001,
+            restitution: 0.8
+        };
+        
+        // add some small bouncy circles... remember Swordfish?
+        World.add(_world, Composites.stack(20, 100, 15, 3, 20, 40, function(x, y, column, row) {
+            return Bodies.circle(x, y, Common.random(10, 20), bodyOptions);
+        }));
+
+        // add some larger random bouncy objects
+        World.add(_world, Composites.stack(50, 50, 8, 3, 0, 0, function(x, y, column, row) {
+            switch (Math.round(Common.random(0, 1))) {
+
+            case 0:
+                if (Math.random() < 0.8) {
+                    return Bodies.rectangle(x, y, Common.random(20, 50), Common.random(20, 50), bodyOptions);
+                } else {
+                    return Bodies.rectangle(x, y, Common.random(80, 120), Common.random(20, 30), bodyOptions);
+                }
+                break;
+            case 1:
+                return Bodies.polygon(x, y, Math.round(Common.random(4, 8)), Common.random(20, 50), bodyOptions);
+
+            }
+        }));
+        
+        var renderOptions = _engine.render.options;
     };
     
     Demo.stack = function() {
