@@ -132,6 +132,11 @@ var Render = {};
         context.globalCompositeOperation = 'source-over';
 
         // handle bounds
+        var boundsWidth = render.bounds.max.x - render.bounds.min.x,
+            boundsHeight = render.bounds.max.y - render.bounds.min.y,
+            boundsScaleX = boundsWidth / render.options.width,
+            boundsScaleY = boundsHeight / render.options.height;
+
         if (options.hasBounds) {
             // filter out bodies that are not in view
             for (i = 0; i < allBodies.length; i++) {
@@ -158,7 +163,8 @@ var Render = {};
                     constraints.push(constraint);
             }
 
-            // translate the view
+            // transform the view
+            context.scale(1 / boundsScaleX, 1 / boundsScaleY);
             context.translate(-render.bounds.min.x, -render.bounds.min.y);
         } else {
             constraints = allConstraints;
@@ -199,8 +205,10 @@ var Render = {};
         if (options.showDebug)
             Render.debug(engine, context);
 
-        if (options.hasBounds)
-            context.translate(render.bounds.min.x, render.bounds.min.y);
+        if (options.hasBounds) {
+            // revert view transforms
+            context.setTransform(1, 0, 0, 1, 0, 0);
+        }
     };
 
     /**
@@ -751,8 +759,15 @@ var Render = {};
             options = render.options,
             bounds;
 
-        if (options.hasBounds)
+        if (options.hasBounds) {
+            var boundsWidth = render.bounds.max.x - render.bounds.min.x,
+                boundsHeight = render.bounds.max.y - render.bounds.min.y,
+                boundsScaleX = boundsWidth / render.options.width,
+                boundsScaleY = boundsHeight / render.options.height;
+            
+            context.scale(1 / boundsScaleX, 1 / boundsScaleY);
             context.translate(-render.bounds.min.x, -render.bounds.min.y);
+        }
 
         for (var i = 0; i < selected.length; i++) {
             var item = selected[i].data;
@@ -812,7 +827,7 @@ var Render = {};
         }
 
         if (options.hasBounds)
-            context.translate(render.bounds.min.x, render.bounds.min.y);
+            context.setTransform(1, 0, 0, 1, 0, 0);
     };
 
     /**
