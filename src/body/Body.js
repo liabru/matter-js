@@ -168,10 +168,11 @@ var Body = {};
      * @method updateAll
      * @param {body[]} bodies
      * @param {number} deltaTime
+     * @param {number} timeScale
      * @param {number} correction
      * @param {bounds} worldBounds
      */
-    Body.updateAll = function(bodies, deltaTime, correction, worldBounds) {
+    Body.updateAll = function(bodies, deltaTime, timeScale, correction, worldBounds) {
         for (var i = 0; i < bodies.length; i++) {
             var body = bodies[i];
 
@@ -184,7 +185,7 @@ var Body = {};
                 || body.bounds.max.y < worldBounds.min.y || body.bounds.min.y > worldBounds.max.y)
                 continue;
 
-            Body.update(body, deltaTime, correction);
+            Body.update(body, deltaTime, timeScale, correction);
         }
     };
 
@@ -193,13 +194,14 @@ var Body = {};
      * @method update
      * @param {body} body
      * @param {number} deltaTime
+     * @param {number} timeScale
      * @param {number} correction
      */
-    Body.update = function(body, deltaTime, correction) {
-        var deltaTimeSquared = deltaTime * deltaTime * body.timeScale;
+    Body.update = function(body, deltaTime, timeScale, correction) {
+        var deltaTimeSquared = Math.pow(deltaTime * timeScale * body.timeScale, 2);
 
         // from the previous step
-        var frictionAir = 1 - body.frictionAir,
+        var frictionAir = 1 - body.frictionAir * timeScale * body.timeScale,
             velocityPrevX = body.position.x - body.positionPrev.x,
             velocityPrevY = body.position.y - body.positionPrev.y;
 

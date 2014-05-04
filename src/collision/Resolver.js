@@ -173,8 +173,9 @@ var Resolver = {};
      * @method solveVelocity
      * @param {pair[]} pairs
      */
-    Resolver.solveVelocity = function(pairs) {
-        var impulse = {};
+    Resolver.solveVelocity = function(pairs, timeScale) {
+        var impulse = {},
+            timeScaleSquared = timeScale * timeScale;
         
         for (var i = 0; i < pairs.length; i++) {
             var pair = pairs[i];
@@ -219,8 +220,8 @@ var Resolver = {};
 
                 // coulomb friction
                 var tangentImpulse = tangentVelocity;
-                if (tangentSpeed > normalForce * pair.friction)
-                    tangentImpulse = normalForce * pair.friction * tangentVelocityDirection;
+                if (tangentSpeed > normalForce * pair.friction * timeScaleSquared)
+                    tangentImpulse = normalForce * pair.friction * timeScaleSquared * tangentVelocityDirection;
 
                 // modify impulses accounting for mass, inertia and offset
                 var oAcN = Vector.cross(offsetA, normal),
@@ -230,7 +231,7 @@ var Resolver = {};
                 tangentImpulse *= share;
                 
                 // handle high velocity and resting collisions separately
-                if (normalVelocity < 0 && normalVelocity * normalVelocity > _restingThresh) {
+                if (normalVelocity < 0 && normalVelocity * normalVelocity > _restingThresh * timeScaleSquared) {
                     // high velocity so clear cached contact impulse
                     contact.normalImpulse = 0;
                     contact.tangentImpulse = 0;

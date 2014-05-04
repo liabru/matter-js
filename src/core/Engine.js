@@ -191,7 +191,7 @@ var Engine = {};
             i;
 
         // increment timestamp
-        timing.timestamp += delta;
+        timing.timestamp += delta * timing.timeScale;
         timing.correction = correction;
 
         // create an event object
@@ -216,7 +216,7 @@ var Engine = {};
         Body.applyGravityAll(allBodies, world.gravity);
 
         // update all body position and rotation by integration
-        Body.updateAll(allBodies, delta * timing.timeScale, correction, world.bounds);
+        Body.updateAll(allBodies, delta, timing.timeScale, correction, world.bounds);
 
         // update all constraints
         for (i = 0; i < engine.constraintIterations; i++) {
@@ -256,7 +256,7 @@ var Engine = {};
         // iteratively resolve velocity between collisions
         Resolver.preSolveVelocity(pairs.list);
         for (i = 0; i < engine.velocityIterations; i++) {
-            Resolver.solveVelocity(pairs.list);
+            Resolver.solveVelocity(pairs.list, timing.timeScale);
         }
         
         // iteratively resolve position between collisions
