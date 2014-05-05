@@ -1,12 +1,12 @@
 {
   "name": "Matter",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "homepage": "https://github.com/liabru/matter-js",
   "authors": [
     "Liam Brummitt <liam@brm.io> (http://brm.io/)"
   ],
   "description": "a 2D rigid body physics engine for the web",
-  "main": "build/matter-0.7.0.min.js",
+  "main": "build/matter-0.8.0.min.js",
   "keywords": [
     "javascript",
     "canvas",

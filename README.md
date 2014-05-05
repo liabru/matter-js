@@ -14,6 +14,10 @@
 - [Solid Shapes](http://brm.io/matter-js-demo#mixedSolid)
 - [Newton's Cradle](http://brm.io/matter-js-demo#newtonsCradle)
 - [Wrecking Ball](http://brm.io/matter-js-demo#wreckingBall)
+- [Rounded Corners (Chamfering)](http://brm.io/matter-js-demo#rounded)
+- [Views](http://brm.io/matter-js-demo/#views)
+- [Time Scaling](http://brm.io/matter-js-demo/#timescale)
+- [Raycasting](http://brm.io/matter-js-demo/#raycasting)
 - [Sprites](http://brm.io/matter-js-demo/#sprites)
 - [Pyramid](http://brm.io/matter-js-demo#pyramid)
 - [Car](http://brm.io/matter-js-demo#car)
@@ -51,14 +55,17 @@
 - Composite bodies
 - Sleeping and static bodies
 - Events
+- Rounded corners (chamfering)
+- Views (translate, zoom)
+- Collision queries (raycasting, region tests)
 - Time scaling (slow-mo, speed-up)
 - Canvas renderer (supports vectors and textures)
 - WebGL renderer (requires [pixi.js](https://github.com/GoodBoyDigital/pixi.js/))
+- [MatterTools](https://github.com/liabru/matter-tools) for creating, testing and debugging worlds
 - World state serialisation (requires [resurrect.js](https://github.com/skeeto/resurrect-js))
-- Built in GUI for testing (requires [dat.gui.js](http://workshop.chromeexperiments.com/examples/gui/))
 - Cross-browser (Chrome, Firefox, Safari, IE8+)
 - Mobile-compatible (touch, responsive)
-- An original JavaScript physics implementation, not a port!
+- An original JavaScript physics implementation (not a port)
 
 ### Status
 
@@ -73,9 +80,9 @@ Though if I get time and people are interested, I may continue working on it.
 
 ### Install
 
-Download [matter-0.7.0.js](https://github.com/liabru/matter-js/releases/download/0.7.0-alpha/matter-0.7.0.js) or [matter-0.7.0.min.js](https://github.com/liabru/matter-js/releases/download/0.7.0-alpha/matter-0.7.0.min.js) and include the script in your HTML file:
+Download [matter-0.8.0.js](https://github.com/liabru/matter-js/releases/download/0.8.0-alpha/matter-0.8.0.js) or [matter-0.8.0.min.js](https://github.com/liabru/matter-js/releases/download/0.8.0-alpha/matter-0.8.0.min.js) and include the script in your HTML file:
 
-    <script src="matter-0.7.0.js" type="text/javascript"></script>
+    <script src="matter-0.8.0.js" type="text/javascript"></script>
 
 For the latest features try the [edge version (master)](https://raw.github.com/liabru/matter-js/master/build/matter.js), but it may not be fully stable.
 
@@ -92,7 +99,7 @@ Some of the demos are avaliable at [codepen.io/liabru](http://codepen.io/liabru/
 
 ### Documentation
 
-See the [Matter.js API Docs (v0.7.0)](http://brm.io/matter-js-docs/).
+See the [Matter.js API Docs (v0.8.0)](http://brm.io/matter-js-docs/).
 <br>If you're using the [edge version (master)](https://raw2.github.com/liabru/matter-js/master/build/matter.js) then see the [API Docs (master)](http://brm.io/matter-js-docs-master/).
 
 ### Changelog

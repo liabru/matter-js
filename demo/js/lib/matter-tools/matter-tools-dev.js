@@ -1,12 +1,12 @@
 /**
-* matter-tools-dev.min.js 0.5.0-dev 2014-05-01
+* matter-tools-dev.min.js 0.5.0-dev 2014-05-04
 * https://github.com/liabru/matter-tools
 * License: MIT
 */
 
 (function() {
   var MatterTools = {};
-  var Engine = Matter.Engine, World = Matter.World, Bodies = Matter.Bodies, Body = Matter.Body, Composite = Matter.Composite, Composites = Matter.Composites, Common = Matter.Common, Constraint = Matter.Constraint, Events = Matter.Events, Bounds = Matter.Bounds, Vector = Matter.Vector, Vertices = Matter.Vertices, MouseConstraint = Matter.MouseConstraint, Query = Matter.Query;
+  var Engine = Matter.Engine, World = Matter.World, Bodies = Matter.Bodies, Body = Matter.Body, Composite = Matter.Composite, Composites = Matter.Composites, Common = Matter.Common, Constraint = Matter.Constraint, Events = Matter.Events, Bounds = Matter.Bounds, Vector = Matter.Vector, Vertices = Matter.Vertices, MouseConstraint = Matter.MouseConstraint, Render = Matter.Render, RenderPixi = Matter.RenderPixi, Mouse = Matter.Mouse, Query = Matter.Query;
   var Gui = {};
   (function() {
     Gui.create = function(engine, options) {
@@ -30,7 +30,8 @@
           x:0,
           y:0
         },
-        renderer:"canvas"
+        renderer:"canvas",
+        chamfer:0
       };
       if (Resurrect) {
         gui.serializer = new Resurrect({
@@ -72,7 +73,6 @@
     Gui.serialise = function(serializer, object, indent) {
       indent = indent || 0;
       return serializer.stringify(object, function(key, value) {
-        if (key === "path") return undefined;
         if (!/^#/.exec(key) && typeof value === "number") {
           var fixed = parseFloat(value.toFixed(3));
           if (fixed === 0 && value !== 0) return value;
@@ -80,6 +80,11 @@
         }
         return value;
       }, indent);
+    };
+    Gui.clone = function(serializer, object) {
+      var clone = serializer.parse(Gui.serialise(serializer, object));
+      clone.id = Common.nextId();
+      return clone;
     };
     var _initDatGui = function(gui) {
       var engine = gui.engine, datGui = gui.datGui;
@@ -126,6 +131,7 @@
       controls.add(gui, "friction", 0, 1).step(.05);
       controls.add(gui, "frictionAir", 0, gui.frictionAir * 10).step(gui.frictionAir / 10);
       controls.add(gui, "restitution", 0, 1).step(.1);
+      controls.add(gui, "chamfer", 0, 30).step(2);
       controls.add(funcs, "addBody");
       controls.open();
       var worldGui = datGui.addFolder("World");
@@ -188,6 +194,11 @@
         frictionAir:gui.frictionAir,
         restitution:gui.restitution
       };
+      if (gui.chamfer && gui.sides > 2) {
+        options.chamfer = {
+          radius:gui.chamfer
+        };
+      }
       for (var i = 0; i < gui.amount; i++) {
         World.add(engine.world, Bodies.polygon(gui.offset.x + 120 + i * gui.size + i * 50, gui.offset.y + 200, gui.sides, gui.size, options));
       }
@@ -229,6 +240,7 @@
         hasTransitions:_isWebkit ? true :false,
         bodyClass:"",
         exportIndent:0,
+        clipboard:[],
         controls:{
           container:null,
           worldTree:null
@@ -303,7 +315,9 @@
       help += "[shift + space] pause or play simulation.\n";
       help += "[right click] and drag on empty space to select a region.\n";
       help += "[right click] and drag on an object to move it.\n";
-      help += "[right click + shift] and drag to move whole selection.\n";
+      help += "[right click + shift] and drag to move whole selection.\n\n";
+      help += "[ctrl-c] to copy selected world objects.\n";
+      help += "[ctrl-v] to paste copied world objects to mouse position.\n";
       help += "[del] or [backspace] delete selected objects.\n\n";
       help += "[shift + s] scale-xy selected objects with mouse or arrows.\n";
       help += "[shift + s + d] scale-x selected objects with mouse or arrows.\n";
@@ -352,6 +366,12 @@
       });
       _key("backspace", function() {
         _deleteSelectedObjects(inspector);
+      });
+      _key("ctrl+c", function() {
+        _copySelectedObjects(inspector);
+      });
+      _key("ctrl+v", function() {
+        _pasteSelectedObjects(inspector);
       });
       $(document).unbind("keydown").bind("keydown", function(event) {
         var doPrevent = false;
@@ -608,6 +628,30 @@
       }
       Composite.remove(inspector.root, objects, true);
       _setSelectedObjects(inspector, []);
+    };
+    var _copySelectedObjects = function(inspector) {
+      inspector.clipboard.length = 0;
+      for (var i = 0; i < inspector.selected.length; i++) {
+        var object = inspector.selected[i].data;
+        if (object.type !== "body") continue;
+        inspector.clipboard.push(object);
+      }
+    };
+    var _pasteSelectedObjects = function(inspector) {
+      var objects = [], worldTree = inspector.controls.worldTree.data("jstree");
+      for (var i = 0; i < inspector.clipboard.length; i++) {
+        var object = inspector.clipboard[i], clone = Gui.clone(inspector.serializer, object);
+        Body.translate(clone, {
+          x:50,
+          y:50
+        });
+        var node = worldTree.get_node(object.type + "_" + object.id, false), compositeId = node.data.compositeId, composite = Composite.get(inspector.engine.world, compositeId, "composite");
+        Composite.add(composite, clone);
+        objects.push(clone);
+      }
+      setTimeout(function() {
+        _setSelectedObjects(inspector, objects);
+      }, 200);
     };
     var _updateSelectedMouseDownOffset = function(inspector) {
       var selected = inspector.selected, mouse = inspector.engine.input.mouse, mousePosition = _getMousePosition(inspector), item, data;

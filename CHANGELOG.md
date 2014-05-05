@@ -4,6 +4,88 @@
 
 ----------
 
+## 0.8.0-alpha - 2014-05-05
+
+#### Release Highlights
+
+- added [Views](http://brm.io/matter-js-demo/#views) demo
+- added [Time Scaling](http://brm.io/matter-js-demo/#timescale) demo
+- added [Rounded Corners (Chamfering)](http://brm.io/matter-js-demo#rounded) demo
+- added [Raycasting](http://brm.io/matter-js-demo/#raycasting) demo
+- added Query module, including raycasting
+- added 3 useful new Composite methods
+- added support for mouse wheel, mouse scaling and offsets
+- added Body.scale for scaling bodies on the fly
+- added Body.timeScale for slowing down bodies per-body
+- added Body.setStatic for correctly setting static
+- added Vertices.chamfer for rounding corners of any set of vertices
+- added integration of chamfer to body factories
+- added engine.timing.isFixed option to disable dynamic timing
+- added render.bounds for translating and scaling views
+- easier use of Engine.update and Engine.render for those using custom game loops
+- fixed issues with time scaling
+- fixed error in calculation of centre of mass
+- removed Matter.Gui in preparation for the [MatterTools](https://github.com/liabru/matter-tools) project launch
+
+#### Added
+
+- added Demo.views
+- added Demo.timescale
+- added Demo.rounded
+- added Demo.raycasting
+- added demo support for hash + '-inspect' to start the [MatterTools](https://github.com/liabru/matter-tools) inspector
+- added Composite.rebase
+- added Composite.move
+- added Composite.get
+- added Matter.Query
+- added Query.ray
+- added Query.region
+- added Bounds.translate
+- added Bounds.shift
+- added Mouse.setScale
+- added Mouse.setPosition
+- added mouse.absolute
+- added mouse.wheelDelta
+- added mouse.offset
+- added Body.setStatic
+- added Body.scale
+- added body.timeScale
+- added Vector.angle
+- added Vertices.chamfer for rounding corners
+- added Engine.render
+- added engine.timing.isFixed option
+- added render.bounds for translating and scaling views
+- added Common.nextId
+- added body.label
+- added constraint.label
+- added composite.label
+
+#### Changed
+
+- changed engine.timing.timestamp to be simulation based rather than wall-clock based
+- changed correction to now be optional in Engine.update (defaults to 1)
+- changed Events.on to return callback
+- changed Events.off to accept callbacks for removal
+- changed vertices in Bounds.create to optional
+- changed engine.timeScale to engine.timing.timeScale
+- moved Matter.Inspector and Matter.Gui to the [MatterTools](https://github.com/liabru/matter-tools) project
+- moved event documentation to end of file for clarity
+- moved respective engine event triggers into Engine.update and Engine.render
+
+#### Removed
+
+- removed body.render.path (redundant)
+- removed Body.nextId
+- removed Constraint.nextId
+- removed Composite.nextId
+- removed Body.updateProperties (now a private method)
+
+#### Fixed
+
+- fixed issues with timing.timeScale
+- fixed constraints now account for timeScale
+- fixed Vertices.centre calculation to get correct centre of mass
+
 ## 0.7.0-alpha - 2014-04-01
 
 #### Release Highlights
