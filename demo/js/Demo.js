@@ -19,8 +19,10 @@
         Query = Matter.Query;
 
     // MatterTools aliases
-    var Gui = MatterTools.Gui,
-        Inspector = MatterTools.Inspector;
+    if (window.MatterTools) {
+        var Gui = MatterTools.Gui,
+            Inspector = MatterTools.Inspector;
+    }
 
     var Demo = {};
 
