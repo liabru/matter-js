@@ -14,6 +14,7 @@
 - [Solid Shapes](http://brm.io/matter-js-demo#mixedSolid)
 - [Newton's Cradle](http://brm.io/matter-js-demo#newtonsCradle)
 - [Wrecking Ball](http://brm.io/matter-js-demo#wreckingBall)
+- [Slingshot Game](http://brm.io/matter-js-demo#slingshot)
 - [Rounded Corners (Chamfering)](http://brm.io/matter-js-demo#rounded)
 - [Views](http://brm.io/matter-js-demo/#views)
 - [Time Scaling](http://brm.io/matter-js-demo/#timescale)
