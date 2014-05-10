@@ -64,7 +64,8 @@ module.exports = function(grunt) {
         options: {
           port: 9000,
           open: 'http://localhost:9000/demo/dev.html',
-          livereload: 9001
+          livereload: 9001,
+          keepalive: true
         }
       }
     },
