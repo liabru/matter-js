@@ -10,6 +10,12 @@
 
 ### Demos
 
+#### To run the demos locally:
+
+run
+``` grunt dev ```  
+in this project's root.
+
 - [Mixed Shapes](http://brm.io/matter-js-demo#mixed)
 - [Solid Shapes](http://brm.io/matter-js-demo#mixedSolid)
 - [Newton's Cradle](http://brm.io/matter-js-demo#newtonsCradle)
