@@ -66,7 +66,7 @@
             switch (Math.round(Common.random(0, 1))) {
                 
             case 0:
-                if (Math.random() < 0.8) {
+                if (Common.random() < 0.8) {
                     return Bodies.rectangle(x, y, Common.random(20, 40), Common.random(20, 40), { friction: 0.01, restitution: 0.4 });
                 } else {
                     return Bodies.rectangle(x, y, Common.random(80, 120), Common.random(20, 30), { friction: 0.01, restitution: 0.4 });
@@ -139,6 +139,8 @@
     
     Demo.reset = function() {
         var _world = _engine.world;
+
+        Common._seed = 2;
         
         World.clear(_world);
         Engine.clear(_engine);

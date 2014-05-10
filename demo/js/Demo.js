@@ -96,7 +96,7 @@
 
             // round the edges of some bodies
             var chamfer = null;
-            if (sides > 2 && Math.random() > 0.7) {
+            if (sides > 2 && Common.random() > 0.7) {
                 chamfer = {
                     radius: 10
                 };
@@ -104,7 +104,7 @@
 
             switch (Math.round(Common.random(0, 1))) {
             case 0:
-                if (Math.random() < 0.8) {
+                if (Common.random() < 0.8) {
                     return Bodies.rectangle(x, y, Common.random(25, 50), Common.random(25, 50), { chamfer: chamfer });
                 } else {
                     return Bodies.rectangle(x, y, Common.random(80, 120), Common.random(25, 30), { chamfer: chamfer });
@@ -243,7 +243,7 @@
             switch (Math.round(Common.random(0, 1))) {
 
             case 0:
-                if (Math.random() < 0.8) {
+                if (Common.random() < 0.8) {
                     return Bodies.rectangle(x, y, Common.random(20, 50), Common.random(20, 50));
                 } else {
                     return Bodies.rectangle(x, y, Common.random(80, 120), Common.random(20, 30));
@@ -365,7 +365,7 @@
             switch (Math.round(Common.random(0, 1))) {
 
             case 0:
-                if (Math.random() < 0.8) {
+                if (Common.random() < 0.8) {
                     return Bodies.rectangle(x, y, Common.random(20, 50), Common.random(20, 50));
                 } else {
                     return Bodies.rectangle(x, y, Common.random(80, 120), Common.random(20, 30));
@@ -523,7 +523,7 @@
             switch (Math.round(Common.random(0, 1))) {
 
             case 0:
-                if (Math.random() < 0.8) {
+                if (Common.random() < 0.8) {
                     return Bodies.rectangle(x, y, Common.random(20, 50), Common.random(20, 50));
                 } else {
                     return Bodies.rectangle(x, y, Common.random(80, 120), Common.random(20, 30));
@@ -551,7 +551,7 @@
             switch (Math.round(Common.random(0, 1))) {
 
             case 0:
-                if (Math.random() < 0.8) {
+                if (Common.random() < 0.8) {
                     return Bodies.rectangle(x, y, Common.random(20, 50), Common.random(20, 50));
                 } else {
                     return Bodies.rectangle(x, y, Common.random(80, 120), Common.random(20, 30));
@@ -580,7 +580,7 @@
             switch (Math.round(Common.random(0, 1))) {
 
             case 0:
-                if (Math.random() < 0.8) {
+                if (Common.random() < 0.8) {
                     return Bodies.rectangle(x, y, Common.random(20, 50), Common.random(20, 50));
                 } else {
                     return Bodies.rectangle(x, y, Common.random(80, 120), Common.random(20, 30));
@@ -647,8 +647,8 @@
                     var forceMagnitude = 0.04 * body.mass;
 
                     Body.applyForce(body, { x: 0, y: 0 }, { 
-                        x: (forceMagnitude + Math.random() * forceMagnitude) * Common.choose([1, -1]), 
-                        y: -forceMagnitude + Math.random() * -forceMagnitude
+                        x: (forceMagnitude + Common.random() * forceMagnitude) * Common.choose([1, -1]), 
+                        y: -forceMagnitude + Common.random() * -forceMagnitude
                     });
                 }
             }
@@ -699,7 +699,7 @@
             switch (Math.round(Common.random(0, 1))) {
 
             case 0:
-                if (Math.random() < 0.8) {
+                if (Common.random() < 0.8) {
                     return Bodies.rectangle(x, y, Common.random(20, 50), Common.random(20, 50), bodyOptions);
                 } else {
                     return Bodies.rectangle(x, y, Common.random(80, 120), Common.random(20, 30), bodyOptions);
@@ -955,8 +955,8 @@
                     var forceMagnitude = 0.01 * body.mass;
 
                     Body.applyForce(body, { x: 0, y: 0 }, { 
-                        x: (forceMagnitude + Math.random() * forceMagnitude) * Common.choose([1, -1]), 
-                        y: -forceMagnitude + Math.random() * -forceMagnitude
+                        x: (forceMagnitude + Common.random() * forceMagnitude) * Common.choose([1, -1]), 
+                        y: -forceMagnitude + Common.random() * -forceMagnitude
                     });
                 }
             }
@@ -1069,7 +1069,7 @@
         ]);
 
         var stack = Composites.stack(20, 20, 15, 4, 0, 0, function(x, y, column, row) {
-            if (Math.random() > 0.35) {
+            if (Common.random() > 0.35) {
                 return Bodies.rectangle(x, y, 64, 64, {
                     render: {
                         strokeStyle: '#ffffff',
@@ -1110,7 +1110,7 @@
             switch (Math.round(Common.random(0, 1))) {
 
             case 0:
-                if (Math.random() < 0.8) {
+                if (Common.random() < 0.8) {
                     return Bodies.rectangle(x, y, Common.random(20, 50), Common.random(20, 50));
                 } else {
                     return Bodies.rectangle(x, y, Common.random(80, 120), Common.random(20, 30));
@@ -1274,6 +1274,9 @@
 
         // reset id pool
         Common._nextId = 0;
+
+        // reset random seed
+        Common._seed = 0;
 
         // reset mouse offset and scale (only required for Demo.views)
         Mouse.setScale(_engine.input.mouse, { x: 1, y: 1 });

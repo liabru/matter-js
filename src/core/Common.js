@@ -9,6 +9,7 @@ var Common = {};
 (function() {
 
     Common._nextId = 0;
+    Common._seed = 0;
 
     /**
      * Description
@@ -132,7 +133,7 @@ var Common = {};
      */
     Common.shuffle = function(array) {
         for (var i = array.length - 1; i > 0; i--) {
-            var j = Math.floor(Math.random() * (i + 1));
+            var j = Math.floor(Common.random() * (i + 1));
             var temp = array[i];
             array[i] = array[j];
             array[j] = temp;
@@ -147,7 +148,7 @@ var Common = {};
      * @return {object} A random choice object from the array
      */
     Common.choose = function(choices) {
-        return choices[Math.floor(Math.random() * choices.length)];
+        return choices[Math.floor(Common.random() * choices.length)];
     };
 
     /**
@@ -222,7 +223,9 @@ var Common = {};
      * @return {number} A random number between min and max inclusive
      */
     Common.random = function(min, max) {
-        return min + Math.random() * (max - min);
+        min = (typeof min !== "undefined") ? min : 0;
+        max = (typeof max !== "undefined") ? max : 1;
+        return min + _seededRandom() * (max - min);
     };
 
     /**
@@ -276,6 +279,12 @@ var Common = {};
      */
     Common.nextId = function() {
         return Common._nextId++;
+    };
+
+    var _seededRandom = function() {
+        // https://gist.github.com/ngryman/3830489
+        Common._seed = (Common._seed * 9301 + 49297) % 233280;
+        return Common._seed / 233280;
     };
 
 })();
