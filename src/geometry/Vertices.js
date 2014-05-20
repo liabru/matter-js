@@ -1,4 +1,8 @@
 /**
+* The `Matter.Vertices` module contains methods for creating and manipulating sets of vertices.
+* A set of vertices is an array of `Matter.Vector` with additional indexing properties inserted by `Vertices.create`.
+* A `Matter.Body` maintains a set of vertices to represent the shape of the object (its convex hull).
+*
 * See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
 * and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
 *
@@ -12,7 +16,13 @@ var Vertices = {};
 (function() {
 
     /**
-     * Description
+     * Creates a new set of `Matter.Body` compatible vertices.
+     * The `vertices` argument accepts an array of `Matter.Vector` orientated around the origin `(0, 0)`, for example:
+     *
+     *     [{ x: 0, y: 0 }, { x: 25, y: 50 }, { x: 50, y: 0 }]
+     *
+     * The `Vertices.create` method then inserts additional indexing properties required for efficient collision detection routines.
+     *
      * @method create
      * @param {vertices} vertices
      * @param {body} body
@@ -25,7 +35,7 @@ var Vertices = {};
     };
 
     /**
-     * Description
+     * Parses a _simple_ SVG-style path into a set of `Matter.Vector` points.
      * @method fromPath
      * @param {string} path
      * @return {vertices} vertices
@@ -42,7 +52,7 @@ var Vertices = {};
     };
 
     /**
-     * Description
+     * Returns the centre (centroid) of the set of vertices.
      * @method centre
      * @param {vertices} vertices
      * @return {vector} The centre point
@@ -65,7 +75,7 @@ var Vertices = {};
     };
 
     /**
-     * Description
+     * Returns the area of the set of vertices.
      * @method area
      * @param {vertices} vertices
      * @param {bool} signed
@@ -87,11 +97,11 @@ var Vertices = {};
     };
 
     /**
-     * Description
+     * Returns the moment of inertia (second moment of area) of the set of vertices given the total mass.
      * @method inertia
      * @param {vertices} vertices
      * @param {number} mass
-     * @return {number} The polygon's moment of inertia, using second moment of area
+     * @return {number} The polygon's moment of inertia
      */
     Vertices.inertia = function(vertices, mass) {
         var numerator = 0,
@@ -113,7 +123,7 @@ var Vertices = {};
     };
 
     /**
-     * Description
+     * Translates the set of vertices in-place.
      * @method translate
      * @param {vertices} vertices
      * @param {vector} vector
@@ -135,7 +145,7 @@ var Vertices = {};
     };
 
     /**
-     * Description
+     * Rotates the set of vertices in-place.
      * @method rotate
      * @param {vertices} vertices
      * @param {number} angle
@@ -159,7 +169,7 @@ var Vertices = {};
     };
 
     /**
-     * Description
+     * Returns `true` if the `point` is inside the set of `vertices`.
      * @method contains
      * @param {vertices} vertices
      * @param {vector} point
@@ -178,7 +188,7 @@ var Vertices = {};
     };
 
     /**
-     * Scales the vertices from a point (default is centre)
+     * Scales the vertices from a point (default is centre) in-place.
      * @method scale
      * @param {vertices} vertices
      * @param {number} scaleX

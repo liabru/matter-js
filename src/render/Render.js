@@ -1,21 +1,25 @@
 /**
-* See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
-* and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
+* The `Matter.Render` module is the default `render.controller` used by a `Matter.Engine`.
+* This renderer is HTML5 canvas based and supports a number of drawing options including sprites and viewports.
+*
+* It is possible develop a custom renderer module based on `Matter.Render` and pass an instance of it to `Engine.create` via `options.render`.
+* A minimal custom renderer object must define at least three functions: `create`, `clear` and `world` (see `Matter.Render`).
+*
+* See also `Matter.RenderPixi` for an alternate WebGL, scene-graph based renderer.
 *
 * @class Render
 */
-
-// TODO: viewports
-// TODO: two.js, pixi.js
 
 var Render = {};
 
 (function() {
     
     /**
-     * Description
+     * Creates a new renderer. The options parameter is an object that specifies any properties you wish to override the defaults.
+     * All properties have default values, and many are pre-calculated automatically based on other properties.
+     * See the properites section below for detailed information on what you can pass via the `options` object.
      * @method create
-     * @param {object} options
+     * @param {object} [options]
      * @return {render} A new renderer
      */
     Render.create = function(options) {
@@ -103,7 +107,8 @@ var Render = {};
     };
 
     /**
-     * Description
+     * Renders the given `engine`'s `Matter.World` object.
+     * This is the entry point for all rendering and should be called every time the scene changes.
      * @method world
      * @param {engine} engine
      */
@@ -213,6 +218,7 @@ var Render = {};
 
     /**
      * Description
+     * @private
      * @method debug
      * @param {engine} engine
      * @param {RenderingContext} context
@@ -269,6 +275,7 @@ var Render = {};
 
     /**
      * Description
+     * @private
      * @method constraints
      * @param {constraint[]} constraints
      * @param {RenderingContext} context
@@ -307,6 +314,7 @@ var Render = {};
     
     /**
      * Description
+     * @private
      * @method bodyShadows
      * @param {engine} engine
      * @param {body[]} bodies
@@ -356,6 +364,7 @@ var Render = {};
 
     /**
      * Description
+     * @private
      * @method bodies
      * @param {engine} engine
      * @param {body[]} bodies
@@ -432,6 +441,7 @@ var Render = {};
 
     /**
      * Optimised method for drawing body wireframes in one pass
+     * @private
      * @method bodyWireframes
      * @param {engine} engine
      * @param {body[]} bodies
@@ -466,6 +476,7 @@ var Render = {};
 
     /**
      * Draws body bounds
+     * @private
      * @method bodyBounds
      * @param {engine} engine
      * @param {body[]} bodies
@@ -497,6 +508,7 @@ var Render = {};
 
     /**
      * Draws body angle indicators and axes
+     * @private
      * @method bodyAxes
      * @param {engine} engine
      * @param {body[]} bodies
@@ -544,6 +556,7 @@ var Render = {};
 
     /**
      * Draws body positions
+     * @private
      * @method bodyPositions
      * @param {engine} engine
      * @param {body[]} bodies
@@ -591,6 +604,7 @@ var Render = {};
 
     /**
      * Draws body velocity
+     * @private
      * @method bodyVelocity
      * @param {engine} engine
      * @param {body[]} bodies
@@ -620,6 +634,7 @@ var Render = {};
 
     /**
      * Draws body ids
+     * @private
      * @method bodyIds
      * @param {engine} engine
      * @param {body[]} bodies
@@ -642,6 +657,7 @@ var Render = {};
 
     /**
      * Description
+     * @private
      * @method collisions
      * @param {engine} engine
      * @param {pair[]} pairs
@@ -708,6 +724,7 @@ var Render = {};
 
     /**
      * Description
+     * @private
      * @method grid
      * @param {engine} engine
      * @param {grid} grid
@@ -746,6 +763,7 @@ var Render = {};
 
     /**
      * Description
+     * @private
      * @method inspector
      * @param {inspector} inspector
      * @param {RenderingContext} context
@@ -866,5 +884,89 @@ var Render = {};
 
         return image;
     };
+
+    /*
+    *
+    *  Properties Documentation
+    *
+    */
+
+    /**
+     * A back-reference to the `Matter.Render` module.
+     *
+     * @property controller
+     * @type render
+     */
+
+    /**
+     * A reference to the element where the canvas is to be inserted (if `render.canvas` has not been specified)
+     *
+     * @property element
+     * @type HTMLElement
+     * @default null
+     */
+
+    /**
+     * The canvas element to render to. If not specified, one will be created if `render.element` has been specified.
+     *
+     * @property canvas
+     * @type HTMLCanvasElement
+     * @default null
+     */
+
+    /**
+     * The configuration options of the renderer.
+     *
+     * @property options
+     * @type {}
+     */
+
+    /**
+     * The target width in pixels of the `render.canvas` to be created.
+     *
+     * @property options.width
+     * @type number
+     * @default 800
+     */
+
+    /**
+     * The target height in pixels of the `render.canvas` to be created.
+     *
+     * @property options.height
+     * @type number
+     * @default 600
+     */
+
+    /**
+     * A flag that specifies if `render.bounds` should be used when rendering.
+     *
+     * @property options.hasBounds
+     * @type boolean
+     * @default false
+     */
+
+    /**
+     * A `Bounds` object that specifies the drawing view region. 
+     * Rendering will be automatically transformed and scaled to fit within the canvas size (`render.options.width` and `render.options.height`).
+     * This allows for creating views that can pan or zoom around the scene.
+     * You must also set `render.options.hasBounds` to `true` to enable bounded rendering.
+     *
+     * @property bounds
+     * @type bounds
+     */
+
+    /**
+     * The 2d rendering context from the `render.canvas` element.
+     *
+     * @property context
+     * @type CanvasRenderingContext2D
+     */
+
+    /**
+     * The sprite texture cache.
+     *
+     * @property textures
+     * @type {}
+     */
 
 })();

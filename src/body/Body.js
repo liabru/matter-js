@@ -1,7 +1,11 @@
 /**
+* The `Matter.Body` module contains methods for creating and manipulating body models.
+* A `Matter.Body` is a rigid body that can be simulated by a `Matter.Engine`.
+* Factories for commonly used body configurations (such as rectangles, circles and other polygons) can be found in the module `Matter.Bodies`.
+*
 * See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
 * and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
-*
+
 * @class Body
 */
 
@@ -12,7 +16,9 @@ var Body = {};
     var _nextGroupId = 1;
 
     /**
-     * Description to be written.
+     * Creates a new rigid body model. The options parameter is an object that specifies any properties you wish to override the defaults.
+     * All properties have default values, and many are pre-calculated automatically based on other properties.
+     * See the properites section below for detailed information on what you can pass via the `options` object.
      * @method create
      * @param {} options
      * @return {body} body
@@ -62,7 +68,7 @@ var Body = {};
     };
 
     /**
-     * Description
+     * Returns the next unique groupID number.
      * @method nextGroupId
      * @return {Number} Unique groupID
      */
@@ -71,7 +77,7 @@ var Body = {};
     };
 
     /**
-     * Initialises body properties
+     * Initialises body properties.
      * @method _initProperties
      * @private
      * @param {body} body
@@ -104,7 +110,7 @@ var Body = {};
     };
 
     /**
-     * Sets the body as static, including isStatic flag and setting mass and inertia to Infinity
+     * Sets the body as static, including isStatic flag and setting mass and inertia to Infinity.
      * @method setStatic
      * @param {bool} isStatic
      */
@@ -129,7 +135,7 @@ var Body = {};
     };
 
     /**
-     * Description
+     * Zeroes the `body.force` and `body.torque` force buffers.
      * @method resetForcesAll
      * @param {body[]} bodies
      */
@@ -145,7 +151,7 @@ var Body = {};
     };
 
     /**
-     * Description
+     * Applys a mass dependant force to all given bodies.
      * @method applyGravityAll
      * @param {body[]} bodies
      * @param {vector} gravity
@@ -164,12 +170,14 @@ var Body = {};
     };
 
     /**
-     * Description
+     * Applys `Body.update` to all given `bodies`.
      * @method updateAll
      * @param {body[]} bodies
-     * @param {number} deltaTime
+     * @param {number} deltaTime 
+     * The amount of time elapsed between updates
      * @param {number} timeScale
-     * @param {number} correction
+     * @param {number} correction 
+     * The Verlet correction factor (deltaTime / lastDeltaTime)
      * @param {bounds} worldBounds
      */
     Body.updateAll = function(bodies, deltaTime, timeScale, correction, worldBounds) {
@@ -190,7 +198,7 @@ var Body = {};
     };
 
     /**
-     * Description
+     * Performs a simulation step for the given `body`, including updating position and angle using Verlet integration.
      * @method update
      * @param {body} body
      * @param {number} deltaTime
@@ -233,7 +241,7 @@ var Body = {};
     };
 
     /**
-     * Description
+     * Applies a force to a body from a given world-space position, including resulting torque.
      * @method applyForce
      * @param {body} body
      * @param {vector} position
@@ -247,7 +255,7 @@ var Body = {};
     };
 
     /**
-     * Description
+     * Moves a body by a given vector relative to its current position, without imparting any velocity.
      * @method translate
      * @param {body} body
      * @param {vector} translation
@@ -262,7 +270,7 @@ var Body = {};
     };
 
     /**
-     * Description
+     * Rotates a body by a given angle relative to its current angle, without imparting any angular velocity.
      * @method rotate
      * @param {body} body
      * @param {number} angle
@@ -276,12 +284,12 @@ var Body = {};
     };
 
     /**
-     * Scales the body, including updating physical properties (mass, area, axes, inertia), from a point (default is centre)
+     * Scales the body, including updating physical properties (mass, area, axes, inertia), from a world-space point (default is body centre).
      * @method translate
      * @param {body} body
      * @param {number} scaleX
      * @param {number} scaleY
-     * @param {vector} point
+     * @param {vector} [point]
      */
     Body.scale = function(body, scaleX, scaleY, point) {
         // scale vertices
@@ -302,5 +310,366 @@ var Body = {};
         // update bounds
         Bounds.update(body.bounds, body.vertices, body.velocity);
     };
+
+    /*
+    *
+    *  Properties Documentation
+    *
+    */
+
+    /**
+     * An integer `Number` uniquely identifying number generated in `Body.create` by `Common.nextId`.
+     *
+     * @property id
+     * @type number
+     */
+
+    /**
+     * A `String` denoting the type of object.
+     *
+     * @property type
+     * @type string
+     * @default "body"
+     */
+
+    /**
+     * An arbitrary `String` name to help the user identify and manage bodies.
+     *
+     * @property label
+     * @type string
+     * @default "Body"
+     */
+
+    /**
+     * A `Number` specifying the angle of the body, in radians.
+     *
+     * @property angle
+     * @type number
+     * @default 0
+     */
+
+    /**
+     * An array of `Vector` objects that specify the convex hull of the rigid body.
+     * These should be provided about the origin `(0, 0)`. E.g.
+     *
+     *     [{ x: 0, y: 0 }, { x: 25, y: 50 }, { x: 50, y: 0 }]
+     *
+     * When passed via `Body.create`, the verticies are translated relative to `body.position` (i.e. world-space, and constantly updated by `Body.update` during simulation).
+     * The `Vector` objects are also augmented with additional properties required for efficient collision detection. 
+     *
+     * Other properties such as `inertia` and `bounds` are automatically calculated from the passed vertices (unless provided via `options`).
+     * Concave hulls are not currently supported. The module `Matter.Vertices` contains useful methods for working with vertices.
+     *
+     * @property vertices
+     * @type vector[]
+     */
+
+    /**
+     * A `Vector` that specifies the current world-space position of the body.
+     *
+     * @property position
+     * @type vector
+     * @default { x: 0, y: 0 }
+     */
+
+    /**
+     * A `Vector` that specifies the force to apply in the current step. It is zeroed after every `Body.update`. See also `Body.applyForce`.
+     *
+     * @property force
+     * @type vector
+     * @default { x: 0, y: 0 }
+     */
+
+    /**
+     * A `Number` that specifies the torque (turning force) to apply in the current step. It is zeroed after every `Body.update`.
+     *
+     * @property torque
+     * @type number
+     * @default 0
+     */
+
+    /**
+     * A `Number` that _measures_ the current speed of the body after the last `Body.update`. It is read-only and always positive (it's the magnitude of `body.velocity`).
+     *
+     * @readOnly
+     * @property speed
+     * @type number
+     * @default 0
+     */
+
+    /**
+     * A `Number` that _measures_ the current angular speed of the body after the last `Body.update`. It is read-only and always positive (it's the magnitude of `body.angularVelocity`).
+     *
+     * @readOnly
+     * @property angularSpeed
+     * @type number
+     * @default 0
+     */
+
+    /**
+     * A `Vector` that _measures_ the current velocity of the body after the last `Body.update`. It is read-only. 
+     * If you need to modify a body's velocity directly, you should either apply a force or simply change the body's `position` (as the engine uses position-Verlet integration).
+     *
+     * @readOnly
+     * @property velocity
+     * @type vector
+     * @default { x: 0, y: 0 }
+     */
+
+    /**
+     * A `Number` that _measures_ the current angular velocity of the body after the last `Body.update`. It is read-only. 
+     * If you need to modify a body's angular velocity directly, you should apply a torque or simply change the body's `angle` (as the engine uses position-Verlet integration).
+     *
+     * @readOnly
+     * @property angularVelocity
+     * @type number
+     * @default 0
+     */
+
+    /**
+     * A flag that indicates whether a body is considered static. A static body can never change position or angle and is completely fixed.
+     * If you need to set a body as static after its creation, you should use `Body.setStatic` as this requires more than just setting this flag.
+     *
+     * @property isStatic
+     * @type boolean
+     * @default false
+     */
+
+    /**
+     * A flag that indicates whether the body is considered sleeping. A sleeping body acts similar to a static body, except it is only temporary and can be awoken.
+     * If you need to set a body as sleeping, you should use `Sleeping.set` as this requires more than just setting this flag.
+     *
+     * @property isSleeping
+     * @type boolean
+     * @default false
+     */
+
+    /**
+     * A `Number` that _measures_ the amount of movement a body currently has (a combination of `speed` and `angularSpeed`). It is read-only and always positive.
+     * It is used and updated by the `Matter.Sleeping` module during simulation to decide if a body has come to rest.
+     *
+     * @readOnly
+     * @property motion
+     * @type number
+     * @default 0
+     */
+
+    /**
+     * A `Number` that defines the number of updates in which this body must have near-zero velocity before it is set as sleeping by the `Matter.Sleeping` module (if sleeping is enabled by the engine).
+     *
+     * @property sleepThreshold
+     * @type number
+     * @default 60
+     */
+
+    /**
+     * A `Number` that defines the density of the body, that is its mass per unit area.
+     * If you pass the density via `Body.create` the `mass` property is automatically calculated for you based on the size (area) of the object.
+     * This is generally preferable to simply setting mass and allows for more intuitive definition of materials (e.g. rock has a higher density than wood).
+     *
+     * @property density
+     * @type number
+     * @default 0.001
+     */
+
+    /**
+     * A `Number` that defines the mass of the body, although it may be more appropriate to specify the `density` property instead.
+     * If you modify this value, you must also modify the `body.inverseMass` property (`1 / mass`).
+     *
+     * @property mass
+     * @type number
+     */
+
+    /**
+     * A `Number` that defines the inverse mass of the body (`1 / mass`).
+     * If you modify this value, you must also modify the `body.mass` property.
+     *
+     * @property inverseMass
+     * @type number
+     */
+
+    /**
+     * A `Number` that defines the moment of inertia (i.e. second moment of area) of the body.
+     * It is automatically calculated from the given convex hull (`vertices` array) and density in `Body.create`.
+     * If you modify this value, you must also modify the `body.inverseInertia` property (`1 / inertia`).
+     *
+     * @property inertia
+     * @type number
+     */
+
+    /**
+     * A `Number` that defines the inverse moment of inertia of the body (`1 / inertia`).
+     * If you modify this value, you must also modify the `body.inertia` property.
+     *
+     * @property inverseInertia
+     * @type number
+     */
+
+    /**
+     * A `Number` that defines the restitution (elasticity) of the body. The value is always positive and is in the range `(0, 1)`.
+     * A value of `0` means collisions may be perfectly inelastic and no bouncing may occur. 
+     * A value of `0.8` means the body may bounce back with approximately 80% of its kinetic energy.
+     * Note that collision response is based on _pairs_ of bodies, and that `restitution` values are _combined_ with the following formula:
+     *
+     *     Math.max(bodyA.restitution, bodyB.restitution)
+     *
+     * @property restitution
+     * @type number
+     * @default 0
+     */
+
+    /**
+     * A `Number` that defines the friction of the body. The value is always positive and is in the range `(0, 1)`.
+     * A value of `0` means that the body may slide indefinitely.
+     * A value of `1` means the body may come to a stop almost instantly after a force is applied.
+     *
+     * The effects of the value may be non-linear. 
+     * High values may be unstable depending on the body.
+     * The engine uses a Coulomb friction model including static and kinetic friction.
+     * Note that collision response is based on _pairs_ of bodies, and that `friction` values are _combined_ with the following formula:
+     *
+     *     Math.min(bodyA.friction, bodyB.friction)
+     *
+     * @property friction
+     * @type number
+     * @default 0.1
+     */
+
+    /**
+     * A `Number` that defines the air friction of the body (air resistance). 
+     * A value of `0` means the body will never slow as it moves through space.
+     * The higher the value, the faster a body slows when moving through space.
+     * The effects of the value are non-linear. 
+     *
+     * @property frictionAir
+     * @type number
+     * @default 0.01
+     */
+
+    /**
+     * An integer `Number` that specifies the collision group the body belongs to. 
+     * Bodies with the same `groupId` are considered _as-one_ body and therefore do not interact.
+     * This allows for creation of segmented bodies that can self-intersect, such as a rope.
+     * The default value 0 means the body does not belong to a group, and can interact with all other bodies.
+     *
+     * @property groupId
+     * @type number
+     * @default 0
+     */
+
+    /**
+     * A `Number` that specifies a tollerance on how far a body is allowed to 'sink' or rotate into other bodies.
+     * Avoid changing this value unless you understand the purpose of `slop` in physics engines.
+     * The default should generally suffice, although very large bodies may require larger values for stable stacking.
+     *
+     * @property slop
+     * @type number
+     * @default 0.05
+     */
+
+    /**
+     * A `Number` that allows per-body time scaling, e.g. a force-field where bodies inside are in slow-motion, while others are at full speed.
+     *
+     * @property timeScale
+     * @type number
+     * @default 1
+     */
+
+    /**
+     * An `Object` that defines the rendering properties to be consumed by the module `Matter.Render`.
+     *
+     * @property render
+     * @type object
+     */
+
+    /**
+     * A flag that indicates if the body should be rendered.
+     *
+     * @property render.visible
+     * @type boolean
+     * @default true
+     */
+
+    /**
+     * An `Object` that defines the sprite properties to use when rendering, if any.
+     *
+     * @property render.sprite
+     * @type object
+     */
+
+    /**
+     * An `String` that defines the path to the image to use as the sprite texture, if any.
+     *
+     * @property render.sprite.texture
+     * @type string
+     */
+     
+    /**
+     * A `Number` that defines the scaling in the x-axis for the sprite, if any.
+     *
+     * @property render.sprite.xScale
+     * @type number
+     * @default 1
+     */
+
+    /**
+     * A `Number` that defines the scaling in the y-axis for the sprite, if any.
+     *
+     * @property render.sprite.yScale
+     * @type number
+     * @default 1
+     */
+
+    /**
+     * A `Number` that defines the line width to use when rendering the body outline (if a sprite is not defined).
+     * A value of `0` means no outline will be rendered.
+     *
+     * @property render.lineWidth
+     * @type number
+     * @default 1.5
+     */
+
+    /**
+     * A `String` that defines the fill style to use when rendering the body (if a sprite is not defined).
+     * It is the same as when using a canvas, so it accepts CSS style property values.
+     *
+     * @property render.fillStyle
+     * @type string
+     * @default a random colour
+     */
+
+    /**
+     * A `String` that defines the stroke style to use when rendering the body outline (if a sprite is not defined).
+     * It is the same as when using a canvas, so it accepts CSS style property values.
+     *
+     * @property render.strokeStyle
+     * @type string
+     * @default a random colour
+     */
+
+    /**
+     * An array of unique axis vectors (edge normals) used for collision detection.
+     * These are automatically calculated from the given convex hull (`vertices` array) in `Body.create`.
+     * They are constantly updated by `Body.update` during the simulation.
+     *
+     * @property axes
+     * @type vector[]
+     */
+     
+    /**
+     * A `Number` that _measures_ the area of the body's convex hull, calculated at creation by `Body.create`.
+     *
+     * @property area
+     * @type string
+     * @default 
+     */
+
+    /**
+     * A `Bounds` object that defines the AABB region for the body.
+     * It is automatically calculated from the given convex hull (`vertices` array) in `Body.create` and constantly updated by `Body.update` during simulation.
+     *
+     * @property bounds
+     * @type bounds
+     */
 
 })();

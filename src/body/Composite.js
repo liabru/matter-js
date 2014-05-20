@@ -1,4 +1,9 @@
 /**
+* The `Matter.Composite` module contains methods for creating and manipulating composite bodies.
+* A composite body is a collection of `Matter.Body`, `Matter.Constraint` and other `Matter.Composite`, therefore composites form a tree structure.
+* It is important to use the functions in this module to modify composites, rather than directly modifying their properties.
+* Note that the `Matter.World` object is also a type of `Matter.Composite` and as such all composite methods here can also operate on a `Matter.World`.
+*
 * See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
 * and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
 *
@@ -12,9 +17,10 @@ var Composite = {};
 (function() {
 
     /**
-     * Description
+     * Creates a new composite. The options parameter is an object that specifies any properties you wish to override the defaults.
+     * See the properites section below for detailed information on what you can pass via the `options` object.
      * @method create
-     * @param {} options
+     * @param {} [options]
      * @return {composite} A new composite
      */
     Composite.create = function(options) {
@@ -37,8 +43,8 @@ var Composite = {};
      * @method setModified
      * @param {composite} composite
      * @param {boolean} isModified
-     * @param {boolean} updateParents
-     * @param {boolean} updateChildren
+     * @param {boolean} [updateParents=false]
+     * @param {boolean} [updateChildren=false]
      */
     Composite.setModified = function(composite, isModified, updateParents, updateChildren) {
         composite.isModified = isModified;
@@ -95,7 +101,7 @@ var Composite = {};
      * @method remove
      * @param {composite} composite
      * @param {} object
-     * @param {boolean} deep
+     * @param {boolean} [deep=false]
      * @return {composite} The original composite with the objects removed
      */
     Composite.remove = function(composite, object, deep) {
@@ -126,7 +132,7 @@ var Composite = {};
     };
 
     /**
-     * Description
+     * Adds a composite to the given composite
      * @method addComposite
      * @param {composite} compositeA
      * @param {composite} compositeB
@@ -144,7 +150,7 @@ var Composite = {};
      * @method removeComposite
      * @param {composite} compositeA
      * @param {composite} compositeB
-     * @param {boolean} deep
+     * @param {boolean} [deep=false]
      * @return {composite} The original compositeA with the composite removed
      */
     Composite.removeComposite = function(compositeA, compositeB, deep) {
@@ -177,7 +183,7 @@ var Composite = {};
     };
 
     /**
-     * Description
+     * Adds a body to the given composite
      * @method addBody
      * @param {composite} composite
      * @param {body} body
@@ -194,7 +200,7 @@ var Composite = {};
      * @method removeBody
      * @param {composite} composite
      * @param {body} body
-     * @param {boolean} deep
+     * @param {boolean} [deep=false]
      * @return {composite} The original composite with the body removed
      */
     Composite.removeBody = function(composite, body, deep) {
@@ -227,7 +233,7 @@ var Composite = {};
     };
 
     /**
-     * Description
+     * Adds a constraint to the given composite
      * @method addConstraint
      * @param {composite} composite
      * @param {constraint} constraint
@@ -244,7 +250,7 @@ var Composite = {};
      * @method removeConstraint
      * @param {composite} composite
      * @param {constraint} constraint
-     * @param {boolean} deep
+     * @param {boolean} [deep=false]
      * @return {composite} The original composite with the constraint removed
      */
     Composite.removeConstraint = function(composite, constraint, deep) {
@@ -281,7 +287,7 @@ var Composite = {};
      * @method clear
      * @param {world} world
      * @param {boolean} keepStatic
-     * @param {boolean} deep
+     * @param {boolean} [deep=false]
      */
     Composite.clear = function(composite, keepStatic, deep) {
         if (deep) {
@@ -415,5 +421,82 @@ var Composite = {};
 
         return composite;
     };
+
+    /*
+    *
+    *  Properties Documentation
+    *
+    */
+
+    /**
+     * An integer `Number` uniquely identifying number generated in `Composite.create` by `Common.nextId`.
+     *
+     * @property id
+     * @type number
+     */
+
+    /**
+     * A `String` denoting the type of object.
+     *
+     * @property type
+     * @type string
+     * @default "composite"
+     */
+
+    /**
+     * An arbitrary `String` name to help the user identify and manage composites.
+     *
+     * @property label
+     * @type string
+     * @default "Composite"
+     */
+
+    /**
+     * A flag that specifies whether the composite has been modified during the current step.
+     * Most `Matter.Composite` methods will automatically set this flag to `true` to inform the engine of changes to be handled.
+     * If you need to change it manually, you should use the `Composite.setModified` method.
+     *
+     * @property isModified
+     * @type boolean
+     * @default false
+     */
+
+    /**
+     * The `Composite` that is the parent of this composite. It is automatically managed by the `Matter.Composite` methods.
+     *
+     * @property parent
+     * @type composite
+     * @default null
+     */
+
+    /**
+     * An array of `Body` that are _direct_ children of this composite.
+     * To add or remove bodies you should use `Composite.add` and `Composite.remove` methods rather than directly modifying this property.
+     * If you wish to recursively find all descendants, you should use the `Composite.allBodies` method.
+     *
+     * @property bodies
+     * @type body[]
+     * @default []
+     */
+
+    /**
+     * An array of `Constraint` that are _direct_ children of this composite.
+     * To add or remove constraints you should use `Composite.add` and `Composite.remove` methods rather than directly modifying this property.
+     * If you wish to recursively find all descendants, you should use the `Composite.allConstraints` method.
+     *
+     * @property constraints
+     * @type constraint[]
+     * @default []
+     */
+
+    /**
+     * An array of `Composite` that are _direct_ children of this composite.
+     * To add or remove composites you should use `Composite.add` and `Composite.remove` methods rather than directly modifying this property.
+     * If you wish to recursively find all descendants, you should use the `Composite.allComposites` method.
+     *
+     * @property composites
+     * @type composite[]
+     * @default []
+     */
 
 })();

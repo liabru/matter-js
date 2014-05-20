@@ -10,7 +10,7 @@ var Events = {};
 (function() {
 
     /**
-     * Subscribes a callback function to the given object's eventName
+     * Subscribes a callback function to the given object's `eventName`.
      * @method on
      * @param {} object
      * @param {string} eventNames
@@ -31,7 +31,7 @@ var Events = {};
     };
 
     /**
-     * Removes the given event callback. If no callback, clears all callbacks in eventNames. If no eventNames, clears all events.
+     * Removes the given event callback. If no callback, clears all callbacks in `eventNames`. If no `eventNames`, clears all events.
      * @method off
      * @param {} object
      * @param {string} eventNames
@@ -67,7 +67,7 @@ var Events = {};
     };
 
     /**
-     * Fires all the callbacks subscribed to the given object's eventName, in the order they subscribed, if any
+     * Fires all the callbacks subscribed to the given object's `eventName`, in the order they subscribed, if any.
      * @method trigger
      * @param {} object
      * @param {string} eventNames

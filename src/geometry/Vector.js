@@ -1,4 +1,8 @@
 /**
+* The `Matter.Vector` module contains methods for creating and manipulating vectors.
+* Vectors are the basis of all the geometry related operations in the engine.
+* A `Matter.Vector` object is of the form `{ x: 0, y: 0 }`.
+*
 * See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
 * and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
 *
@@ -12,7 +16,7 @@ var Vector = {};
 (function() {
 
     /**
-     * Description
+     * Returns the magnitude (length) of a vector.
      * @method magnitude
      * @param {vector} vector
      * @return {number} The magnitude of the vector
@@ -22,7 +26,7 @@ var Vector = {};
     };
 
     /**
-     * Description
+     * Returns the magnitude (length) of a vector (therefore saving a `sqrt` operation).
      * @method magnitudeSquared
      * @param {vector} vector
      * @return {number} The squared magnitude of the vector
@@ -32,11 +36,11 @@ var Vector = {};
     };
 
     /**
-     * Description
+     * Rotates the vector about (0, 0) by specified angle.
      * @method rotate
      * @param {vector} vector
      * @param {number} angle
-     * @return {vector} A new vector rotated
+     * @return {vector} A new vector rotated about (0, 0)
      */
     Vector.rotate = function(vector, angle) {
         var cos = Math.cos(angle), sin = Math.sin(angle);
@@ -47,7 +51,7 @@ var Vector = {};
     };
 
     /**
-     * Description
+     * Rotates the vector about a specified point by specified angle.
      * @method rotateAbout
      * @param {vector} vector
      * @param {number} angle
@@ -63,7 +67,7 @@ var Vector = {};
     };
 
     /**
-     * Description
+     * Normalises a vector (such that its magnitude is `1`).
      * @method normalise
      * @param {vector} vector
      * @return {vector} A new vector normalised
@@ -76,7 +80,7 @@ var Vector = {};
     };
 
     /**
-     * Description
+     * Returns the dot-product of two vectors.
      * @method dot
      * @param {vector} vectorA
      * @param {vector} vectorB
@@ -87,7 +91,7 @@ var Vector = {};
     };
 
     /**
-     * Description
+     * Returns the cross-product of two vectors.
      * @method cross
      * @param {vector} vectorA
      * @param {vector} vectorB
@@ -98,29 +102,29 @@ var Vector = {};
     };
 
     /**
-     * Description
+     * Adds the two vectors.
      * @method add
      * @param {vector} vectorA
      * @param {vector} vectorB
-     * @return {vector} A new vector added
+     * @return {vector} A new vector of vectorA and vectorB added
      */
     Vector.add = function(vectorA, vectorB) {
         return { x: vectorA.x + vectorB.x, y: vectorA.y + vectorB.y };
     };
 
     /**
-     * Description
+     * Subtracts the two vectors.
      * @method sub
      * @param {vector} vectorA
      * @param {vector} vectorB
-     * @return {vector} A new vector subtracted
+     * @return {vector} A new vector of vectorA and vectorB subtracted
      */
     Vector.sub = function(vectorA, vectorB) {
         return { x: vectorA.x - vectorB.x, y: vectorA.y - vectorB.y };
     };
 
     /**
-     * Description
+     * Multiplies a vector and a scalar.
      * @method mult
      * @param {vector} vector
      * @param {number} scalar
@@ -131,7 +135,7 @@ var Vector = {};
     };
 
     /**
-     * Description
+     * Divides a vector and a scalar.
      * @method div
      * @param {vector} vector
      * @param {number} scalar
@@ -142,10 +146,10 @@ var Vector = {};
     };
 
     /**
-     * Description
+     * Returns the perpendicular vector. Set `negate` to true for the perpendicular in the opposite direction.
      * @method perp
      * @param {vector} vector
-     * @param {bool} negate
+     * @param {bool} [negate=false]
      * @return {vector} The perpendicular vector
      */
     Vector.perp = function(vector, negate) {
@@ -154,7 +158,7 @@ var Vector = {};
     };
 
     /**
-     * Description
+     * Negates both components of a vector such that it points in the opposite direction.
      * @method neg
      * @param {vector} vector
      * @return {vector} The negated vector
@@ -164,7 +168,7 @@ var Vector = {};
     };
 
     /**
-     * Returns the angle in radians between the two vectors relative to the x-axis
+     * Returns the angle in radians between the two vectors relative to the x-axis.
      * @method angle
      * @param {vector} vectorA
      * @param {vector} vectorB

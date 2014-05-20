@@ -1,5 +1,5 @@
 /**
-* Functions for performing collision queries
+* The `Matter.Query` module contains methods for performing collision queries.
 *
 * @class Query
 */
@@ -14,6 +14,7 @@ var Query = {};
      * @param {body[]} bodies
      * @param {vector} startPoint
      * @param {vector} endPoint
+     * @param {number} [rayWidth]
      * @return {object[]} Collisions
      */
     Query.ray = function(bodies, startPoint, endPoint, rayWidth) {
@@ -42,11 +43,11 @@ var Query = {};
     };
 
     /**
-     * Returns all bodies whose bounds are inside (or outside if set) the given set of bounds, from the given set of bodies
+     * Returns all bodies whose bounds are inside (or outside if set) the given set of bounds, from the given set of bodies.
      * @method region
      * @param {body[]} bodies
      * @param {bounds} bounds
-     * @param {bool} outside
+     * @param {bool} [outside=false]
      * @return {body[]} The bodies matching the query
      */
     Query.region = function(bodies, bounds, outside) {

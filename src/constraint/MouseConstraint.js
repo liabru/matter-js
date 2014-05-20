@@ -1,4 +1,7 @@
 /**
+* The `Matter.MouseConstraint` module contains methods for creating mouse constraints.
+* Mouse constraints are used for allowing user interaction, providing the ability to move bodies via the mouse or touch.
+*
 * See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
 * and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
 *
@@ -10,7 +13,9 @@ var MouseConstraint = {};
 (function() {
 
     /**
-     * Description
+     * Creates a new mouse constraint.
+     * All properties have default values, and many are pre-calculated automatically based on other properties.
+     * See the properites section below for detailed information on what you can pass via the `options` object.
      * @method create
      * @param {engine} engine
      * @param {} options
@@ -51,7 +56,8 @@ var MouseConstraint = {};
     };
 
     /**
-     * Description
+     * Updates the given mouse constraint.
+     * @private
      * @method update
      * @param {MouseConstraint} mouseConstraint
      * @param {body[]} bodies
@@ -84,5 +90,50 @@ var MouseConstraint = {};
             constraint.pointA = mouse.position;
         }
     };
+
+    /*
+    *
+    *  Properties Documentation
+    *
+    */
+
+    /**
+     * A `String` denoting the type of object.
+     *
+     * @property type
+     * @type string
+     * @default "constraint"
+     */
+
+    /**
+     * The `Mouse` instance in use.
+     *
+     * @property mouse
+     * @type mouse
+     * @default engine.input.mouse
+     */
+
+    /**
+     * The `Body` that is currently being moved by the user, or `null` if no body.
+     *
+     * @property dragBody
+     * @type body
+     * @default null
+     */
+
+    /**
+     * The `Vector` offset at which the drag started relative to the `dragBody`, if any.
+     *
+     * @property dragPoint
+     * @type body
+     * @default null
+     */
+
+    /**
+     * The `Constraint` object that is used to move the body during interaction.
+     *
+     * @property constraint
+     * @type constraint
+     */
 
 })();

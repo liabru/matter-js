@@ -1,4 +1,8 @@
 /**
+* The `Matter.Constraint` module contains methods for creating and manipulating constraints.
+* Constraints are used for specifying that a fixed distance must be maintained between two bodies (or a body and a fixed world-space position).
+* The stiffness of constraints can be modified to create springs or elastic.
+*
 * See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
 * and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
 *
@@ -21,7 +25,9 @@ var Constraint = {};
         _minDifference = 0.001;
 
     /**
-     * Description
+     * Creates a new constraint.
+     * All properties have default values, and many are pre-calculated automatically based on other properties.
+     * See the properites section below for detailed information on what you can pass via the `options` object.
      * @method create
      * @param {} options
      * @return {constraint} constraint
@@ -65,6 +71,7 @@ var Constraint = {};
 
     /**
      * Description
+     * @private
      * @method solveAll
      * @param {constraint[]} constraints
      * @param {number} timeScale
@@ -77,6 +84,7 @@ var Constraint = {};
 
     /**
      * Description
+     * @private
      * @method solve
      * @param {constraint} constraint
      * @param {number} timeScale
@@ -231,6 +239,7 @@ var Constraint = {};
 
     /**
      * Performs body updates required after solving constraints
+     * @private
      * @method postSolveAll
      * @param {body[]} bodies
      */
@@ -254,5 +263,117 @@ var Constraint = {};
             impulse.y = 0;
         }
     };
+
+    /*
+    *
+    *  Properties Documentation
+    *
+    */
+
+    /**
+     * An integer `Number` uniquely identifying number generated in `Composite.create` by `Common.nextId`.
+     *
+     * @property id
+     * @type number
+     */
+
+    /**
+     * A `String` denoting the type of object.
+     *
+     * @property type
+     * @type string
+     * @default "constraint"
+     */
+
+    /**
+     * An arbitrary `String` name to help the user identify and manage bodies.
+     *
+     * @property label
+     * @type string
+     * @default "Constraint"
+     */
+
+    /**
+     * An `Object` that defines the rendering properties to be consumed by the module `Matter.Render`.
+     *
+     * @property render
+     * @type object
+     */
+
+    /**
+     * A flag that indicates if the constraint should be rendered.
+     *
+     * @property render.visible
+     * @type boolean
+     * @default true
+     */
+
+    /**
+     * A `Number` that defines the line width to use when rendering the constraint outline.
+     * A value of `0` means no outline will be rendered.
+     *
+     * @property render.lineWidth
+     * @type number
+     * @default 2
+     */
+
+    /**
+     * A `String` that defines the stroke style to use when rendering the constraint outline.
+     * It is the same as when using a canvas, so it accepts CSS style property values.
+     *
+     * @property render.strokeStyle
+     * @type string
+     * @default a random colour
+     */
+
+    /**
+     * The first possible `Body` that this constraint is attached to.
+     *
+     * @property bodyA
+     * @type body
+     * @default null
+     */
+
+    /**
+     * The second possible `Body` that this constraint is attached to.
+     *
+     * @property bodyB
+     * @type body
+     * @default null
+     */
+
+    /**
+     * A `Vector` that specifies the offset of the constraint from center of the `constraint.bodyA` if defined, otherwise a world-space position.
+     *
+     * @property pointA
+     * @type vector
+     * @default { x: 0, y: 0 }
+     */
+
+    /**
+     * A `Vector` that specifies the offset of the constraint from center of the `constraint.bodyA` if defined, otherwise a world-space position.
+     *
+     * @property pointB
+     * @type vector
+     * @default { x: 0, y: 0 }
+     */
+
+    /**
+     * A `Number` that specifies the stiffness of the constraint, i.e. the rate at which it returns to its resting `constraint.length`.
+     * A value of `1` means the constraint should be very stiff.
+     * A value of `0.2` means the constraint acts like a soft spring.
+     *
+     * @property stiffness
+     * @type number
+     * @default 1
+     */
+
+    /**
+     * A `Number` that specifies the target resting length of the constraint. 
+     * It is calculated automatically in `Constraint.create` from intial positions of the `constraint.bodyA` and `constraint.bodyB`.
+     *
+     * @property length
+     * @type number
+     */
 
 })();

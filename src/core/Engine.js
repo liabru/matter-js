@@ -1,11 +1,12 @@
 /**
+* The `Matter.Engine` module contains methods for creating and manipulating engines.
+* An engine is a controller that manages updating and rendering the simulation of the world.
+*
 * See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
 * and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
 *
 * @class Engine
 */
-
-// TODO: viewports
 
 var Engine = {};
 
@@ -20,10 +21,12 @@ var Engine = {};
                                       || function(callback){ window.setTimeout(function() { callback(Common.now()); }, _delta); };
    
     /**
-     * Description
+     * Creates a new engine. The options parameter is an object that specifies any properties you wish to override the defaults.
+     * All properties have default values, and many are pre-calculated automatically based on other properties.
+     * See the properites section below for detailed information on what you can pass via the `options` object.
      * @method create
      * @param {HTMLElement} element
-     * @param {object} options
+     * @param {object} [options]
      * @return {engine} engine
      */
     Engine.create = function(element, options) {
@@ -178,8 +181,7 @@ var Engine = {};
      * @method update
      * @param {engine} engine
      * @param {number} delta
-     * @param {number} correction
-     * @return engine
+     * @param {number} [correction]
      */
     Engine.update = function(engine, delta, correction) {
         correction = (typeof correction !== 'undefined') ? correction : 1;
@@ -298,7 +300,7 @@ var Engine = {};
     };
     
     /**
-     * Description
+     * Merges two engines by keeping the configuration of `engineA` but replacing the world with the one from `engineB`.
      * @method merge
      * @param {engine} engineA
      * @param {engine} engineB
@@ -322,7 +324,7 @@ var Engine = {};
     };
 
     /**
-     * Description
+     * Clears the engine including the world, pairs and broadphase.
      * @method clear
      * @param {engine} engine
      */
@@ -537,5 +539,126 @@ var Engine = {};
     * @param {} event.source The source object of the event
     * @param {} event.name The name of the event
     */
+
+    /*
+    *
+    *  Properties Documentation
+    *
+    */
+
+    /**
+     * A flag that specifies whether the engine is running or not.
+     *
+     * @property enabled
+     * @type boolean
+     * @default true
+     */
+
+    /**
+     * An integer `Number` that specifies the number of position iterations to perform each update.
+     * The higher the value, the higher quality the simulation will be at the expense of performance.
+     *
+     * @property positionIterations
+     * @type number
+     * @default 6
+     */
+
+    /**
+     * An integer `Number` that specifies the number of velocity iterations to perform each update.
+     * The higher the value, the higher quality the simulation will be at the expense of performance.
+     *
+     * @property velocityIterations
+     * @type number
+     * @default 4
+     */
+
+    /**
+     * An integer `Number` that specifies the number of constraint iterations to perform each update.
+     * The higher the value, the higher quality the simulation will be at the expense of performance.
+     * The default value of `2` is usually very adequate.
+     *
+     * @property constraintIterations
+     * @type number
+     * @default 2
+     */
+
+    /**
+     * A flag that specifies whether the engine should allow sleeping via the `Matter.Sleeping` module.
+     * Sleeping can improve stability and performance, but often at the expense of accuracy.
+     *
+     * @property enableSleeping
+     * @type boolean
+     * @default false
+     */
+
+    /**
+     * An `Object` containing properties regarding the timing systems of the engine. 
+     *
+     * @property timing
+     * @type object
+     */
+
+    /**
+     * A `Number` that specifies the global scaling factor of time for all bodies.
+     * A value of `0` freezes the simulation.
+     * A value of `0.1` gives a slow-motion effect.
+     * A value of `1.2` gives a speed-up effect.
+     *
+     * @property timing.timeScale
+     * @type number
+     * @default 1
+     */
+
+    /**
+     * A `Number` that specifies the current simulation-time in milliseconds starting from `0`. 
+     * It is incremented on every `Engine.update` by the `timing.delta`. 
+     *
+     * @property timing.timestamp
+     * @type number
+     * @default 0
+     */
+
+    /**
+     * A `Number` that specifies the time step between updates in milliseconds.
+     * If `engine.timing.isFixed` is set to `true`, then `delta` is fixed.
+     * If it is `false`, then `delta` can dynamically change to maintain the correct apparant simulation speed.
+     *
+     * @property timing.delta
+     * @type number
+     * @default 1000 / 60
+     */
+
+    /**
+     * A `Number` that specifies the time correction factor to apply to the current timestep.
+     * It is automatically handled when using `Engine.run`, but is also only optional even if you use your own game loop.
+     * The value is defined as `delta / lastDelta`, i.e. the percentage change of `delta` between steps.
+     * This value is always `1` (no correction) when frame rate is constant or `engine.timing.isFixed` is `true`.
+     * If the framerate and hence `delta` are changing, then correction should be applied to the current update to account for the change.
+     * See the paper on <a href="http://lonesock.net/article/verlet.html">Time Corrected Verlet</a> for more information.
+     *
+     * @property timing.correction
+     * @type number
+     * @default 1
+     */
+
+    /**
+     * An instance of a `Render` controller. The default value is a `Matter.Render` instance created by `Engine.create`.
+     * One may also develop a custom renderer module based on `Matter.Render` and pass an instance of it to `Engine.create` via `options.render`.
+     *
+     * A minimal custom renderer object must define at least three functions: `create`, `clear` and `world` (see `Matter.Render`).
+     * It is also possible to instead pass the _module_ reference via `options.render.controller` and `Engine.create` will instantiate one for you.
+     *
+     * @property render
+     * @type render
+     * @default a Matter.Render instance
+     */
+
+    /**
+     * A `World` composite object that will contain all simulated bodies and constraints.
+     *
+     * @property world
+     * @type world
+     * @default a Matter.World instance
+     */
 
 })();
