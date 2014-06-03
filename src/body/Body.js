@@ -13,6 +13,8 @@ var Body = {};
 
 (function() {
 
+    Body._inertiaScale = 4;
+
     var _nextGroupId = 1;
 
     /**
@@ -156,12 +158,16 @@ var Body = {};
         body.area = Vertices.area(body.vertices);
         body.mass = body.density * body.area;
         body.inverseMass = 1 / body.mass;
-        body.inertia = Vertices.inertia(body.vertices, body.mass);
+
+        // orient vertices around the centre of mass at origin (0, 0)
+        var centre = Vertices.centre(body.vertices);
+        Vertices.translate(body.vertices, centre, -1);
+
+        // update inertia while vertices are at origin (0, 0)
+        body.inertia = Body._inertiaScale * Vertices.inertia(body.vertices, body.mass);
         body.inverseInertia = 1 / body.inertia;
 
         // update geometry
-        var centre = Vertices.centre(body.vertices);
-        Vertices.translate(body.vertices, centre, -1);
         Vertices.translate(body.vertices, body.position);
         Vertices.rotate(body.vertices, body.angle, body.position);
         Axes.rotate(body.axes, body.angle);
