@@ -17,38 +17,53 @@ var Vertices = {};
 
     /**
      * Creates a new set of `Matter.Body` compatible vertices.
-     * The `vertices` argument accepts an array of `Matter.Vector` orientated around the origin `(0, 0)`, for example:
+     * The `points` argument accepts an array of `Matter.Vector` points orientated around the origin `(0, 0)`, for example:
      *
      *     [{ x: 0, y: 0 }, { x: 25, y: 50 }, { x: 50, y: 0 }]
      *
-     * The `Vertices.create` method then inserts additional indexing properties required for efficient collision detection routines.
+     * The `Vertices.create` method returns a new array of vertices, which are similar to Matter.Vector objects,
+     * but with some additional references required for efficient collision detection routines.
+     *
+     * Note that the `body` argument is not optional, a `Matter.Body` reference must be provided.
      *
      * @method create
-     * @param {vertices} vertices
+     * @param {vector[]} points
      * @param {body} body
      */
-    Vertices.create = function(vertices, body) {
-        for (var i = 0; i < vertices.length; i++) {
-            vertices[i].index = i;
-            vertices[i].body = body;
+    Vertices.create = function(points, body) {
+        var vertices = [];
+
+        for (var i = 0; i < points.length; i++) {
+            var point = points[i],
+                vertex = {};
+
+            vertex.x = point.x;
+            vertex.y = point.y;
+            vertex.index = i;
+            vertex.body = body;
+
+            vertices.push(vertex);
         }
+
+        return vertices;
     };
 
     /**
-     * Parses a _simple_ SVG-style path into a set of `Matter.Vector` points.
+     * Parses a _simple_ SVG-style path into a `Matter.Vertices` object for the given `Matter.Body`.
      * @method fromPath
      * @param {string} path
+     * @param {body} body
      * @return {vertices} vertices
      */
-    Vertices.fromPath = function(path) {
+    Vertices.fromPath = function(path, body) {
         var pathPattern = /L\s*([\-\d\.]*)\s*([\-\d\.]*)/ig,
-            vertices = [];
+            points = [];
 
         path.replace(pathPattern, function(match, x, y) {
-            vertices.push({ x: parseFloat(x, 10), y: parseFloat(y, 10) });
+            points.push({ x: parseFloat(x, 10), y: parseFloat(y, 10) });
         });
 
-        return vertices;
+        return Vertices.create(points, body);
     };
 
     /**

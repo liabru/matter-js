@@ -97,7 +97,7 @@ var Body = {};
         body.render.strokeStyle = body.render.strokeStyle || Common.shadeColor(body.render.fillStyle, -20);
 
         // update geometry
-        Vertices.create(body.vertices, body);
+        body.vertices = Vertices.create(body.vertices, body);
         var centre = Vertices.centre(body.vertices);
         Vertices.translate(body.vertices, body.position);
         Vertices.translate(body.vertices, centre, -1);
