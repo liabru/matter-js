@@ -177,6 +177,113 @@ var Body = {};
         Vertices.translate(body.vertices, body.position);
         Bounds.update(body.bounds, body.vertices, body.velocity);
     };
+
+    /**
+     * Sets the position of the body instantly. Velocity, angle, force etc. are unchanged.
+     * @method setPosition
+     * @param {body} body
+     * @param {vector} position
+     */
+    Body.setPosition = function(body, position) {
+        var delta = Vector.sub(position, body.position);
+
+        body.position.x = position.x;
+        body.position.y = position.y;
+        body.positionPrev.x += delta.x;
+        body.positionPrev.y += delta.y;
+
+        Vertices.translate(body.vertices, delta);
+        Bounds.update(body.bounds, body.vertices, body.velocity);
+    };
+
+    /**
+     * Sets the angle of the body instantly. Angular velocity, position, force etc. are unchanged.
+     * @method setAngle
+     * @param {body} body
+     * @param {number} angle
+     */
+    Body.setAngle = function(body, angle) {
+        var delta = angle - body.angle;
+
+        body.angle = angle;
+        body.anglePrev += delta;
+
+        Vertices.rotate(body.vertices, delta, body.position);
+        Axes.rotate(body.axes, delta);
+        Bounds.update(body.bounds, body.vertices, body.velocity);
+    };
+
+    /**
+     * Sets the linear velocity of the body instantly. Position, angle, force etc. are unchanged. See also `Body.applyForce`.
+     * @method setVelocity
+     * @param {body} body
+     * @param {vector} velocity
+     */
+    Body.setVelocity = function(body, velocity) {
+        body.positionPrev.x = body.position.x - velocity.x;
+        body.positionPrev.y = body.position.y - velocity.y;
+        body.velocity.x = velocity.x;
+        body.velocity.y = velocity.y;
+        body.speed = Vector.magnitude(body.velocity);
+    };
+
+    /**
+     * Sets the angular velocity of the body instantly. Position, angle, force etc. are unchanged. See also `Body.applyForce`.
+     * @method setAngularVelocity
+     * @param {body} body
+     * @param {number} velocity
+     */
+    Body.setAngularVelocity = function(body, velocity) {
+        body.anglePrev = body.angle - velocity;
+        body.angularVelocity = velocity;
+        body.angularSpeed = Math.abs(body.angularVelocity);
+    };
+
+    /**
+     * Moves a body by a given vector relative to its current position, without imparting any velocity.
+     * @method translate
+     * @param {body} body
+     * @param {vector} translation
+     */
+    Body.translate = function(body, translation) {
+        Body.setPosition(body, Vector.add(body.position, translation));
+    };
+
+    /**
+     * Rotates a body by a given angle relative to its current angle, without imparting any angular velocity.
+     * @method rotate
+     * @param {body} body
+     * @param {number} rotation
+     */
+    Body.rotate = function(body, rotation) {
+        Body.setAngle(body, body.angle + angle);
+    };
+
+    /**
+     * Scales the body, including updating physical properties (mass, area, axes, inertia), from a world-space point (default is body centre).
+     * @method scale
+     * @param {body} body
+     * @param {number} scaleX
+     * @param {number} scaleY
+     * @param {vector} [point]
+     */
+    Body.scale = function(body, scaleX, scaleY, point) {
+        // scale vertices
+        Vertices.scale(body.vertices, scaleX, scaleY, point);
+
+        // update properties
+        body.axes = Axes.fromVertices(body.vertices);
+        body.area = Vertices.area(body.vertices);
+        body.mass = body.density * body.area;
+        body.inverseMass = 1 / body.mass;
+
+        // update inertia (requires vertices to be at origin)
+        Vertices.translate(body.vertices, { x: -body.position.x, y: -body.position.y });
+        body.inertia = Vertices.inertia(body.vertices, body.mass);
+        body.inverseInertia = 1 / body.inertia;
+        Vertices.translate(body.vertices, { x: body.position.x, y: body.position.y });
+
+        // update bounds
         Bounds.update(body.bounds, body.vertices, body.velocity);
     };
 
@@ -298,63 +405,6 @@ var Body = {};
         body.force.y += force.y;
         var offset = { x: position.x - body.position.x, y: position.y - body.position.y };
         body.torque += (offset.x * force.y - offset.y * force.x) * body.inverseInertia;
-    };
-
-    /**
-     * Moves a body by a given vector relative to its current position, without imparting any velocity.
-     * @method translate
-     * @param {body} body
-     * @param {vector} translation
-     */
-    Body.translate = function(body, translation) {
-        body.positionPrev.x += translation.x;
-        body.positionPrev.y += translation.y;
-        body.position.x += translation.x;
-        body.position.y += translation.y;
-        Vertices.translate(body.vertices, translation);
-        Bounds.update(body.bounds, body.vertices, body.velocity);
-    };
-
-    /**
-     * Rotates a body by a given angle relative to its current angle, without imparting any angular velocity.
-     * @method rotate
-     * @param {body} body
-     * @param {number} angle
-     */
-    Body.rotate = function(body, angle) {
-        body.anglePrev += angle;
-        body.angle += angle;
-        Vertices.rotate(body.vertices, angle, body.position);
-        Axes.rotate(body.axes, angle);
-        Bounds.update(body.bounds, body.vertices, body.velocity);
-    };
-
-    /**
-     * Scales the body, including updating physical properties (mass, area, axes, inertia), from a world-space point (default is body centre).
-     * @method scale
-     * @param {body} body
-     * @param {number} scaleX
-     * @param {number} scaleY
-     * @param {vector} [point]
-     */
-    Body.scale = function(body, scaleX, scaleY, point) {
-        // scale vertices
-        Vertices.scale(body.vertices, scaleX, scaleY, point);
-
-        // update properties
-        body.axes = Axes.fromVertices(body.vertices);
-        body.area = Vertices.area(body.vertices);
-        body.mass = body.density * body.area;
-        body.inverseMass = 1 / body.mass;
-
-        // update inertia (requires vertices to be at origin)
-        Vertices.translate(body.vertices, { x: -body.position.x, y: -body.position.y });
-        body.inertia = Vertices.inertia(body.vertices, body.mass);
-        body.inverseInertia = 1 / body.inertia;
-        Vertices.translate(body.vertices, { x: body.position.x, y: body.position.y });
-
-        // update bounds
-        Bounds.update(body.bounds, body.vertices, body.velocity);
     };
 
     /*
