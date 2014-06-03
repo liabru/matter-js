@@ -95,6 +95,8 @@ var Body = {};
         Body.setVertices(body, body.vertices);
         Body.setStatic(body, body.isStatic);
         Sleeping.set(body, body.isSleeping);
+        Vertices.rotate(body.vertices, body.angle, body.position);
+        Axes.rotate(body.axes, body.angle);
 
         // allow options to override the automatically calculated properties
         body.axes = options.axes || body.axes;
@@ -151,7 +153,11 @@ var Body = {};
      */
     Body.setVertices = function(body, vertices) {
         // change vertices
-        body.vertices = Vertices.create(vertices, body);
+        if (vertices[0].body === body) {
+            body.vertices = vertices;
+        } else {
+            body.vertices = Vertices.create(vertices, body);
+        }
 
         // update properties
         body.axes = Axes.fromVertices(body.vertices);
@@ -169,8 +175,8 @@ var Body = {};
 
         // update geometry
         Vertices.translate(body.vertices, body.position);
-        Vertices.rotate(body.vertices, body.angle, body.position);
-        Axes.rotate(body.axes, body.angle);
+        Bounds.update(body.bounds, body.vertices, body.velocity);
+    };
         Bounds.update(body.bounds, body.vertices, body.velocity);
     };
 
