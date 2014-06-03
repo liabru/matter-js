@@ -62,7 +62,7 @@ var Body = {};
 
         var body = Common.extend(defaults, options);
 
-        _initProperties(body);
+        _initProperties(body, options);
 
         return body;
     };
@@ -81,37 +81,38 @@ var Body = {};
      * @method _initProperties
      * @private
      * @param {body} body
+     * @param {} options
      */
-    var _initProperties = function(body) {
-        // calculated properties
-        body.axes = body.axes || Axes.fromVertices(body.vertices);
-        body.area = Vertices.area(body.vertices);
-        body.bounds = Bounds.create(body.vertices);
-        body.mass = body.mass || (body.density * body.area);
-        body.inverseMass = 1 / body.mass;
-        body.inertia = body.inertia || Vertices.inertia(body.vertices, body.mass);
-        body.inverseInertia = 1 / body.inertia;
-        body.positionPrev = body.positionPrev || { x: body.position.x, y: body.position.y };
+    var _initProperties = function(body, options) {
+        // init required properties
+        body.bounds = body.bounds || Bounds.create(body.vertices);
+        body.positionPrev = body.positionPrev || Vector.clone(body.position);
         body.anglePrev = body.anglePrev || body.angle;
-        body.render.fillStyle = body.render.fillStyle || (body.isStatic ? '#eeeeee' : Common.choose(['#556270', '#4ECDC4', '#C7F464', '#FF6B6B', '#C44D58']));
-        body.render.strokeStyle = body.render.strokeStyle || Common.shadeColor(body.render.fillStyle, -20);
 
-        // update geometry
-        body.vertices = Vertices.create(body.vertices, body);
-        var centre = Vertices.centre(body.vertices);
-        Vertices.translate(body.vertices, body.position);
-        Vertices.translate(body.vertices, centre, -1);
-        Vertices.rotate(body.vertices, body.angle, body.position);
-        Axes.rotate(body.axes, body.angle);
-        Bounds.update(body.bounds, body.vertices, body.velocity);
-
+        // must use setters for the more complicated properties
+        Body.setVertices(body, body.vertices);
         Body.setStatic(body, body.isStatic);
         Sleeping.set(body, body.isSleeping);
+
+        // allow options to override the automatically calculated properties
+        body.axes = options.axes || body.axes;
+        body.area = options.area || body.area;
+        body.mass = options.mass || body.mass;
+        body.inertia = options.inertia || body.inertia;
+        body.inverseMass = 1 / body.mass;
+        body.inverseInertia = 1 / body.inertia;
+
+        // render properties
+        var defaultFillStyle = (body.isStatic ? '#eeeeee' : Common.choose(['#556270', '#4ECDC4', '#C7F464', '#FF6B6B', '#C44D58'])),
+            defaultStrokeStyle = Common.shadeColor(defaultFillStyle, -20);
+        body.render.fillStyle = body.render.fillStyle || defaultFillStyle;
+        body.render.strokeStyle = body.render.strokeStyle || defaultStrokeStyle;
     };
 
     /**
      * Sets the body as static, including isStatic flag and setting mass and inertia to Infinity.
      * @method setStatic
+     * @param {body} body
      * @param {bool} isStatic
      */
     Body.setStatic = function(body, isStatic) {
