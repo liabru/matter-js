@@ -285,7 +285,7 @@ var Body = {};
 
     /**
      * Scales the body, including updating physical properties (mass, area, axes, inertia), from a world-space point (default is body centre).
-     * @method translate
+     * @method scale
      * @param {body} body
      * @param {number} scaleX
      * @param {number} scaleY
