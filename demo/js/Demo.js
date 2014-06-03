@@ -234,6 +234,57 @@
         renderOptions.showCollisions = true;
     };
 
+    Demo.manipulation = function() {
+        var _world = _engine.world;
+
+        Demo.reset();
+
+        var bodyA = Bodies.rectangle(100, 200, 50, 50),
+            bodyB = Bodies.rectangle(200, 200, 50, 50),
+            bodyC = Bodies.rectangle(300, 200, 50, 50),
+            bodyD = Bodies.rectangle(400, 200, 50, 50),
+            bodyE = Bodies.rectangle(550, 200, 50, 50),
+            bodyF = Bodies.rectangle(700, 200, 50, 50);
+
+        World.add(_world, [bodyA, bodyB, bodyC, bodyD, bodyE, bodyF]);
+
+        var counter = 0,
+            scaleFactor = 1.01;
+
+        _sceneEvents.push(
+            Events.on(_engine, 'tick', function(event) {
+                counter += 1;
+
+                if (scaleFactor > 1) {
+                    Body.scale(bodyF, scaleFactor, scaleFactor);
+
+                    // modify body vertices
+                    bodyE.vertices[0].x -= 0.2;
+                    bodyE.vertices[0].y -= 0.2;
+                    bodyE.vertices[1].x += 0.2;
+                    bodyE.vertices[1].y -= 0.2;
+                    Body.setVertices(bodyE, bodyE.vertices);
+                }
+
+                // every 1.5 sec
+                if (counter >= 60 * 1.5) {
+                    Body.setPosition(bodyA, { x: 100, y: 200 });
+                    Body.setVelocity(bodyB, { x: 0, y: -10 });
+                    Body.setAngle(bodyC, -Math.PI * 0.26);
+                    Body.setAngularVelocity(bodyD, 0.2);
+
+                    // reset counter
+                    counter = 0;
+                    scaleFactor = 1;
+                }
+            })
+        );
+
+        var renderOptions = _engine.render.options;
+        renderOptions.showAxes = true;
+        renderOptions.showCollisions = true;
+    };
+
     Demo.views = function() {
         var _world = _engine.world;
         
