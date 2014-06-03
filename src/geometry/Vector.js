@@ -16,6 +16,16 @@ var Vector = {};
 (function() {
 
     /**
+     * Returns a new vector with `x` and `y` copied from the given `vector`.
+     * @method clone
+     * @param {vector} vector
+     * @return {vector} A new cloned vector
+     */
+    Vector.clone = function(vector) {
+        return { x: vector.x, y: vector.y };
+    };
+
+    /**
      * Returns the magnitude (length) of a vector.
      * @method magnitude
      * @param {vector} vector

@@ -135,6 +135,39 @@ var Body = {};
     };
 
     /**
+     * Sets the body's vertices and updates body properties accordingly, including inertia, area and mass (with respect to `body.density`).
+     * Vertices will be automatically transformed to be orientated around their centre of mass as the origin.
+     * They are then automatically translated to world space based on `body.position`.
+     *
+     * The `vertices` argument should be passed as an array of `Matter.Vector` points (or a `Matter.Vertices` array).
+     * Vertices must form a convex hull, concave hulls are not supported.
+     *
+     * @method setVertices
+     * @param {body} body
+     * @param {vector[]} vertices
+     */
+    Body.setVertices = function(body, vertices) {
+        // change vertices
+        body.vertices = Vertices.create(vertices, body);
+
+        // update properties
+        body.axes = Axes.fromVertices(body.vertices);
+        body.area = Vertices.area(body.vertices);
+        body.mass = body.density * body.area;
+        body.inverseMass = 1 / body.mass;
+        body.inertia = Vertices.inertia(body.vertices, body.mass);
+        body.inverseInertia = 1 / body.inertia;
+
+        // update geometry
+        var centre = Vertices.centre(body.vertices);
+        Vertices.translate(body.vertices, centre, -1);
+        Vertices.translate(body.vertices, body.position);
+        Vertices.rotate(body.vertices, body.angle, body.position);
+        Axes.rotate(body.axes, body.angle);
+        Bounds.update(body.bounds, body.vertices, body.velocity);
+    };
+
+    /**
      * Zeroes the `body.force` and `body.torque` force buffers.
      * @method resetForcesAll
      * @param {body[]} bodies
