@@ -156,7 +156,9 @@ var Vertices = {};
                 vertices[i].x += vector.x;
                 vertices[i].y += vector.y;
             }
-        } 
+        }
+
+        return vertices;
     };
 
     /**
@@ -181,6 +183,8 @@ var Vertices = {};
             vertice.x = point.x + (dx * cos - dy * sin);
             vertice.y = point.y + (dx * sin + dy * cos);
         }
+
+        return vertices;
     };
 
     /**
