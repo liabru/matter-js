@@ -1,5 +1,5 @@
 /**
-* matter.js 0.8.0-edge 2014-05-04
+* matter.js 0.8.0-edge 2014-06-09
 * http://brm.io/matter-js/
 * License: MIT
 */
@@ -41,9 +41,13 @@ var Matter = {};
 // Begin src/body/Body.js
 
 /**
+* The `Matter.Body` module contains methods for creating and manipulating body models.
+* A `Matter.Body` is a rigid body that can be simulated by a `Matter.Engine`.
+* Factories for commonly used body configurations (such as rectangles, circles and other polygons) can be found in the module `Matter.Bodies`.
+*
 * See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
 * and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
-*
+
 * @class Body
 */
 
@@ -51,10 +55,14 @@ var Body = {};
 
 (function() {
 
+    Body._inertiaScale = 4;
+
     var _nextGroupId = 1;
 
     /**
-     * Description to be written.
+     * Creates a new rigid body model. The options parameter is an object that specifies any properties you wish to override the defaults.
+     * All properties have default values, and many are pre-calculated automatically based on other properties.
+     * See the properites section below for detailed information on what you can pass via the `options` object.
      * @method create
      * @param {} options
      * @return {body} body
@@ -98,13 +106,13 @@ var Body = {};
 
         var body = Common.extend(defaults, options);
 
-        _initProperties(body);
+        _initProperties(body, options);
 
         return body;
     };
 
     /**
-     * Description
+     * Returns the next unique groupID number.
      * @method nextGroupId
      * @return {Number} Unique groupID
      */
@@ -113,41 +121,44 @@ var Body = {};
     };
 
     /**
-     * Initialises body properties
+     * Initialises body properties.
      * @method _initProperties
      * @private
      * @param {body} body
+     * @param {} options
      */
-    var _initProperties = function(body) {
-        // calculated properties
-        body.axes = body.axes || Axes.fromVertices(body.vertices);
-        body.area = Vertices.area(body.vertices);
-        body.bounds = Bounds.create(body.vertices);
-        body.mass = body.mass || (body.density * body.area);
-        body.inverseMass = 1 / body.mass;
-        body.inertia = body.inertia || Vertices.inertia(body.vertices, body.mass);
-        body.inverseInertia = 1 / body.inertia;
-        body.positionPrev = body.positionPrev || { x: body.position.x, y: body.position.y };
+    var _initProperties = function(body, options) {
+        // init required properties
+        body.bounds = body.bounds || Bounds.create(body.vertices);
+        body.positionPrev = body.positionPrev || Vector.clone(body.position);
         body.anglePrev = body.anglePrev || body.angle;
-        body.render.fillStyle = body.render.fillStyle || (body.isStatic ? '#eeeeee' : Common.choose(['#556270', '#4ECDC4', '#C7F464', '#FF6B6B', '#C44D58']));
-        body.render.strokeStyle = body.render.strokeStyle || Common.shadeColor(body.render.fillStyle, -20);
 
-        // update geometry
-        Vertices.create(body.vertices, body);
-        var centre = Vertices.centre(body.vertices);
-        Vertices.translate(body.vertices, body.position);
-        Vertices.translate(body.vertices, centre, -1);
-        Vertices.rotate(body.vertices, body.angle, body.position);
-        Axes.rotate(body.axes, body.angle);
-        Bounds.update(body.bounds, body.vertices, body.velocity);
-
+        // must use setters for the more complicated properties
+        Body.setVertices(body, body.vertices);
         Body.setStatic(body, body.isStatic);
         Sleeping.set(body, body.isSleeping);
+        Vertices.rotate(body.vertices, body.angle, body.position);
+        Axes.rotate(body.axes, body.angle);
+
+        // allow options to override the automatically calculated properties
+        body.axes = options.axes || body.axes;
+        body.area = options.area || body.area;
+        body.mass = options.mass || body.mass;
+        body.inertia = options.inertia || body.inertia;
+        body.inverseMass = 1 / body.mass;
+        body.inverseInertia = 1 / body.inertia;
+
+        // render properties
+        var defaultFillStyle = (body.isStatic ? '#eeeeee' : Common.choose(['#556270', '#4ECDC4', '#C7F464', '#FF6B6B', '#C44D58'])),
+            defaultStrokeStyle = Common.shadeColor(defaultFillStyle, -20);
+        body.render.fillStyle = body.render.fillStyle || defaultFillStyle;
+        body.render.strokeStyle = body.render.strokeStyle || defaultStrokeStyle;
     };
 
     /**
-     * Sets the body as static, including isStatic flag and setting mass and inertia to Infinity
+     * Sets the body as static, including isStatic flag and setting mass and inertia to Infinity.
      * @method setStatic
+     * @param {body} body
      * @param {bool} isStatic
      */
     Body.setStatic = function(body, isStatic) {
@@ -171,7 +182,155 @@ var Body = {};
     };
 
     /**
-     * Description
+     * Sets the body's vertices and updates body properties accordingly, including inertia, area and mass (with respect to `body.density`).
+     * Vertices will be automatically transformed to be orientated around their centre of mass as the origin.
+     * They are then automatically translated to world space based on `body.position`.
+     *
+     * The `vertices` argument should be passed as an array of `Matter.Vector` points (or a `Matter.Vertices` array).
+     * Vertices must form a convex hull, concave hulls are not supported.
+     *
+     * @method setVertices
+     * @param {body} body
+     * @param {vector[]} vertices
+     */
+    Body.setVertices = function(body, vertices) {
+        // change vertices
+        if (vertices[0].body === body) {
+            body.vertices = vertices;
+        } else {
+            body.vertices = Vertices.create(vertices, body);
+        }
+
+        // update properties
+        body.axes = Axes.fromVertices(body.vertices);
+        body.area = Vertices.area(body.vertices);
+        body.mass = body.density * body.area;
+        body.inverseMass = 1 / body.mass;
+
+        // orient vertices around the centre of mass at origin (0, 0)
+        var centre = Vertices.centre(body.vertices);
+        Vertices.translate(body.vertices, centre, -1);
+
+        // update inertia while vertices are at origin (0, 0)
+        body.inertia = Body._inertiaScale * Vertices.inertia(body.vertices, body.mass);
+        body.inverseInertia = 1 / body.inertia;
+
+        // update geometry
+        Vertices.translate(body.vertices, body.position);
+        Bounds.update(body.bounds, body.vertices, body.velocity);
+    };
+
+    /**
+     * Sets the position of the body instantly. Velocity, angle, force etc. are unchanged.
+     * @method setPosition
+     * @param {body} body
+     * @param {vector} position
+     */
+    Body.setPosition = function(body, position) {
+        var delta = Vector.sub(position, body.position);
+
+        body.position.x = position.x;
+        body.position.y = position.y;
+        body.positionPrev.x += delta.x;
+        body.positionPrev.y += delta.y;
+
+        Vertices.translate(body.vertices, delta);
+        Bounds.update(body.bounds, body.vertices, body.velocity);
+    };
+
+    /**
+     * Sets the angle of the body instantly. Angular velocity, position, force etc. are unchanged.
+     * @method setAngle
+     * @param {body} body
+     * @param {number} angle
+     */
+    Body.setAngle = function(body, angle) {
+        var delta = angle - body.angle;
+
+        body.angle = angle;
+        body.anglePrev += delta;
+
+        Vertices.rotate(body.vertices, delta, body.position);
+        Axes.rotate(body.axes, delta);
+        Bounds.update(body.bounds, body.vertices, body.velocity);
+    };
+
+    /**
+     * Sets the linear velocity of the body instantly. Position, angle, force etc. are unchanged. See also `Body.applyForce`.
+     * @method setVelocity
+     * @param {body} body
+     * @param {vector} velocity
+     */
+    Body.setVelocity = function(body, velocity) {
+        body.positionPrev.x = body.position.x - velocity.x;
+        body.positionPrev.y = body.position.y - velocity.y;
+        body.velocity.x = velocity.x;
+        body.velocity.y = velocity.y;
+        body.speed = Vector.magnitude(body.velocity);
+    };
+
+    /**
+     * Sets the angular velocity of the body instantly. Position, angle, force etc. are unchanged. See also `Body.applyForce`.
+     * @method setAngularVelocity
+     * @param {body} body
+     * @param {number} velocity
+     */
+    Body.setAngularVelocity = function(body, velocity) {
+        body.anglePrev = body.angle - velocity;
+        body.angularVelocity = velocity;
+        body.angularSpeed = Math.abs(body.angularVelocity);
+    };
+
+    /**
+     * Moves a body by a given vector relative to its current position, without imparting any velocity.
+     * @method translate
+     * @param {body} body
+     * @param {vector} translation
+     */
+    Body.translate = function(body, translation) {
+        Body.setPosition(body, Vector.add(body.position, translation));
+    };
+
+    /**
+     * Rotates a body by a given angle relative to its current angle, without imparting any angular velocity.
+     * @method rotate
+     * @param {body} body
+     * @param {number} rotation
+     */
+    Body.rotate = function(body, rotation) {
+        Body.setAngle(body, body.angle + angle);
+    };
+
+    /**
+     * Scales the body, including updating physical properties (mass, area, axes, inertia), from a world-space point (default is body centre).
+     * @method scale
+     * @param {body} body
+     * @param {number} scaleX
+     * @param {number} scaleY
+     * @param {vector} [point]
+     */
+    Body.scale = function(body, scaleX, scaleY, point) {
+        // scale vertices
+        Vertices.scale(body.vertices, scaleX, scaleY, point);
+
+        // update properties
+        body.axes = Axes.fromVertices(body.vertices);
+        body.area = Vertices.area(body.vertices);
+        body.mass = body.density * body.area;
+        body.inverseMass = 1 / body.mass;
+
+        // update inertia (requires vertices to be at origin)
+        Vertices.translate(body.vertices, { x: -body.position.x, y: -body.position.y });
+        body.inertia = Vertices.inertia(body.vertices, body.mass);
+        body.inverseInertia = 1 / body.inertia;
+        Vertices.translate(body.vertices, { x: body.position.x, y: body.position.y });
+
+        // update bounds
+        Bounds.update(body.bounds, body.vertices, body.velocity);
+    };
+
+    /**
+     * Zeroes the `body.force` and `body.torque` force buffers.
      * @method resetForcesAll
      * @param {body[]} bodies
      */
@@ -187,7 +346,7 @@ var Body = {};
     };
 
     /**
-     * Description
+     * Applys a mass dependant force to all given bodies.
      * @method applyGravityAll
      * @param {body[]} bodies
      * @param {vector} gravity
@@ -206,12 +365,14 @@ var Body = {};
     };
 
     /**
-     * Description
+     * Applys `Body.update` to all given `bodies`.
      * @method updateAll
      * @param {body[]} bodies
-     * @param {number} deltaTime
+     * @param {number} deltaTime 
+     * The amount of time elapsed between updates
      * @param {number} timeScale
-     * @param {number} correction
+     * @param {number} correction 
+     * The Verlet correction factor (deltaTime / lastDeltaTime)
      * @param {bounds} worldBounds
      */
     Body.updateAll = function(bodies, deltaTime, timeScale, correction, worldBounds) {
@@ -232,7 +393,7 @@ var Body = {};
     };
 
     /**
-     * Description
+     * Performs a simulation step for the given `body`, including updating position and angle using Verlet integration.
      * @method update
      * @param {body} body
      * @param {number} deltaTime
@@ -275,7 +436,7 @@ var Body = {};
     };
 
     /**
-     * Description
+     * Applies a force to a body from a given world-space position, including resulting torque.
      * @method applyForce
      * @param {body} body
      * @param {vector} position
@@ -288,62 +449,366 @@ var Body = {};
         body.torque += (offset.x * force.y - offset.y * force.x) * body.inverseInertia;
     };
 
-    /**
-     * Description
-     * @method translate
-     * @param {body} body
-     * @param {vector} translation
-     */
-    Body.translate = function(body, translation) {
-        body.positionPrev.x += translation.x;
-        body.positionPrev.y += translation.y;
-        body.position.x += translation.x;
-        body.position.y += translation.y;
-        Vertices.translate(body.vertices, translation);
-        Bounds.update(body.bounds, body.vertices, body.velocity);
-    };
+    /*
+    *
+    *  Properties Documentation
+    *
+    */
 
     /**
-     * Description
-     * @method rotate
-     * @param {body} body
-     * @param {number} angle
+     * An integer `Number` uniquely identifying number generated in `Body.create` by `Common.nextId`.
+     *
+     * @property id
+     * @type number
      */
-    Body.rotate = function(body, angle) {
-        body.anglePrev += angle;
-        body.angle += angle;
-        Vertices.rotate(body.vertices, angle, body.position);
-        Axes.rotate(body.axes, angle);
-        Bounds.update(body.bounds, body.vertices, body.velocity);
-    };
 
     /**
-     * Scales the body, including updating physical properties (mass, area, axes, inertia), from a point (default is centre)
-     * @method translate
-     * @param {body} body
-     * @param {number} scaleX
-     * @param {number} scaleY
-     * @param {vector} point
+     * A `String` denoting the type of object.
+     *
+     * @property type
+     * @type string
+     * @default "body"
      */
-    Body.scale = function(body, scaleX, scaleY, point) {
-        // scale vertices
-        Vertices.scale(body.vertices, scaleX, scaleY, point);
 
-        // update properties
-        body.axes = Axes.fromVertices(body.vertices);
-        body.area = Vertices.area(body.vertices);
-        body.mass = body.density * body.area;
-        body.inverseMass = 1 / body.mass;
+    /**
+     * An arbitrary `String` name to help the user identify and manage bodies.
+     *
+     * @property label
+     * @type string
+     * @default "Body"
+     */
 
-        // update inertia (requires vertices to be at origin)
-        Vertices.translate(body.vertices, { x: -body.position.x, y: -body.position.y });
-        body.inertia = Vertices.inertia(body.vertices, body.mass);
-        body.inverseInertia = 1 / body.inertia;
-        Vertices.translate(body.vertices, { x: body.position.x, y: body.position.y });
+    /**
+     * A `Number` specifying the angle of the body, in radians.
+     *
+     * @property angle
+     * @type number
+     * @default 0
+     */
 
-        // update bounds
-        Bounds.update(body.bounds, body.vertices, body.velocity);
-    };
+    /**
+     * An array of `Vector` objects that specify the convex hull of the rigid body.
+     * These should be provided about the origin `(0, 0)`. E.g.
+     *
+     *     [{ x: 0, y: 0 }, { x: 25, y: 50 }, { x: 50, y: 0 }]
+     *
+     * When passed via `Body.create`, the verticies are translated relative to `body.position` (i.e. world-space, and constantly updated by `Body.update` during simulation).
+     * The `Vector` objects are also augmented with additional properties required for efficient collision detection. 
+     *
+     * Other properties such as `inertia` and `bounds` are automatically calculated from the passed vertices (unless provided via `options`).
+     * Concave hulls are not currently supported. The module `Matter.Vertices` contains useful methods for working with vertices.
+     *
+     * @property vertices
+     * @type vector[]
+     */
+
+    /**
+     * A `Vector` that specifies the current world-space position of the body.
+     *
+     * @property position
+     * @type vector
+     * @default { x: 0, y: 0 }
+     */
+
+    /**
+     * A `Vector` that specifies the force to apply in the current step. It is zeroed after every `Body.update`. See also `Body.applyForce`.
+     *
+     * @property force
+     * @type vector
+     * @default { x: 0, y: 0 }
+     */
+
+    /**
+     * A `Number` that specifies the torque (turning force) to apply in the current step. It is zeroed after every `Body.update`.
+     *
+     * @property torque
+     * @type number
+     * @default 0
+     */
+
+    /**
+     * A `Number` that _measures_ the current speed of the body after the last `Body.update`. It is read-only and always positive (it's the magnitude of `body.velocity`).
+     *
+     * @readOnly
+     * @property speed
+     * @type number
+     * @default 0
+     */
+
+    /**
+     * A `Number` that _measures_ the current angular speed of the body after the last `Body.update`. It is read-only and always positive (it's the magnitude of `body.angularVelocity`).
+     *
+     * @readOnly
+     * @property angularSpeed
+     * @type number
+     * @default 0
+     */
+
+    /**
+     * A `Vector` that _measures_ the current velocity of the body after the last `Body.update`. It is read-only. 
+     * If you need to modify a body's velocity directly, you should either apply a force or simply change the body's `position` (as the engine uses position-Verlet integration).
+     *
+     * @readOnly
+     * @property velocity
+     * @type vector
+     * @default { x: 0, y: 0 }
+     */
+
+    /**
+     * A `Number` that _measures_ the current angular velocity of the body after the last `Body.update`. It is read-only. 
+     * If you need to modify a body's angular velocity directly, you should apply a torque or simply change the body's `angle` (as the engine uses position-Verlet integration).
+     *
+     * @readOnly
+     * @property angularVelocity
+     * @type number
+     * @default 0
+     */
+
+    /**
+     * A flag that indicates whether a body is considered static. A static body can never change position or angle and is completely fixed.
+     * If you need to set a body as static after its creation, you should use `Body.setStatic` as this requires more than just setting this flag.
+     *
+     * @property isStatic
+     * @type boolean
+     * @default false
+     */
+
+    /**
+     * A flag that indicates whether the body is considered sleeping. A sleeping body acts similar to a static body, except it is only temporary and can be awoken.
+     * If you need to set a body as sleeping, you should use `Sleeping.set` as this requires more than just setting this flag.
+     *
+     * @property isSleeping
+     * @type boolean
+     * @default false
+     */
+
+    /**
+     * A `Number` that _measures_ the amount of movement a body currently has (a combination of `speed` and `angularSpeed`). It is read-only and always positive.
+     * It is used and updated by the `Matter.Sleeping` module during simulation to decide if a body has come to rest.
+     *
+     * @readOnly
+     * @property motion
+     * @type number
+     * @default 0
+     */
+
+    /**
+     * A `Number` that defines the number of updates in which this body must have near-zero velocity before it is set as sleeping by the `Matter.Sleeping` module (if sleeping is enabled by the engine).
+     *
+     * @property sleepThreshold
+     * @type number
+     * @default 60
+     */
+
+    /**
+     * A `Number` that defines the density of the body, that is its mass per unit area.
+     * If you pass the density via `Body.create` the `mass` property is automatically calculated for you based on the size (area) of the object.
+     * This is generally preferable to simply setting mass and allows for more intuitive definition of materials (e.g. rock has a higher density than wood).
+     *
+     * @property density
+     * @type number
+     * @default 0.001
+     */
+
+    /**
+     * A `Number` that defines the mass of the body, although it may be more appropriate to specify the `density` property instead.
+     * If you modify this value, you must also modify the `body.inverseMass` property (`1 / mass`).
+     *
+     * @property mass
+     * @type number
+     */
+
+    /**
+     * A `Number` that defines the inverse mass of the body (`1 / mass`).
+     * If you modify this value, you must also modify the `body.mass` property.
+     *
+     * @property inverseMass
+     * @type number
+     */
+
+    /**
+     * A `Number` that defines the moment of inertia (i.e. second moment of area) of the body.
+     * It is automatically calculated from the given convex hull (`vertices` array) and density in `Body.create`.
+     * If you modify this value, you must also modify the `body.inverseInertia` property (`1 / inertia`).
+     *
+     * @property inertia
+     * @type number
+     */
+
+    /**
+     * A `Number` that defines the inverse moment of inertia of the body (`1 / inertia`).
+     * If you modify this value, you must also modify the `body.inertia` property.
+     *
+     * @property inverseInertia
+     * @type number
+     */
+
+    /**
+     * A `Number` that defines the restitution (elasticity) of the body. The value is always positive and is in the range `(0, 1)`.
+     * A value of `0` means collisions may be perfectly inelastic and no bouncing may occur. 
+     * A value of `0.8` means the body may bounce back with approximately 80% of its kinetic energy.
+     * Note that collision response is based on _pairs_ of bodies, and that `restitution` values are _combined_ with the following formula:
+     *
+     *     Math.max(bodyA.restitution, bodyB.restitution)
+     *
+     * @property restitution
+     * @type number
+     * @default 0
+     */
+
+    /**
+     * A `Number` that defines the friction of the body. The value is always positive and is in the range `(0, 1)`.
+     * A value of `0` means that the body may slide indefinitely.
+     * A value of `1` means the body may come to a stop almost instantly after a force is applied.
+     *
+     * The effects of the value may be non-linear. 
+     * High values may be unstable depending on the body.
+     * The engine uses a Coulomb friction model including static and kinetic friction.
+     * Note that collision response is based on _pairs_ of bodies, and that `friction` values are _combined_ with the following formula:
+     *
+     *     Math.min(bodyA.friction, bodyB.friction)
+     *
+     * @property friction
+     * @type number
+     * @default 0.1
+     */
+
+    /**
+     * A `Number` that defines the air friction of the body (air resistance). 
+     * A value of `0` means the body will never slow as it moves through space.
+     * The higher the value, the faster a body slows when moving through space.
+     * The effects of the value are non-linear. 
+     *
+     * @property frictionAir
+     * @type number
+     * @default 0.01
+     */
+
+    /**
+     * An integer `Number` that specifies the collision group the body belongs to. 
+     * Bodies with the same `groupId` are considered _as-one_ body and therefore do not interact.
+     * This allows for creation of segmented bodies that can self-intersect, such as a rope.
+     * The default value 0 means the body does not belong to a group, and can interact with all other bodies.
+     *
+     * @property groupId
+     * @type number
+     * @default 0
+     */
+
+    /**
+     * A `Number` that specifies a tollerance on how far a body is allowed to 'sink' or rotate into other bodies.
+     * Avoid changing this value unless you understand the purpose of `slop` in physics engines.
+     * The default should generally suffice, although very large bodies may require larger values for stable stacking.
+     *
+     * @property slop
+     * @type number
+     * @default 0.05
+     */
+
+    /**
+     * A `Number` that allows per-body time scaling, e.g. a force-field where bodies inside are in slow-motion, while others are at full speed.
+     *
+     * @property timeScale
+     * @type number
+     * @default 1
+     */
+
+    /**
+     * An `Object` that defines the rendering properties to be consumed by the module `Matter.Render`.
+     *
+     * @property render
+     * @type object
+     */
+
+    /**
+     * A flag that indicates if the body should be rendered.
+     *
+     * @property render.visible
+     * @type boolean
+     * @default true
+     */
+
+    /**
+     * An `Object` that defines the sprite properties to use when rendering, if any.
+     *
+     * @property render.sprite
+     * @type object
+     */
+
+    /**
+     * An `String` that defines the path to the image to use as the sprite texture, if any.
+     *
+     * @property render.sprite.texture
+     * @type string
+     */
+     
+    /**
+     * A `Number` that defines the scaling in the x-axis for the sprite, if any.
+     *
+     * @property render.sprite.xScale
+     * @type number
+     * @default 1
+     */
+
+    /**
+     * A `Number` that defines the scaling in the y-axis for the sprite, if any.
+     *
+     * @property render.sprite.yScale
+     * @type number
+     * @default 1
+     */
+
+    /**
+     * A `Number` that defines the line width to use when rendering the body outline (if a sprite is not defined).
+     * A value of `0` means no outline will be rendered.
+     *
+     * @property render.lineWidth
+     * @type number
+     * @default 1.5
+     */
+
+    /**
+     * A `String` that defines the fill style to use when rendering the body (if a sprite is not defined).
+     * It is the same as when using a canvas, so it accepts CSS style property values.
+     *
+     * @property render.fillStyle
+     * @type string
+     * @default a random colour
+     */
+
+    /**
+     * A `String` that defines the stroke style to use when rendering the body outline (if a sprite is not defined).
+     * It is the same as when using a canvas, so it accepts CSS style property values.
+     *
+     * @property render.strokeStyle
+     * @type string
+     * @default a random colour
+     */
+
+    /**
+     * An array of unique axis vectors (edge normals) used for collision detection.
+     * These are automatically calculated from the given convex hull (`vertices` array) in `Body.create`.
+     * They are constantly updated by `Body.update` during the simulation.
+     *
+     * @property axes
+     * @type vector[]
+     */
+     
+    /**
+     * A `Number` that _measures_ the area of the body's convex hull, calculated at creation by `Body.create`.
+     *
+     * @property area
+     * @type string
+     * @default 
+     */
+
+    /**
+     * A `Bounds` object that defines the AABB region for the body.
+     * It is automatically calculated from the given convex hull (`vertices` array) in `Body.create` and constantly updated by `Body.update` during simulation.
+     *
+     * @property bounds
+     * @type bounds
+     */
 
 })();
 
@@ -353,6 +818,11 @@ var Body = {};
 // Begin src/body/Composite.js
 
 /**
+* The `Matter.Composite` module contains methods for creating and manipulating composite bodies.
+* A composite body is a collection of `Matter.Body`, `Matter.Constraint` and other `Matter.Composite`, therefore composites form a tree structure.
+* It is important to use the functions in this module to modify composites, rather than directly modifying their properties.
+* Note that the `Matter.World` object is also a type of `Matter.Composite` and as such all composite methods here can also operate on a `Matter.World`.
+*
 * See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
 * and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
 *
@@ -366,9 +836,10 @@ var Composite = {};
 (function() {
 
     /**
-     * Description
+     * Creates a new composite. The options parameter is an object that specifies any properties you wish to override the defaults.
+     * See the properites section below for detailed information on what you can pass via the `options` object.
      * @method create
-     * @param {} options
+     * @param {} [options]
      * @return {composite} A new composite
      */
     Composite.create = function(options) {
@@ -391,8 +862,8 @@ var Composite = {};
      * @method setModified
      * @param {composite} composite
      * @param {boolean} isModified
-     * @param {boolean} updateParents
-     * @param {boolean} updateChildren
+     * @param {boolean} [updateParents=false]
+     * @param {boolean} [updateChildren=false]
      */
     Composite.setModified = function(composite, isModified, updateParents, updateChildren) {
         composite.isModified = isModified;
@@ -449,7 +920,7 @@ var Composite = {};
      * @method remove
      * @param {composite} composite
      * @param {} object
-     * @param {boolean} deep
+     * @param {boolean} [deep=false]
      * @return {composite} The original composite with the objects removed
      */
     Composite.remove = function(composite, object, deep) {
@@ -480,7 +951,7 @@ var Composite = {};
     };
 
     /**
-     * Description
+     * Adds a composite to the given composite
      * @method addComposite
      * @param {composite} compositeA
      * @param {composite} compositeB
@@ -498,7 +969,7 @@ var Composite = {};
      * @method removeComposite
      * @param {composite} compositeA
      * @param {composite} compositeB
-     * @param {boolean} deep
+     * @param {boolean} [deep=false]
      * @return {composite} The original compositeA with the composite removed
      */
     Composite.removeComposite = function(compositeA, compositeB, deep) {
@@ -531,7 +1002,7 @@ var Composite = {};
     };
 
     /**
-     * Description
+     * Adds a body to the given composite
      * @method addBody
      * @param {composite} composite
      * @param {body} body
@@ -548,7 +1019,7 @@ var Composite = {};
      * @method removeBody
      * @param {composite} composite
      * @param {body} body
-     * @param {boolean} deep
+     * @param {boolean} [deep=false]
      * @return {composite} The original composite with the body removed
      */
     Composite.removeBody = function(composite, body, deep) {
@@ -581,7 +1052,7 @@ var Composite = {};
     };
 
     /**
-     * Description
+     * Adds a constraint to the given composite
      * @method addConstraint
      * @param {composite} composite
      * @param {constraint} constraint
@@ -598,7 +1069,7 @@ var Composite = {};
      * @method removeConstraint
      * @param {composite} composite
      * @param {constraint} constraint
-     * @param {boolean} deep
+     * @param {boolean} [deep=false]
      * @return {composite} The original composite with the constraint removed
      */
     Composite.removeConstraint = function(composite, constraint, deep) {
@@ -635,7 +1106,7 @@ var Composite = {};
      * @method clear
      * @param {world} world
      * @param {boolean} keepStatic
-     * @param {boolean} deep
+     * @param {boolean} [deep=false]
      */
     Composite.clear = function(composite, keepStatic, deep) {
         if (deep) {
@@ -770,6 +1241,83 @@ var Composite = {};
         return composite;
     };
 
+    /*
+    *
+    *  Properties Documentation
+    *
+    */
+
+    /**
+     * An integer `Number` uniquely identifying number generated in `Composite.create` by `Common.nextId`.
+     *
+     * @property id
+     * @type number
+     */
+
+    /**
+     * A `String` denoting the type of object.
+     *
+     * @property type
+     * @type string
+     * @default "composite"
+     */
+
+    /**
+     * An arbitrary `String` name to help the user identify and manage composites.
+     *
+     * @property label
+     * @type string
+     * @default "Composite"
+     */
+
+    /**
+     * A flag that specifies whether the composite has been modified during the current step.
+     * Most `Matter.Composite` methods will automatically set this flag to `true` to inform the engine of changes to be handled.
+     * If you need to change it manually, you should use the `Composite.setModified` method.
+     *
+     * @property isModified
+     * @type boolean
+     * @default false
+     */
+
+    /**
+     * The `Composite` that is the parent of this composite. It is automatically managed by the `Matter.Composite` methods.
+     *
+     * @property parent
+     * @type composite
+     * @default null
+     */
+
+    /**
+     * An array of `Body` that are _direct_ children of this composite.
+     * To add or remove bodies you should use `Composite.add` and `Composite.remove` methods rather than directly modifying this property.
+     * If you wish to recursively find all descendants, you should use the `Composite.allBodies` method.
+     *
+     * @property bodies
+     * @type body[]
+     * @default []
+     */
+
+    /**
+     * An array of `Constraint` that are _direct_ children of this composite.
+     * To add or remove constraints you should use `Composite.add` and `Composite.remove` methods rather than directly modifying this property.
+     * If you wish to recursively find all descendants, you should use the `Composite.allConstraints` method.
+     *
+     * @property constraints
+     * @type constraint[]
+     * @default []
+     */
+
+    /**
+     * An array of `Composite` that are _direct_ children of this composite.
+     * To add or remove composites you should use `Composite.add` and `Composite.remove` methods rather than directly modifying this property.
+     * If you wish to recursively find all descendants, you should use the `Composite.allComposites` method.
+     *
+     * @property composites
+     * @type composite[]
+     * @default []
+     */
+
 })();
 
 ;   // End src/body/Composite.js
@@ -778,6 +1326,12 @@ var Composite = {};
 // Begin src/body/World.js
 
 /**
+* The `Matter.World` module contains methods for creating and manipulating the world composite.
+* A `Matter.World` is a `Matter.Composite` body, which is a collection of `Matter.Body`, `Matter.Constraint` and other `Matter.Composite`.
+* A `Matter.World` has a few additional properties including `gravity` and `bounds`.
+* It is important to use the functions in the `Matter.Composite` module to modify the world composite, rather than directly modifying its properties.
+* There are also a few methods here that alias those in `Matter.Composite` for easier readability.
+*
 * See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
 * and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
 *
@@ -789,7 +1343,8 @@ var World = {};
 (function() {
 
     /**
-     * Description
+     * Creates a new world composite. The options parameter is an object that specifies any properties you wish to override the defaults.
+     * See the properites section below for detailed information on what you can pass via the `options` object.
      * @method create
      * @constructor
      * @param {} options
@@ -814,14 +1369,14 @@ var World = {};
     // see src/module/Outro.js for these aliases:
     
     /**
-     * An alias for Composite.clear since World is also a Composite (see Outro.js)
+     * An alias for Composite.clear since World is also a Composite
      * @method clear
      * @param {world} world
      * @param {boolean} keepStatic
      */
 
     /**
-     * An alias for Composite.add since World is also a Composite (see Outro.js)
+     * An alias for Composite.add since World is also a Composite
      * @method addComposite
      * @param {world} world
      * @param {composite} composite
@@ -829,7 +1384,7 @@ var World = {};
      */
     
      /**
-      * An alias for Composite.addBody since World is also a Composite (see Outro.js)
+      * An alias for Composite.addBody since World is also a Composite
       * @method addBody
       * @param {world} world
       * @param {body} body
@@ -837,7 +1392,7 @@ var World = {};
       */
 
      /**
-      * An alias for Composite.addConstraint since World is also a Composite (see Outro.js)
+      * An alias for Composite.addConstraint since World is also a Composite
       * @method addConstraint
       * @param {world} world
       * @param {constraint} constraint
@@ -1599,7 +2154,7 @@ var Pairs = {};
 // Begin src/collision/Query.js
 
 /**
-* Functions for performing collision queries
+* The `Matter.Query` module contains methods for performing collision queries.
 *
 * @class Query
 */
@@ -1614,6 +2169,7 @@ var Query = {};
      * @param {body[]} bodies
      * @param {vector} startPoint
      * @param {vector} endPoint
+     * @param {number} [rayWidth]
      * @return {object[]} Collisions
      */
     Query.ray = function(bodies, startPoint, endPoint, rayWidth) {
@@ -1642,11 +2198,11 @@ var Query = {};
     };
 
     /**
-     * Returns all bodies whose bounds are inside (or outside if set) the given set of bounds, from the given set of bodies
+     * Returns all bodies whose bounds are inside (or outside if set) the given set of bounds, from the given set of bodies.
      * @method region
      * @param {body[]} bodies
      * @param {bounds} bounds
-     * @param {bool} outside
+     * @param {bool} [outside=false]
      * @return {body[]} The bodies matching the query
      */
     Query.region = function(bodies, bounds, outside) {
@@ -2203,6 +2759,10 @@ var SAT = {};
 // Begin src/constraint/Constraint.js
 
 /**
+* The `Matter.Constraint` module contains methods for creating and manipulating constraints.
+* Constraints are used for specifying that a fixed distance must be maintained between two bodies (or a body and a fixed world-space position).
+* The stiffness of constraints can be modified to create springs or elastic.
+*
 * See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
 * and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
 *
@@ -2225,7 +2785,9 @@ var Constraint = {};
         _minDifference = 0.001;
 
     /**
-     * Description
+     * Creates a new constraint.
+     * All properties have default values, and many are pre-calculated automatically based on other properties.
+     * See the properites section below for detailed information on what you can pass via the `options` object.
      * @method create
      * @param {} options
      * @return {constraint} constraint
@@ -2269,6 +2831,7 @@ var Constraint = {};
 
     /**
      * Description
+     * @private
      * @method solveAll
      * @param {constraint[]} constraints
      * @param {number} timeScale
@@ -2281,6 +2844,7 @@ var Constraint = {};
 
     /**
      * Description
+     * @private
      * @method solve
      * @param {constraint} constraint
      * @param {number} timeScale
@@ -2435,6 +2999,7 @@ var Constraint = {};
 
     /**
      * Performs body updates required after solving constraints
+     * @private
      * @method postSolveAll
      * @param {body[]} bodies
      */
@@ -2459,6 +3024,118 @@ var Constraint = {};
         }
     };
 
+    /*
+    *
+    *  Properties Documentation
+    *
+    */
+
+    /**
+     * An integer `Number` uniquely identifying number generated in `Composite.create` by `Common.nextId`.
+     *
+     * @property id
+     * @type number
+     */
+
+    /**
+     * A `String` denoting the type of object.
+     *
+     * @property type
+     * @type string
+     * @default "constraint"
+     */
+
+    /**
+     * An arbitrary `String` name to help the user identify and manage bodies.
+     *
+     * @property label
+     * @type string
+     * @default "Constraint"
+     */
+
+    /**
+     * An `Object` that defines the rendering properties to be consumed by the module `Matter.Render`.
+     *
+     * @property render
+     * @type object
+     */
+
+    /**
+     * A flag that indicates if the constraint should be rendered.
+     *
+     * @property render.visible
+     * @type boolean
+     * @default true
+     */
+
+    /**
+     * A `Number` that defines the line width to use when rendering the constraint outline.
+     * A value of `0` means no outline will be rendered.
+     *
+     * @property render.lineWidth
+     * @type number
+     * @default 2
+     */
+
+    /**
+     * A `String` that defines the stroke style to use when rendering the constraint outline.
+     * It is the same as when using a canvas, so it accepts CSS style property values.
+     *
+     * @property render.strokeStyle
+     * @type string
+     * @default a random colour
+     */
+
+    /**
+     * The first possible `Body` that this constraint is attached to.
+     *
+     * @property bodyA
+     * @type body
+     * @default null
+     */
+
+    /**
+     * The second possible `Body` that this constraint is attached to.
+     *
+     * @property bodyB
+     * @type body
+     * @default null
+     */
+
+    /**
+     * A `Vector` that specifies the offset of the constraint from center of the `constraint.bodyA` if defined, otherwise a world-space position.
+     *
+     * @property pointA
+     * @type vector
+     * @default { x: 0, y: 0 }
+     */
+
+    /**
+     * A `Vector` that specifies the offset of the constraint from center of the `constraint.bodyA` if defined, otherwise a world-space position.
+     *
+     * @property pointB
+     * @type vector
+     * @default { x: 0, y: 0 }
+     */
+
+    /**
+     * A `Number` that specifies the stiffness of the constraint, i.e. the rate at which it returns to its resting `constraint.length`.
+     * A value of `1` means the constraint should be very stiff.
+     * A value of `0.2` means the constraint acts like a soft spring.
+     *
+     * @property stiffness
+     * @type number
+     * @default 1
+     */
+
+    /**
+     * A `Number` that specifies the target resting length of the constraint. 
+     * It is calculated automatically in `Constraint.create` from intial positions of the `constraint.bodyA` and `constraint.bodyB`.
+     *
+     * @property length
+     * @type number
+     */
+
 })();
 
 ;   // End src/constraint/Constraint.js
@@ -2467,6 +3144,9 @@ var Constraint = {};
 // Begin src/constraint/MouseConstraint.js
 
 /**
+* The `Matter.MouseConstraint` module contains methods for creating mouse constraints.
+* Mouse constraints are used for allowing user interaction, providing the ability to move bodies via the mouse or touch.
+*
 * See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
 * and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
 *
@@ -2478,7 +3158,9 @@ var MouseConstraint = {};
 (function() {
 
     /**
-     * Description
+     * Creates a new mouse constraint.
+     * All properties have default values, and many are pre-calculated automatically based on other properties.
+     * See the properites section below for detailed information on what you can pass via the `options` object.
      * @method create
      * @param {engine} engine
      * @param {} options
@@ -2519,7 +3201,8 @@ var MouseConstraint = {};
     };
 
     /**
-     * Description
+     * Updates the given mouse constraint.
+     * @private
      * @method update
      * @param {MouseConstraint} mouseConstraint
      * @param {body[]} bodies
@@ -2553,6 +3236,51 @@ var MouseConstraint = {};
         }
     };
 
+    /*
+    *
+    *  Properties Documentation
+    *
+    */
+
+    /**
+     * A `String` denoting the type of object.
+     *
+     * @property type
+     * @type string
+     * @default "constraint"
+     */
+
+    /**
+     * The `Mouse` instance in use.
+     *
+     * @property mouse
+     * @type mouse
+     * @default engine.input.mouse
+     */
+
+    /**
+     * The `Body` that is currently being moved by the user, or `null` if no body.
+     *
+     * @property dragBody
+     * @type body
+     * @default null
+     */
+
+    /**
+     * The `Vector` offset at which the drag started relative to the `dragBody`, if any.
+     *
+     * @property dragPoint
+     * @type body
+     * @default null
+     */
+
+    /**
+     * The `Constraint` object that is used to move the body during interaction.
+     *
+     * @property constraint
+     * @type constraint
+     */
+
 })();
 
 ;   // End src/constraint/MouseConstraint.js
@@ -2571,6 +3299,7 @@ var Common = {};
 (function() {
 
     Common._nextId = 0;
+    Common._seed = 0;
 
     /**
      * Description
@@ -2694,7 +3423,7 @@ var Common = {};
      */
     Common.shuffle = function(array) {
         for (var i = array.length - 1; i > 0; i--) {
-            var j = Math.floor(Math.random() * (i + 1));
+            var j = Math.floor(Common.random() * (i + 1));
             var temp = array[i];
             array[i] = array[j];
             array[j] = temp;
@@ -2709,7 +3438,7 @@ var Common = {};
      * @return {object} A random choice object from the array
      */
     Common.choose = function(choices) {
-        return choices[Math.floor(Math.random() * choices.length)];
+        return choices[Math.floor(Common.random() * choices.length)];
     };
 
     /**
@@ -2784,7 +3513,9 @@ var Common = {};
      * @return {number} A random number between min and max inclusive
      */
     Common.random = function(min, max) {
-        return min + Math.random() * (max - min);
+        min = (typeof min !== "undefined") ? min : 0;
+        max = (typeof max !== "undefined") ? max : 1;
+        return min + _seededRandom() * (max - min);
     };
 
     /**
@@ -2840,6 +3571,12 @@ var Common = {};
         return Common._nextId++;
     };
 
+    var _seededRandom = function() {
+        // https://gist.github.com/ngryman/3830489
+        Common._seed = (Common._seed * 9301 + 49297) % 233280;
+        return Common._seed / 233280;
+    };
+
 })();
 
 ;   // End src/core/Common.js
@@ -2848,13 +3585,14 @@ var Common = {};
 // Begin src/core/Engine.js
 
 /**
+* The `Matter.Engine` module contains methods for creating and manipulating engines.
+* An engine is a controller that manages updating and rendering the simulation of the world.
+*
 * See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
 * and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
 *
 * @class Engine
 */
-
-// TODO: viewports
 
 var Engine = {};
 
@@ -2869,10 +3607,12 @@ var Engine = {};
                                       || function(callback){ window.setTimeout(function() { callback(Common.now()); }, _delta); };
    
     /**
-     * Description
+     * Creates a new engine. The options parameter is an object that specifies any properties you wish to override the defaults.
+     * All properties have default values, and many are pre-calculated automatically based on other properties.
+     * See the properites section below for detailed information on what you can pass via the `options` object.
      * @method create
      * @param {HTMLElement} element
-     * @param {object} options
+     * @param {object} [options]
      * @return {engine} engine
      */
     Engine.create = function(element, options) {
@@ -3027,8 +3767,7 @@ var Engine = {};
      * @method update
      * @param {engine} engine
      * @param {number} delta
-     * @param {number} correction
-     * @return engine
+     * @param {number} [correction]
      */
     Engine.update = function(engine, delta, correction) {
         correction = (typeof correction !== 'undefined') ? correction : 1;
@@ -3147,7 +3886,7 @@ var Engine = {};
     };
     
     /**
-     * Description
+     * Merges two engines by keeping the configuration of `engineA` but replacing the world with the one from `engineB`.
      * @method merge
      * @param {engine} engineA
      * @param {engine} engineB
@@ -3171,7 +3910,7 @@ var Engine = {};
     };
 
     /**
-     * Description
+     * Clears the engine including the world, pairs and broadphase.
      * @method clear
      * @param {engine} engine
      */
@@ -3387,6 +4126,127 @@ var Engine = {};
     * @param {} event.name The name of the event
     */
 
+    /*
+    *
+    *  Properties Documentation
+    *
+    */
+
+    /**
+     * A flag that specifies whether the engine is running or not.
+     *
+     * @property enabled
+     * @type boolean
+     * @default true
+     */
+
+    /**
+     * An integer `Number` that specifies the number of position iterations to perform each update.
+     * The higher the value, the higher quality the simulation will be at the expense of performance.
+     *
+     * @property positionIterations
+     * @type number
+     * @default 6
+     */
+
+    /**
+     * An integer `Number` that specifies the number of velocity iterations to perform each update.
+     * The higher the value, the higher quality the simulation will be at the expense of performance.
+     *
+     * @property velocityIterations
+     * @type number
+     * @default 4
+     */
+
+    /**
+     * An integer `Number` that specifies the number of constraint iterations to perform each update.
+     * The higher the value, the higher quality the simulation will be at the expense of performance.
+     * The default value of `2` is usually very adequate.
+     *
+     * @property constraintIterations
+     * @type number
+     * @default 2
+     */
+
+    /**
+     * A flag that specifies whether the engine should allow sleeping via the `Matter.Sleeping` module.
+     * Sleeping can improve stability and performance, but often at the expense of accuracy.
+     *
+     * @property enableSleeping
+     * @type boolean
+     * @default false
+     */
+
+    /**
+     * An `Object` containing properties regarding the timing systems of the engine. 
+     *
+     * @property timing
+     * @type object
+     */
+
+    /**
+     * A `Number` that specifies the global scaling factor of time for all bodies.
+     * A value of `0` freezes the simulation.
+     * A value of `0.1` gives a slow-motion effect.
+     * A value of `1.2` gives a speed-up effect.
+     *
+     * @property timing.timeScale
+     * @type number
+     * @default 1
+     */
+
+    /**
+     * A `Number` that specifies the current simulation-time in milliseconds starting from `0`. 
+     * It is incremented on every `Engine.update` by the `timing.delta`. 
+     *
+     * @property timing.timestamp
+     * @type number
+     * @default 0
+     */
+
+    /**
+     * A `Number` that specifies the time step between updates in milliseconds.
+     * If `engine.timing.isFixed` is set to `true`, then `delta` is fixed.
+     * If it is `false`, then `delta` can dynamically change to maintain the correct apparant simulation speed.
+     *
+     * @property timing.delta
+     * @type number
+     * @default 1000 / 60
+     */
+
+    /**
+     * A `Number` that specifies the time correction factor to apply to the current timestep.
+     * It is automatically handled when using `Engine.run`, but is also only optional even if you use your own game loop.
+     * The value is defined as `delta / lastDelta`, i.e. the percentage change of `delta` between steps.
+     * This value is always `1` (no correction) when frame rate is constant or `engine.timing.isFixed` is `true`.
+     * If the framerate and hence `delta` are changing, then correction should be applied to the current update to account for the change.
+     * See the paper on <a href="http://lonesock.net/article/verlet.html">Time Corrected Verlet</a> for more information.
+     *
+     * @property timing.correction
+     * @type number
+     * @default 1
+     */
+
+    /**
+     * An instance of a `Render` controller. The default value is a `Matter.Render` instance created by `Engine.create`.
+     * One may also develop a custom renderer module based on `Matter.Render` and pass an instance of it to `Engine.create` via `options.render`.
+     *
+     * A minimal custom renderer object must define at least three functions: `create`, `clear` and `world` (see `Matter.Render`).
+     * It is also possible to instead pass the _module_ reference via `options.render.controller` and `Engine.create` will instantiate one for you.
+     *
+     * @property render
+     * @type render
+     * @default a Matter.Render instance
+     */
+
+    /**
+     * A `World` composite object that will contain all simulated bodies and constraints.
+     *
+     * @property world
+     * @type world
+     * @default a Matter.World instance
+     */
+
 })();
 
 ;   // End src/core/Engine.js
@@ -3406,7 +4266,7 @@ var Events = {};
 (function() {
 
     /**
-     * Subscribes a callback function to the given object's eventName
+     * Subscribes a callback function to the given object's `eventName`.
      * @method on
      * @param {} object
      * @param {string} eventNames
@@ -3427,7 +4287,7 @@ var Events = {};
     };
 
     /**
-     * Removes the given event callback. If no callback, clears all callbacks in eventNames. If no eventNames, clears all events.
+     * Removes the given event callback. If no callback, clears all callbacks in `eventNames`. If no `eventNames`, clears all events.
      * @method off
      * @param {} object
      * @param {string} eventNames
@@ -3463,7 +4323,7 @@ var Events = {};
     };
 
     /**
-     * Fires all the callbacks subscribed to the given object's eventName, in the order they subscribed, if any
+     * Fires all the callbacks subscribed to the given object's `eventName`, in the order they subscribed, if any.
      * @method trigger
      * @param {} object
      * @param {string} eventNames
@@ -3910,6 +4770,9 @@ var Sleeping = {};
 // Begin src/factory/Bodies.js
 
 /**
+* The `Matter.Bodies` module contains factory methods for creating rigid body models 
+* with commonly used body configurations (such as rectangles, circles and other polygons).
+*
 * See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
 * and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
 *
@@ -3923,13 +4786,15 @@ var Bodies = {};
 (function() {
 
     /**
-     * Description
+     * Creates a new rigid body model with a rectangle hull. 
+     * The options parameter is an object that specifies any properties you wish to override the defaults.
+     * See the properites section of the `Matter.Body` module for detailed information on what you can pass via the `options` object.
      * @method rectangle
      * @param {number} x
      * @param {number} y
      * @param {number} width
      * @param {number} height
-     * @param {object} options
+     * @param {object} [options]
      * @return {body} A new rectangle body
      */
     Bodies.rectangle = function(x, y, width, height, options) {
@@ -3952,14 +4817,16 @@ var Bodies = {};
     };
     
     /**
-     * Description
+     * Creates a new rigid body model with a trapezoid hull. 
+     * The options parameter is an object that specifies any properties you wish to override the defaults.
+     * See the properites section of the `Matter.Body` module for detailed information on what you can pass via the `options` object.
      * @method trapezoid
      * @param {number} x
      * @param {number} y
      * @param {number} width
      * @param {number} height
      * @param {number} slope
-     * @param {object} options
+     * @param {object} [options]
      * @return {body} A new trapezoid body
      */
     Bodies.trapezoid = function(x, y, width, height, slope, options) {
@@ -3989,12 +4856,14 @@ var Bodies = {};
     };
 
     /**
-     * Description
+     * Creates a new rigid body model with a circle hull. 
+     * The options parameter is an object that specifies any properties you wish to override the defaults.
+     * See the properites section of the `Matter.Body` module for detailed information on what you can pass via the `options` object.
      * @method circle
      * @param {number} x
      * @param {number} y
      * @param {number} radius
-     * @param {object} options
+     * @param {object} [options]
      * @param {number} maxSides
      * @return {body} A new circle body
      */
@@ -4018,13 +4887,15 @@ var Bodies = {};
     };
 
     /**
-     * Description
+     * Creates a new rigid body model with a regular polygon hull with the given number of sides. 
+     * The options parameter is an object that specifies any properties you wish to override the defaults.
+     * See the properites section of the `Matter.Body` module for detailed information on what you can pass via the `options` object.
      * @method polygon
      * @param {number} x
      * @param {number} y
      * @param {number} sides
      * @param {number} radius
-     * @param {object} options
+     * @param {object} [options]
      * @return {body} A new regular polygon body
      */
     Bodies.polygon = function(x, y, sides, radius, options) {
@@ -4576,6 +5447,10 @@ var Bounds = {};
 // Begin src/geometry/Vector.js
 
 /**
+* The `Matter.Vector` module contains methods for creating and manipulating vectors.
+* Vectors are the basis of all the geometry related operations in the engine.
+* A `Matter.Vector` object is of the form `{ x: 0, y: 0 }`.
+*
 * See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
 * and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
 *
@@ -4589,7 +5464,17 @@ var Vector = {};
 (function() {
 
     /**
-     * Description
+     * Returns a new vector with `x` and `y` copied from the given `vector`.
+     * @method clone
+     * @param {vector} vector
+     * @return {vector} A new cloned vector
+     */
+    Vector.clone = function(vector) {
+        return { x: vector.x, y: vector.y };
+    };
+
+    /**
+     * Returns the magnitude (length) of a vector.
      * @method magnitude
      * @param {vector} vector
      * @return {number} The magnitude of the vector
@@ -4599,7 +5484,7 @@ var Vector = {};
     };
 
     /**
-     * Description
+     * Returns the magnitude (length) of a vector (therefore saving a `sqrt` operation).
      * @method magnitudeSquared
      * @param {vector} vector
      * @return {number} The squared magnitude of the vector
@@ -4609,11 +5494,11 @@ var Vector = {};
     };
 
     /**
-     * Description
+     * Rotates the vector about (0, 0) by specified angle.
      * @method rotate
      * @param {vector} vector
      * @param {number} angle
-     * @return {vector} A new vector rotated
+     * @return {vector} A new vector rotated about (0, 0)
      */
     Vector.rotate = function(vector, angle) {
         var cos = Math.cos(angle), sin = Math.sin(angle);
@@ -4624,7 +5509,7 @@ var Vector = {};
     };
 
     /**
-     * Description
+     * Rotates the vector about a specified point by specified angle.
      * @method rotateAbout
      * @param {vector} vector
      * @param {number} angle
@@ -4640,7 +5525,7 @@ var Vector = {};
     };
 
     /**
-     * Description
+     * Normalises a vector (such that its magnitude is `1`).
      * @method normalise
      * @param {vector} vector
      * @return {vector} A new vector normalised
@@ -4653,7 +5538,7 @@ var Vector = {};
     };
 
     /**
-     * Description
+     * Returns the dot-product of two vectors.
      * @method dot
      * @param {vector} vectorA
      * @param {vector} vectorB
@@ -4664,7 +5549,7 @@ var Vector = {};
     };
 
     /**
-     * Description
+     * Returns the cross-product of two vectors.
      * @method cross
      * @param {vector} vectorA
      * @param {vector} vectorB
@@ -4675,29 +5560,29 @@ var Vector = {};
     };
 
     /**
-     * Description
+     * Adds the two vectors.
      * @method add
      * @param {vector} vectorA
      * @param {vector} vectorB
-     * @return {vector} A new vector added
+     * @return {vector} A new vector of vectorA and vectorB added
      */
     Vector.add = function(vectorA, vectorB) {
         return { x: vectorA.x + vectorB.x, y: vectorA.y + vectorB.y };
     };
 
     /**
-     * Description
+     * Subtracts the two vectors.
      * @method sub
      * @param {vector} vectorA
      * @param {vector} vectorB
-     * @return {vector} A new vector subtracted
+     * @return {vector} A new vector of vectorA and vectorB subtracted
      */
     Vector.sub = function(vectorA, vectorB) {
         return { x: vectorA.x - vectorB.x, y: vectorA.y - vectorB.y };
     };
 
     /**
-     * Description
+     * Multiplies a vector and a scalar.
      * @method mult
      * @param {vector} vector
      * @param {number} scalar
@@ -4708,7 +5593,7 @@ var Vector = {};
     };
 
     /**
-     * Description
+     * Divides a vector and a scalar.
      * @method div
      * @param {vector} vector
      * @param {number} scalar
@@ -4719,10 +5604,10 @@ var Vector = {};
     };
 
     /**
-     * Description
+     * Returns the perpendicular vector. Set `negate` to true for the perpendicular in the opposite direction.
      * @method perp
      * @param {vector} vector
-     * @param {bool} negate
+     * @param {bool} [negate=false]
      * @return {vector} The perpendicular vector
      */
     Vector.perp = function(vector, negate) {
@@ -4731,7 +5616,7 @@ var Vector = {};
     };
 
     /**
-     * Description
+     * Negates both components of a vector such that it points in the opposite direction.
      * @method neg
      * @param {vector} vector
      * @return {vector} The negated vector
@@ -4741,7 +5626,7 @@ var Vector = {};
     };
 
     /**
-     * Returns the angle in radians between the two vectors relative to the x-axis
+     * Returns the angle in radians between the two vectors relative to the x-axis.
      * @method angle
      * @param {vector} vectorA
      * @param {vector} vectorB
@@ -4759,6 +5644,10 @@ var Vector = {};
 // Begin src/geometry/Vertices.js
 
 /**
+* The `Matter.Vertices` module contains methods for creating and manipulating sets of vertices.
+* A set of vertices is an array of `Matter.Vector` with additional indexing properties inserted by `Vertices.create`.
+* A `Matter.Body` maintains a set of vertices to represent the shape of the object (its convex hull).
+*
 * See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
 * and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
 *
@@ -4772,37 +5661,58 @@ var Vertices = {};
 (function() {
 
     /**
-     * Description
+     * Creates a new set of `Matter.Body` compatible vertices.
+     * The `points` argument accepts an array of `Matter.Vector` points orientated around the origin `(0, 0)`, for example:
+     *
+     *     [{ x: 0, y: 0 }, { x: 25, y: 50 }, { x: 50, y: 0 }]
+     *
+     * The `Vertices.create` method returns a new array of vertices, which are similar to Matter.Vector objects,
+     * but with some additional references required for efficient collision detection routines.
+     *
+     * Note that the `body` argument is not optional, a `Matter.Body` reference must be provided.
+     *
      * @method create
-     * @param {vertices} vertices
+     * @param {vector[]} points
      * @param {body} body
      */
-    Vertices.create = function(vertices, body) {
-        for (var i = 0; i < vertices.length; i++) {
-            vertices[i].index = i;
-            vertices[i].body = body;
+    Vertices.create = function(points, body) {
+        var vertices = [];
+
+        for (var i = 0; i < points.length; i++) {
+            var point = points[i],
+                vertex = {};
+
+            vertex.x = point.x;
+            vertex.y = point.y;
+            vertex.index = i;
+            vertex.body = body;
+
+            vertices.push(vertex);
         }
-    };
-
-    /**
-     * Description
-     * @method fromPath
-     * @param {string} path
-     * @return {vertices} vertices
-     */
-    Vertices.fromPath = function(path) {
-        var pathPattern = /L\s*([\-\d\.]*)\s*([\-\d\.]*)/ig,
-            vertices = [];
-
-        path.replace(pathPattern, function(match, x, y) {
-            vertices.push({ x: parseFloat(x, 10), y: parseFloat(y, 10) });
-        });
 
         return vertices;
     };
 
     /**
-     * Description
+     * Parses a _simple_ SVG-style path into a `Matter.Vertices` object for the given `Matter.Body`.
+     * @method fromPath
+     * @param {string} path
+     * @param {body} body
+     * @return {vertices} vertices
+     */
+    Vertices.fromPath = function(path, body) {
+        var pathPattern = /L\s*([\-\d\.]*)\s*([\-\d\.]*)/ig,
+            points = [];
+
+        path.replace(pathPattern, function(match, x, y) {
+            points.push({ x: parseFloat(x, 10), y: parseFloat(y, 10) });
+        });
+
+        return Vertices.create(points, body);
+    };
+
+    /**
+     * Returns the centre (centroid) of the set of vertices.
      * @method centre
      * @param {vertices} vertices
      * @return {vector} The centre point
@@ -4825,7 +5735,7 @@ var Vertices = {};
     };
 
     /**
-     * Description
+     * Returns the area of the set of vertices.
      * @method area
      * @param {vertices} vertices
      * @param {bool} signed
@@ -4847,11 +5757,11 @@ var Vertices = {};
     };
 
     /**
-     * Description
+     * Returns the moment of inertia (second moment of area) of the set of vertices given the total mass.
      * @method inertia
      * @param {vertices} vertices
      * @param {number} mass
-     * @return {number} The polygon's moment of inertia, using second moment of area
+     * @return {number} The polygon's moment of inertia
      */
     Vertices.inertia = function(vertices, mass) {
         var numerator = 0,
@@ -4873,7 +5783,7 @@ var Vertices = {};
     };
 
     /**
-     * Description
+     * Translates the set of vertices in-place.
      * @method translate
      * @param {vertices} vertices
      * @param {vector} vector
@@ -4891,11 +5801,13 @@ var Vertices = {};
                 vertices[i].x += vector.x;
                 vertices[i].y += vector.y;
             }
-        } 
+        }
+
+        return vertices;
     };
 
     /**
-     * Description
+     * Rotates the set of vertices in-place.
      * @method rotate
      * @param {vertices} vertices
      * @param {number} angle
@@ -4916,10 +5828,12 @@ var Vertices = {};
             vertice.x = point.x + (dx * cos - dy * sin);
             vertice.y = point.y + (dx * sin + dy * cos);
         }
+
+        return vertices;
     };
 
     /**
-     * Description
+     * Returns `true` if the `point` is inside the set of `vertices`.
      * @method contains
      * @param {vertices} vertices
      * @param {vector} point
@@ -4938,7 +5852,7 @@ var Vertices = {};
     };
 
     /**
-     * Scales the vertices from a point (default is centre)
+     * Scales the vertices from a point (default is centre) in-place.
      * @method scale
      * @param {vertices} vertices
      * @param {number} scaleX
@@ -5046,23 +5960,27 @@ var Vertices = {};
 // Begin src/render/Render.js
 
 /**
-* See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
-* and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
+* The `Matter.Render` module is the default `render.controller` used by a `Matter.Engine`.
+* This renderer is HTML5 canvas based and supports a number of drawing options including sprites and viewports.
+*
+* It is possible develop a custom renderer module based on `Matter.Render` and pass an instance of it to `Engine.create` via `options.render`.
+* A minimal custom renderer object must define at least three functions: `create`, `clear` and `world` (see `Matter.Render`).
+*
+* See also `Matter.RenderPixi` for an alternate WebGL, scene-graph based renderer.
 *
 * @class Render
 */
-
-// TODO: viewports
-// TODO: two.js, pixi.js
 
 var Render = {};
 
 (function() {
     
     /**
-     * Description
+     * Creates a new renderer. The options parameter is an object that specifies any properties you wish to override the defaults.
+     * All properties have default values, and many are pre-calculated automatically based on other properties.
+     * See the properites section below for detailed information on what you can pass via the `options` object.
      * @method create
-     * @param {object} options
+     * @param {object} [options]
      * @return {render} A new renderer
      */
     Render.create = function(options) {
@@ -5150,7 +6068,8 @@ var Render = {};
     };
 
     /**
-     * Description
+     * Renders the given `engine`'s `Matter.World` object.
+     * This is the entry point for all rendering and should be called every time the scene changes.
      * @method world
      * @param {engine} engine
      */
@@ -5260,6 +6179,7 @@ var Render = {};
 
     /**
      * Description
+     * @private
      * @method debug
      * @param {engine} engine
      * @param {RenderingContext} context
@@ -5316,6 +6236,7 @@ var Render = {};
 
     /**
      * Description
+     * @private
      * @method constraints
      * @param {constraint[]} constraints
      * @param {RenderingContext} context
@@ -5354,6 +6275,7 @@ var Render = {};
     
     /**
      * Description
+     * @private
      * @method bodyShadows
      * @param {engine} engine
      * @param {body[]} bodies
@@ -5403,6 +6325,7 @@ var Render = {};
 
     /**
      * Description
+     * @private
      * @method bodies
      * @param {engine} engine
      * @param {body[]} bodies
@@ -5479,6 +6402,7 @@ var Render = {};
 
     /**
      * Optimised method for drawing body wireframes in one pass
+     * @private
      * @method bodyWireframes
      * @param {engine} engine
      * @param {body[]} bodies
@@ -5513,6 +6437,7 @@ var Render = {};
 
     /**
      * Draws body bounds
+     * @private
      * @method bodyBounds
      * @param {engine} engine
      * @param {body[]} bodies
@@ -5544,6 +6469,7 @@ var Render = {};
 
     /**
      * Draws body angle indicators and axes
+     * @private
      * @method bodyAxes
      * @param {engine} engine
      * @param {body[]} bodies
@@ -5591,6 +6517,7 @@ var Render = {};
 
     /**
      * Draws body positions
+     * @private
      * @method bodyPositions
      * @param {engine} engine
      * @param {body[]} bodies
@@ -5638,6 +6565,7 @@ var Render = {};
 
     /**
      * Draws body velocity
+     * @private
      * @method bodyVelocity
      * @param {engine} engine
      * @param {body[]} bodies
@@ -5667,6 +6595,7 @@ var Render = {};
 
     /**
      * Draws body ids
+     * @private
      * @method bodyIds
      * @param {engine} engine
      * @param {body[]} bodies
@@ -5689,6 +6618,7 @@ var Render = {};
 
     /**
      * Description
+     * @private
      * @method collisions
      * @param {engine} engine
      * @param {pair[]} pairs
@@ -5755,6 +6685,7 @@ var Render = {};
 
     /**
      * Description
+     * @private
      * @method grid
      * @param {engine} engine
      * @param {grid} grid
@@ -5793,6 +6724,7 @@ var Render = {};
 
     /**
      * Description
+     * @private
      * @method inspector
      * @param {inspector} inspector
      * @param {RenderingContext} context
@@ -5913,6 +6845,90 @@ var Render = {};
 
         return image;
     };
+
+    /*
+    *
+    *  Properties Documentation
+    *
+    */
+
+    /**
+     * A back-reference to the `Matter.Render` module.
+     *
+     * @property controller
+     * @type render
+     */
+
+    /**
+     * A reference to the element where the canvas is to be inserted (if `render.canvas` has not been specified)
+     *
+     * @property element
+     * @type HTMLElement
+     * @default null
+     */
+
+    /**
+     * The canvas element to render to. If not specified, one will be created if `render.element` has been specified.
+     *
+     * @property canvas
+     * @type HTMLCanvasElement
+     * @default null
+     */
+
+    /**
+     * The configuration options of the renderer.
+     *
+     * @property options
+     * @type {}
+     */
+
+    /**
+     * The target width in pixels of the `render.canvas` to be created.
+     *
+     * @property options.width
+     * @type number
+     * @default 800
+     */
+
+    /**
+     * The target height in pixels of the `render.canvas` to be created.
+     *
+     * @property options.height
+     * @type number
+     * @default 600
+     */
+
+    /**
+     * A flag that specifies if `render.bounds` should be used when rendering.
+     *
+     * @property options.hasBounds
+     * @type boolean
+     * @default false
+     */
+
+    /**
+     * A `Bounds` object that specifies the drawing view region. 
+     * Rendering will be automatically transformed and scaled to fit within the canvas size (`render.options.width` and `render.options.height`).
+     * This allows for creating views that can pan or zoom around the scene.
+     * You must also set `render.options.hasBounds` to `true` to enable bounded rendering.
+     *
+     * @property bounds
+     * @type bounds
+     */
+
+    /**
+     * The 2d rendering context from the `render.canvas` element.
+     *
+     * @property context
+     * @type CanvasRenderingContext2D
+     */
+
+    /**
+     * The sprite texture cache.
+     *
+     * @property textures
+     * @type {}
+     */
 
 })();
 
