@@ -170,7 +170,8 @@ var RenderPixi = {};
             container = render.container,
             options = render.options,
             bodies = Composite.allBodies(world),
-            constraints = Composite.allConstraints(world),
+            allConstraints = Composite.allConstraints(world),
+            constraints = [],
             i;
 
         if (options.wireframes) {
@@ -186,12 +187,35 @@ var RenderPixi = {};
             boundsScaleY = boundsHeight / render.options.height;
 
         if (options.hasBounds) {
-            // TODO: filter out bodies that are not in view
-            // TODO: filter out constraints that are not in view
+            // Hide bodies that are not in view
+            for (i = 0; i < bodies.length; i++) {
+                var body = bodies[i];
+                body.render.sprite.visible = Bounds.overlaps(body.bounds, render.bounds);
+            }
+
+            // filter out constraints that are not in view
+            for (i = 0; i < allConstraints.length; i++) {
+                var constraint = allConstraints[i],
+                    bodyA = constraint.bodyA,
+                    bodyB = constraint.bodyB,
+                    pointAWorld = constraint.pointA,
+                    pointBWorld = constraint.pointB;
+
+                if (bodyA) pointAWorld = Vector.add(bodyA.position, constraint.pointA);
+                if (bodyB) pointBWorld = Vector.add(bodyB.position, constraint.pointB);
+
+                if (!pointAWorld || !pointBWorld)
+                    continue;
+
+                if (Bounds.contains(render.bounds, pointAWorld) || Bounds.contains(render.bounds, pointBWorld))
+                    constraints.push(constraint);
+            }
 
             // transform the view
             container.scale.set(1 / boundsScaleX, 1 / boundsScaleY);
             container.position.set(-render.bounds.min.x, -render.bounds.min.y);
+        } else {
+            constraints = allConstraints;
         }
 
         for (i = 0; i < bodies.length; i++)
