@@ -44,7 +44,7 @@ var RenderPixi = {};
         var render = Common.extend(defaults, options);
 
         // init pixi
-        render.context = new PIXI.WebGLRenderer(800, 600, render.canvas, false, true);
+        render.context = new PIXI.WebGLRenderer(render.options.width, render.options.height, render.canvas, false, true);
         render.canvas = render.context.view;
         render.stage = new PIXI.Stage();
 
