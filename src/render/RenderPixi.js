@@ -25,6 +25,7 @@ var RenderPixi = {};
                 height: 600,
                 background: '#fafafa',
                 wireframeBackground: '#222',
+                hasBounds: false,
                 enabled: true,
                 wireframes: true,
                 showSleeping: true,
@@ -46,7 +47,19 @@ var RenderPixi = {};
         // init pixi
         render.context = new PIXI.WebGLRenderer(render.options.width, render.options.height, render.canvas, false, true);
         render.canvas = render.context.view;
+        render.container = new PIXI.DisplayObjectContainer();
         render.stage = new PIXI.Stage();
+        render.stage.addChild(render.container);
+        render.bounds = render.bounds || { 
+            min: { 
+                x: 0,
+                y: 0
+            }, 
+            max: { 
+                x: render.options.width,
+                y: render.options.height
+            }
+        };
 
         // caches
         render.textures = {};
@@ -55,7 +68,7 @@ var RenderPixi = {};
 
         // use a sprite batch for performance
         render.spriteBatch = new PIXI.SpriteBatch();
-        render.stage.addChild(render.spriteBatch);
+        render.container.addChild(render.spriteBatch);
 
         // insert canvas
         if (Common.isElement(render.element)) {
@@ -77,12 +90,12 @@ var RenderPixi = {};
      * @param {RenderPixi} render
      */
     RenderPixi.clear = function(render) {
-        var stage = render.stage,
+        var container = render.container,
             spriteBatch = render.spriteBatch;
 
-        // clear stage
-        while (stage.children[0]) { 
-            stage.removeChild(stage.children[0]); 
+        // clear stage container
+        while (container.children[0]) { 
+            container.removeChild(container.children[0]); 
         }
 
         // clear sprite batch
@@ -102,8 +115,8 @@ var RenderPixi = {};
         if (bgSprite)
             spriteBatch.addChildAt(bgSprite, 0);
 
-        // add sprite batch back into stage
-        render.stage.addChild(render.spriteBatch);
+        // add sprite batch back into container
+        render.container.addChild(render.spriteBatch);
 
         // reset background state
         render.currentBackground = null;
@@ -154,6 +167,7 @@ var RenderPixi = {};
             world = engine.world,
             context = render.context,
             stage = render.stage,
+            container = render.container,
             options = render.options,
             bodies = Composite.allBodies(world),
             constraints = Composite.allConstraints(world),
@@ -163,6 +177,21 @@ var RenderPixi = {};
             RenderPixi.setBackground(render, options.wireframeBackground);
         } else {
             RenderPixi.setBackground(render, options.background);
+        }
+
+        // handle bounds
+        var boundsWidth = render.bounds.max.x - render.bounds.min.x,
+            boundsHeight = render.bounds.max.y - render.bounds.min.y,
+            boundsScaleX = boundsWidth / render.options.width,
+            boundsScaleY = boundsHeight / render.options.height;
+
+        if (options.hasBounds) {
+            // TODO: filter out bodies that are not in view
+            // TODO: filter out constraints that are not in view
+
+            // transform the view
+            container.scale.set(1 / boundsScaleX, 1 / boundsScaleY);
+            container.position.set(-render.bounds.min.x, -render.bounds.min.y);
         }
 
         for (i = 0; i < bodies.length; i++)
@@ -187,7 +216,7 @@ var RenderPixi = {};
             bodyB = constraint.bodyB,
             pointA = constraint.pointA,
             pointB = constraint.pointB,
-            stage = render.stage,
+            container = render.container,
             constraintRender = constraint.render,
             primitiveId = 'c-' + constraint.id,
             primitive = render.primitives[primitiveId];
@@ -203,8 +232,8 @@ var RenderPixi = {};
         }
 
         // add to scene graph if not already there
-        if (stage.children.indexOf(primitive) === -1)
-            stage.addChild(primitive);
+        if (container.children.indexOf(primitive) === -1)
+            container.addChild(primitive);
 
         // render the constraint on every update, since they can change dynamically
         primitive.clear();
@@ -259,7 +288,7 @@ var RenderPixi = {};
         } else {
             var primitiveId = 'b-' + body.id,
                 primitive = render.primitives[primitiveId],
-                stage = render.stage;
+                container = render.container;
 
             // initialise body primitive if not existing
             if (!primitive) {
@@ -268,8 +297,8 @@ var RenderPixi = {};
             }
 
             // add to scene graph if not already there
-            if (stage.children.indexOf(primitive) === -1)
-                stage.addChild(primitive);
+            if (container.children.indexOf(primitive) === -1)
+                container.addChild(primitive);
 
             // update body primitive
             primitive.position.x = body.position.x;
