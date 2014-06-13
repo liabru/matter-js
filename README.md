@@ -87,9 +87,13 @@ Download [matter-0.8.0.js](https://github.com/liabru/matter-js/releases/download
 
 For the latest features try the [edge version (master)](https://raw.github.com/liabru/matter-js/master/build/matter.js), but it may not be fully stable.
 
-#### Or install using [Bower](http://bower.io/)
+#### Install using [Bower](http://bower.io/)
 
 	bower install matter-js
+
+#### Install using [NPM](https://www.npmjs.org/)
+
+	npm install matter-js
 
 ### Usage
 
