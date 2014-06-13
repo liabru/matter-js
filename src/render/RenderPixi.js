@@ -41,10 +41,11 @@ var RenderPixi = {};
             }
         };
 
-        var render = Common.extend(defaults, options);
+        var render = Common.extend(defaults, options),
+            transparent = !render.options.wireframes && render.options.background === 'transparent';
 
         // init pixi
-        render.context = new PIXI.WebGLRenderer(render.options.width, render.options.height, render.canvas, false, true);
+        render.context = new PIXI.WebGLRenderer(render.options.width, render.options.height, render.canvas, transparent, true);
         render.canvas = render.context.view;
         render.stage = new PIXI.Stage();
 
