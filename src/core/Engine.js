@@ -200,7 +200,7 @@ var Engine = {};
 
         // if sleeping enabled, call the sleeping controller
         if (engine.enableSleeping)
-            Sleeping.update(allBodies);
+            Sleeping.update(allBodies, timing.timeScale);
 
         // applies gravity to all bodies
         Body.applyGravityAll(allBodies, world.gravity);
@@ -241,7 +241,7 @@ var Engine = {};
 
         // wake up bodies involved in collisions
         if (engine.enableSleeping)
-            Sleeping.afterCollisions(pairs.list);
+            Sleeping.afterCollisions(pairs.list, timing.timeScale);
 
         // iteratively resolve velocity between collisions
         Resolver.preSolveVelocity(pairs.list);

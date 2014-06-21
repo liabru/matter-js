@@ -13,11 +13,14 @@ var Sleeping = {};
         _minBias = 0.9;
 
     /**
-     * Description
+     * Puts bodies to sleep or wakes them up depending on their motion.
      * @method update
      * @param {body[]} bodies
+     * @param {number} timeScale
      */
-    Sleeping.update = function(bodies) {
+    Sleeping.update = function(bodies, timeScale) {
+        var timeFactor = timeScale * timeScale * timeScale;
+
         // update bodies sleeping status
         for (var i = 0; i < bodies.length; i++) {
             var body = bodies[i],
@@ -35,7 +38,7 @@ var Sleeping = {};
             // biased average motion estimation between frames
             body.motion = _minBias * minMotion + (1 - _minBias) * maxMotion;
             
-            if (body.sleepThreshold > 0 && body.motion < _motionSleepThreshold) {
+            if (body.sleepThreshold > 0 && body.motion < _motionSleepThreshold * timeFactor) {
                 body.sleepCounter += 1;
                 
                 if (body.sleepCounter >= body.sleepThreshold)
@@ -47,11 +50,14 @@ var Sleeping = {};
     };
 
     /**
-     * Description
+     * Given a set of colliding pairs, wakes the sleeping bodies involved.
      * @method afterCollisions
      * @param {pair[]} pairs
+     * @param {number} timeScale
      */
-    Sleeping.afterCollisions = function(pairs) {
+    Sleeping.afterCollisions = function(pairs, timeScale) {
+        var timeFactor = timeScale * timeScale * timeScale;
+
         // wake up bodies involved in collisions
         for (var i = 0; i < pairs.length; i++) {
             var pair = pairs[i];
@@ -72,7 +78,7 @@ var Sleeping = {};
                 var sleepingBody = (bodyA.isSleeping && !bodyA.isStatic) ? bodyA : bodyB,
                     movingBody = sleepingBody === bodyA ? bodyB : bodyA;
 
-                if (!sleepingBody.isStatic && movingBody.motion > _motionWakeThreshold) {
+                if (!sleepingBody.isStatic && movingBody.motion > _motionWakeThreshold * timeFactor) {
                     Sleeping.set(sleepingBody, false);
                 }
             }
