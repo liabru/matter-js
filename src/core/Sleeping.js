@@ -8,9 +8,9 @@ var Sleeping = {};
 
 (function() {
 
-    var _motionWakeThreshold = 0.18,
-        _motionSleepThreshold = 0.08,
-        _minBias = 0.9;
+    Sleeping._motionWakeThreshold = 0.18,
+    Sleeping._motionSleepThreshold = 0.08,
+    Sleeping._minBias = 0.9;
 
     /**
      * Puts bodies to sleep or wakes them up depending on their motion.
@@ -36,9 +36,9 @@ var Sleeping = {};
                 maxMotion = Math.max(body.motion, motion);
         
             // biased average motion estimation between frames
-            body.motion = _minBias * minMotion + (1 - _minBias) * maxMotion;
+            body.motion = Sleeping._minBias * minMotion + (1 - Sleeping._minBias) * maxMotion;
             
-            if (body.sleepThreshold > 0 && body.motion < _motionSleepThreshold * timeFactor) {
+            if (body.sleepThreshold > 0 && body.motion < Sleeping._motionSleepThreshold * timeFactor) {
                 body.sleepCounter += 1;
                 
                 if (body.sleepCounter >= body.sleepThreshold)
@@ -78,7 +78,7 @@ var Sleeping = {};
                 var sleepingBody = (bodyA.isSleeping && !bodyA.isStatic) ? bodyA : bodyB,
                     movingBody = sleepingBody === bodyA ? bodyB : bodyA;
 
-                if (!sleepingBody.isStatic && movingBody.motion > _motionWakeThreshold * timeFactor) {
+                if (!sleepingBody.isStatic && movingBody.motion > Sleeping._motionWakeThreshold * timeFactor) {
                     Sleeping.set(sleepingBody, false);
                 }
             }
