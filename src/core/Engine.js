@@ -55,6 +55,9 @@ var Engine = {};
             render: {
                 element: element,
                 controller: Render
+            },
+            broadphase: {
+                controller: Grid
             }
         };
         
@@ -64,18 +67,7 @@ var Engine = {};
         engine.world = World.create(engine.world);
         engine.pairs = Pairs.create();
         engine.metrics = engine.metrics || Metrics.create();
-
-        engine.broadphase = engine.broadphase || {
-            current: 'grid',
-            grid: {
-                controller: Grid,
-                instance: Grid.create(),
-                detector: Detector.collisions
-            },
-            bruteForce: {
-                detector: Detector.bruteForce
-            }
-        };
+        engine.broadphase = engine.broadphase.controller.create(engine.broadphase);
 
         return engine;
     };
@@ -184,7 +176,7 @@ var Engine = {};
 
         var world = engine.world,
             timing = engine.timing,
-            broadphase = engine.broadphase[engine.broadphase.current],
+            broadphase = engine.broadphase,
             broadphasePairs = [],
             i;
 
@@ -227,11 +219,11 @@ var Engine = {};
 
             // if world is dirty, we must flush the whole grid
             if (world.isModified)
-                broadphase.controller.clear(broadphase.instance);
+                broadphase.controller.clear(broadphase);
 
             // update the grid buckets based on current bodies
-            broadphase.controller.update(broadphase.instance, allBodies, engine, world.isModified);
-            broadphasePairs = broadphase.instance.pairsList;
+            broadphase.controller.update(broadphase, allBodies, engine, world.isModified);
+            broadphasePairs = broadphase.pairsList;
         } else {
 
             // if no broadphase set, we just pass all bodies
@@ -329,11 +321,11 @@ var Engine = {};
         
         Pairs.clear(engine.pairs);
 
-        var broadphase = engine.broadphase[engine.broadphase.current];
+        var broadphase = engine.broadphase;
         if (broadphase.controller) {
             var bodies = Composite.allBodies(world);
-            broadphase.controller.clear(broadphase.instance);
-            broadphase.controller.update(broadphase.instance, bodies, engine, true);
+            broadphase.controller.clear(broadphase);
+            broadphase.controller.update(broadphase, bodies, engine, true);
         }
     };
 
@@ -585,6 +577,14 @@ var Engine = {};
      * @property render
      * @type render
      * @default a Matter.Render instance
+     */
+
+    /**
+     * An instance of a broadphase controller. The default value is a `Matter.Grid` instance created by `Engine.create`.
+     *
+     * @property broadphase
+     * @type grid
+     * @default a Matter.Grid instance
      */
 
     /**

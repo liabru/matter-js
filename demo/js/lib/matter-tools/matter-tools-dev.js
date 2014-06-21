@@ -1,12 +1,12 @@
 /**
-* matter-tools-dev.min.js 0.5.0-dev 2014-05-04
+* matter-tools-dev.min.js 0.5.0-dev 2014-06-21
 * https://github.com/liabru/matter-tools
 * License: MIT
 */
 
 (function() {
   var MatterTools = {};
-  var Engine = Matter.Engine, World = Matter.World, Bodies = Matter.Bodies, Body = Matter.Body, Composite = Matter.Composite, Composites = Matter.Composites, Common = Matter.Common, Constraint = Matter.Constraint, Events = Matter.Events, Bounds = Matter.Bounds, Vector = Matter.Vector, Vertices = Matter.Vertices, MouseConstraint = Matter.MouseConstraint, Render = Matter.Render, RenderPixi = Matter.RenderPixi, Mouse = Matter.Mouse, Query = Matter.Query;
+  var Engine = Matter.Engine, World = Matter.World, Bodies = Matter.Bodies, Body = Matter.Body, Composite = Matter.Composite, Composites = Matter.Composites, Common = Matter.Common, Constraint = Matter.Constraint, Events = Matter.Events, Bounds = Matter.Bounds, Vector = Matter.Vector, Vertices = Matter.Vertices, MouseConstraint = Matter.MouseConstraint, Render = Matter.Render, RenderPixi = Matter.RenderPixi, Mouse = Matter.Mouse, Query = Matter.Query, Grid = Matter.Grid, Detector = Matter.Detector;
   var Gui = {};
   (function() {
     Gui.create = function(engine, options) {
@@ -19,6 +19,13 @@
       var gui = {
         engine:engine,
         datGui:datGui,
+        broadphase:"grid",
+        broadphaseCache:{
+          grid:engine.broadphase.controller === Grid ? engine.broadphase :Grid.create(),
+          bruteForce:{
+            detector:Detector.bruteForce
+          }
+        },
         amount:1,
         size:40,
         sides:4,
@@ -146,7 +153,8 @@
       gravity.open();
       var physics = datGui.addFolder("Engine");
       physics.add(engine, "enableSleeping");
-      physics.add(engine.broadphase, "current", [ "grid", "bruteForce" ]).onFinishChange(function(value) {
+      physics.add(gui, "broadphase", [ "grid", "bruteForce" ]).onFinishChange(function(value) {
+        engine.broadphase = gui.broadphaseCache[value];
         Composite.setModified(engine.world, true, false, false);
       });
       physics.add(engine.timing, "timeScale", 0, 1.2).step(.05).listen();
@@ -490,10 +498,10 @@
       }
     };
     var _getMousePosition = function(inspector) {
-      return Vector.add(inspector.engine.input.mouse.position, inspector.offset);
+      return Vector.add(inspector.mouse.position, inspector.offset);
     };
     var _initEngineEvents = function(inspector) {
-      var engine = inspector.engine, mouse = engine.input.mouse, mousePosition = _getMousePosition(inspector), controls = inspector.controls;
+      var engine = inspector.engine, mouse = inspector.mouse, mousePosition = _getMousePosition(inspector), controls = inspector.controls;
       Events.on(engine, "tick", function() {
         mousePosition = _getMousePosition(inspector);
         var mouseDelta = mousePosition.x - inspector.mousePrevPosition.x, keyDelta = _key.isPressed("up") + _key.isPressed("right") - _key.isPressed("down") - _key.isPressed("left"), delta = mouseDelta + keyDelta;
@@ -654,7 +662,7 @@
       }, 200);
     };
     var _updateSelectedMouseDownOffset = function(inspector) {
-      var selected = inspector.selected, mouse = inspector.engine.input.mouse, mousePosition = _getMousePosition(inspector), item, data;
+      var selected = inspector.selected, mouse = inspector.mouse, mousePosition = _getMousePosition(inspector), item, data;
       for (var i = 0; i < selected.length; i++) {
         item = selected[i];
         data = item.data;
@@ -677,7 +685,7 @@
       }
     };
     var _moveSelectedObjects = function(inspector, x, y) {
-      var selected = inspector.selected, mouse = inspector.engine.input.mouse, mousePosition = _getMousePosition(inspector), item, data;
+      var selected = inspector.selected, mouse = inspector.mouse, mousePosition = _getMousePosition(inspector), item, data;
       for (var i = 0; i < selected.length; i++) {
         item = selected[i];
         data = item.data;
