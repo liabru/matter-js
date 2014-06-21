@@ -41,7 +41,6 @@ var Engine = {};
             velocityIterations: 4,
             constraintIterations: 2,
             enableSleeping: false,
-            timeScale: 1,
             events: [],
             timing: {
                 fps: _fps,
