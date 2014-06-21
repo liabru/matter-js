@@ -4,35 +4,37 @@
 * @class Mouse
 */
 
-var Mouse;
+var Mouse = {};
 
 (function() {
-    
+
     /**
      * Description
+     * @method create
      * @param {HTMLElement} element
+     * @return {mouse} A new mouse
      */
-    Mouse = function(element) {
-        var mouse = this;
+    Mouse.create = function(element) {
+        var mouse = {};
         
-        this.element = element || document.body;
-        this.absolute = { x: 0, y: 0 };
-        this.position = { x: 0, y: 0 };
-        this.mousedownPosition = { x: 0, y: 0 };
-        this.mouseupPosition = { x: 0, y: 0 };
-        this.offset = { x: 0, y: 0 };
-        this.scale = { x: 1, y: 1 };
-        this.wheelDelta = 0;
-        this.button = -1;
+        mouse.element = element || document.body;
+        mouse.absolute = { x: 0, y: 0 };
+        mouse.position = { x: 0, y: 0 };
+        mouse.mousedownPosition = { x: 0, y: 0 };
+        mouse.mouseupPosition = { x: 0, y: 0 };
+        mouse.offset = { x: 0, y: 0 };
+        mouse.scale = { x: 1, y: 1 };
+        mouse.wheelDelta = 0;
+        mouse.button = -1;
 
-        this.sourceEvents = {
+        mouse.sourceEvents = {
             mousemove: null,
             mousedown: null,
             mouseup: null,
             mousewheel: null
         };
         
-        this.mousemove = function(event) { 
+        mouse.mousemove = function(event) { 
             var position = _getRelativeMousePosition(event, mouse.element),
                 touches = event.changedTouches;
 
@@ -48,7 +50,7 @@ var Mouse;
             mouse.sourceEvents.mousemove = event;
         };
         
-        this.mousedown = function(event) {
+        mouse.mousedown = function(event) {
             var position = _getRelativeMousePosition(event, mouse.element),
                 touches = event.changedTouches;
 
@@ -68,7 +70,7 @@ var Mouse;
             mouse.sourceEvents.mousedown = event;
         };
         
-        this.mouseup = function(event) {
+        mouse.mouseup = function(event) {
             var position = _getRelativeMousePosition(event, mouse.element),
                 touches = event.changedTouches;
 
@@ -86,22 +88,14 @@ var Mouse;
             mouse.sourceEvents.mouseup = event;
         };
 
-        this.mousewheel = function(event) {
+        mouse.mousewheel = function(event) {
             mouse.wheelDelta = Math.max(-1, Math.min(1, event.wheelDelta || -event.detail));
             event.preventDefault();
         };
 
         Mouse.setElement(mouse, mouse.element);
-    };
 
-    /**
-     * Description
-     * @method create
-     * @param {HTMLElement} element
-     * @return {mouse} A new mouse
-     */
-    Mouse.create = function(element) {
-        return new Mouse(element);
+        return mouse;
     };
 
     /**
