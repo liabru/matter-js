@@ -101,10 +101,8 @@ var Body = {};
         // allow options to override the automatically calculated properties
         body.axes = options.axes || body.axes;
         body.area = options.area || body.area;
-        body.mass = options.mass || body.mass;
-        body.inertia = options.inertia || body.inertia;
-        body.inverseMass = 1 / body.mass;
-        body.inverseInertia = 1 / body.inertia;
+        Body.setMass(body, options.mass || body.mass);
+        Body.setInertia(body, options.inertia || body.inertia);
 
         // render properties
         var defaultFillStyle = (body.isStatic ? '#eeeeee' : Common.choose(['#556270', '#4ECDC4', '#C7F464', '#FF6B6B', '#C44D58'])),
@@ -140,6 +138,41 @@ var Body = {};
     };
 
     /**
+     * Sets the mass of the body. Inverse mass and density are automatically updated to reflect the change.
+     * @method setMass
+     * @param {body} body
+     * @param {number} mass
+     */
+    Body.setMass = function(body, mass) {
+        body.mass = mass;
+        body.inverseMass = 1 / body.mass;
+        body.density = body.mass / body.area;
+    };
+
+    /**
+     * Sets the density of the body. Mass is automatically updated to reflect the change.
+     * @method setDensity
+     * @param {body} body
+     * @param {number} density
+     */
+    Body.setDensity = function(body, density) {
+        Body.setMass(body, density * body.area);
+        body.density = density;
+    };
+
+    /**
+     * Sets the moment of inertia (i.e. second moment of area) of the body of the body. 
+     * Inverse inertia is automatically updated to reflect the change. Mass is not changed.
+     * @method setInertia
+     * @param {body} body
+     * @param {number} inertia
+     */
+    Body.setInertia = function(body, inertia) {
+        body.inertia = inertia;
+        body.inverseInertia = 1 / body.inertia;
+    };
+
+    /**
      * Sets the body's vertices and updates body properties accordingly, including inertia, area and mass (with respect to `body.density`).
      * Vertices will be automatically transformed to be orientated around their centre of mass as the origin.
      * They are then automatically translated to world space based on `body.position`.
@@ -162,16 +195,14 @@ var Body = {};
         // update properties
         body.axes = Axes.fromVertices(body.vertices);
         body.area = Vertices.area(body.vertices);
-        body.mass = body.density * body.area;
-        body.inverseMass = 1 / body.mass;
+        Body.setMass(body, body.density * body.area);
 
         // orient vertices around the centre of mass at origin (0, 0)
         var centre = Vertices.centre(body.vertices);
         Vertices.translate(body.vertices, centre, -1);
 
         // update inertia while vertices are at origin (0, 0)
-        body.inertia = Body._inertiaScale * Vertices.inertia(body.vertices, body.mass);
-        body.inverseInertia = 1 / body.inertia;
+        Body.setInertia(body, Body._inertiaScale * Vertices.inertia(body.vertices, body.mass));
 
         // update geometry
         Vertices.translate(body.vertices, body.position);
@@ -274,13 +305,11 @@ var Body = {};
         // update properties
         body.axes = Axes.fromVertices(body.vertices);
         body.area = Vertices.area(body.vertices);
-        body.mass = body.density * body.area;
-        body.inverseMass = 1 / body.mass;
+        Body.setMass(body, body.density * body.area);
 
         // update inertia (requires vertices to be at origin)
         Vertices.translate(body.vertices, { x: -body.position.x, y: -body.position.y });
-        body.inertia = Vertices.inertia(body.vertices, body.mass);
-        body.inverseInertia = 1 / body.inertia;
+        Body.setInertia(body, Vertices.inertia(body.vertices, body.mass));
         Vertices.translate(body.vertices, { x: body.position.x, y: body.position.y });
 
         // update bounds
