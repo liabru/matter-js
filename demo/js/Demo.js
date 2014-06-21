@@ -1331,7 +1331,7 @@
             Events.off(_engine, _sceneEvents[i]);
 
         if (_mouseConstraint.events) {
-            for (var i = 0; i < _sceneEvents.length; i++)
+            for (i = 0; i < _sceneEvents.length; i++)
                 Events.off(_mouseConstraint, _sceneEvents[i]);
         }
 
