@@ -42,7 +42,6 @@ var Engine = {};
             constraintIterations: 2,
             enableSleeping: false,
             timeScale: 1,
-            input: {},
             events: [],
             timing: {
                 fps: _fps,
@@ -66,7 +65,6 @@ var Engine = {};
         engine.world = World.create(engine.world);
         engine.pairs = Pairs.create();
         engine.metrics = engine.metrics || Metrics.create();
-        engine.input.mouse = engine.input.mouse || Mouse.create(engine.render.canvas);
 
         engine.broadphase = engine.broadphase || {
             current: 'grid',
@@ -167,7 +165,6 @@ var Engine = {};
 
             // trigger events that may have occured during the step
             _triggerCollisionEvents(engine);
-            _triggerMouseEvents(engine);
 
             // render
             Engine.render(engine);
@@ -342,38 +339,6 @@ var Engine = {};
     };
 
     /**
-     * Triggers mouse events
-     * @method _triggerMouseEvents
-     * @private
-     * @param {engine} engine
-     */
-    var _triggerMouseEvents = function(engine) {
-        var mouse = engine.input.mouse,
-            mouseEvents = mouse.sourceEvents;
-
-        if (mouseEvents.mousemove) {
-            Events.trigger(engine, 'mousemove', {
-                mouse: mouse
-            });
-        }
-
-        if (mouseEvents.mousedown) {
-            Events.trigger(engine, 'mousedown', {
-                mouse: mouse
-            });
-        }
-
-        if (mouseEvents.mouseup) {
-            Events.trigger(engine, 'mouseup', {
-                mouse: mouse
-            });
-        }
-
-        // reset the mouse state ready for the next step
-        Mouse.clearSourceEvents(mouse);
-    };
-
-    /**
      * Triggers collision events
      * @method _triggerMouseEvents
      * @private
@@ -473,36 +438,6 @@ var Engine = {};
     * @event afterTick
     * @param {} event An event object
     * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
-    * @param {} event.source The source object of the event
-    * @param {} event.name The name of the event
-    */
-
-    /**
-    * Fired when the mouse has moved (or a touch moves) during the last step
-    *
-    * @event mousemove
-    * @param {} event An event object
-    * @param {mouse} event.mouse The engine's mouse instance
-    * @param {} event.source The source object of the event
-    * @param {} event.name The name of the event
-    */
-
-    /**
-    * Fired when the mouse is down (or a touch has started) during the last step
-    *
-    * @event mousedown
-    * @param {} event An event object
-    * @param {mouse} event.mouse The engine's mouse instance
-    * @param {} event.source The source object of the event
-    * @param {} event.name The name of the event
-    */
-
-    /**
-    * Fired when the mouse is up (or a touch has ended) during the last step
-    *
-    * @event mouseup
-    * @param {} event An event object
-    * @param {mouse} event.mouse The engine's mouse instance
     * @param {} event.source The source object of the event
     * @param {} event.name The name of the event
     */

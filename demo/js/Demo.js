@@ -161,7 +161,7 @@
         World.add(_engine.world, [ground, pyramid, ground2, pyramid2, rock, elastic]);
 
         Events.on(_engine, 'tick', function(event) {
-            if (_engine.input.mouse.button === -1 && (rock.position.x > 190 || rock.position.y < 430)) {
+            if (_mouseConstraint.mouse.button === -1 && (rock.position.x > 190 || rock.position.y < 430)) {
                 rock = Bodies.polygon(170, 450, 7, 20, rockOptions);
                 World.add(_engine.world, rock);
                 elastic.bodyB = rock;
@@ -340,7 +340,7 @@
         _sceneEvents.push(
             Events.on(_engine, 'beforeTick', function() {
                 var world = _engine.world,
-                    mouse = _engine.input.mouse,
+                    mouse = _mouseConstraint.mouse,
                     render = _engine.render,
                     translate;
 
@@ -1085,7 +1085,7 @@
         _sceneEvents.push(
 
             // an example of using mouse events on an engine.input.mouse
-            Events.on(_engine, 'mousedown', function(event) {
+            Events.on(_mouseConstraint, 'mousedown', function(event) {
                 var mousePosition = event.mouse.position;
                 console.log('mousedown at ' + mousePosition.x + ' ' + mousePosition.y);
                 _engine.render.options.background = 'cornsilk';
@@ -1097,7 +1097,7 @@
         _sceneEvents.push(
 
             // an example of using mouse events on an engine.input.mouse
-            Events.on(_engine, 'mouseup', function(event) {
+            Events.on(_mouseConstraint, 'mouseup', function(event) {
                 var mousePosition = event.mouse.position;
                 _engine.render.options.background = "white";
                 console.log('mouseup at ' + mousePosition.x + ' ' + mousePosition.y);
@@ -1186,7 +1186,7 @@
 
         _sceneEvents.push(
             Events.on(_engine, 'afterRender', function() {
-                var mouse = _engine.input.mouse,
+                var mouse = _mouseConstraint.mouse,
                     context = _engine.render.context,
                     bodies = Composite.allBodies(_engine.world),
                     startPoint = { x: 400, y: 100 },
@@ -1329,6 +1329,12 @@
         // clear all scene events
         for (var i = 0; i < _sceneEvents.length; i++)
             Events.off(_engine, _sceneEvents[i]);
+
+        if (_mouseConstraint.events) {
+            for (var i = 0; i < _sceneEvents.length; i++)
+                Events.off(_mouseConstraint, _sceneEvents[i]);
+        }
+
         _sceneEvents = [];
 
         // reset id pool
@@ -1338,8 +1344,8 @@
         Common._seed = 0;
 
         // reset mouse offset and scale (only required for Demo.views)
-        Mouse.setScale(_engine.input.mouse, { x: 1, y: 1 });
-        Mouse.setOffset(_engine.input.mouse, { x: 0, y: 0 });
+        Mouse.setScale(_mouseConstraint.mouse, { x: 1, y: 1 });
+        Mouse.setOffset(_mouseConstraint.mouse, { x: 0, y: 0 });
 
         _engine.enableSleeping = false;
         _engine.world.gravity.y = 1;

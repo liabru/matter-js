@@ -770,7 +770,6 @@ var Render = {};
      */
     Render.inspector = function(inspector, context) {
         var engine = inspector.engine,
-            mouse = engine.input.mouse,
             selected = inspector.selected,
             c = context,
             render = engine.render,

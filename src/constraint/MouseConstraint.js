@@ -22,7 +22,7 @@ var MouseConstraint = {};
      * @return {MouseConstraint} A new MouseConstraint
      */
     MouseConstraint.create = function(engine, options) {
-        var mouse = engine.input.mouse;
+        var mouse = (options && options.mouse) || Mouse.create(engine.render.canvas);
 
         var constraint = Constraint.create({ 
             label: 'Mouse Constraint',
@@ -50,6 +50,7 @@ var MouseConstraint = {};
         Events.on(engine, 'tick', function(event) {
             var allBodies = Composite.allBodies(engine.world);
             MouseConstraint.update(mouseConstraint, allBodies);
+            _triggerEvents(mouseConstraint);
         });
 
         return mouseConstraint;
@@ -91,6 +92,65 @@ var MouseConstraint = {};
         }
     };
 
+    /**
+     * Triggers mouse constraint events
+     * @method _triggerEvents
+     * @private
+     * @param {mouse} mouse
+     */
+    var _triggerEvents = function(mouseConstraint) {
+        var mouse = mouseConstraint.mouse,
+            mouseEvents = mouse.sourceEvents;
+
+        if (mouseEvents.mousemove)
+            Events.trigger(mouseConstraint, 'mousemove', { mouse: mouse });
+
+        if (mouseEvents.mousedown)
+            Events.trigger(mouseConstraint, 'mousedown', { mouse: mouse });
+
+        if (mouseEvents.mouseup)
+            Events.trigger(mouseConstraint, 'mouseup', { mouse: mouse });
+
+        // reset the mouse state ready for the next step
+        Mouse.clearSourceEvents(mouse);
+    };
+
+    /*
+    *
+    *  Events Documentation
+    *
+    */
+
+    /**
+    * Fired when the mouse has moved (or a touch moves) during the last step
+    *
+    * @event mousemove
+    * @param {} event An event object
+    * @param {mouse} event.mouse The engine's mouse instance
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired when the mouse is down (or a touch has started) during the last step
+    *
+    * @event mousedown
+    * @param {} event An event object
+    * @param {mouse} event.mouse The engine's mouse instance
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired when the mouse is up (or a touch has ended) during the last step
+    *
+    * @event mouseup
+    * @param {} event An event object
+    * @param {mouse} event.mouse The engine's mouse instance
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
     /*
     *
     *  Properties Documentation
@@ -106,11 +166,11 @@ var MouseConstraint = {};
      */
 
     /**
-     * The `Mouse` instance in use.
+     * The `Mouse` instance in use. If not supplied in `MouseConstraint.create`, one will be created.
      *
      * @property mouse
      * @type mouse
-     * @default engine.input.mouse
+     * @default mouse
      */
 
     /**
