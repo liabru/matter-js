@@ -12,18 +12,21 @@ var Grid = {};
     /**
      * Description
      * @method create
-     * @param {number} bucketWidth
-     * @param {number} bucketHeight
+     * @param {} options
      * @return {grid} A new grid
      */
-    Grid.create = function(bucketWidth, bucketHeight) {
-        return {
+    Grid.create = function(options) {
+        var defaults = {
+            controller: Grid,
+            detector: Detector.collisions,
             buckets: {},
             pairs: {},
             pairsList: [],
-            bucketWidth: bucketWidth || 48,
-            bucketHeight: bucketHeight || 48
+            bucketWidth: 48,
+            bucketHeight: 48
         };
+
+        return Common.extend(defaults, options);
     };
 
     /**
