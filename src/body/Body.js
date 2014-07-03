@@ -287,7 +287,7 @@ var Body = {};
      * @param {number} rotation
      */
     Body.rotate = function(body, rotation) {
-        Body.setAngle(body, body.angle + angle);
+        Body.setAngle(body, body.angle + rotation);
     };
 
     /**
