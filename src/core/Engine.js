@@ -331,7 +331,7 @@ var Engine = {};
 
     /**
      * Triggers collision events
-     * @method _triggerMouseEvents
+     * @method _triggerCollisionEvents
      * @private
      * @param {engine} engine
      */
