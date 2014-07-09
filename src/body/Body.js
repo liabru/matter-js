@@ -97,6 +97,7 @@ var Body = {};
         Sleeping.set(body, body.isSleeping);
         Vertices.rotate(body.vertices, body.angle, body.position);
         Axes.rotate(body.axes, body.angle);
+        Bounds.update(body.bounds, body.vertices, body.velocity);
 
         // allow options to override the automatically calculated properties
         body.axes = options.axes || body.axes;
