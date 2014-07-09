@@ -154,9 +154,6 @@ var Engine = {};
             // update
             Engine.update(engine, delta, correction);
 
-            // trigger events that may have occured during the step
-            _triggerCollisionEvents(engine);
-
             // render
             Engine.render(engine);
 
@@ -165,7 +162,9 @@ var Engine = {};
     };
 
     /**
-     * Moves the simulation forward in time by `delta` ms. Triggers `beforeUpdate` and `afterUpdate` events.
+     * Moves the simulation forward in time by `delta` ms. 
+     * Triggers `beforeUpdate` and `afterUpdate` events.
+     * Triggers `collisionStart`, `collisionActive` and `collisionEnd` events.
      * @method update
      * @param {engine} engine
      * @param {number} delta
@@ -243,6 +242,10 @@ var Engine = {};
         if (engine.enableSleeping)
             Sleeping.afterCollisions(pairs.list, timing.timeScale);
 
+        // trigger collision events
+        if (pairs.collisionStart.length > 0)
+            Events.trigger(engine, 'collisionStart', { pairs: pairs.collisionStart });
+
         // iteratively resolve velocity between collisions
         Resolver.preSolveVelocity(pairs.list);
         for (i = 0; i < engine.velocityIterations; i++) {
@@ -254,6 +257,13 @@ var Engine = {};
             Resolver.solvePosition(pairs.list, timing.timeScale);
         }
         Resolver.postSolvePosition(allBodies);
+
+        // trigger collision events
+        if (pairs.collisionActive.length > 0)
+            Events.trigger(engine, 'collisionActive', { pairs: pairs.collisionActive });
+
+        if (pairs.collisionEnd.length > 0)
+            Events.trigger(engine, 'collisionEnd', { pairs: pairs.collisionEnd });
 
         // update metrics log
         Metrics.update(engine.metrics, engine);
@@ -326,34 +336,6 @@ var Engine = {};
             var bodies = Composite.allBodies(world);
             broadphase.controller.clear(broadphase);
             broadphase.controller.update(broadphase, bodies, engine, true);
-        }
-    };
-
-    /**
-     * Triggers collision events
-     * @method _triggerMouseEvents
-     * @private
-     * @param {engine} engine
-     */
-    var _triggerCollisionEvents = function(engine) {
-        var pairs = engine.pairs;
-
-        if (pairs.collisionStart.length > 0) {
-            Events.trigger(engine, 'collisionStart', {
-                pairs: pairs.collisionStart
-            });
-        }
-
-        if (pairs.collisionActive.length > 0) {
-            Events.trigger(engine, 'collisionActive', {
-                pairs: pairs.collisionActive
-            });
-        }
-
-        if (pairs.collisionEnd.length > 0) {
-            Events.trigger(engine, 'collisionEnd', {
-                pairs: pairs.collisionEnd
-            });
         }
     };
 
