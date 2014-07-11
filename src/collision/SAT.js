@@ -104,24 +104,33 @@ var SAT = {};
 
         // find support points, there is always either exactly one or two
         var verticesB = _findSupports(bodyA, bodyB, collision.normal),
+            supports = collision.supports || [];
+        supports.length = 0;
+
+        // find the supports from bodyB that are inside bodyA
+        if (Vertices.contains(bodyA.vertices, verticesB[0]))
+            supports.push(verticesB[0]);
+
+        if (Vertices.contains(bodyA.vertices, verticesB[1]))
+            supports.push(verticesB[1]);
+
+        // find the supports from bodyA that are inside bodyB
+        if (supports.length < 2) {
+            var verticesA = _findSupports(bodyB, bodyA, Vector.neg(collision.normal));
+                
+            if (Vertices.contains(bodyB.vertices, verticesA[0]))
+                supports.push(verticesA[0]);
+
+            if (supports.length < 2 && Vertices.contains(bodyB.vertices, verticesA[1]))
+                supports.push(verticesA[1]);
+        }
+
+        // account for the edge case of overlapping but no vertex containment
+        if (supports.length < 2)
             supports = [verticesB[0]];
         
-        if (Vertices.contains(bodyA.vertices, verticesB[1])) {
-            supports.push(verticesB[1]);
-        } else {
-            var verticesA = _findSupports(bodyB, bodyA, Vector.neg(collision.normal));
-            
-            if (Vertices.contains(bodyB.vertices, verticesA[0])) {
-                supports.push(verticesA[0]);
-            }
-
-            if (supports.length < 2 && Vertices.contains(bodyB.vertices, verticesA[1])) {
-                supports.push(verticesA[1]);
-            }
-        }
-        
         collision.supports = supports;
-        collision.supportCorrected = Vector.sub(verticesB[0], collision.penetration);
+        collision.supportCorrected = Vector.sub(supports[0], collision.penetration);
 
         return collision;
     };
