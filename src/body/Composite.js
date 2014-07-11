@@ -133,6 +133,7 @@ var Composite = {};
 
     /**
      * Adds a composite to the given composite
+     * @private
      * @method addComposite
      * @param {composite} compositeA
      * @param {composite} compositeB
@@ -147,6 +148,7 @@ var Composite = {};
 
     /**
      * Removes a composite from the given composite, and optionally searching its children recursively
+     * @private
      * @method removeComposite
      * @param {composite} compositeA
      * @param {composite} compositeB
@@ -171,6 +173,7 @@ var Composite = {};
 
     /**
      * Removes a composite from the given composite
+     * @private
      * @method removeCompositeAt
      * @param {composite} composite
      * @param {number} position
@@ -184,6 +187,7 @@ var Composite = {};
 
     /**
      * Adds a body to the given composite
+     * @private
      * @method addBody
      * @param {composite} composite
      * @param {body} body
@@ -197,6 +201,7 @@ var Composite = {};
 
     /**
      * Removes a body from the given composite, and optionally searching its children recursively
+     * @private
      * @method removeBody
      * @param {composite} composite
      * @param {body} body
@@ -221,6 +226,7 @@ var Composite = {};
 
     /**
      * Removes a body from the given composite
+     * @private
      * @method removeBodyAt
      * @param {composite} composite
      * @param {number} position
@@ -234,6 +240,7 @@ var Composite = {};
 
     /**
      * Adds a constraint to the given composite
+     * @private
      * @method addConstraint
      * @param {composite} composite
      * @param {constraint} constraint
@@ -247,6 +254,7 @@ var Composite = {};
 
     /**
      * Removes a constraint from the given composite, and optionally searching its children recursively
+     * @private
      * @method removeConstraint
      * @param {composite} composite
      * @param {constraint} constraint
@@ -270,6 +278,7 @@ var Composite = {};
 
     /**
      * Removes a body from the given composite
+     * @private
      * @method removeConstraintAt
      * @param {composite} composite
      * @param {number} position
