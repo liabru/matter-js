@@ -63,6 +63,7 @@ var Composite = {};
 
     /**
      * Generic add function. Adds one or many body(s), constraint(s) or a composite(s) to the given composite.
+     * Triggers `beforeAdd` and `afterAdd` events on the `composite`.
      * @method add
      * @param {composite} composite
      * @param {} object
@@ -70,6 +71,8 @@ var Composite = {};
      */
     Composite.add = function(composite, object) {
         var objects = [].concat(object);
+
+        Events.trigger(composite, 'beforeAdd', { object: object });
 
         for (var i = 0; i < objects.length; i++) {
             var obj = objects[i];
@@ -92,12 +95,15 @@ var Composite = {};
             }
         }
 
+        Events.trigger(composite, 'afterAdd', { object: object });
+
         return composite;
     };
 
     /**
      * Generic remove function. Removes one or many body(s), constraint(s) or a composite(s) to the given composite.
      * Optionally searching its children recursively.
+     * Triggers `beforeRemove` and `afterRemove` events on the `composite`.
      * @method remove
      * @param {composite} composite
      * @param {} object
@@ -106,6 +112,8 @@ var Composite = {};
      */
     Composite.remove = function(composite, object, deep) {
         var objects = [].concat(object);
+
+        Events.trigger(composite, 'beforeRemove', { object: object });
 
         for (var i = 0; i < objects.length; i++) {
             var obj = objects[i];
@@ -127,6 +135,8 @@ var Composite = {};
 
             }
         }
+
+        Events.trigger(composite, 'afterRemove', { object: object });
 
         return composite;
     };
@@ -430,6 +440,52 @@ var Composite = {};
 
         return composite;
     };
+
+    /*
+    *
+    *  Events Documentation
+    *
+    */
+
+    /**
+    * Fired when a call to `Composite.add` is made, before objects have been added.
+    *
+    * @event beforeAdd
+    * @param {} event An event object
+    * @param {} event.object The object(s) to be added (may be a single body, constraint, composite or a mixed array of these)
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired when a call to `Composite.add` is made, after objects have been added.
+    *
+    * @event afterAdd
+    * @param {} event An event object
+    * @param {} event.object The object(s) that have been added (may be a single body, constraint, composite or a mixed array of these)
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired when a call to `Composite.remove` is made, before objects have been removed.
+    *
+    * @event beforeRemove
+    * @param {} event An event object
+    * @param {} event.object The object(s) to be removed (may be a single body, constraint, composite or a mixed array of these)
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired when a call to `Composite.remove` is made, after objects have been removed.
+    *
+    * @event afterRemove
+    * @param {} event An event object
+    * @param {} event.object The object(s) that have been removed (may be a single body, constraint, composite or a mixed array of these)
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
 
     /*
     *
