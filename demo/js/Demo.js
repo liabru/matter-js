@@ -994,32 +994,17 @@
         var _world = _engine.world;
         
         Demo.reset();
-        
-        var stack = Composites.stack(50, 100, 8, 4, 50, 50, function(x, y, column, row) {
-            return Bodies.circle(x, y, 15, { restitution: 1, render: { strokeStyle: '#777' } });
-        });
-        
-        World.add(_world, stack);
 
-        var renderOptions = _engine.render.options;
-        renderOptions.wireframes = false;
+        // bind events (_sceneEvents is only used for this demo)
 
-        var shakeScene = function(engine) {
-            var bodies = Composite.allBodies(engine.world);
+        _sceneEvents.push(
 
-            for (var i = 0; i < bodies.length; i++) {
-                var body = bodies[i];
+            // an example of using composite events on the world
+            Events.on(_world, 'afterAdd', function(event) {
+                console.log('added to world:', event.object);
+            })
 
-                if (!body.isStatic && body.position.y >= 500) {
-                    var forceMagnitude = 0.01 * body.mass;
-
-                    Body.applyForce(body, { x: 0, y: 0 }, { 
-                        x: (forceMagnitude + Common.random() * forceMagnitude) * Common.choose([1, -1]), 
-                        y: -forceMagnitude + Common.random() * -forceMagnitude
-                    });
-                }
-            }
-        };
+        );
 
         _sceneEvents.push(
 
@@ -1084,7 +1069,7 @@
 
         _sceneEvents.push(
 
-            // an example of using mouse events on an engine.input.mouse
+            // an example of using mouse events on a mouse
             Events.on(_mouseConstraint, 'mousedown', function(event) {
                 var mousePosition = event.mouse.position;
                 console.log('mousedown at ' + mousePosition.x + ' ' + mousePosition.y);
@@ -1096,7 +1081,7 @@
 
         _sceneEvents.push(
 
-            // an example of using mouse events on an engine.input.mouse
+            // an example of using mouse events on a mouse
             Events.on(_mouseConstraint, 'mouseup', function(event) {
                 var mousePosition = event.mouse.position;
                 _engine.render.options.background = "white";
@@ -1104,6 +1089,34 @@
             })
 
         );
+
+        // scene code
+
+        var stack = Composites.stack(50, 100, 8, 4, 50, 50, function(x, y, column, row) {
+            return Bodies.circle(x, y, 15, { restitution: 1, render: { strokeStyle: '#777' } });
+        });
+        
+        World.add(_world, stack);
+
+        var renderOptions = _engine.render.options;
+        renderOptions.wireframes = false;
+
+        var shakeScene = function(engine) {
+            var bodies = Composite.allBodies(engine.world);
+
+            for (var i = 0; i < bodies.length; i++) {
+                var body = bodies[i];
+
+                if (!body.isStatic && body.position.y >= 500) {
+                    var forceMagnitude = 0.01 * body.mass;
+
+                    Body.applyForce(body, { x: 0, y: 0 }, { 
+                        x: (forceMagnitude + Common.random() * forceMagnitude) * Common.choose([1, -1]), 
+                        y: -forceMagnitude + Common.random() * -forceMagnitude
+                    });
+                }
+            }
+        };
     };
 
     Demo.sprites = function() {
@@ -1333,6 +1346,11 @@
         if (_mouseConstraint.events) {
             for (i = 0; i < _sceneEvents.length; i++)
                 Events.off(_mouseConstraint, _sceneEvents[i]);
+        }
+
+        if (_world.events) {
+            for (i = 0; i < _sceneEvents.length; i++)
+                Events.off(_world, _sceneEvents[i]);
         }
 
         _sceneEvents = [];
