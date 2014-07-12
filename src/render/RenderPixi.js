@@ -121,6 +121,10 @@ var RenderPixi = {};
 
         // reset background state
         render.currentBackground = null;
+
+        // reset bounds transforms
+        container.scale.set(1, 1);
+        container.position.set(0, 0);
     };
 
     /**
@@ -214,7 +218,7 @@ var RenderPixi = {};
 
             // transform the view
             container.scale.set(1 / boundsScaleX, 1 / boundsScaleY);
-            container.position.set(-render.bounds.min.x, -render.bounds.min.y);
+            container.position.set(-render.bounds.min.x * (1 / boundsScaleX), -render.bounds.min.y * (1 / boundsScaleY))
         } else {
             constraints = allConstraints;
         }
