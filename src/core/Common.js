@@ -281,6 +281,24 @@ var Common = {};
         return Common._nextId++;
     };
 
+    /**
+     * A cross browser compatible indexOf implementation
+     * @method indexOf
+     * @param {array} haystack
+     * @param {object} needle
+     */
+    Common.indexOf = function(haystack, needle) {
+        if (haystack.indexOf)
+            return haystack.indexOf(needle);
+
+        for (var i = 0; i < haystack.length; i++) {
+            if (haystack[i] === needle)
+                return i;
+        }
+
+        return -1;
+    };
+
     var _seededRandom = function() {
         // https://gist.github.com/ngryman/3830489
         Common._seed = (Common._seed * 9301 + 49297) % 233280;

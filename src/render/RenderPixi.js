@@ -261,7 +261,7 @@ var RenderPixi = {};
         }
 
         // add to scene graph if not already there
-        if (container.children.indexOf(primitive) === -1)
+        if (Common.indexOf(container.children, primitive) === -1)
             container.addChild(primitive);
 
         // render the constraint on every update, since they can change dynamically
@@ -307,7 +307,7 @@ var RenderPixi = {};
                 sprite = render.sprites[spriteId] = _createBodySprite(render, body);
 
             // add to scene graph if not already there
-            if (spriteBatch.children.indexOf(sprite) === -1)
+            if (Common.indexOf(spriteBatch.children, sprite) === -1)
                 spriteBatch.addChild(sprite);
 
             // update body sprite
@@ -326,7 +326,7 @@ var RenderPixi = {};
             }
 
             // add to scene graph if not already there
-            if (container.children.indexOf(primitive) === -1)
+            if (Common.indexOf(container.children, primitive) === -1)
                 container.addChild(primitive);
 
             // update body primitive
