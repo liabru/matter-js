@@ -15,7 +15,8 @@ var Body = {};
 
     Body._inertiaScale = 4;
 
-    var _nextGroupId = 1;
+    var _nextCollidingGroupId = 1,
+        _nextNonCollidingGroupId = -1;
 
     /**
      * Creates a new rigid body model. The options parameter is an object that specifies any properties you wish to override the defaults.
@@ -49,7 +50,11 @@ var Body = {};
             restitution: 0,
             friction: 0.1,
             frictionAir: 0.01,
-            groupId: 0,
+            collisionFilter: {
+                category: 1,
+                mask: 0xFFFFFFFF,
+                group: 0
+            },
             slop: 0.05,
             timeScale: 1,
             render: {
@@ -70,12 +75,21 @@ var Body = {};
     };
 
     /**
-     * Returns the next unique groupID number.
-     * @method nextGroupId
+     * Returns the next unique groupID number for which bodies will collide.
+     * @method nextCollidingGroupId
      * @return {Number} Unique groupID
      */
-    Body.nextGroupId = function() {
-        return _nextGroupId++;
+    Body.nextCollidingGroupId = function() {
+        return _nextCollidingGroupId++;
+    };
+
+    /**
+     * Returns the next collisionFilter.group value for which bodies will not collide.
+     * @method nextNonCollidingGroupId
+     * @return {Number} Unique groupID
+     */
+    Body.nextNonCollidingGroupId = function() {
+        return _nextNonCollidingGroupId--;
     };
 
     /**
@@ -673,18 +687,56 @@ var Body = {};
      */
 
     /**
-     * An integer `Number` that specifies the collision group the body belongs to. 
-     * Bodies with the same `groupId` are considered _as-one_ body and therefore do not interact.
-     * This allows for creation of segmented bodies that can self-intersect, such as a rope.
-     * The default value 0 means the body does not belong to a group, and can interact with all other bodies.
+     * An `Object` that specifies the collision filtering properties of this body.
      *
-     * @property groupId
-     * @type number
+     * Collisions between two bodies will obey the following rules:
+     * - If the two bodies have the same non-zero value of `collisionFilter.group`,
+     *   they will always collide if the value is positive, and they will never collide
+     *   if the value is negative.
+     * - If the two bodies have different values of `collisionFilter.group` or if one
+     *   (or both) of the bodies has a value of 0, then the category/mask rules apply as follows:
+     *
+     * Each body belongs to a collision category, given by `collisionFilter.category`. This
+     * value is used as a bit field and the category should have only one bit set, meaning that
+     * the value of this property is a power of two in the range [1, 2^31]. Thus, there are 32
+     * different collision categories available.
+     * Each body also defines a collision bitmask, given by `collisionFilter.mask` which specifies
+     * the categories it collides with (the value is the bitwise AND value of all these categories).
+     *
+     * Using the category/mask rules, two bodies `A` and `B` collide if each includes the other's
+     * category in its mask, i.e. `(categoryA & maskB) !== 0` and `(categoryB & maskA) !== 0`
+     * are both true.
+     *
+     * @property collisionFilter
+     * @type object
+     */
+
+    /**
+     * An Integer `Number`, see `collisionFilter`
+     *
+     * @property collisionFilter.group
+     * @type object
      * @default 0
      */
 
     /**
-     * A `Number` that specifies a tollerance on how far a body is allowed to 'sink' or rotate into other bodies.
+     * An Integer `Number`, see `collisionFilter`
+     *
+     * @property collisionFilter.category
+     * @type object
+     * @default 1
+     */
+
+    /**
+     * An Integer `Number`, see `collisionFilter`
+     *
+     * @property collisionFilter.mask
+     * @type object
+     * @default -1
+     */
+
+    /**
+     * A `Number` that specifies a tolerance on how far a body is allowed to 'sink' or rotate into other bodies.
      * Avoid changing this value unless you understand the purpose of `slop` in physics engines.
      * The default should generally suffice, although very large bodies may require larger values for stable stacking.
      *

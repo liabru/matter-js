@@ -448,12 +448,12 @@
     
     Demo.chains = function() {
         var _world = _engine.world,
-            groupId = Body.nextGroupId();
+            groupId = Body.nextNonCollidingGroupId();
         
         Demo.reset();
          
         var ropeA = Composites.stack(200, 100, 5, 2, 10, 10, function(x, y, column, row) {
-            return Bodies.rectangle(x, y, 50, 20, { groupId: groupId });
+            return Bodies.rectangle(x, y, 50, 20, { collisionFilter: {group: groupId} });
         });
         
         Composites.chain(ropeA, 0.5, 0, -0.5, 0, { stiffness: 0.8, length: 2 });
@@ -466,10 +466,10 @@
         
         World.add(_world, ropeA);
         
-        groupId = Body.nextGroupId();
+        groupId = Body.nextNonCollidingGroupId();
         
         var ropeB = Composites.stack(500, 100, 5, 2, 10, 10, function(x, y, column, row) {
-            return Bodies.circle(x, y, 20, { groupId: groupId });
+            return Bodies.circle(x, y, 20, { collisionFilter: {group: groupId} });
         });
         
         Composites.chain(ropeB, 0.5, 0, -0.5, 0, { stiffness: 0.8, length: 2 });
@@ -485,12 +485,12 @@
 
     Demo.bridge = function() {
         var _world = _engine.world,
-            groupId = Body.nextGroupId();
+            groupId = Body.nextNonCollidingGroupId();
         
         Demo.reset();
          
         var bridge = Composites.stack(150, 300, 9, 1, 10, 10, function(x, y, column, row) {
-            return Bodies.rectangle(x, y, 50, 20, { groupId: groupId });
+            return Bodies.rectangle(x, y, 50, 20, { collisionFilter: {group: groupId} });
         });
         
         Composites.chain(bridge, 0.5, 0, -0.5, 0, { stiffness: 0.9 });
@@ -937,8 +937,8 @@
         
         Demo.reset();
 
-        var groupId = Body.nextGroupId(),
-            particleOptions = { friction: 0.00001, groupId: groupId, render: { visible: false }},
+        var groupId = Body.nextNonCollidingGroupId(),
+            particleOptions = { friction: 0.00001, collisionFilter: { group: groupId }, render: { visible: false }},
             cloth = Composites.softBody(200, 200, 20, 12, 5, 5, false, 8, particleOptions);
 
         for (var i = 0; i < 20; i++) {
@@ -1229,6 +1229,44 @@
         );
         
         var renderOptions = _engine.render.options;
+    };
+
+    Demo.collisionFiltering = function() {
+        var _world = _engine.world;
+
+        Demo.reset();
+
+        var i;
+
+        World.add(_world,
+            Composites.stack(275, 150, 5, 10, 10, 10, function(x, y, column, row) {
+                return Bodies.circle(x, y, 20, {
+                    collisionFilter: {
+                        category: row < 7 ? 2 : 4
+                    },
+                    render: {
+                        strokeStyle: row < 7 ? 'red' : 'green',
+                        fillStyle: 'transparent'
+                    }
+                });
+            })
+        );
+
+        World.add(_world,
+            Bodies.circle(400, 40, 30, {
+                collisionFilter: {
+                    mask: 5
+                },
+                render: {
+                    fillStyle: 'blue'
+                }
+            })
+        );
+
+        var renderOptions = _engine.render.options;
+        renderOptions.wireframes = false;
+        renderOptions.background = '#111';
+        renderOptions.showCollisions = true;
     };
 
     // the functions for the demo interface and controls below

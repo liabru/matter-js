@@ -26,12 +26,13 @@ var Detector = {};
             var bodyA = broadphasePairs[i][0], 
                 bodyB = broadphasePairs[i][1];
 
-            // NOTE: could share a function for the below, but may drop performance?
-
-            if (bodyA.groupId && bodyB.groupId && bodyA.groupId === bodyB.groupId)
-                continue;
+            var collisionFilterA = bodyA.collisionFilter,
+                collisionFilterB = bodyB.collisionFilter;
 
             if ((bodyA.isStatic || bodyA.isSleeping) && (bodyB.isStatic || bodyB.isSleeping))
+                continue;
+            
+            if (!_pairCollides(collisionFilterA, collisionFilterB))
                 continue;
 
             metrics.midphaseTests += 1;
@@ -126,6 +127,13 @@ var Detector = {};
         }
 
         return collisions;
+    };
+    
+    var _pairCollides = function(filterA, filterB) {
+        if (filterA.group === filterB.group && filterA.group !== 0)
+            return filterA.group > 0;
+
+        return ((filterA.mask & filterB.category) !== 0 && (filterB.mask & filterA.category) !== 0);
     };
 
 })();
