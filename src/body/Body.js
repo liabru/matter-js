@@ -126,7 +126,6 @@ var Body = {};
             body.friction = 1;
             body.mass = body.inertia = body.density = Infinity;
             body.inverseMass = body.inverseInertia = 0;
-            body.render.lineWidth = 1;
 
             body.positionPrev.x = body.position.x;
             body.positionPrev.y = body.position.y;
