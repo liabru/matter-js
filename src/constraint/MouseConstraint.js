@@ -42,7 +42,12 @@ var MouseConstraint = {};
             mouse: mouse,
             dragBody: null,
             dragPoint: null,
-            constraint: constraint
+            constraint: constraint,
+            collisionFilter: {
+                category: 0x0001,
+                mask: 0xFFFFFFFF,
+                group: 0
+            }
         };
 
         var mouseConstraint = Common.extend(defaults, options);
@@ -72,7 +77,8 @@ var MouseConstraint = {};
                 for (var i = 0; i < bodies.length; i++) {
                     var body = bodies[i];
                     if (Bounds.contains(body.bounds, mouse.position) 
-                            && Vertices.contains(body.vertices, mouse.position)) {
+                            && Vertices.contains(body.vertices, mouse.position)
+                            && Detector.canCollide(body.collisionFilter, mouseConstraint.collisionFilter)) {
                         constraint.pointA = mouse.position;
                         constraint.bodyB = body;
                         constraint.pointB = { x: mouse.position.x - body.position.x, y: mouse.position.y - body.position.y };
@@ -194,6 +200,15 @@ var MouseConstraint = {};
      *
      * @property constraint
      * @type constraint
+     */
+
+    /**
+     * An `Object` that specifies the collision filter properties.
+     * The collision filter allows the user to define which types of body this mouse constraint can interact with.
+     * See `body.collisionFilter` for more information.
+     *
+     * @property collisionFilter
+     * @type object
      */
 
 })();
