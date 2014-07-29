@@ -709,7 +709,8 @@ var Body = {};
      */
 
     /**
-     * An Integer `Number`, see `body.collisionFilter` for more information.
+     * An Integer `Number`, that specifies the collision group this body belongs to.
+     * See `body.collisionFilter` for more information.
      *
      * @property collisionFilter.group
      * @type object
@@ -728,7 +729,8 @@ var Body = {};
      */
 
     /**
-     * An Integer `Number`, see `body.collisionFilter` for more information.
+     * A bit mask that specifies the collision categories this body may collide with.
+     * See `body.collisionFilter` for more information.
      *
      * @property collisionFilter.mask
      * @type object
