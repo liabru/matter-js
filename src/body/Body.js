@@ -51,7 +51,7 @@ var Body = {};
             friction: 0.1,
             frictionAir: 0.01,
             collisionFilter: {
-                category: 1,
+                category: 0x0001,
                 mask: 0xFFFFFFFF,
                 group: 0
             },
@@ -75,21 +75,18 @@ var Body = {};
     };
 
     /**
-     * Returns the next unique groupID number for which bodies will collide.
-     * @method nextCollidingGroupId
-     * @return {Number} Unique groupID
+     * Returns the next unique group index for which bodies will collide.
+     * If `isNonColliding` is `true`, returns the next unique group index for which bodies will _not_ collide.
+     * See `body.collisionFilter` for more information.
+     * @method nextGroup
+     * @param {bool} [isNonColliding=false]
+     * @return {Number} Unique group index
      */
-    Body.nextCollidingGroupId = function() {
-        return _nextCollidingGroupId++;
-    };
+    Body.nextGroup = function(isNonColliding) {
+        if (isNonColliding)
+            return _nextNonCollidingGroupId--;
 
-    /**
-     * Returns the next collisionFilter.group value for which bodies will not collide.
-     * @method nextNonCollidingGroupId
-     * @return {Number} Unique groupID
-     */
-    Body.nextNonCollidingGroupId = function() {
-        return _nextNonCollidingGroupId--;
+        return _nextCollidingGroupId++;
     };
 
     /**
@@ -699,6 +696,7 @@ var Body = {};
      * value is used as a bit field and the category should have only one bit set, meaning that
      * the value of this property is a power of two in the range [1, 2^31]. Thus, there are 32
      * different collision categories available.
+     *
      * Each body also defines a collision bitmask, given by `collisionFilter.mask` which specifies
      * the categories it collides with (the value is the bitwise AND value of all these categories).
      *
@@ -711,7 +709,7 @@ var Body = {};
      */
 
     /**
-     * An Integer `Number`, see `collisionFilter`
+     * An Integer `Number`, see `body.collisionFilter` for more information.
      *
      * @property collisionFilter.group
      * @type object
@@ -719,7 +717,10 @@ var Body = {};
      */
 
     /**
-     * An Integer `Number`, see `collisionFilter`
+     * A bit field that specifies the collision category this body belongs to.
+     * The category value should have only one bit set, for example `0x0001`.
+     * This means there are up to 32 unique collision categories available.
+     * See `body.collisionFilter` for more information.
      *
      * @property collisionFilter.category
      * @type object
@@ -727,7 +728,7 @@ var Body = {};
      */
 
     /**
-     * An Integer `Number`, see `collisionFilter`
+     * An Integer `Number`, see `body.collisionFilter` for more information.
      *
      * @property collisionFilter.mask
      * @type object

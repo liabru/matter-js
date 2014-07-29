@@ -448,12 +448,12 @@
     
     Demo.chains = function() {
         var _world = _engine.world,
-            groupId = Body.nextNonCollidingGroupId();
+            group = Body.nextGroup(true);
         
         Demo.reset();
          
         var ropeA = Composites.stack(200, 100, 5, 2, 10, 10, function(x, y, column, row) {
-            return Bodies.rectangle(x, y, 50, 20, { collisionFilter: {group: groupId} });
+            return Bodies.rectangle(x, y, 50, 20, { collisionFilter: { group: group } });
         });
         
         Composites.chain(ropeA, 0.5, 0, -0.5, 0, { stiffness: 0.8, length: 2 });
@@ -466,10 +466,10 @@
         
         World.add(_world, ropeA);
         
-        groupId = Body.nextNonCollidingGroupId();
+        group = Body.nextGroup(true);
         
         var ropeB = Composites.stack(500, 100, 5, 2, 10, 10, function(x, y, column, row) {
-            return Bodies.circle(x, y, 20, { collisionFilter: {group: groupId} });
+            return Bodies.circle(x, y, 20, { collisionFilter: { group: group } });
         });
         
         Composites.chain(ropeB, 0.5, 0, -0.5, 0, { stiffness: 0.8, length: 2 });
@@ -485,12 +485,12 @@
 
     Demo.bridge = function() {
         var _world = _engine.world,
-            groupId = Body.nextNonCollidingGroupId();
+            group = Body.nextGroup(true);
         
         Demo.reset();
          
         var bridge = Composites.stack(150, 300, 9, 1, 10, 10, function(x, y, column, row) {
-            return Bodies.rectangle(x, y, 50, 20, { collisionFilter: {group: groupId} });
+            return Bodies.rectangle(x, y, 50, 20, { collisionFilter: { group: group } });
         });
         
         Composites.chain(bridge, 0.5, 0, -0.5, 0, { stiffness: 0.9 });
@@ -937,8 +937,8 @@
         
         Demo.reset();
 
-        var groupId = Body.nextNonCollidingGroupId(),
-            particleOptions = { friction: 0.00001, collisionFilter: { group: groupId }, render: { visible: false }},
+        var group = Body.nextGroup(true),
+            particleOptions = { friction: 0.00001, collisionFilter: { group: group }, render: { visible: false }},
             cloth = Composites.softBody(200, 200, 20, 12, 5, 5, false, 8, particleOptions);
 
         for (var i = 0; i < 20; i++) {
@@ -1234,39 +1234,92 @@
     Demo.collisionFiltering = function() {
         var _world = _engine.world;
 
+        // define our categories (as bit fields, there are up to 32 available)
+
+        var defaultCategory = 0x0001,
+            redCategory = 0x0002,
+            greenCategory = 0x0004,
+            blueCategory = 0x0008;
+
+        var redColor = '#C44D58',
+            blueColor = '#4ECDC4',
+            greenColor = '#C7F464';
+
         Demo.reset();
 
-        var i;
+        // create a stack with varying body categories (but these bodies can all collide with each other)
 
         World.add(_world,
             Composites.stack(275, 150, 5, 10, 10, 10, function(x, y, column, row) {
+                var category = redCategory,
+                    color = redColor;
+
+                if (row > 5) {
+                    category = blueCategory;
+                    color = blueColor;
+                } else if (row > 2) {
+                    category = greenCategory;
+                    color = greenColor;
+                }
+
                 return Bodies.circle(x, y, 20, {
                     collisionFilter: {
-                        category: row < 7 ? 2 : 4
+                        category: category
                     },
                     render: {
-                        strokeStyle: row < 7 ? 'red' : 'green',
+                        strokeStyle: color,
                         fillStyle: 'transparent'
                     }
                 });
             })
         );
 
+        // this body will only collide with the walls and the green bodies
+
+        World.add(_world,
+            Bodies.circle(310, 40, 30, {
+                collisionFilter: {
+                    mask: defaultCategory | greenCategory
+                },
+                render: {
+                    strokeStyle: Common.shadeColor(greenColor, -20),
+                    fillStyle: greenColor
+                }
+            })
+        );
+
+        // this body will only collide with the walls and the red bodies
+
         World.add(_world,
             Bodies.circle(400, 40, 30, {
                 collisionFilter: {
-                    mask: 5
+                    mask: defaultCategory | redCategory
                 },
                 render: {
-                    fillStyle: 'blue'
+                    strokeStyle: Common.shadeColor(redColor, -20),
+                    fillStyle: redColor
+                }
+            })
+        );
+
+        // this body will only collide with the walls and the blue bodies
+
+        World.add(_world,
+            Bodies.circle(480, 40, 30, {
+                collisionFilter: {
+                    mask: defaultCategory | blueCategory
+                },
+                render: {
+                    strokeStyle: Common.shadeColor(blueColor, -20),
+                    fillStyle: blueColor
                 }
             })
         );
 
         var renderOptions = _engine.render.options;
         renderOptions.wireframes = false;
-        renderOptions.background = '#111';
-        renderOptions.showCollisions = true;
+        renderOptions.background = '#222';
+        renderOptions.showAngleIndicator = false;
     };
 
     // the functions for the demo interface and controls below

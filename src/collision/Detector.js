@@ -26,13 +26,10 @@ var Detector = {};
             var bodyA = broadphasePairs[i][0], 
                 bodyB = broadphasePairs[i][1];
 
-            var collisionFilterA = bodyA.collisionFilter,
-                collisionFilterB = bodyB.collisionFilter;
-
             if ((bodyA.isStatic || bodyA.isSleeping) && (bodyB.isStatic || bodyB.isSleeping))
                 continue;
             
-            if (!_pairCollides(collisionFilterA, collisionFilterB))
+            if (!Detector.canCollide(bodyA.collisionFilter, bodyB.collisionFilter))
                 continue;
 
             metrics.midphaseTests += 1;
@@ -88,10 +85,10 @@ var Detector = {};
 
                 // NOTE: could share a function for the below, but may drop performance?
 
-                if (bodyA.groupId && bodyB.groupId && bodyA.groupId === bodyB.groupId)
-                    continue;
-
                 if ((bodyA.isStatic || bodyA.isSleeping) && (bodyB.isStatic || bodyB.isSleeping))
+                    continue;
+                
+                if (!Detector.canCollide(bodyA.collisionFilter, bodyB.collisionFilter))
                     continue;
 
                 metrics.midphaseTests += 1;
@@ -128,12 +125,20 @@ var Detector = {};
 
         return collisions;
     };
-    
-    var _pairCollides = function(filterA, filterB) {
+
+    /**
+     * Returns `true` if both supplied collision filters will allow a collision to occur.
+     * See `body.collisionFilter` for more information.
+     * @method canCollide
+     * @param {} filterA
+     * @param {} filterB
+     * @return {bool} `true` if collision can occur
+     */
+    Detector.canCollide = function(filterA, filterB) {
         if (filterA.group === filterB.group && filterA.group !== 0)
             return filterA.group > 0;
 
-        return ((filterA.mask & filterB.category) !== 0 && (filterB.mask & filterA.category) !== 0);
+        return (filterA.mask & filterB.category) !== 0 && (filterB.mask & filterA.category) !== 0;
     };
 
 })();

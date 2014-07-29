@@ -226,7 +226,7 @@ var Composites = {};
      * @return {composite} A new composite car body
      */
     Composites.car = function(xx, yy, width, height, wheelSize) {
-        var collisionFilterGroup = Body.nextNonCollidingGroupId(),
+        var group = Body.nextGroup(true),
             wheelBase = -20,
             wheelAOffset = -width * 0.5 + wheelBase,
             wheelBOffset = width * 0.5 - wheelBase,
@@ -235,7 +235,7 @@ var Composites = {};
         var car = Composite.create({ label: 'Car' }),
             body = Bodies.trapezoid(xx, yy, width, height, 0.3, { 
                 collisionFilter: {
-                    group: collisionFilterGroup
+                    group: group
                 },
                 friction: 0.01,
                 chamfer: {
@@ -245,7 +245,7 @@ var Composites = {};
     
         var wheelA = Bodies.circle(xx + wheelAOffset, yy + wheelYOffset, wheelSize, { 
             collisionFilter: {
-                group: collisionFilterGroup
+                group: group
             },
             restitution: 0.5, 
             friction: 0.9,
@@ -254,7 +254,7 @@ var Composites = {};
                     
         var wheelB = Bodies.circle(xx + wheelBOffset, yy + wheelYOffset, wheelSize, { 
             collisionFilter: {
-                group: collisionFilterGroup
+                group: group
             },
             restitution: 0.5, 
             friction: 0.9,
