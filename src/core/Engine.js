@@ -1,6 +1,7 @@
 /**
 * The `Matter.Engine` module contains methods for creating and manipulating engines.
 * An engine is a controller that manages updating and rendering the simulation of the world.
+* See `Matter.Runner` for an optional game loop utility.
 *
 * See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
 * and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
@@ -13,13 +14,8 @@ var Engine = {};
 (function() {
 
     var _fps = 60,
-        _deltaSampleSize = _fps,
         _delta = 1000 / _fps;
-        
-    var _requestAnimationFrame = window.requestAnimationFrame || window.webkitRequestAnimationFrame
-                                      || window.mozRequestAnimationFrame || window.msRequestAnimationFrame 
-                                      || function(callback){ window.setTimeout(function() { callback(Common.now()); }, _delta); };
-   
+
     /**
      * Creates a new engine. The options parameter is an object that specifies any properties you wish to override the defaults.
      * All properties have default values, and many are pre-calculated automatically based on other properties.
@@ -50,7 +46,8 @@ var Engine = {};
                 deltaMin: 1000 / _fps,
                 deltaMax: 1000 / (_fps * 0.5),
                 timeScale: 1,
-                isFixed: false
+                isFixed: false,
+                frameRequestId: 0
             },
             render: {
                 element: element,
@@ -70,95 +67,6 @@ var Engine = {};
         engine.broadphase = engine.broadphase.controller.create(engine.broadphase);
 
         return engine;
-    };
-
-    /**
-     * An optional utility function that provides a game loop, that handles updating the engine for you.
-     * Calls `Engine.update` and `Engine.render` on the `requestAnimationFrame` event automatically.
-     * Handles time correction and non-fixed dynamic timing (if enabled). 
-     * Triggers `beforeTick`, `tick` and `afterTick` events.
-     * @method run
-     * @param {engine} engine
-     */
-    Engine.run = function(engine) {
-        var counterTimestamp = 0,
-            frameCounter = 0,
-            deltaHistory = [],
-            timePrev,
-            timeScalePrev = 1;
-
-        (function render(time){
-            _requestAnimationFrame(render);
-
-            if (!engine.enabled)
-                return;
-
-            var timing = engine.timing,
-                delta,
-                correction;
-
-            // create an event object
-            var event = {
-                timestamp: time
-            };
-
-            Events.trigger(engine, 'beforeTick', event);
-
-            if (timing.isFixed) {
-                // fixed timestep
-                delta = timing.delta;
-            } else {
-                // dynamic timestep based on wall clock between calls
-                delta = (time - timePrev) || timing.delta;
-                timePrev = time;
-
-                // optimistically filter delta over a few frames, to improve stability
-                deltaHistory.push(delta);
-                deltaHistory = deltaHistory.slice(-_deltaSampleSize);
-                delta = Math.min.apply(null, deltaHistory);
-                
-                // limit delta
-                delta = delta < timing.deltaMin ? timing.deltaMin : delta;
-                delta = delta > timing.deltaMax ? timing.deltaMax : delta;
-
-                // time correction for delta
-                correction = delta / timing.delta;
-
-                // update engine timing object
-                timing.delta = delta;
-            }
-
-            // time correction for time scaling
-            if (timeScalePrev !== 0)
-                correction *= timing.timeScale / timeScalePrev;
-
-            if (timing.timeScale === 0)
-                correction = 0;
-
-            timeScalePrev = timing.timeScale;
-            
-            // fps counter
-            frameCounter += 1;
-            if (time - counterTimestamp >= 1000) {
-                timing.fps = frameCounter * ((time - counterTimestamp) / 1000);
-                counterTimestamp = time;
-                frameCounter = 0;
-            }
-
-            Events.trigger(engine, 'tick', event);
-
-            // if world has been modified, clear the render scene graph
-            if (engine.world.isModified)
-                engine.render.controller.clear(engine.render);
-
-            // update
-            Engine.update(engine, delta, correction);
-
-            // render
-            Engine.render(engine);
-
-            Events.trigger(engine, 'afterTick', event);
-        })();
     };
 
     /**
@@ -338,6 +246,12 @@ var Engine = {};
             broadphase.controller.update(broadphase, bodies, engine, true);
         }
     };
+
+    /**
+     * An alias for Runner.run, see `Matter.Runner` for more information.
+     * @method run
+     * @param {engine} engine
+     */
 
     /*
     *

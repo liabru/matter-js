@@ -7,6 +7,8 @@ World.addBody = Composite.addBody;
 World.addConstraint = Composite.addConstraint;
 World.clear = Composite.clear;
 
+Engine.run = Runner.run;
+
 // exports
 
 Matter.Body = Body;
@@ -36,6 +38,7 @@ Matter.Render = Render;
 Matter.RenderPixi = RenderPixi;
 Matter.Events = Events;
 Matter.Query = Query;
+Matter.Runner = Runner;
 
 // CommonJS module
 if (typeof exports !== 'undefined') {
