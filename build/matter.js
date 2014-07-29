@@ -1,5 +1,5 @@
 /**
-* matter.js 0.8.0-edge 2014-06-09
+* matter.js 0.8.0-edge 2014-07-29
 * http://brm.io/matter-js/
 * License: MIT
 */
@@ -57,7 +57,8 @@ var Body = {};
 
     Body._inertiaScale = 4;
 
-    var _nextGroupId = 1;
+    var _nextCollidingGroupId = 1,
+        _nextNonCollidingGroupId = -1;
 
     /**
      * Creates a new rigid body model. The options parameter is an object that specifies any properties you wish to override the defaults.
@@ -91,7 +92,11 @@ var Body = {};
             restitution: 0,
             friction: 0.1,
             frictionAir: 0.01,
-            groupId: 0,
+            collisionFilter: {
+                category: 0x0001,
+                mask: 0xFFFFFFFF,
+                group: 0
+            },
             slop: 0.05,
             timeScale: 1,
             render: {
@@ -112,12 +117,18 @@ var Body = {};
     };
 
     /**
-     * Returns the next unique groupID number.
-     * @method nextGroupId
-     * @return {Number} Unique groupID
+     * Returns the next unique group index for which bodies will collide.
+     * If `isNonColliding` is `true`, returns the next unique group index for which bodies will _not_ collide.
+     * See `body.collisionFilter` for more information.
+     * @method nextGroup
+     * @param {bool} [isNonColliding=false]
+     * @return {Number} Unique group index
      */
-    Body.nextGroupId = function() {
-        return _nextGroupId++;
+    Body.nextGroup = function(isNonColliding) {
+        if (isNonColliding)
+            return _nextNonCollidingGroupId--;
+
+        return _nextCollidingGroupId++;
     };
 
     /**
@@ -139,14 +150,13 @@ var Body = {};
         Sleeping.set(body, body.isSleeping);
         Vertices.rotate(body.vertices, body.angle, body.position);
         Axes.rotate(body.axes, body.angle);
+        Bounds.update(body.bounds, body.vertices, body.velocity);
 
         // allow options to override the automatically calculated properties
         body.axes = options.axes || body.axes;
         body.area = options.area || body.area;
-        body.mass = options.mass || body.mass;
-        body.inertia = options.inertia || body.inertia;
-        body.inverseMass = 1 / body.mass;
-        body.inverseInertia = 1 / body.inertia;
+        Body.setMass(body, options.mass || body.mass);
+        Body.setInertia(body, options.inertia || body.inertia);
 
         // render properties
         var defaultFillStyle = (body.isStatic ? '#eeeeee' : Common.choose(['#556270', '#4ECDC4', '#C7F464', '#FF6B6B', '#C44D58'])),
@@ -169,7 +179,6 @@ var Body = {};
             body.friction = 1;
             body.mass = body.inertia = body.density = Infinity;
             body.inverseMass = body.inverseInertia = 0;
-            body.render.lineWidth = 1;
 
             body.positionPrev.x = body.position.x;
             body.positionPrev.y = body.position.y;
@@ -179,6 +188,41 @@ var Body = {};
             body.angularSpeed = 0;
             body.motion = 0;
         }
+    };
+
+    /**
+     * Sets the mass of the body. Inverse mass and density are automatically updated to reflect the change.
+     * @method setMass
+     * @param {body} body
+     * @param {number} mass
+     */
+    Body.setMass = function(body, mass) {
+        body.mass = mass;
+        body.inverseMass = 1 / body.mass;
+        body.density = body.mass / body.area;
+    };
+
+    /**
+     * Sets the density of the body. Mass is automatically updated to reflect the change.
+     * @method setDensity
+     * @param {body} body
+     * @param {number} density
+     */
+    Body.setDensity = function(body, density) {
+        Body.setMass(body, density * body.area);
+        body.density = density;
+    };
+
+    /**
+     * Sets the moment of inertia (i.e. second moment of area) of the body of the body. 
+     * Inverse inertia is automatically updated to reflect the change. Mass is not changed.
+     * @method setInertia
+     * @param {body} body
+     * @param {number} inertia
+     */
+    Body.setInertia = function(body, inertia) {
+        body.inertia = inertia;
+        body.inverseInertia = 1 / body.inertia;
     };
 
     /**
@@ -204,16 +248,14 @@ var Body = {};
         // update properties
         body.axes = Axes.fromVertices(body.vertices);
         body.area = Vertices.area(body.vertices);
-        body.mass = body.density * body.area;
-        body.inverseMass = 1 / body.mass;
+        Body.setMass(body, body.density * body.area);
 
         // orient vertices around the centre of mass at origin (0, 0)
         var centre = Vertices.centre(body.vertices);
         Vertices.translate(body.vertices, centre, -1);
 
         // update inertia while vertices are at origin (0, 0)
-        body.inertia = Body._inertiaScale * Vertices.inertia(body.vertices, body.mass);
-        body.inverseInertia = 1 / body.inertia;
+        Body.setInertia(body, Body._inertiaScale * Vertices.inertia(body.vertices, body.mass));
 
         // update geometry
         Vertices.translate(body.vertices, body.position);
@@ -298,7 +340,7 @@ var Body = {};
      * @param {number} rotation
      */
     Body.rotate = function(body, rotation) {
-        Body.setAngle(body, body.angle + angle);
+        Body.setAngle(body, body.angle + rotation);
     };
 
     /**
@@ -316,13 +358,11 @@ var Body = {};
         // update properties
         body.axes = Axes.fromVertices(body.vertices);
         body.area = Vertices.area(body.vertices);
-        body.mass = body.density * body.area;
-        body.inverseMass = 1 / body.mass;
+        Body.setMass(body, body.density * body.area);
 
         // update inertia (requires vertices to be at origin)
         Vertices.translate(body.vertices, { x: -body.position.x, y: -body.position.y });
-        body.inertia = Vertices.inertia(body.vertices, body.mass);
-        body.inverseInertia = 1 / body.inertia;
+        Body.setInertia(body, Vertices.inertia(body.vertices, body.mass));
         Vertices.translate(body.vertices, { x: body.position.x, y: body.position.y });
 
         // update bounds
@@ -685,18 +725,62 @@ var Body = {};
      */
 
     /**
-     * An integer `Number` that specifies the collision group the body belongs to. 
-     * Bodies with the same `groupId` are considered _as-one_ body and therefore do not interact.
-     * This allows for creation of segmented bodies that can self-intersect, such as a rope.
-     * The default value 0 means the body does not belong to a group, and can interact with all other bodies.
+     * An `Object` that specifies the collision filtering properties of this body.
      *
-     * @property groupId
-     * @type number
+     * Collisions between two bodies will obey the following rules:
+     * - If the two bodies have the same non-zero value of `collisionFilter.group`,
+     *   they will always collide if the value is positive, and they will never collide
+     *   if the value is negative.
+     * - If the two bodies have different values of `collisionFilter.group` or if one
+     *   (or both) of the bodies has a value of 0, then the category/mask rules apply as follows:
+     *
+     * Each body belongs to a collision category, given by `collisionFilter.category`. This
+     * value is used as a bit field and the category should have only one bit set, meaning that
+     * the value of this property is a power of two in the range [1, 2^31]. Thus, there are 32
+     * different collision categories available.
+     *
+     * Each body also defines a collision bitmask, given by `collisionFilter.mask` which specifies
+     * the categories it collides with (the value is the bitwise AND value of all these categories).
+     *
+     * Using the category/mask rules, two bodies `A` and `B` collide if each includes the other's
+     * category in its mask, i.e. `(categoryA & maskB) !== 0` and `(categoryB & maskA) !== 0`
+     * are both true.
+     *
+     * @property collisionFilter
+     * @type object
+     */
+
+    /**
+     * An Integer `Number`, that specifies the collision group this body belongs to.
+     * See `body.collisionFilter` for more information.
+     *
+     * @property collisionFilter.group
+     * @type object
      * @default 0
      */
 
     /**
-     * A `Number` that specifies a tollerance on how far a body is allowed to 'sink' or rotate into other bodies.
+     * A bit field that specifies the collision category this body belongs to.
+     * The category value should have only one bit set, for example `0x0001`.
+     * This means there are up to 32 unique collision categories available.
+     * See `body.collisionFilter` for more information.
+     *
+     * @property collisionFilter.category
+     * @type object
+     * @default 1
+     */
+
+    /**
+     * A bit mask that specifies the collision categories this body may collide with.
+     * See `body.collisionFilter` for more information.
+     *
+     * @property collisionFilter.mask
+     * @type object
+     * @default -1
+     */
+
+    /**
+     * A `Number` that specifies a tolerance on how far a body is allowed to 'sink' or rotate into other bodies.
      * Avoid changing this value unless you understand the purpose of `slop` in physics engines.
      * The default should generally suffice, although very large bodies may require larger values for stable stacking.
      *
@@ -812,6 +896,7 @@ var Body = {};
 
 })();
 
+
 ;   // End src/body/Body.js
 
 
@@ -882,6 +967,7 @@ var Composite = {};
 
     /**
      * Generic add function. Adds one or many body(s), constraint(s) or a composite(s) to the given composite.
+     * Triggers `beforeAdd` and `afterAdd` events on the `composite`.
      * @method add
      * @param {composite} composite
      * @param {} object
@@ -889,6 +975,8 @@ var Composite = {};
      */
     Composite.add = function(composite, object) {
         var objects = [].concat(object);
+
+        Events.trigger(composite, 'beforeAdd', { object: object });
 
         for (var i = 0; i < objects.length; i++) {
             var obj = objects[i];
@@ -911,12 +999,15 @@ var Composite = {};
             }
         }
 
+        Events.trigger(composite, 'afterAdd', { object: object });
+
         return composite;
     };
 
     /**
      * Generic remove function. Removes one or many body(s), constraint(s) or a composite(s) to the given composite.
      * Optionally searching its children recursively.
+     * Triggers `beforeRemove` and `afterRemove` events on the `composite`.
      * @method remove
      * @param {composite} composite
      * @param {} object
@@ -925,6 +1016,8 @@ var Composite = {};
      */
     Composite.remove = function(composite, object, deep) {
         var objects = [].concat(object);
+
+        Events.trigger(composite, 'beforeRemove', { object: object });
 
         for (var i = 0; i < objects.length; i++) {
             var obj = objects[i];
@@ -947,11 +1040,14 @@ var Composite = {};
             }
         }
 
+        Events.trigger(composite, 'afterRemove', { object: object });
+
         return composite;
     };
 
     /**
      * Adds a composite to the given composite
+     * @private
      * @method addComposite
      * @param {composite} compositeA
      * @param {composite} compositeB
@@ -966,6 +1062,7 @@ var Composite = {};
 
     /**
      * Removes a composite from the given composite, and optionally searching its children recursively
+     * @private
      * @method removeComposite
      * @param {composite} compositeA
      * @param {composite} compositeB
@@ -973,7 +1070,7 @@ var Composite = {};
      * @return {composite} The original compositeA with the composite removed
      */
     Composite.removeComposite = function(compositeA, compositeB, deep) {
-        var position = compositeA.composites.indexOf(compositeB);
+        var position = Common.indexOf(compositeA.composites, compositeB);
         if (position !== -1) {
             Composite.removeCompositeAt(compositeA, position);
             Composite.setModified(compositeA, true, true, false);
@@ -990,6 +1087,7 @@ var Composite = {};
 
     /**
      * Removes a composite from the given composite
+     * @private
      * @method removeCompositeAt
      * @param {composite} composite
      * @param {number} position
@@ -1003,6 +1101,7 @@ var Composite = {};
 
     /**
      * Adds a body to the given composite
+     * @private
      * @method addBody
      * @param {composite} composite
      * @param {body} body
@@ -1016,6 +1115,7 @@ var Composite = {};
 
     /**
      * Removes a body from the given composite, and optionally searching its children recursively
+     * @private
      * @method removeBody
      * @param {composite} composite
      * @param {body} body
@@ -1023,7 +1123,7 @@ var Composite = {};
      * @return {composite} The original composite with the body removed
      */
     Composite.removeBody = function(composite, body, deep) {
-        var position = composite.bodies.indexOf(body);
+        var position = Common.indexOf(composite.bodies, body);
         if (position !== -1) {
             Composite.removeBodyAt(composite, position);
             Composite.setModified(composite, true, true, false);
@@ -1040,6 +1140,7 @@ var Composite = {};
 
     /**
      * Removes a body from the given composite
+     * @private
      * @method removeBodyAt
      * @param {composite} composite
      * @param {number} position
@@ -1053,6 +1154,7 @@ var Composite = {};
 
     /**
      * Adds a constraint to the given composite
+     * @private
      * @method addConstraint
      * @param {composite} composite
      * @param {constraint} constraint
@@ -1066,6 +1168,7 @@ var Composite = {};
 
     /**
      * Removes a constraint from the given composite, and optionally searching its children recursively
+     * @private
      * @method removeConstraint
      * @param {composite} composite
      * @param {constraint} constraint
@@ -1073,7 +1176,7 @@ var Composite = {};
      * @return {composite} The original composite with the constraint removed
      */
     Composite.removeConstraint = function(composite, constraint, deep) {
-        var position = composite.constraints.indexOf(constraint);
+        var position = Common.indexOf(composite.constraints, constraint);
         if (position !== -1) {
             Composite.removeConstraintAt(composite, position);
         }
@@ -1089,6 +1192,7 @@ var Composite = {};
 
     /**
      * Removes a body from the given composite
+     * @private
      * @method removeConstraintAt
      * @param {composite} composite
      * @param {number} position
@@ -1240,6 +1344,52 @@ var Composite = {};
 
         return composite;
     };
+
+    /*
+    *
+    *  Events Documentation
+    *
+    */
+
+    /**
+    * Fired when a call to `Composite.add` is made, before objects have been added.
+    *
+    * @event beforeAdd
+    * @param {} event An event object
+    * @param {} event.object The object(s) to be added (may be a single body, constraint, composite or a mixed array of these)
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired when a call to `Composite.add` is made, after objects have been added.
+    *
+    * @event afterAdd
+    * @param {} event An event object
+    * @param {} event.object The object(s) that have been added (may be a single body, constraint, composite or a mixed array of these)
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired when a call to `Composite.remove` is made, before objects have been removed.
+    *
+    * @event beforeRemove
+    * @param {} event An event object
+    * @param {} event.object The object(s) to be removed (may be a single body, constraint, composite or a mixed array of these)
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired when a call to `Composite.remove` is made, after objects have been removed.
+    *
+    * @event afterRemove
+    * @param {} event An event object
+    * @param {} event.object The object(s) that have been removed (may be a single body, constraint, composite or a mixed array of these)
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
 
     /*
     *
@@ -1476,12 +1626,10 @@ var Detector = {};
             var bodyA = broadphasePairs[i][0], 
                 bodyB = broadphasePairs[i][1];
 
-            // NOTE: could share a function for the below, but may drop performance?
-
-            if (bodyA.groupId && bodyB.groupId && bodyA.groupId === bodyB.groupId)
-                continue;
-
             if ((bodyA.isStatic || bodyA.isSleeping) && (bodyB.isStatic || bodyB.isSleeping))
+                continue;
+            
+            if (!Detector.canCollide(bodyA.collisionFilter, bodyB.collisionFilter))
                 continue;
 
             metrics.midphaseTests += 1;
@@ -1537,10 +1685,10 @@ var Detector = {};
 
                 // NOTE: could share a function for the below, but may drop performance?
 
-                if (bodyA.groupId && bodyB.groupId && bodyA.groupId === bodyB.groupId)
-                    continue;
-
                 if ((bodyA.isStatic || bodyA.isSleeping) && (bodyB.isStatic || bodyB.isSleeping))
+                    continue;
+                
+                if (!Detector.canCollide(bodyA.collisionFilter, bodyB.collisionFilter))
                     continue;
 
                 metrics.midphaseTests += 1;
@@ -1578,7 +1726,23 @@ var Detector = {};
         return collisions;
     };
 
+    /**
+     * Returns `true` if both supplied collision filters will allow a collision to occur.
+     * See `body.collisionFilter` for more information.
+     * @method canCollide
+     * @param {} filterA
+     * @param {} filterB
+     * @return {bool} `true` if collision can occur
+     */
+    Detector.canCollide = function(filterA, filterB) {
+        if (filterA.group === filterB.group && filterA.group !== 0)
+            return filterA.group > 0;
+
+        return (filterA.mask & filterB.category) !== 0 && (filterB.mask & filterA.category) !== 0;
+    };
+
 })();
+
 
 ;   // End src/collision/Detector.js
 
@@ -1599,18 +1763,21 @@ var Grid = {};
     /**
      * Description
      * @method create
-     * @param {number} bucketWidth
-     * @param {number} bucketHeight
+     * @param {} options
      * @return {grid} A new grid
      */
-    Grid.create = function(bucketWidth, bucketHeight) {
-        return {
+    Grid.create = function(options) {
+        var defaults = {
+            controller: Grid,
+            detector: Detector.collisions,
             buckets: {},
             pairs: {},
             pairsList: [],
-            bucketWidth: bucketWidth || 48,
-            bucketHeight: bucketHeight || 48
+            bucketWidth: 48,
+            bucketHeight: 48
         };
+
+        return Common.extend(defaults, options);
     };
 
     /**
@@ -1831,7 +1998,7 @@ var Grid = {};
      */
     var _bucketRemoveBody = function(grid, bucket, body) {
         // remove from bucket
-        bucket.splice(bucket.indexOf(body), 1);
+        bucket.splice(Common.indexOf(bucket, body), 1);
 
         // update pair counts
         for (var i = 0; i < bucket.length; i++) {
@@ -2085,7 +2252,7 @@ var Pairs = {};
         // deactivate previously active pairs that are now inactive
         for (i = 0; i < pairsList.length; i++) {
             pair = pairsList[i];
-            if (pair.isActive && activePairIds.indexOf(pair.id) === -1) {
+            if (pair.isActive && Common.indexOf(activePairIds, pair.id) === -1) {
                 Pair.setActive(pair, false, timestamp);
                 collisionEnd.push(pair);
             }
@@ -2609,24 +2776,33 @@ var SAT = {};
 
         // find support points, there is always either exactly one or two
         var verticesB = _findSupports(bodyA, bodyB, collision.normal),
+            supports = collision.supports || [];
+        supports.length = 0;
+
+        // find the supports from bodyB that are inside bodyA
+        if (Vertices.contains(bodyA.vertices, verticesB[0]))
+            supports.push(verticesB[0]);
+
+        if (Vertices.contains(bodyA.vertices, verticesB[1]))
+            supports.push(verticesB[1]);
+
+        // find the supports from bodyA that are inside bodyB
+        if (supports.length < 2) {
+            var verticesA = _findSupports(bodyB, bodyA, Vector.neg(collision.normal));
+                
+            if (Vertices.contains(bodyB.vertices, verticesA[0]))
+                supports.push(verticesA[0]);
+
+            if (supports.length < 2 && Vertices.contains(bodyB.vertices, verticesA[1]))
+                supports.push(verticesA[1]);
+        }
+
+        // account for the edge case of overlapping but no vertex containment
+        if (supports.length < 2)
             supports = [verticesB[0]];
         
-        if (Vertices.contains(bodyA.vertices, verticesB[1])) {
-            supports.push(verticesB[1]);
-        } else {
-            var verticesA = _findSupports(bodyB, bodyA, Vector.neg(collision.normal));
-            
-            if (Vertices.contains(bodyB.vertices, verticesA[0])) {
-                supports.push(verticesA[0]);
-            }
-
-            if (supports.length < 2 && Vertices.contains(bodyB.vertices, verticesA[1])) {
-                supports.push(verticesA[1]);
-            }
-        }
-        
         collision.supports = supports;
-        collision.supportCorrected = Vector.sub(verticesB[0], collision.penetration);
+        collision.supportCorrected = Vector.sub(supports[0], collision.penetration);
 
         return collision;
     };
@@ -3167,7 +3343,7 @@ var MouseConstraint = {};
      * @return {MouseConstraint} A new MouseConstraint
      */
     MouseConstraint.create = function(engine, options) {
-        var mouse = engine.input.mouse;
+        var mouse = (options && options.mouse) || Mouse.create(engine.render.canvas);
 
         var constraint = Constraint.create({ 
             label: 'Mouse Constraint',
@@ -3187,7 +3363,12 @@ var MouseConstraint = {};
             mouse: mouse,
             dragBody: null,
             dragPoint: null,
-            constraint: constraint
+            constraint: constraint,
+            collisionFilter: {
+                category: 0x0001,
+                mask: 0xFFFFFFFF,
+                group: 0
+            }
         };
 
         var mouseConstraint = Common.extend(defaults, options);
@@ -3195,6 +3376,7 @@ var MouseConstraint = {};
         Events.on(engine, 'tick', function(event) {
             var allBodies = Composite.allBodies(engine.world);
             MouseConstraint.update(mouseConstraint, allBodies);
+            _triggerEvents(mouseConstraint);
         });
 
         return mouseConstraint;
@@ -3216,7 +3398,8 @@ var MouseConstraint = {};
                 for (var i = 0; i < bodies.length; i++) {
                     var body = bodies[i];
                     if (Bounds.contains(body.bounds, mouse.position) 
-                            && Vertices.contains(body.vertices, mouse.position)) {
+                            && Vertices.contains(body.vertices, mouse.position)
+                            && Detector.canCollide(body.collisionFilter, mouseConstraint.collisionFilter)) {
                         constraint.pointA = mouse.position;
                         constraint.bodyB = body;
                         constraint.pointB = { x: mouse.position.x - body.position.x, y: mouse.position.y - body.position.y };
@@ -3236,6 +3419,65 @@ var MouseConstraint = {};
         }
     };
 
+    /**
+     * Triggers mouse constraint events
+     * @method _triggerEvents
+     * @private
+     * @param {mouse} mouse
+     */
+    var _triggerEvents = function(mouseConstraint) {
+        var mouse = mouseConstraint.mouse,
+            mouseEvents = mouse.sourceEvents;
+
+        if (mouseEvents.mousemove)
+            Events.trigger(mouseConstraint, 'mousemove', { mouse: mouse });
+
+        if (mouseEvents.mousedown)
+            Events.trigger(mouseConstraint, 'mousedown', { mouse: mouse });
+
+        if (mouseEvents.mouseup)
+            Events.trigger(mouseConstraint, 'mouseup', { mouse: mouse });
+
+        // reset the mouse state ready for the next step
+        Mouse.clearSourceEvents(mouse);
+    };
+
+    /*
+    *
+    *  Events Documentation
+    *
+    */
+
+    /**
+    * Fired when the mouse has moved (or a touch moves) during the last step
+    *
+    * @event mousemove
+    * @param {} event An event object
+    * @param {mouse} event.mouse The engine's mouse instance
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired when the mouse is down (or a touch has started) during the last step
+    *
+    * @event mousedown
+    * @param {} event An event object
+    * @param {mouse} event.mouse The engine's mouse instance
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired when the mouse is up (or a touch has ended) during the last step
+    *
+    * @event mouseup
+    * @param {} event An event object
+    * @param {mouse} event.mouse The engine's mouse instance
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
     /*
     *
     *  Properties Documentation
@@ -3251,11 +3493,11 @@ var MouseConstraint = {};
      */
 
     /**
-     * The `Mouse` instance in use.
+     * The `Mouse` instance in use. If not supplied in `MouseConstraint.create`, one will be created.
      *
      * @property mouse
      * @type mouse
-     * @default engine.input.mouse
+     * @default mouse
      */
 
     /**
@@ -3279,6 +3521,15 @@ var MouseConstraint = {};
      *
      * @property constraint
      * @type constraint
+     */
+
+    /**
+     * An `Object` that specifies the collision filter properties.
+     * The collision filter allows the user to define which types of body this mouse constraint can interact with.
+     * See `body.collisionFilter` for more information.
+     *
+     * @property collisionFilter
+     * @type object
      */
 
 })();
@@ -3571,6 +3822,24 @@ var Common = {};
         return Common._nextId++;
     };
 
+    /**
+     * A cross browser compatible indexOf implementation
+     * @method indexOf
+     * @param {array} haystack
+     * @param {object} needle
+     */
+    Common.indexOf = function(haystack, needle) {
+        if (haystack.indexOf)
+            return haystack.indexOf(needle);
+
+        for (var i = 0; i < haystack.length; i++) {
+            if (haystack[i] === needle)
+                return i;
+        }
+
+        return -1;
+    };
+
     var _seededRandom = function() {
         // https://gist.github.com/ngryman/3830489
         Common._seed = (Common._seed * 9301 + 49297) % 233280;
@@ -3587,6 +3856,7 @@ var Common = {};
 /**
 * The `Matter.Engine` module contains methods for creating and manipulating engines.
 * An engine is a controller that manages updating and rendering the simulation of the world.
+* See `Matter.Runner` for an optional game loop utility.
 *
 * See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
 * and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
@@ -3599,13 +3869,8 @@ var Engine = {};
 (function() {
 
     var _fps = 60,
-        _deltaSampleSize = _fps,
         _delta = 1000 / _fps;
-        
-    var _requestAnimationFrame = window.requestAnimationFrame || window.webkitRequestAnimationFrame
-                                      || window.mozRequestAnimationFrame || window.msRequestAnimationFrame 
-                                      || function(callback){ window.setTimeout(function() { callback(Common.now()); }, _delta); };
-   
+
     /**
      * Creates a new engine. The options parameter is an object that specifies any properties you wish to override the defaults.
      * All properties have default values, and many are pre-calculated automatically based on other properties.
@@ -3627,8 +3892,6 @@ var Engine = {};
             velocityIterations: 4,
             constraintIterations: 2,
             enableSleeping: false,
-            timeScale: 1,
-            input: {},
             events: [],
             timing: {
                 fps: _fps,
@@ -3638,11 +3901,15 @@ var Engine = {};
                 deltaMin: 1000 / _fps,
                 deltaMax: 1000 / (_fps * 0.5),
                 timeScale: 1,
-                isFixed: false
+                isFixed: false,
+                frameRequestId: 0
             },
             render: {
                 element: element,
                 controller: Render
+            },
+            broadphase: {
+                controller: Grid
             }
         };
         
@@ -3652,118 +3919,15 @@ var Engine = {};
         engine.world = World.create(engine.world);
         engine.pairs = Pairs.create();
         engine.metrics = engine.metrics || Metrics.create();
-        engine.input.mouse = engine.input.mouse || Mouse.create(engine.render.canvas);
-
-        engine.broadphase = engine.broadphase || {
-            current: 'grid',
-            grid: {
-                controller: Grid,
-                instance: Grid.create(),
-                detector: Detector.collisions
-            },
-            bruteForce: {
-                detector: Detector.bruteForce
-            }
-        };
+        engine.broadphase = engine.broadphase.controller.create(engine.broadphase);
 
         return engine;
     };
 
     /**
-     * An optional utility function that provides a game loop, that handles updating the engine for you.
-     * Calls `Engine.update` and `Engine.render` on the `requestAnimationFrame` event automatically.
-     * Handles time correction and non-fixed dynamic timing (if enabled). 
-     * Triggers `beforeTick`, `tick` and `afterTick` events.
-     * @method run
-     * @param {engine} engine
-     */
-    Engine.run = function(engine) {
-        var counterTimestamp = 0,
-            frameCounter = 0,
-            deltaHistory = [],
-            timePrev,
-            timeScalePrev = 1;
-
-        (function render(time){
-            _requestAnimationFrame(render);
-
-            if (!engine.enabled)
-                return;
-
-            var timing = engine.timing,
-                delta,
-                correction;
-
-            // create an event object
-            var event = {
-                timestamp: time
-            };
-
-            Events.trigger(engine, 'beforeTick', event);
-
-            if (timing.isFixed) {
-                // fixed timestep
-                delta = timing.delta;
-            } else {
-                // dynamic timestep based on wall clock between calls
-                delta = (time - timePrev) || timing.delta;
-                timePrev = time;
-
-                // optimistically filter delta over a few frames, to improve stability
-                deltaHistory.push(delta);
-                deltaHistory = deltaHistory.slice(-_deltaSampleSize);
-                delta = Math.min.apply(null, deltaHistory);
-                
-                // limit delta
-                delta = delta < timing.deltaMin ? timing.deltaMin : delta;
-                delta = delta > timing.deltaMax ? timing.deltaMax : delta;
-
-                // time correction for delta
-                correction = delta / timing.delta;
-
-                // update engine timing object
-                timing.delta = delta;
-            }
-
-            // time correction for time scaling
-            if (timeScalePrev !== 0)
-                correction *= timing.timeScale / timeScalePrev;
-
-            if (timing.timeScale === 0)
-                correction = 0;
-
-            timeScalePrev = timing.timeScale;
-            
-            // fps counter
-            frameCounter += 1;
-            if (time - counterTimestamp >= 1000) {
-                timing.fps = frameCounter * ((time - counterTimestamp) / 1000);
-                counterTimestamp = time;
-                frameCounter = 0;
-            }
-
-            Events.trigger(engine, 'tick', event);
-
-            // if world has been modified, clear the render scene graph
-            if (engine.world.isModified)
-                engine.render.controller.clear(engine.render);
-
-            // update
-            Engine.update(engine, delta, correction);
-
-            // trigger events that may have occured during the step
-            _triggerCollisionEvents(engine);
-            _triggerMouseEvents(engine);
-
-            // render
-            Engine.render(engine);
-
-            Events.trigger(engine, 'afterTick', event);
-        })();
-    };
-
-    /**
-     * Moves the simulation forward in time by `delta` ms. Triggers `beforeUpdate` and `afterUpdate` events.
+     * Moves the simulation forward in time by `delta` ms. 
+     * Triggers `beforeUpdate` and `afterUpdate` events.
+     * Triggers `collisionStart`, `collisionActive` and `collisionEnd` events.
      * @method update
      * @param {engine} engine
      * @param {number} delta
@@ -3774,7 +3938,7 @@ var Engine = {};
 
         var world = engine.world,
             timing = engine.timing,
-            broadphase = engine.broadphase[engine.broadphase.current],
+            broadphase = engine.broadphase,
             broadphasePairs = [],
             i;
 
@@ -3798,7 +3962,7 @@ var Engine = {};
 
         // if sleeping enabled, call the sleeping controller
         if (engine.enableSleeping)
-            Sleeping.update(allBodies);
+            Sleeping.update(allBodies, timing.timeScale);
 
         // applies gravity to all bodies
         Body.applyGravityAll(allBodies, world.gravity);
@@ -3817,11 +3981,11 @@ var Engine = {};
 
             // if world is dirty, we must flush the whole grid
             if (world.isModified)
-                broadphase.controller.clear(broadphase.instance);
+                broadphase.controller.clear(broadphase);
 
             // update the grid buckets based on current bodies
-            broadphase.controller.update(broadphase.instance, allBodies, engine, world.isModified);
-            broadphasePairs = broadphase.instance.pairsList;
+            broadphase.controller.update(broadphase, allBodies, engine, world.isModified);
+            broadphasePairs = broadphase.pairsList;
         } else {
 
             // if no broadphase set, we just pass all bodies
@@ -3839,7 +4003,11 @@ var Engine = {};
 
         // wake up bodies involved in collisions
         if (engine.enableSleeping)
-            Sleeping.afterCollisions(pairs.list);
+            Sleeping.afterCollisions(pairs.list, timing.timeScale);
+
+        // trigger collision events
+        if (pairs.collisionStart.length > 0)
+            Events.trigger(engine, 'collisionStart', { pairs: pairs.collisionStart });
 
         // iteratively resolve velocity between collisions
         Resolver.preSolveVelocity(pairs.list);
@@ -3852,6 +4020,13 @@ var Engine = {};
             Resolver.solvePosition(pairs.list, timing.timeScale);
         }
         Resolver.postSolvePosition(allBodies);
+
+        // trigger collision events
+        if (pairs.collisionActive.length > 0)
+            Events.trigger(engine, 'collisionActive', { pairs: pairs.collisionActive });
+
+        if (pairs.collisionEnd.length > 0)
+            Events.trigger(engine, 'collisionEnd', { pairs: pairs.collisionEnd });
 
         // update metrics log
         Metrics.update(engine.metrics, engine);
@@ -3919,73 +4094,19 @@ var Engine = {};
         
         Pairs.clear(engine.pairs);
 
-        var broadphase = engine.broadphase[engine.broadphase.current];
+        var broadphase = engine.broadphase;
         if (broadphase.controller) {
             var bodies = Composite.allBodies(world);
-            broadphase.controller.clear(broadphase.instance);
-            broadphase.controller.update(broadphase.instance, bodies, engine, true);
+            broadphase.controller.clear(broadphase);
+            broadphase.controller.update(broadphase, bodies, engine, true);
         }
     };
 
     /**
-     * Triggers mouse events
-     * @method _triggerMouseEvents
-     * @private
+     * An alias for `Runner.run`, see `Matter.Runner` for more information.
+     * @method run
      * @param {engine} engine
      */
-    var _triggerMouseEvents = function(engine) {
-        var mouse = engine.input.mouse,
-            mouseEvents = mouse.sourceEvents;
-
-        if (mouseEvents.mousemove) {
-            Events.trigger(engine, 'mousemove', {
-                mouse: mouse
-            });
-        }
-
-        if (mouseEvents.mousedown) {
-            Events.trigger(engine, 'mousedown', {
-                mouse: mouse
-            });
-        }
-
-        if (mouseEvents.mouseup) {
-            Events.trigger(engine, 'mouseup', {
-                mouse: mouse
-            });
-        }
-
-        // reset the mouse state ready for the next step
-        Mouse.clearSourceEvents(mouse);
-    };
-
-    /**
-     * Triggers collision events
-     * @method _triggerMouseEvents
-     * @private
-     * @param {engine} engine
-     */
-    var _triggerCollisionEvents = function(engine) {
-        var pairs = engine.pairs;
-
-        if (pairs.collisionStart.length > 0) {
-            Events.trigger(engine, 'collisionStart', {
-                pairs: pairs.collisionStart
-            });
-        }
-
-        if (pairs.collisionActive.length > 0) {
-            Events.trigger(engine, 'collisionActive', {
-                pairs: pairs.collisionActive
-            });
-        }
-
-        if (pairs.collisionEnd.length > 0) {
-            Events.trigger(engine, 'collisionEnd', {
-                pairs: pairs.collisionEnd
-            });
-        }
-    };
 
     /*
     *
@@ -4059,36 +4180,6 @@ var Engine = {};
     * @event afterTick
     * @param {} event An event object
     * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
-    * @param {} event.source The source object of the event
-    * @param {} event.name The name of the event
-    */
-
-    /**
-    * Fired when the mouse has moved (or a touch moves) during the last step
-    *
-    * @event mousemove
-    * @param {} event An event object
-    * @param {mouse} event.mouse The engine's mouse instance
-    * @param {} event.source The source object of the event
-    * @param {} event.name The name of the event
-    */
-
-    /**
-    * Fired when the mouse is down (or a touch has started) during the last step
-    *
-    * @event mousedown
-    * @param {} event An event object
-    * @param {mouse} event.mouse The engine's mouse instance
-    * @param {} event.source The source object of the event
-    * @param {} event.name The name of the event
-    */
-
-    /**
-    * Fired when the mouse is up (or a touch has ended) during the last step
-    *
-    * @event mouseup
-    * @param {} event An event object
-    * @param {mouse} event.mouse The engine's mouse instance
     * @param {} event.source The source object of the event
     * @param {} event.name The name of the event
     */
@@ -4205,6 +4296,16 @@ var Engine = {};
      */
 
     /**
+     * A `Boolean` that specifies if the `Engine.run` game loop should use a fixed timestep (otherwise it is variable).
+     * If timing is fixed, then the apparant simulation speed will change depending on the frame rate (but behaviour will be deterministic).
+     * If the timing is variable, then the apparant simulation speed will be constant (approximately, but at the cost of determininism).
+     *
+     * @property timing.isFixed
+     * @type boolean
+     * @default false
+     */
+
+    /**
      * A `Number` that specifies the time step between updates in milliseconds.
      * If `engine.timing.isFixed` is set to `true`, then `delta` is fixed.
      * If it is `false`, then `delta` can dynamically change to maintain the correct apparant simulation speed.
@@ -4237,6 +4338,14 @@ var Engine = {};
      * @property render
      * @type render
      * @default a Matter.Render instance
+     */
+
+    /**
+     * An instance of a broadphase controller. The default value is a `Matter.Grid` instance created by `Engine.create`.
+     *
+     * @property broadphase
+     * @type grid
+     * @default a Matter.Grid instance
      */
 
     /**
@@ -4459,35 +4568,37 @@ var Metrics = {};
 * @class Mouse
 */
 
-var Mouse;
+var Mouse = {};
 
 (function() {
-    
+
     /**
      * Description
+     * @method create
      * @param {HTMLElement} element
+     * @return {mouse} A new mouse
      */
-    Mouse = function(element) {
-        var mouse = this;
+    Mouse.create = function(element) {
+        var mouse = {};
         
-        this.element = element || document.body;
-        this.absolute = { x: 0, y: 0 };
-        this.position = { x: 0, y: 0 };
-        this.mousedownPosition = { x: 0, y: 0 };
-        this.mouseupPosition = { x: 0, y: 0 };
-        this.offset = { x: 0, y: 0 };
-        this.scale = { x: 1, y: 1 };
-        this.wheelDelta = 0;
-        this.button = -1;
+        mouse.element = element || document.body;
+        mouse.absolute = { x: 0, y: 0 };
+        mouse.position = { x: 0, y: 0 };
+        mouse.mousedownPosition = { x: 0, y: 0 };
+        mouse.mouseupPosition = { x: 0, y: 0 };
+        mouse.offset = { x: 0, y: 0 };
+        mouse.scale = { x: 1, y: 1 };
+        mouse.wheelDelta = 0;
+        mouse.button = -1;
 
-        this.sourceEvents = {
+        mouse.sourceEvents = {
             mousemove: null,
             mousedown: null,
             mouseup: null,
             mousewheel: null
         };
         
-        this.mousemove = function(event) { 
+        mouse.mousemove = function(event) { 
             var position = _getRelativeMousePosition(event, mouse.element),
                 touches = event.changedTouches;
 
@@ -4503,7 +4614,7 @@ var Mouse;
             mouse.sourceEvents.mousemove = event;
         };
         
-        this.mousedown = function(event) {
+        mouse.mousedown = function(event) {
             var position = _getRelativeMousePosition(event, mouse.element),
                 touches = event.changedTouches;
 
@@ -4523,7 +4634,7 @@ var Mouse;
             mouse.sourceEvents.mousedown = event;
         };
         
-        this.mouseup = function(event) {
+        mouse.mouseup = function(event) {
             var position = _getRelativeMousePosition(event, mouse.element),
                 touches = event.changedTouches;
 
@@ -4541,22 +4652,14 @@ var Mouse;
             mouse.sourceEvents.mouseup = event;
         };
 
-        this.mousewheel = function(event) {
+        mouse.mousewheel = function(event) {
             mouse.wheelDelta = Math.max(-1, Math.min(1, event.wheelDelta || -event.detail));
             event.preventDefault();
         };
 
         Mouse.setElement(mouse, mouse.element);
-    };
 
-    /**
-     * Description
-     * @method create
-     * @param {HTMLElement} element
-     * @return {mouse} A new mouse
-     */
-    Mouse.create = function(element) {
-        return new Mouse(element);
+        return mouse;
     };
 
     /**
@@ -4652,6 +4755,138 @@ var Mouse;
 ;   // End src/core/Mouse.js
 
 
+// Begin src/core/Runner.js
+
+/**
+* The `Matter.Runner` module is an optional utility which provides a game loop, 
+* that handles updating and rendering a `Matter.Engine` for you within a browser.
+* Note that the method `Engine.run` is an alias for `Runner.run`.
+*
+* See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
+* and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
+*
+* @class Runner
+*/
+
+var Runner = {};
+
+(function() {
+
+    var _fps = 60,
+        _deltaSampleSize = _fps,
+        _delta = 1000 / _fps;
+
+    var _requestAnimationFrame = window.requestAnimationFrame || window.webkitRequestAnimationFrame
+                                      || window.mozRequestAnimationFrame || window.msRequestAnimationFrame 
+                                      || function(callback){ window.setTimeout(function() { callback(Common.now()); }, _delta); };
+   
+    var _cancelAnimationFrame = window.cancelAnimationFrame || window.mozCancelAnimationFrame 
+                                      || window.webkitCancelAnimationFrame || window.msCancelAnimationFrame;
+
+    /**
+     * Provides a basic game loop that handles updating the engine for you.
+     * Calls `Engine.update` and `Engine.render` on the `requestAnimationFrame` event automatically.
+     * Handles time correction and non-fixed dynamic timing (if enabled). 
+     * Triggers `beforeTick`, `tick` and `afterTick` events.
+     * @method run
+     * @param {engine} engine
+     */
+    Runner.run = function(engine) {
+        var counterTimestamp = 0,
+            frameCounter = 0,
+            deltaHistory = [],
+            timePrev,
+            timeScalePrev = 1;
+
+        (function render(time){
+            var timing = engine.timing,
+                delta,
+                correction;
+
+            timing.frameRequestId = _requestAnimationFrame(render);
+
+            if (!engine.enabled)
+                return;
+
+            // create an event object
+            var event = {
+                timestamp: time
+            };
+
+            Events.trigger(engine, 'beforeTick', event);
+
+            if (timing.isFixed) {
+                // fixed timestep
+                delta = timing.delta;
+            } else {
+                // dynamic timestep based on wall clock between calls
+                delta = (time - timePrev) || timing.delta;
+                timePrev = time;
+
+                // optimistically filter delta over a few frames, to improve stability
+                deltaHistory.push(delta);
+                deltaHistory = deltaHistory.slice(-_deltaSampleSize);
+                delta = Math.min.apply(null, deltaHistory);
+                
+                // limit delta
+                delta = delta < timing.deltaMin ? timing.deltaMin : delta;
+                delta = delta > timing.deltaMax ? timing.deltaMax : delta;
+
+                // time correction for delta
+                correction = delta / timing.delta;
+
+                // update engine timing object
+                timing.delta = delta;
+            }
+
+            // time correction for time scaling
+            if (timeScalePrev !== 0)
+                correction *= timing.timeScale / timeScalePrev;
+
+            if (timing.timeScale === 0)
+                correction = 0;
+
+            timeScalePrev = timing.timeScale;
+            
+            // fps counter
+            frameCounter += 1;
+            if (time - counterTimestamp >= 1000) {
+                timing.fps = frameCounter * ((time - counterTimestamp) / 1000);
+                counterTimestamp = time;
+                frameCounter = 0;
+            }
+
+            Events.trigger(engine, 'tick', event);
+
+            // if world has been modified, clear the render scene graph
+            if (engine.world.isModified)
+                engine.render.controller.clear(engine.render);
+
+            // update
+            Engine.update(engine, delta, correction);
+
+            // render
+            Engine.render(engine);
+
+            Events.trigger(engine, 'afterTick', event);
+        })();
+    };
+
+    /**
+     * Ends execution of `Runner.run` on the given `engine`, by canceling the animation frame request event loop.
+     * If you wish to only temporarily pause the engine, see `engine.enabled` instead.
+     * @method stop
+     * @param {engine} engine
+     */
+    Runner.stop = function(engine) {
+        _cancelAnimationFrame(engine.timing.frameRequestId);
+    };
+
+})();
+
+;   // End src/core/Runner.js
+
+
 // Begin src/core/Sleeping.js
 
 /**
@@ -4664,16 +4899,19 @@ var Sleeping = {};
 
 (function() {
 
-    var _motionWakeThreshold = 0.18,
-        _motionSleepThreshold = 0.08,
-        _minBias = 0.9;
+    Sleeping._motionWakeThreshold = 0.18;
+    Sleeping._motionSleepThreshold = 0.08;
+    Sleeping._minBias = 0.9;
 
     /**
-     * Description
+     * Puts bodies to sleep or wakes them up depending on their motion.
      * @method update
      * @param {body[]} bodies
+     * @param {number} timeScale
      */
-    Sleeping.update = function(bodies) {
+    Sleeping.update = function(bodies, timeScale) {
+        var timeFactor = timeScale * timeScale * timeScale;
+
         // update bodies sleeping status
         for (var i = 0; i < bodies.length; i++) {
             var body = bodies[i],
@@ -4689,9 +4927,9 @@ var Sleeping = {};
                 maxMotion = Math.max(body.motion, motion);
         
             // biased average motion estimation between frames
-            body.motion = _minBias * minMotion + (1 - _minBias) * maxMotion;
+            body.motion = Sleeping._minBias * minMotion + (1 - Sleeping._minBias) * maxMotion;
             
-            if (body.sleepThreshold > 0 && body.motion < _motionSleepThreshold) {
+            if (body.sleepThreshold > 0 && body.motion < Sleeping._motionSleepThreshold * timeFactor) {
                 body.sleepCounter += 1;
                 
                 if (body.sleepCounter >= body.sleepThreshold)
@@ -4703,11 +4941,14 @@ var Sleeping = {};
     };
 
     /**
-     * Description
+     * Given a set of colliding pairs, wakes the sleeping bodies involved.
      * @method afterCollisions
      * @param {pair[]} pairs
+     * @param {number} timeScale
      */
-    Sleeping.afterCollisions = function(pairs) {
+    Sleeping.afterCollisions = function(pairs, timeScale) {
+        var timeFactor = timeScale * timeScale * timeScale;
+
         // wake up bodies involved in collisions
         for (var i = 0; i < pairs.length; i++) {
             var pair = pairs[i];
@@ -4728,7 +4969,7 @@ var Sleeping = {};
                 var sleepingBody = (bodyA.isSleeping && !bodyA.isStatic) ? bodyA : bodyB,
                     movingBody = sleepingBody === bodyA ? bodyB : bodyA;
 
-                if (!sleepingBody.isStatic && movingBody.motion > _motionWakeThreshold) {
+                if (!sleepingBody.isStatic && movingBody.motion > Sleeping._motionWakeThreshold * timeFactor) {
                     Sleeping.set(sleepingBody, false);
                 }
             }
@@ -5167,7 +5408,7 @@ var Composites = {};
      * @return {composite} A new composite car body
      */
     Composites.car = function(xx, yy, width, height, wheelSize) {
-        var groupId = Body.nextGroupId(),
+        var group = Body.nextGroup(true),
             wheelBase = -20,
             wheelAOffset = -width * 0.5 + wheelBase,
             wheelBOffset = width * 0.5 - wheelBase,
@@ -5175,7 +5416,9 @@ var Composites = {};
     
         var car = Composite.create({ label: 'Car' }),
             body = Bodies.trapezoid(xx, yy, width, height, 0.3, { 
-                groupId: groupId, 
+                collisionFilter: {
+                    group: group
+                },
                 friction: 0.01,
                 chamfer: {
                     radius: 10
@@ -5183,14 +5426,18 @@ var Composites = {};
             });
     
         var wheelA = Bodies.circle(xx + wheelAOffset, yy + wheelYOffset, wheelSize, { 
-            groupId: groupId, 
+            collisionFilter: {
+                group: group
+            },
             restitution: 0.5, 
             friction: 0.9,
             density: 0.01
         });
                     
         var wheelB = Bodies.circle(xx + wheelBOffset, yy + wheelYOffset, wheelSize, { 
-            groupId: groupId, 
+            collisionFilter: {
+                group: group
+            },
             restitution: 0.5, 
             friction: 0.9,
             density: 0.01
@@ -5250,6 +5497,7 @@ var Composites = {};
     };
 
 })();
+
 
 ;   // End src/factory/Composites.js
 
@@ -6165,8 +6413,8 @@ var Render = {};
 
         Render.constraints(constraints, context);
 
-        if (options.showBroadphase && engine.broadphase.current === 'grid')
-            Render.grid(engine, engine.broadphase[engine.broadphase.current].instance, context);
+        if (options.showBroadphase && engine.broadphase.controller === Grid)
+            Render.grid(engine, engine.broadphase, context);
 
         if (options.showDebug)
             Render.debug(engine, context);
@@ -6731,7 +6979,6 @@ var Render = {};
      */
     Render.inspector = function(inspector, context) {
         var engine = inspector.engine,
-            mouse = engine.input.mouse,
             selected = inspector.selected,
             c = context,
             render = engine.render,
@@ -6964,6 +7211,7 @@ var RenderPixi = {};
                 height: 600,
                 background: '#fafafa',
                 wireframeBackground: '#222',
+                hasBounds: false,
                 enabled: true,
                 wireframes: true,
                 showSleeping: true,
@@ -6980,12 +7228,25 @@ var RenderPixi = {};
             }
         };
 
-        var render = Common.extend(defaults, options);
+        var render = Common.extend(defaults, options),
+            transparent = !render.options.wireframes && render.options.background === 'transparent';
 
         // init pixi
-        render.context = new PIXI.WebGLRenderer(800, 600, render.canvas, false, true);
+        render.context = new PIXI.WebGLRenderer(render.options.width, render.options.height, render.canvas, transparent, true);
         render.canvas = render.context.view;
+        render.container = new PIXI.DisplayObjectContainer();
         render.stage = new PIXI.Stage();
+        render.stage.addChild(render.container);
+        render.bounds = render.bounds || { 
+            min: { 
+                x: 0,
+                y: 0
+            }, 
+            max: { 
+                x: render.options.width,
+                y: render.options.height
+            }
+        };
 
         // caches
         render.textures = {};
@@ -6994,7 +7255,7 @@ var RenderPixi = {};
 
         // use a sprite batch for performance
         render.spriteBatch = new PIXI.SpriteBatch();
-        render.stage.addChild(render.spriteBatch);
+        render.container.addChild(render.spriteBatch);
 
         // insert canvas
         if (Common.isElement(render.element)) {
@@ -7016,12 +7277,12 @@ var RenderPixi = {};
      * @param {RenderPixi} render
      */
     RenderPixi.clear = function(render) {
-        var stage = render.stage,
+        var container = render.container,
             spriteBatch = render.spriteBatch;
 
-        // clear stage
-        while (stage.children[0]) { 
-            stage.removeChild(stage.children[0]); 
+        // clear stage container
+        while (container.children[0]) { 
+            container.removeChild(container.children[0]); 
         }
 
         // clear sprite batch
@@ -7041,11 +7302,15 @@ var RenderPixi = {};
         if (bgSprite)
             spriteBatch.addChildAt(bgSprite, 0);
 
-        // add sprite batch back into stage
-        render.stage.addChild(render.spriteBatch);
+        // add sprite batch back into container
+        render.container.addChild(render.spriteBatch);
 
         // reset background state
         render.currentBackground = null;
+
+        // reset bounds transforms
+        container.scale.set(1, 1);
+        container.position.set(0, 0);
     };
 
     /**
@@ -7093,15 +7358,55 @@ var RenderPixi = {};
             world = engine.world,
             context = render.context,
             stage = render.stage,
+            container = render.container,
             options = render.options,
             bodies = Composite.allBodies(world),
-            constraints = Composite.allConstraints(world),
+            allConstraints = Composite.allConstraints(world),
+            constraints = [],
             i;
 
         if (options.wireframes) {
             RenderPixi.setBackground(render, options.wireframeBackground);
         } else {
             RenderPixi.setBackground(render, options.background);
+        }
+
+        // handle bounds
+        var boundsWidth = render.bounds.max.x - render.bounds.min.x,
+            boundsHeight = render.bounds.max.y - render.bounds.min.y,
+            boundsScaleX = boundsWidth / render.options.width,
+            boundsScaleY = boundsHeight / render.options.height;
+
+        if (options.hasBounds) {
+            // Hide bodies that are not in view
+            for (i = 0; i < bodies.length; i++) {
+                var body = bodies[i];
+                body.render.sprite.visible = Bounds.overlaps(body.bounds, render.bounds);
+            }
+
+            // filter out constraints that are not in view
+            for (i = 0; i < allConstraints.length; i++) {
+                var constraint = allConstraints[i],
+                    bodyA = constraint.bodyA,
+                    bodyB = constraint.bodyB,
+                    pointAWorld = constraint.pointA,
+                    pointBWorld = constraint.pointB;
+
+                if (bodyA) pointAWorld = Vector.add(bodyA.position, constraint.pointA);
+                if (bodyB) pointBWorld = Vector.add(bodyB.position, constraint.pointB);
+
+                if (!pointAWorld || !pointBWorld)
+                    continue;
+
+                if (Bounds.contains(render.bounds, pointAWorld) || Bounds.contains(render.bounds, pointBWorld))
+                    constraints.push(constraint);
+            }
+
+            // transform the view
+            container.scale.set(1 / boundsScaleX, 1 / boundsScaleY);
+            container.position.set(-render.bounds.min.x * (1 / boundsScaleX), -render.bounds.min.y * (1 / boundsScaleY));
+        } else {
+            constraints = allConstraints;
         }
 
         for (i = 0; i < bodies.length; i++)
@@ -7126,7 +7431,7 @@ var RenderPixi = {};
             bodyB = constraint.bodyB,
             pointA = constraint.pointA,
             pointB = constraint.pointB,
-            stage = render.stage,
+            container = render.container,
             constraintRender = constraint.render,
             primitiveId = 'c-' + constraint.id,
             primitive = render.primitives[primitiveId];
@@ -7142,8 +7447,8 @@ var RenderPixi = {};
         }
 
         // add to scene graph if not already there
-        if (stage.children.indexOf(primitive) === -1)
-            stage.addChild(primitive);
+        if (Common.indexOf(container.children, primitive) === -1)
+            container.addChild(primitive);
 
         // render the constraint on every update, since they can change dynamically
         primitive.clear();
@@ -7188,7 +7493,7 @@ var RenderPixi = {};
                 sprite = render.sprites[spriteId] = _createBodySprite(render, body);
 
             // add to scene graph if not already there
-            if (spriteBatch.children.indexOf(sprite) === -1)
+            if (Common.indexOf(spriteBatch.children, sprite) === -1)
                 spriteBatch.addChild(sprite);
 
             // update body sprite
@@ -7198,7 +7503,7 @@ var RenderPixi = {};
         } else {
             var primitiveId = 'b-' + body.id,
                 primitive = render.primitives[primitiveId],
-                stage = render.stage;
+                container = render.container;
 
             // initialise body primitive if not existing
             if (!primitive) {
@@ -7207,8 +7512,8 @@ var RenderPixi = {};
             }
 
             // add to scene graph if not already there
-            if (stage.children.indexOf(primitive) === -1)
-                stage.addChild(primitive);
+            if (Common.indexOf(container.children, primitive) === -1)
+                container.addChild(primitive);
 
             // update body primitive
             primitive.position.x = body.position.x;
@@ -7321,6 +7626,8 @@ World.addBody = Composite.addBody;
 World.addConstraint = Composite.addConstraint;
 World.clear = Composite.clear;
 
+Engine.run = Runner.run;
+
 // exports
 
 Matter.Body = Body;
@@ -7350,6 +7657,7 @@ Matter.Render = Render;
 Matter.RenderPixi = RenderPixi;
 Matter.Events = Events;
 Matter.Query = Query;
+Matter.Runner = Runner;
 
 // CommonJS module
 if (typeof exports !== 'undefined') {

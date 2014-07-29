@@ -248,7 +248,7 @@ var Engine = {};
     };
 
     /**
-     * An alias for Runner.run, see `Matter.Runner` for more information.
+     * An alias for `Runner.run`, see `Matter.Runner` for more information.
      * @method run
      * @param {engine} engine
      */
