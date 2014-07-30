@@ -1,5 +1,5 @@
 /**
-* matter.js 0.8.0-edge 2014-07-29
+* matter.js 0.8.0-edge 2014-07-30
 * http://brm.io/matter-js/
 * License: MIT
 */
@@ -914,8 +914,6 @@ var Body = {};
 * @class Composite
 */
 
-// TODO: composite translate, rotate
-
 var Composite = {};
 
 (function() {
@@ -1338,6 +1336,87 @@ var Composite = {};
 
         for (var i = 0; i < objects.length; i++) {
             objects[i].id = Common.nextId();
+        }
+
+        Composite.setModified(composite, true, true, false);
+
+        return composite;
+    };
+
+    /**
+     * Translates all children in the composite by a given vector relative to their current positions, 
+     * without imparting any velocity.
+     * @method translate
+     * @param {composite} composite
+     * @param {vector} translation
+     * @param {bool} [recursive=true]
+     */
+    Composite.translate = function(composite, translation, recursive) {
+        var bodies = recursive ? Composite.allBodies(composite) : composite.bodies;
+
+        for (var i = 0; i < bodies.length; i++) {
+            Body.translate(bodies[i], translation);
+        }
+
+        Composite.setModified(composite, true, true, false);
+
+        return composite;
+    };
+
+    /**
+     * Rotates all children in the composite by a given angle about the given point, without imparting any angular velocity.
+     * @method rotate
+     * @param {composite} composite
+     * @param {number} rotation
+     * @param {vector} point
+     * @param {bool} [recursive=true]
+     */
+    Composite.rotate = function(composite, rotation, point, recursive) {
+        var cos = Math.cos(rotation),
+            sin = Math.sin(rotation),
+            bodies = recursive ? Composite.allBodies(composite) : composite.bodies;
+
+        for (var i = 0; i < bodies.length; i++) {
+            var body = bodies[i],
+                dx = body.position.x - point.x,
+                dy = body.position.y - point.y;
+                
+            Body.setPosition(body, {
+                x: point.x + (dx * cos - dy * sin),
+                y: point.y + (dx * sin + dy * cos)
+            });
+
+            Body.rotate(body, rotation);
+        }
+
+        Composite.setModified(composite, true, true, false);
+
+        return composite;
+    };
+
+    /**
+     * Scales all children in the composite, including updating physical properties (mass, area, axes, inertia), from a world-space point.
+     * @method scale
+     * @param {composite} composite
+     * @param {number} scaleX
+     * @param {number} scaleY
+     * @param {vector} point
+     * @param {bool} [recursive=true]
+     */
+    Composite.scale = function(composite, scaleX, scaleY, point, recursive) {
+        var bodies = recursive ? Composite.allBodies(composite) : composite.bodies;
+
+        for (var i = 0; i < bodies.length; i++) {
+            var body = bodies[i],
+                dx = body.position.x - point.x,
+                dy = body.position.y - point.y;
+                
+            Body.setPosition(body, {
+                x: point.x + dx * scaleX,
+                y: point.y + dy * scaleY
+            });
+
+            Body.scale(body, scaleX, scaleY);
         }
 
         Composite.setModified(composite, true, true, false);
