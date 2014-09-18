@@ -40,8 +40,7 @@ var MouseConstraint = {};
         var defaults = {
             type: 'mouseConstraint',
             mouse: mouse,
-            dragBody: null,
-            dragPoint: null,
+            body: null,
             constraint: constraint,
             collisionFilter: {
                 category: 0x0001,
@@ -70,31 +69,36 @@ var MouseConstraint = {};
      */
     MouseConstraint.update = function(mouseConstraint, bodies) {
         var mouse = mouseConstraint.mouse,
-            constraint = mouseConstraint.constraint;
+            constraint = mouseConstraint.constraint,
+            body = mouseConstraint.body;
 
         if (mouse.button === 0) {
             if (!constraint.bodyB) {
                 for (var i = 0; i < bodies.length; i++) {
-                    var body = bodies[i];
+                    body = bodies[i];
                     if (Bounds.contains(body.bounds, mouse.position) 
                             && Vertices.contains(body.vertices, mouse.position)
                             && Detector.canCollide(body.collisionFilter, mouseConstraint.collisionFilter)) {
+                       
                         constraint.pointA = mouse.position;
-                        constraint.bodyB = body;
+                        constraint.bodyB = mouseConstraint.body = body;
                         constraint.pointB = { x: mouse.position.x - body.position.x, y: mouse.position.y - body.position.y };
                         constraint.angleB = body.angle;
+
                         Sleeping.set(body, false);
+                        Events.trigger(mouseConstraint, 'startdrag', { mouse: mouse, body: body });
                     }
                 }
+            } else {
+                Sleeping.set(constraint.bodyB, false);
+                constraint.pointA = mouse.position;
             }
         } else {
-            constraint.bodyB = null;
+            constraint.bodyB = mouseConstraint.body = null;
             constraint.pointB = null;
-        }
 
-        if (constraint.bodyB) {
-            Sleeping.set(constraint.bodyB, false);
-            constraint.pointA = mouse.position;
+            if (body)
+                Events.trigger(mouseConstraint, 'enddrag', { mouse: mouse, body: body });
         }
     };
 
@@ -157,6 +161,28 @@ var MouseConstraint = {};
     * @param {} event.name The name of the event
     */
 
+    /**
+    * Fired when the user starts dragging a body
+    *
+    * @event startdrag
+    * @param {} event An event object
+    * @param {mouse} event.mouse The engine's mouse instance
+    * @param {body} event.body The body being dragged
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired when the user ends dragging a body
+    *
+    * @event enddrag
+    * @param {} event An event object
+    * @param {mouse} event.mouse The engine's mouse instance
+    * @param {body} event.body The body that has stopped being dragged
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
     /*
     *
     *  Properties Documentation
@@ -182,15 +208,7 @@ var MouseConstraint = {};
     /**
      * The `Body` that is currently being moved by the user, or `null` if no body.
      *
-     * @property dragBody
-     * @type body
-     * @default null
-     */
-
-    /**
-     * The `Vector` offset at which the drag started relative to the `dragBody`, if any.
-     *
-     * @property dragPoint
+     * @property body
      * @type body
      * @default null
      */
