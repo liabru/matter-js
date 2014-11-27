@@ -1358,6 +1358,10 @@
             })
         );
 
+        // red category objects should not be draggable with the mouse
+
+        _mouseConstraint.collisionFilter.mask = defaultCategory | blueCategory | greenCategory;
+
         var renderOptions = _engine.render.options;
         renderOptions.wireframes = false;
         renderOptions.background = '#222';
