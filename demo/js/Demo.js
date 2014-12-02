@@ -1132,6 +1132,24 @@
 
         );
 
+        _sceneEvents.push(
+
+            // an example of using mouse events on a mouse
+            Events.on(_mouseConstraint, 'startdrag', function(event) {
+                console.log('startdrag', event);
+            })
+
+        );
+
+        _sceneEvents.push(
+
+            // an example of using mouse events on a mouse
+            Events.on(_mouseConstraint, 'enddrag', function(event) {
+                console.log('enddrag', event);
+            })
+
+        );
+
         // scene code
 
         var stack = Composites.stack(50, 100, 8, 4, 50, 50, function(x, y, column, row) {
