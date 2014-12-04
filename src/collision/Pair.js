@@ -51,6 +51,10 @@ var Pair = {};
             activeContacts = pair.activeContacts;
         
         pair.collision = collision;
+        pair.inverseMass = collision.bodyA.inverseMass + collision.bodyB.inverseMass;
+        pair.friction = Math.min(collision.bodyA.friction, collision.bodyB.friction);
+        pair.restitution = Math.max(collision.bodyA.restitution, collision.bodyB.restitution);
+        pair.slop = Math.max(collision.bodyA.slop, collision.bodyB.slop);
         activeContacts.length = 0;
         
         if (collision.collided) {
