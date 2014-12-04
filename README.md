@@ -1,12 +1,12 @@
 # Matter.js
 
-*Matter.js* is a JavaScript 2D rigid body physics engine for the web
+> *Matter.js* is a JavaScript 2D rigid body physics engine for the web
 
 [brm.io/matter-js](http://brm.io/matter-js)
 
-[![Build Status](https://travis-ci.org/liabru/matter-js.png?branch=master)](https://travis-ci.org/liabru/matter-js)
-
 [Features](#features) - [Status](#status) - [Install](#install) - [Usage](#usage) -  [Docs](http://brm.io/matter-js-docs/) - [Implementation](#implementation) - [References](#references) - [License](#license)
+
+[![Build Status](https://travis-ci.org/liabru/matter-js.png?branch=master)](https://travis-ci.org/liabru/matter-js)
 
 ### Demos
 
@@ -68,44 +68,34 @@
 - Mobile-compatible (touch, responsive)
 - An original JavaScript physics implementation (not a port)
 
-### Status
-
-Matter.js is currently only *alpha* status, so production use should be avoided.
-
-This engine is the result of [learning game physics](http://brm.io/game-physics-for-beginners/) and getting a bit carried away. 
-<br>There's no intention to compete with other engines, so I'm not sure yet how much it will be developed further. 
-<br>That said, the engine is reasonably stable and performs well, it's just not feature complete.
-
-Though if I get time and people are interested, I may continue working on it.
-<br>Contributions are also welcome, if you'd like to help.
-
 ### Install
 
-Download [matter-0.8.0.js](https://github.com/liabru/matter-js/releases/download/0.8.0-alpha/matter-0.8.0.js) or [matter-0.8.0.min.js](https://github.com/liabru/matter-js/releases/download/0.8.0-alpha/matter-0.8.0.min.js) and include the script in your HTML file:
+Download the [latest release](https://github.com/liabru/matter-js/releases) and include the script in your web page:
 
     <script src="matter-0.8.0.js" type="text/javascript"></script>
 
 For the latest features try the [edge version (master)](https://raw.github.com/liabru/matter-js/master/build/matter.js), but it may not be fully stable.
 
-#### Install using [Bower](http://bower.io/)
+You can also install using the package managers [Bower](http://bower.io/search/?q=matter-js) and [NPM](https://www.npmjs.org/package/matter-js).
 
-	bower install matter-js
-
-#### Install using [NPM](https://www.npmjs.org/)
-
-	npm install matter-js
+    bower install matter-js
+    npm install matter-js
 
 ### Usage
 
-See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for many usage examples.
-<br>When loaded, all modules and functions are under the global <code>Matter.*</code> namespace.
+See the [Getting started](https://github.com/liabru/matter-js/wiki/Getting-started) wiki page for a minimal usage example.
 
-Some of the demos are avaliable at [codepen.io/liabru](http://codepen.io/liabru/), where you can easily experiment with them!
+Check out the [demo page](http://brm.io/matter-js-demo/) for more examples and then refer to [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) to see how they work. Some of the demos are also available on [codepen](http://codepen.io/collection/Fuagy/), where you can easily experiment with them.
 
 ### Documentation
 
 See the [Matter.js API Docs (v0.8.0)](http://brm.io/matter-js-docs/).
 <br>If you're using the [edge version (master)](https://raw2.github.com/liabru/matter-js/master/build/matter.js) then see the [API Docs (master)](http://brm.io/matter-js-docs-master/).
+
+### Status
+
+Matter.js is currently in *alpha* status, meaning the API is still in development and may change occasionally.<br>
+The library is reasonably stable as-is, but it is not yet feature complete.
 
 ### Building and Contributing
 
@@ -125,7 +115,7 @@ If you'd like to contribute but not sure what to work on, feel free to message m
 
 ### Changelog
 
-To see what's new or changed in the latest version, see the [changelog](https://github.com/liabru/matter-js/blob/master/CHANGELOG.md)
+To see what's new or changed in the latest version, see the [changelog](https://github.com/liabru/matter-js/blob/master/CHANGELOG.md).
 
 ### Implementation
 
@@ -159,7 +149,3 @@ Matter.js is licensed under [The MIT License (MIT)](http://opensource.org/licens
 
 This license is also supplied with the release and source code.
 <br/>As stated in the license, absolutely no warranty is provided.
-
-### Similar Projects
-
-If you need a more complete engine, check out jswiki's list of [Physics libraries](https://github.com/bebraw/jswiki/wiki/Physics-libraries)
