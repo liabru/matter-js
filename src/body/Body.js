@@ -98,29 +98,94 @@ var Body = {};
      */
     var _initProperties = function(body, options) {
         // init required properties
-        body.bounds = body.bounds || Bounds.create(body.vertices);
-        body.positionPrev = body.positionPrev || Vector.clone(body.position);
-        body.anglePrev = body.anglePrev || body.angle;
+        Body.set(body, {
+            bounds: body.bounds || Bounds.create(body.vertices),
+            positionPrev: body.positionPrev || Vector.clone(body.position),
+            anglePrev: body.anglePrev || body.angle,
+            vertices: body.vertices,
+            isStatic: body.isStatic,
+            isSleeping: body.isSleeping
+        });
 
-        // must use setters for the more complicated properties
-        Body.setVertices(body, body.vertices);
-        Body.setStatic(body, body.isStatic);
-        Sleeping.set(body, body.isSleeping);
         Vertices.rotate(body.vertices, body.angle, body.position);
         Axes.rotate(body.axes, body.angle);
         Bounds.update(body.bounds, body.vertices, body.velocity);
 
         // allow options to override the automatically calculated properties
-        body.axes = options.axes || body.axes;
-        body.area = options.area || body.area;
-        Body.setMass(body, options.mass || body.mass);
-        Body.setInertia(body, options.inertia || body.inertia);
+        Body.set(body, {
+            axes: options.axes || body.axes,
+            area: options.area || body.area,
+            mass: options.mass || body.mass,
+            inertia: options.inertia || body.inertia
+        });
 
         // render properties
         var defaultFillStyle = (body.isStatic ? '#eeeeee' : Common.choose(['#556270', '#4ECDC4', '#C7F464', '#FF6B6B', '#C44D58'])),
             defaultStrokeStyle = Common.shadeColor(defaultFillStyle, -20);
         body.render.fillStyle = body.render.fillStyle || defaultFillStyle;
         body.render.strokeStyle = body.render.strokeStyle || defaultStrokeStyle;
+    };
+
+    /**
+     * Given a property and a value (or map of), sets the property(s) on the body, using the appropriate setter functions if they exist.
+     * Prefer to use the actual setter functions in performance critical situations.
+     * @method set
+     * @param {body} body
+     * @param {} settings A property name (or map of properties and values) to set on the body.
+     * @param {} value The value to set if `settings` is a single property name.
+     */
+    Body.set = function(body, settings, value) {
+        var property;
+
+        if (typeof settings === 'string') {
+            property = settings;
+            settings = {};
+            settings[property] = value;
+        }
+
+        for (property in settings) {
+            value = settings[property];
+
+            if (!settings.hasOwnProperty(property))
+                continue;
+
+            switch (property) {
+
+            case 'isStatic':
+                Body.setStatic(body, value);
+                break;
+            case 'isSleeping':
+                Sleeping.set(body, value);
+                break;
+            case 'mass':
+                Body.setMass(body, value);
+                break;
+            case 'density':
+                Body.setDensity(body, value);
+                break;
+            case 'inertia':
+                Body.setInertia(body, value);
+                break;
+            case 'vertices':
+                Body.setVertices(body, value);
+                break;
+            case 'position':
+                Body.setPosition(body, value);
+                break;
+            case 'angle':
+                Body.setAngle(body, value);
+                break;
+            case 'velocity':
+                Body.setVelocity(body, value);
+                break;
+            case 'angularVelocity':
+                Body.setAngularVelocity(body, value);
+                break;
+            default:
+                body[property] = value;
+
+            }
+        }
     };
 
     /**
