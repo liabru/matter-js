@@ -26,6 +26,7 @@ var Mouse = {};
         mouse.scale = { x: 1, y: 1 };
         mouse.wheelDelta = 0;
         mouse.button = -1;
+        mouse.pixelRatio = element.getAttribute('data-pixel-ratio') || 1;
 
         mouse.sourceEvents = {
             mousemove: null,
@@ -35,7 +36,7 @@ var Mouse = {};
         };
         
         mouse.mousemove = function(event) { 
-            var position = _getRelativeMousePosition(event, mouse.element),
+            var position = _getRelativeMousePosition(event, mouse.element, mouse.pixelRatio),
                 touches = event.changedTouches;
 
             if (touches) {
@@ -51,7 +52,7 @@ var Mouse = {};
         };
         
         mouse.mousedown = function(event) {
-            var position = _getRelativeMousePosition(event, mouse.element),
+            var position = _getRelativeMousePosition(event, mouse.element, mouse.pixelRatio),
                 touches = event.changedTouches;
 
             if (touches) {
@@ -71,7 +72,7 @@ var Mouse = {};
         };
         
         mouse.mouseup = function(event) {
-            var position = _getRelativeMousePosition(event, mouse.element),
+            var position = _getRelativeMousePosition(event, mouse.element, mouse.pixelRatio),
                 touches = event.changedTouches;
 
             if (touches) {
@@ -162,9 +163,10 @@ var Mouse = {};
      * @private
      * @param {} event
      * @param {} element
-     * @return ObjectExpression
+     * @param {number} pixelRatio
+     * @return {}
      */
-    var _getRelativeMousePosition = function(event, element) {
+    var _getRelativeMousePosition = function(event, element, pixelRatio) {
         var elementBounds = element.getBoundingClientRect(),
             rootNode = (document.documentElement || document.body.parentNode || document.body),
             scrollX = (window.pageXOffset !== undefined) ? window.pageXOffset : rootNode.scrollLeft,
@@ -179,10 +181,10 @@ var Mouse = {};
             x = event.pageX - elementBounds.left - scrollX;
             y = event.pageY - elementBounds.top - scrollY;
         }
-        
+
         return { 
-            x: x / (element.clientWidth / element.width), 
-            y: y / (element.clientHeight / element.height)
+            x: x / (element.clientWidth / element.width * pixelRatio),
+            y: y / (element.clientHeight / element.height * pixelRatio)
         };
     };
 

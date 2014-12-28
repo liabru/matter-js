@@ -30,6 +30,7 @@ var Render = {};
             options: {
                 width: 800,
                 height: 600,
+                pixelRatio: 1,
                 background: '#fafafa',
                 wireframeBackground: '#222',
                 hasBounds: false,
@@ -68,6 +69,10 @@ var Render = {};
 
         Render.setBackground(render, render.options.background);
 
+        if (render.options.pixelRatio !== 1) {
+            Render.setPixelRatio(render, render.options.pixelRatio);
+        }
+
         if (Common.isElement(render.element)) {
             render.element.appendChild(render.canvas);
         } else {
@@ -80,11 +85,35 @@ var Render = {};
     /**
      * Clears the renderer. In this implementation, this is a noop.
      * @method clear
-     * @param {RenderPixi} render
+     * @param {render} render
      */
     Render.clear = function(render) {
         // nothing required to clear this renderer implentation
         // if a scene graph is required, clear it here (see RenderPixi.js)
+    };
+
+    /**
+     * Sets the pixel ratio of the renderer and updates the canvas.
+     * To automatically detect the correct ratio, pass the string `'auto'` for `pixelRatio`.
+     * @method setPixelRatio
+     * @param {render} render
+     * @param {number} pixelRatio
+     */
+    Render.setPixelRatio = function(render, pixelRatio) {
+        var options = render.options,
+            canvas = render.canvas;
+
+        if (pixelRatio === 'auto') {
+            pixelRatio = _getPixelRatio(canvas);
+        }
+
+        options.pixelRatio = pixelRatio;
+        canvas.setAttribute('data-pixel-ratio', pixelRatio);
+        canvas.width = options.width * pixelRatio;
+        canvas.height = options.height * pixelRatio;
+        canvas.style.width = options.width + 'px';
+        canvas.style.height = options.height + 'px';
+        render.context.scale(pixelRatio, pixelRatio);
     };
 
     /**
@@ -137,12 +166,12 @@ var Render = {};
         context.globalCompositeOperation = 'source-over';
 
         // handle bounds
-        var boundsWidth = render.bounds.max.x - render.bounds.min.x,
-            boundsHeight = render.bounds.max.y - render.bounds.min.y,
-            boundsScaleX = boundsWidth / render.options.width,
-            boundsScaleY = boundsHeight / render.options.height;
-
         if (options.hasBounds) {
+            var boundsWidth = render.bounds.max.x - render.bounds.min.x,
+                boundsHeight = render.bounds.max.y - render.bounds.min.y,
+                boundsScaleX = boundsWidth / options.width,
+                boundsScaleY = boundsHeight / options.height;
+
             // filter out bodies that are not in view
             for (i = 0; i < allBodies.length; i++) {
                 var body = allBodies[i];
@@ -212,7 +241,7 @@ var Render = {};
 
         if (options.hasBounds) {
             // revert view transforms
-            context.setTransform(1, 0, 0, 1, 0, 0);
+            context.setTransform(options.pixelRatio, 0, 0, options.pixelRatio, 0, 0);
         }
     };
 
@@ -862,6 +891,23 @@ var Render = {};
         canvas.oncontextmenu = function() { return false; };
         canvas.onselectstart = function() { return false; };
         return canvas;
+    };
+
+    /**
+     * Gets the pixel ratio of the canvas.
+     * @method _getPixelRatio
+     * @private
+     * @param {HTMLElement} canvas
+     * @return {Number} pixel ratio
+     */
+    var _getPixelRatio = function(canvas) {
+        var context = canvas.getContext('2d'),
+            devicePixelRatio = window.devicePixelRatio || 1,
+            backingStorePixelRatio = context.webkitBackingStorePixelRatio || context.mozBackingStorePixelRatio
+                                      || context.msBackingStorePixelRatio || context.oBackingStorePixelRatio
+                                      || context.backingStorePixelRatio || 1;
+
+        return devicePixelRatio / backingStorePixelRatio;
     };
 
     /**
