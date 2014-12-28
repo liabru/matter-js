@@ -314,6 +314,8 @@ var RenderPixi = {};
             sprite.position.x = body.position.x;
             sprite.position.y = body.position.y;
             sprite.rotation = body.angle;
+            sprite.scale.x = bodyRender.sprite.xScale || 1;
+            sprite.scale.y = bodyRender.sprite.yScale || 1;
         } else {
             var primitiveId = 'b-' + body.id,
                 primitive = render.primitives[primitiveId],
