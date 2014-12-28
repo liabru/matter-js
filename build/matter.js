@@ -1,5 +1,5 @@
 /**
-* matter.js 0.8.0-edge 2014-12-02
+* matter.js 0.8.0-edge 2014-12-28
 * http://brm.io/matter-js/
 * License: MIT
 */
@@ -140,29 +140,94 @@ var Body = {};
      */
     var _initProperties = function(body, options) {
         // init required properties
-        body.bounds = body.bounds || Bounds.create(body.vertices);
-        body.positionPrev = body.positionPrev || Vector.clone(body.position);
-        body.anglePrev = body.anglePrev || body.angle;
+        Body.set(body, {
+            bounds: body.bounds || Bounds.create(body.vertices),
+            positionPrev: body.positionPrev || Vector.clone(body.position),
+            anglePrev: body.anglePrev || body.angle,
+            vertices: body.vertices,
+            isStatic: body.isStatic,
+            isSleeping: body.isSleeping
+        });
 
-        // must use setters for the more complicated properties
-        Body.setVertices(body, body.vertices);
-        Body.setStatic(body, body.isStatic);
-        Sleeping.set(body, body.isSleeping);
         Vertices.rotate(body.vertices, body.angle, body.position);
         Axes.rotate(body.axes, body.angle);
         Bounds.update(body.bounds, body.vertices, body.velocity);
 
         // allow options to override the automatically calculated properties
-        body.axes = options.axes || body.axes;
-        body.area = options.area || body.area;
-        Body.setMass(body, options.mass || body.mass);
-        Body.setInertia(body, options.inertia || body.inertia);
+        Body.set(body, {
+            axes: options.axes || body.axes,
+            area: options.area || body.area,
+            mass: options.mass || body.mass,
+            inertia: options.inertia || body.inertia
+        });
 
         // render properties
         var defaultFillStyle = (body.isStatic ? '#eeeeee' : Common.choose(['#556270', '#4ECDC4', '#C7F464', '#FF6B6B', '#C44D58'])),
             defaultStrokeStyle = Common.shadeColor(defaultFillStyle, -20);
         body.render.fillStyle = body.render.fillStyle || defaultFillStyle;
         body.render.strokeStyle = body.render.strokeStyle || defaultStrokeStyle;
+    };
+
+    /**
+     * Given a property and a value (or map of), sets the property(s) on the body, using the appropriate setter functions if they exist.
+     * Prefer to use the actual setter functions in performance critical situations.
+     * @method set
+     * @param {body} body
+     * @param {} settings A property name (or map of properties and values) to set on the body.
+     * @param {} value The value to set if `settings` is a single property name.
+     */
+    Body.set = function(body, settings, value) {
+        var property;
+
+        if (typeof settings === 'string') {
+            property = settings;
+            settings = {};
+            settings[property] = value;
+        }
+
+        for (property in settings) {
+            value = settings[property];
+
+            if (!settings.hasOwnProperty(property))
+                continue;
+
+            switch (property) {
+
+            case 'isStatic':
+                Body.setStatic(body, value);
+                break;
+            case 'isSleeping':
+                Sleeping.set(body, value);
+                break;
+            case 'mass':
+                Body.setMass(body, value);
+                break;
+            case 'density':
+                Body.setDensity(body, value);
+                break;
+            case 'inertia':
+                Body.setInertia(body, value);
+                break;
+            case 'vertices':
+                Body.setVertices(body, value);
+                break;
+            case 'position':
+                Body.setPosition(body, value);
+                break;
+            case 'angle':
+                Body.setAngle(body, value);
+                break;
+            case 'velocity':
+                Body.setVelocity(body, value);
+                break;
+            case 'angularVelocity':
+                Body.setAngularVelocity(body, value);
+                break;
+            default:
+                body[property] = value;
+
+            }
+        }
     };
 
     /**
@@ -2183,6 +2248,10 @@ var Pair = {};
             activeContacts = pair.activeContacts;
         
         pair.collision = collision;
+        pair.inverseMass = collision.bodyA.inverseMass + collision.bodyB.inverseMass;
+        pair.friction = Math.min(collision.bodyA.friction, collision.bodyB.friction);
+        pair.restitution = Math.max(collision.bodyA.restitution, collision.bodyB.restitution);
+        pair.slop = Math.max(collision.bodyA.slop, collision.bodyB.slop);
         activeContacts.length = 0;
         
         if (collision.collided) {
@@ -4687,6 +4756,7 @@ var Mouse = {};
         mouse.scale = { x: 1, y: 1 };
         mouse.wheelDelta = 0;
         mouse.button = -1;
+        mouse.pixelRatio = element.getAttribute('data-pixel-ratio') || 1;
 
         mouse.sourceEvents = {
             mousemove: null,
@@ -4696,7 +4766,7 @@ var Mouse = {};
         };
         
         mouse.mousemove = function(event) { 
-            var position = _getRelativeMousePosition(event, mouse.element),
+            var position = _getRelativeMousePosition(event, mouse.element, mouse.pixelRatio),
                 touches = event.changedTouches;
 
             if (touches) {
@@ -4712,7 +4782,7 @@ var Mouse = {};
         };
         
         mouse.mousedown = function(event) {
-            var position = _getRelativeMousePosition(event, mouse.element),
+            var position = _getRelativeMousePosition(event, mouse.element, mouse.pixelRatio),
                 touches = event.changedTouches;
 
             if (touches) {
@@ -4732,7 +4802,7 @@ var Mouse = {};
         };
         
         mouse.mouseup = function(event) {
-            var position = _getRelativeMousePosition(event, mouse.element),
+            var position = _getRelativeMousePosition(event, mouse.element, mouse.pixelRatio),
                 touches = event.changedTouches;
 
             if (touches) {
@@ -4823,9 +4893,10 @@ var Mouse = {};
      * @private
      * @param {} event
      * @param {} element
-     * @return ObjectExpression
+     * @param {number} pixelRatio
+     * @return {}
      */
-    var _getRelativeMousePosition = function(event, element) {
+    var _getRelativeMousePosition = function(event, element, pixelRatio) {
         var elementBounds = element.getBoundingClientRect(),
             rootNode = (document.documentElement || document.body.parentNode || document.body),
             scrollX = (window.pageXOffset !== undefined) ? window.pageXOffset : rootNode.scrollLeft,
@@ -4840,14 +4911,15 @@ var Mouse = {};
             x = event.pageX - elementBounds.left - scrollX;
             y = event.pageY - elementBounds.top - scrollY;
         }
-        
+
         return { 
-            x: x / (element.clientWidth / element.width), 
-            y: y / (element.clientHeight / element.height)
+            x: x / (element.clientWidth / element.width * pixelRatio),
+            y: y / (element.clientHeight / element.height * pixelRatio)
         };
     };
 
 })();
+
 
 ;   // End src/core/Mouse.js
 
@@ -6336,6 +6408,7 @@ var Render = {};
             options: {
                 width: 800,
                 height: 600,
+                pixelRatio: 1,
                 background: '#fafafa',
                 wireframeBackground: '#222',
                 hasBounds: false,
@@ -6374,6 +6447,10 @@ var Render = {};
 
         Render.setBackground(render, render.options.background);
 
+        if (render.options.pixelRatio !== 1) {
+            Render.setPixelRatio(render, render.options.pixelRatio);
+        }
+
         if (Common.isElement(render.element)) {
             render.element.appendChild(render.canvas);
         } else {
@@ -6386,11 +6463,35 @@ var Render = {};
     /**
      * Clears the renderer. In this implementation, this is a noop.
      * @method clear
-     * @param {RenderPixi} render
+     * @param {render} render
      */
     Render.clear = function(render) {
         // nothing required to clear this renderer implentation
         // if a scene graph is required, clear it here (see RenderPixi.js)
+    };
+
+    /**
+     * Sets the pixel ratio of the renderer and updates the canvas.
+     * To automatically detect the correct ratio, pass the string `'auto'` for `pixelRatio`.
+     * @method setPixelRatio
+     * @param {render} render
+     * @param {number} pixelRatio
+     */
+    Render.setPixelRatio = function(render, pixelRatio) {
+        var options = render.options,
+            canvas = render.canvas;
+
+        if (pixelRatio === 'auto') {
+            pixelRatio = _getPixelRatio(canvas);
+        }
+
+        options.pixelRatio = pixelRatio;
+        canvas.setAttribute('data-pixel-ratio', pixelRatio);
+        canvas.width = options.width * pixelRatio;
+        canvas.height = options.height * pixelRatio;
+        canvas.style.width = options.width + 'px';
+        canvas.style.height = options.height + 'px';
+        render.context.scale(pixelRatio, pixelRatio);
     };
 
     /**
@@ -6443,12 +6544,12 @@ var Render = {};
         context.globalCompositeOperation = 'source-over';
 
         // handle bounds
-        var boundsWidth = render.bounds.max.x - render.bounds.min.x,
-            boundsHeight = render.bounds.max.y - render.bounds.min.y,
-            boundsScaleX = boundsWidth / render.options.width,
-            boundsScaleY = boundsHeight / render.options.height;
-
         if (options.hasBounds) {
+            var boundsWidth = render.bounds.max.x - render.bounds.min.x,
+                boundsHeight = render.bounds.max.y - render.bounds.min.y,
+                boundsScaleX = boundsWidth / options.width,
+                boundsScaleY = boundsHeight / options.height;
+
             // filter out bodies that are not in view
             for (i = 0; i < allBodies.length; i++) {
                 var body = allBodies[i];
@@ -6518,7 +6619,7 @@ var Render = {};
 
         if (options.hasBounds) {
             // revert view transforms
-            context.setTransform(1, 0, 0, 1, 0, 0);
+            context.setTransform(options.pixelRatio, 0, 0, options.pixelRatio, 0, 0);
         }
     };
 
@@ -7171,6 +7272,23 @@ var Render = {};
     };
 
     /**
+     * Gets the pixel ratio of the canvas.
+     * @method _getPixelRatio
+     * @private
+     * @param {HTMLElement} canvas
+     * @return {Number} pixel ratio
+     */
+    var _getPixelRatio = function(canvas) {
+        var context = canvas.getContext('2d'),
+            devicePixelRatio = window.devicePixelRatio || 1,
+            backingStorePixelRatio = context.webkitBackingStorePixelRatio || context.mozBackingStorePixelRatio
+                                      || context.msBackingStorePixelRatio || context.oBackingStorePixelRatio
+                                      || context.backingStorePixelRatio || 1;
+
+        return devicePixelRatio / backingStorePixelRatio;
+    };
+
+    /**
      * Gets the requested texture (an Image) via its path
      * @method _getTexture
      * @private
@@ -7275,6 +7393,7 @@ var Render = {};
      */
 
 })();
+
 
 ;   // End src/render/Render.js
 
@@ -7597,6 +7716,8 @@ var RenderPixi = {};
             sprite.position.x = body.position.x;
             sprite.position.y = body.position.y;
             sprite.rotation = body.angle;
+            sprite.scale.x = bodyRender.sprite.xScale || 1;
+            sprite.scale.y = bodyRender.sprite.yScale || 1;
         } else {
             var primitiveId = 'b-' + body.id,
                 primitive = render.primitives[primitiveId],
@@ -7710,6 +7831,7 @@ var RenderPixi = {};
     };
 
 })();
+
 
 ;   // End src/render/RenderPixi.js
 
