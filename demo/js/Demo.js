@@ -1533,7 +1533,6 @@
             Bodies.rectangle(-offset, 300, 50.5, 600.5 + 2 * offset, { isStatic: true })
         ]);
 
-        _mouseConstraint = MouseConstraint.create(_engine);
         World.add(_world, _mouseConstraint);
         
         var renderOptions = _engine.render.options;
