@@ -201,17 +201,27 @@ var Common = {};
      * @return {number} the current timestamp (high-res if avaliable)
      */
     Common.now = function() {
-        // http://stackoverflow.com/questions/221294/how-do-you-get-a-timestamp-in-javascript
         // https://gist.github.com/davidwaterston/2982531
-        
-        var perf = window.performance;
 
-        if (perf) {
-            perf.now = perf.now || perf.webkitNow || perf.msNow || perf.oNow || perf.mozNow;
-            return +(perf.now());
-        }
-        
-        return +(new Date());
+        // Returns the number of milliseconds elapsed since either the browser navigationStart event or
+        // the UNIX epoch, depending on availability.
+        // Where the browser supports 'performance' we use that as it is more accurate (microsoeconds
+        // will be returned in the fractional part) and more reliable as it does not rely on the system time.
+        // Where 'performance' is not available, we will fall back to Date().getTime().
+        // jsFiddle: http://jsfiddle.net/davidwaterston/xCXvJ
+
+        var performance = window.performance || {};
+
+        performance.now = (function() {
+            return performance.now    ||
+            performance.webkitNow     ||
+            performance.msNow         ||
+            performance.oNow          ||
+            performance.mozNow        ||
+            function() { return new Date().getTime(); };
+        })();
+
+        return performance.now();
     };
 
     
