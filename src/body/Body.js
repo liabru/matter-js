@@ -16,7 +16,8 @@ var Body = {};
     Body._inertiaScale = 4;
 
     var _nextCollidingGroupId = 1,
-        _nextNonCollidingGroupId = -1;
+        _nextNonCollidingGroupId = -1,
+        _nextCategory = 0x0001;
 
     /**
      * Creates a new rigid body model. The options parameter is an object that specifies any properties you wish to override the defaults.
@@ -87,6 +88,17 @@ var Body = {};
             return _nextNonCollidingGroupId--;
 
         return _nextCollidingGroupId++;
+    };
+
+    /**
+     * Returns the next unique category bitfield (starting after the initial default category `0x0001`).
+     * There are 32 available. See `body.collisionFilter` for more information.
+     * @method nextCategory
+     * @return {Number} Unique category bitfield
+     */
+    Body.nextCategory = function() {
+        _nextCategory = _nextCategory << 1;
+        return _nextCategory;
     };
 
     /**
