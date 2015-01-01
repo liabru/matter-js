@@ -351,8 +351,7 @@ var Render = {};
      */
     Render.bodyShadows = function(engine, bodies, context) {
         var c = context,
-            render = engine.render,
-            options = render.options;
+            render = engine.render;
 
         for (var i = 0; i < bodies.length; i++) {
             var body = bodies[i];
@@ -640,9 +639,7 @@ var Render = {};
      * @param {RenderingContext} context
      */
     Render.bodyVelocity = function(engine, bodies, context) {
-        var c = context,
-            render = engine.render,
-            options = render.options;
+        var c = context;
 
         c.beginPath();
 
@@ -800,7 +797,6 @@ var Render = {};
     Render.inspector = function(inspector, context) {
         var engine = inspector.engine,
             selected = inspector.selected,
-            c = context,
             render = engine.render,
             options = render.options,
             bounds;

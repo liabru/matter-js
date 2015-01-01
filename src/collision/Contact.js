@@ -27,7 +27,7 @@ var Contact = {};
      * Description
      * @method id
      * @param {vertex} vertex
-     * @return {Number} Unique contactID
+     * @return {string} Unique contactID
      */
     Contact.id = function(vertex) {
         return vertex.body.id + '_' + vertex.index;

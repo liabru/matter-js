@@ -99,7 +99,7 @@ var Pair = {};
      * @method id
      * @param {body} bodyA
      * @param {body} bodyB
-     * @return {number} Unique pairId
+     * @return {string} Unique pairId
      */
     Pair.id = function(bodyA, bodyB) {
         if (bodyA.id < bodyB.id) {

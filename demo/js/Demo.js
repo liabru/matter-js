@@ -9,11 +9,9 @@
         Composites = Matter.Composites,
         Common = Matter.Common,
         Constraint = Matter.Constraint,
-        RenderPixi = Matter.RenderPixi,
         Events = Matter.Events,
         Bounds = Matter.Bounds,
         Vector = Matter.Vector,
-        Vertices = Matter.Vertices,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
         Query = Matter.Query;
@@ -91,7 +89,6 @@
             var sides = Math.round(Common.random(1, 8));
 
             // triangles can be a little unstable, so avoid until fixed
-            // TODO: make triangles more stable
             sides = (sides === 3) ? 4 : sides;
 
             // round the edges of some bodies
@@ -160,7 +157,7 @@
 
         World.add(_engine.world, [ground, pyramid, ground2, pyramid2, rock, elastic]);
 
-        Events.on(_engine, 'tick', function(event) {
+        Events.on(_engine, 'tick', function() {
             if (_mouseConstraint.mouse.button === -1 && (rock.position.x > 190 || rock.position.y < 430)) {
                 rock = Bodies.polygon(170, 450, 7, 20, rockOptions);
                 World.add(_engine.world, rock);
@@ -181,51 +178,35 @@
 
         World.add(_world, [
             Bodies.rectangle(200, 200, 100, 100, { 
-                chamfer:  {
-                    radius: 20
-                }
+                chamfer: { radius: 20 }
             }),
 
             Bodies.rectangle(300, 200, 100, 100, { 
-                chamfer:  {
-                    radius: [90, 0, 0, 0]
-                }
+                chamfer: { radius: [90, 0, 0, 0] }
             }),
 
             Bodies.rectangle(400, 200, 200, 200, { 
-                chamfer:  {
-                    radius: [150, 20, 40, 20]
-                }
+                chamfer: { radius: [150, 20, 40, 20] }
             }),
 
             Bodies.rectangle(200, 200, 200, 200, { 
-                chamfer:  {
-                    radius: [150, 20, 150, 20]
-                }
+                chamfer: { radius: [150, 20, 150, 20] }
             }),
 
             Bodies.rectangle(300, 200, 200, 50, { 
-                chamfer:  {
-                    radius: [25, 25, 0, 0]
-                }
+                chamfer: { radius: [25, 25, 0, 0] }
             }),
 
             Bodies.polygon(200, 100, 8, 80, { 
-                chamfer:  {
-                    radius: 30
-                }
+                chamfer: { radius: 30 }
             }),
 
             Bodies.polygon(300, 100, 5, 80, { 
-                chamfer:  {
-                    radius: [10, 40, 20, 40, 10]
-                }
+                chamfer: { radius: [10, 40, 20, 40, 10] }
             }),
 
             Bodies.polygon(400, 200, 3, 50, { 
-                chamfer:  {
-                    radius: [20, 0, 20]
-                }
+                chamfer: { radius: [20, 0, 20] }
             })
         ]);
 
@@ -639,8 +620,6 @@
         World.add(_world, stack);
 
         _engine.enableSleeping = true;
-        
-        var renderOptions = _engine.render.options;
     };
 
     Demo.broadphase = function() {
@@ -694,8 +673,6 @@
         });
         
         World.add(_world, stack);
-        
-        var renderOptions = _engine.render.options;
     };
     
     Demo.avalanche = function() {
@@ -811,8 +788,6 @@
 
             }
         }));
-        
-        var renderOptions = _engine.render.options;
     };
     
     Demo.stack = function() {
@@ -825,8 +800,6 @@
         });
         
         World.add(_world, stack);
-        
-        var renderOptions = _engine.render.options;
     };
     
     Demo.circleStack = function() {
@@ -839,8 +812,6 @@
         });
         
         World.add(_world, stack);
-        
-        var renderOptions = _engine.render.options;
     };
     
     Demo.wreckingBall = function() {
@@ -887,8 +858,6 @@
             Bodies.polygon(400, 560, 5, 60),
             Bodies.rectangle(600, 560, 80, 80)
         ]);
-        
-        var renderOptions = _engine.render.options;
     };
     
     Demo.stress = function() {
@@ -931,8 +900,6 @@
         });
         
         World.add(_world, stack);
-        
-        var renderOptions = _engine.render.options;
     };
     
     Demo.restitution = function() {
@@ -1287,15 +1254,12 @@
                 context.fill();
             })
         );
-        
-        var renderOptions = _engine.render.options;
     };
 
     Demo.collisionFiltering = function() {
         var _world = _engine.world;
 
         // define our categories (as bit fields, there are up to 32 available)
-
         var defaultCategory = 0x0001,
             redCategory = 0x0002,
             greenCategory = 0x0004,
@@ -1308,7 +1272,6 @@
         Demo.reset();
 
         // create a stack with varying body categories (but these bodies can all collide with each other)
-
         World.add(_world,
             Composites.stack(275, 150, 5, 10, 10, 10, function(x, y, column, row) {
                 var category = redCategory,
@@ -1335,7 +1298,6 @@
         );
 
         // this body will only collide with the walls and the green bodies
-
         World.add(_world,
             Bodies.circle(310, 40, 30, {
                 collisionFilter: {
@@ -1349,7 +1311,6 @@
         );
 
         // this body will only collide with the walls and the red bodies
-
         World.add(_world,
             Bodies.circle(400, 40, 30, {
                 collisionFilter: {
@@ -1363,7 +1324,6 @@
         );
 
         // this body will only collide with the walls and the blue bodies
-
         World.add(_world,
             Bodies.circle(480, 40, 30, {
                 collisionFilter: {
@@ -1377,7 +1337,6 @@
         );
 
         // red category objects should not be draggable with the mouse
-
         _mouseConstraint.collisionFilter.mask = defaultCategory | blueCategory | greenCategory;
 
         var renderOptions = _engine.render.options;

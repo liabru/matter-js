@@ -446,7 +446,6 @@ var Body = {};
                 continue;
 
             // don't update out of world bodies
-            // TODO: viewports
             if (body.bounds.max.x < worldBounds.min.x || body.bounds.min.x > worldBounds.max.x
                 || body.bounds.max.y < worldBounds.min.y || body.bounds.min.y > worldBounds.max.y)
                 continue;

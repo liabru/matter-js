@@ -51,7 +51,7 @@ var MouseConstraint = {};
 
         var mouseConstraint = Common.extend(defaults, options);
 
-        Events.on(engine, 'tick', function(event) {
+        Events.on(engine, 'tick', function() {
             var allBodies = Composite.allBodies(engine.world);
             MouseConstraint.update(mouseConstraint, allBodies);
             _triggerEvents(mouseConstraint);

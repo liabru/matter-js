@@ -17,7 +17,7 @@ var Bodies = {};
     /**
      * Creates a new rigid body model with a rectangle hull. 
      * The options parameter is an object that specifies any properties you wish to override the defaults.
-     * See the properites section of the `Matter.Body` module for detailed information on what you can pass via the `options` object.
+     * See the properties section of the `Matter.Body` module for detailed information on what you can pass via the `options` object.
      * @method rectangle
      * @param {number} x
      * @param {number} y
@@ -48,7 +48,7 @@ var Bodies = {};
     /**
      * Creates a new rigid body model with a trapezoid hull. 
      * The options parameter is an object that specifies any properties you wish to override the defaults.
-     * See the properites section of the `Matter.Body` module for detailed information on what you can pass via the `options` object.
+     * See the properties section of the `Matter.Body` module for detailed information on what you can pass via the `options` object.
      * @method trapezoid
      * @param {number} x
      * @param {number} y
@@ -87,7 +87,7 @@ var Bodies = {};
     /**
      * Creates a new rigid body model with a circle hull. 
      * The options parameter is an object that specifies any properties you wish to override the defaults.
-     * See the properites section of the `Matter.Body` module for detailed information on what you can pass via the `options` object.
+     * See the properties section of the `Matter.Body` module for detailed information on what you can pass via the `options` object.
      * @method circle
      * @param {number} x
      * @param {number} y
@@ -118,7 +118,7 @@ var Bodies = {};
     /**
      * Creates a new rigid body model with a regular polygon hull with the given number of sides. 
      * The options parameter is an object that specifies any properties you wish to override the defaults.
-     * See the properites section of the `Matter.Body` module for detailed information on what you can pass via the `options` object.
+     * See the properties section of the `Matter.Body` module for detailed information on what you can pass via the `options` object.
      * @method polygon
      * @param {number} x
      * @param {number} y

@@ -248,7 +248,6 @@ var SAT = {};
         vertexToBody.y = vertex.y - bodyAPosition.y;
         distance = -Vector.dot(normal, vertexToBody);
         if (distance < nearestDistance) {
-            nearestDistance = distance;
             vertexB = vertex;
         }
 

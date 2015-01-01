@@ -60,7 +60,7 @@ var Vertices = {};
             points = [];
 
         path.replace(pathPattern, function(match, x, y) {
-            points.push({ x: parseFloat(x, 10), y: parseFloat(y, 10) });
+            points.push({ x: parseFloat(x), y: parseFloat(y) });
         });
 
         return Vertices.create(points, body);
@@ -254,8 +254,7 @@ var Vertices = {};
         qualityMin = qualityMin || 2;
         qualityMax = qualityMax || 14;
 
-        var centre = Vertices.centre(vertices),
-            newVertices = [];
+        var newVertices = [];
 
         for (var i = 0; i < vertices.length; i++) {
             var prevVertex = vertices[i - 1 >= 0 ? i - 1 : vertices.length - 1],
