@@ -1,5 +1,5 @@
 /**
-* matter.js 0.8.0-edge 2014-12-28
+* matter.js 0.8.0-edge 2015-01-01
 * http://brm.io/matter-js/
 * License: MIT
 */
@@ -58,7 +58,8 @@ var Body = {};
     Body._inertiaScale = 4;
 
     var _nextCollidingGroupId = 1,
-        _nextNonCollidingGroupId = -1;
+        _nextNonCollidingGroupId = -1,
+        _nextCategory = 0x0001;
 
     /**
      * Creates a new rigid body model. The options parameter is an object that specifies any properties you wish to override the defaults.
@@ -129,6 +130,17 @@ var Body = {};
             return _nextNonCollidingGroupId--;
 
         return _nextCollidingGroupId++;
+    };
+
+    /**
+     * Returns the next unique category bitfield (starting after the initial default category `0x0001`).
+     * There are 32 available. See `body.collisionFilter` for more information.
+     * @method nextCategory
+     * @return {Number} Unique category bitfield
+     */
+    Body.nextCategory = function() {
+        _nextCategory = _nextCategory << 1;
+        return _nextCategory;
     };
 
     /**
@@ -488,7 +500,6 @@ var Body = {};
                 continue;
 
             // don't update out of world bodies
-            // TODO: viewports
             if (body.bounds.max.x < worldBounds.min.x || body.bounds.min.x > worldBounds.max.x
                 || body.bounds.max.y < worldBounds.min.y || body.bounds.min.y > worldBounds.max.y)
                 continue;
@@ -1729,13 +1740,14 @@ var Contact = {};
      * Description
      * @method id
      * @param {vertex} vertex
-     * @return {Number} Unique contactID
+     * @return {string} Unique contactID
      */
     Contact.id = function(vertex) {
         return vertex.body.id + '_' + vertex.index;
     };
 
 })();
+
 
 ;   // End src/collision/Contact.js
 
@@ -2296,7 +2308,7 @@ var Pair = {};
      * @method id
      * @param {body} bodyA
      * @param {body} bodyB
-     * @return {number} Unique pairId
+     * @return {string} Unique pairId
      */
     Pair.id = function(bodyA, bodyB) {
         if (bodyA.id < bodyB.id) {
@@ -2307,6 +2319,7 @@ var Pair = {};
     };
 
 })();
+
 
 ;   // End src/collision/Pair.js
 
@@ -3068,7 +3081,6 @@ var SAT = {};
         vertexToBody.y = vertex.y - bodyAPosition.y;
         distance = -Vector.dot(normal, vertexToBody);
         if (distance < nearestDistance) {
-            nearestDistance = distance;
             vertexB = vertex;
         }
 
@@ -3076,6 +3088,7 @@ var SAT = {};
     };
 
 })();
+
 
 ;   // End src/collision/SAT.js
 
@@ -3520,7 +3533,7 @@ var MouseConstraint = {};
 
         var mouseConstraint = Common.extend(defaults, options);
 
-        Events.on(engine, 'tick', function(event) {
+        Events.on(engine, 'tick', function() {
             var allBodies = Composite.allBodies(engine.world);
             MouseConstraint.update(mouseConstraint, allBodies);
             _triggerEvents(mouseConstraint);
@@ -3699,6 +3712,7 @@ var MouseConstraint = {};
      */
 
 })();
+
 
 ;   // End src/constraint/MouseConstraint.js
 
@@ -4706,7 +4720,6 @@ var Metrics = {};
     Metrics.update = function(metrics, engine) {
         if (metrics.extended) {
             var world = engine.world,
-                broadphase = engine.broadphase[engine.broadphase.current],
                 bodies = Composite.allBodies(world);
 
             metrics.collisions = metrics.narrowDetections;
@@ -4716,12 +4729,14 @@ var Metrics = {};
             metrics.narrowEff = (metrics.narrowDetections / (metrics.narrowphaseTests || 1)).toFixed(2);
             metrics.broadEff = (1 - (metrics.broadphaseTests / (bodies.length || 1))).toFixed(2);
             metrics.narrowReuse = (metrics.narrowReuseCount / (metrics.narrowphaseTests || 1)).toFixed(2);
+            //var broadphase = engine.broadphase[engine.broadphase.current];
             //if (broadphase.instance)
             //    metrics.buckets = Common.keys(broadphase.instance.buckets).length;
         }
     };
 
 })();
+
 
 ;   // End src/core/Metrics.js
 
@@ -4970,7 +4985,7 @@ var Runner = {};
         (function render(time){
             var timing = engine.timing,
                 delta,
-                correction;
+                correction = 1;
 
             timing.frameRequestId = _requestAnimationFrame(render);
 
@@ -5052,6 +5067,7 @@ var Runner = {};
     };
 
 })();
+
 
 ;   // End src/core/Runner.js
 
@@ -5198,7 +5214,7 @@ var Bodies = {};
     /**
      * Creates a new rigid body model with a rectangle hull. 
      * The options parameter is an object that specifies any properties you wish to override the defaults.
-     * See the properites section of the `Matter.Body` module for detailed information on what you can pass via the `options` object.
+     * See the properties section of the `Matter.Body` module for detailed information on what you can pass via the `options` object.
      * @method rectangle
      * @param {number} x
      * @param {number} y
@@ -5229,7 +5245,7 @@ var Bodies = {};
     /**
      * Creates a new rigid body model with a trapezoid hull. 
      * The options parameter is an object that specifies any properties you wish to override the defaults.
-     * See the properites section of the `Matter.Body` module for detailed information on what you can pass via the `options` object.
+     * See the properties section of the `Matter.Body` module for detailed information on what you can pass via the `options` object.
      * @method trapezoid
      * @param {number} x
      * @param {number} y
@@ -5268,7 +5284,7 @@ var Bodies = {};
     /**
      * Creates a new rigid body model with a circle hull. 
      * The options parameter is an object that specifies any properties you wish to override the defaults.
-     * See the properites section of the `Matter.Body` module for detailed information on what you can pass via the `options` object.
+     * See the properties section of the `Matter.Body` module for detailed information on what you can pass via the `options` object.
      * @method circle
      * @param {number} x
      * @param {number} y
@@ -5299,7 +5315,7 @@ var Bodies = {};
     /**
      * Creates a new rigid body model with a regular polygon hull with the given number of sides. 
      * The options parameter is an object that specifies any properties you wish to override the defaults.
-     * See the properites section of the `Matter.Body` module for detailed information on what you can pass via the `options` object.
+     * See the properties section of the `Matter.Body` module for detailed information on what you can pass via the `options` object.
      * @method polygon
      * @param {number} x
      * @param {number} y
@@ -5343,6 +5359,7 @@ var Bodies = {};
     };
 
 })();
+
 
 ;   // End src/factory/Bodies.js
 
@@ -5654,7 +5671,7 @@ var Composites = {};
         particleOptions = Common.extend({ inertia: Infinity }, particleOptions);
         constraintOptions = Common.extend({ stiffness: 0.4 }, constraintOptions);
 
-        var softBody = Composites.stack(xx, yy, columns, rows, columnGap, rowGap, function(x, y, column, row) {
+        var softBody = Composites.stack(xx, yy, columns, rows, columnGap, rowGap, function(x, y) {
             return Bodies.circle(x, y, particleRadius, particleOptions);
         });
 
@@ -6122,7 +6139,7 @@ var Vertices = {};
             points = [];
 
         path.replace(pathPattern, function(match, x, y) {
-            points.push({ x: parseFloat(x, 10), y: parseFloat(y, 10) });
+            points.push({ x: parseFloat(x), y: parseFloat(y) });
         });
 
         return Vertices.create(points, body);
@@ -6316,8 +6333,7 @@ var Vertices = {};
         qualityMin = qualityMin || 2;
         qualityMax = qualityMax || 14;
 
-        var centre = Vertices.centre(vertices),
-            newVertices = [];
+        var newVertices = [];
 
         for (var i = 0; i < vertices.length; i++) {
             var prevVertex = vertices[i - 1 >= 0 ? i - 1 : vertices.length - 1],
@@ -6370,6 +6386,7 @@ var Vertices = {};
     };
 
 })();
+
 
 ;   // End src/geometry/Vertices.js
 
@@ -6729,8 +6746,7 @@ var Render = {};
      */
     Render.bodyShadows = function(engine, bodies, context) {
         var c = context,
-            render = engine.render,
-            options = render.options;
+            render = engine.render;
 
         for (var i = 0; i < bodies.length; i++) {
             var body = bodies[i];
@@ -7018,9 +7034,7 @@ var Render = {};
      * @param {RenderingContext} context
      */
     Render.bodyVelocity = function(engine, bodies, context) {
-        var c = context,
-            render = engine.render,
-            options = render.options;
+        var c = context;
 
         c.beginPath();
 
@@ -7178,7 +7192,6 @@ var Render = {};
     Render.inspector = function(inspector, context) {
         var engine = inspector.engine,
             selected = inspector.selected,
-            c = context,
             render = engine.render,
             options = render.options,
             bounds;
