@@ -42,7 +42,7 @@ var Runner = {};
         (function render(time){
             var timing = engine.timing,
                 delta,
-                correction;
+                correction = 1;
 
             timing.frameRequestId = _requestAnimationFrame(render);
 
