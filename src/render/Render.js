@@ -81,16 +81,6 @@ var Render = {};
     };
 
     /**
-     * Clears the renderer. In this implementation, this is a noop.
-     * @method clear
-     * @param {render} render
-     */
-    Render.clear = function(render) {
-        // nothing required to clear this renderer implentation
-        // if a scene graph is required, clear it here (see RenderPixi.js)
-    };
-
-    /**
      * Sets the pixel ratio of the renderer and updates the canvas.
      * To automatically detect the correct ratio, pass the string `'auto'` for `pixelRatio`.
      * @method setPixelRatio

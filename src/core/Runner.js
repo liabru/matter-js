@@ -100,7 +100,7 @@ var Runner = {};
             Events.trigger(engine, 'tick', event);
 
             // if world has been modified, clear the render scene graph
-            if (engine.world.isModified)
+            if (engine.world.isModified && engine.render.controller.clear)
                 engine.render.controller.clear(engine.render);
 
             // update
