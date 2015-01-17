@@ -67,8 +67,6 @@ var Render = {};
             }
         };
 
-        Render.setBackground(render, render.options.background);
-
         if (render.options.pixelRatio !== 1) {
             Render.setPixelRatio(render, render.options.pixelRatio);
         }
@@ -117,25 +115,6 @@ var Render = {};
     };
 
     /**
-     * Sets the background CSS property of the canvas 
-     * @method setBackground
-     * @param {render} render
-     * @param {string} background
-     */
-    Render.setBackground = function(render, background) {
-        if (render.currentBackground !== background) {
-            var cssBackground = background;
-
-            if (/(jpg|gif|png)$/.test(background))
-                cssBackground = 'url(' + background + ')';
-
-            render.canvas.style.background = cssBackground;
-            render.canvas.style.backgroundSize = "contain";
-            render.currentBackground = background;
-        }
-    };
-
-    /**
      * Renders the given `engine`'s `Matter.World` object.
      * This is the entry point for all rendering and should be called every time the scene changes.
      * @method world
@@ -149,15 +128,14 @@ var Render = {};
             options = render.options,
             allBodies = Composite.allBodies(world),
             allConstraints = Composite.allConstraints(world),
+            background = options.wireframes ? options.wireframeBackground : options.background,
             bodies = [],
             constraints = [],
             i;
 
-        if (options.wireframes) {
-            Render.setBackground(render, options.wireframeBackground);
-        } else {
-            Render.setBackground(render, options.background);
-        }
+        // apply background if it has changed
+        if (render.currentBackground !== background)
+            _applyBackground(render, background);
 
         // clear the canvas with a transparent fill, to allow the canvas background to show
         context.globalCompositeOperation = 'source-in';
@@ -924,6 +902,24 @@ var Render = {};
         image.src = imagePath;
 
         return image;
+    };
+
+    /**
+     * Applies the background to the canvas using CSS.
+     * @method applyBackground
+     * @private
+     * @param {render} render
+     * @param {string} background
+     */
+    var _applyBackground = function(render, background) {
+        var cssBackground = background;
+
+        if (/(jpg|gif|png)$/.test(background))
+            cssBackground = 'url(' + background + ')';
+
+        render.canvas.style.background = cssBackground;
+        render.canvas.style.backgroundSize = "contain";
+        render.currentBackground = background;
     };
 
     /*
