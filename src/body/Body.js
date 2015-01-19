@@ -405,68 +405,6 @@ var Body = {};
     };
 
     /**
-     * Zeroes the `body.force` and `body.torque` force buffers.
-     * @method resetForcesAll
-     * @param {body[]} bodies
-     */
-    Body.resetForcesAll = function(bodies) {
-        for (var i = 0; i < bodies.length; i++) {
-            var body = bodies[i];
-
-            // reset force buffers
-            body.force.x = 0;
-            body.force.y = 0;
-            body.torque = 0;
-        }
-    };
-
-    /**
-     * Applys a mass dependant force to all given bodies.
-     * @method applyGravityAll
-     * @param {body[]} bodies
-     * @param {vector} gravity
-     */
-    Body.applyGravityAll = function(bodies, gravity) {
-        for (var i = 0; i < bodies.length; i++) {
-            var body = bodies[i];
-
-            if (body.isStatic || body.isSleeping)
-                continue;
-
-            // apply gravity
-            body.force.y += body.mass * gravity.y * 0.001;
-            body.force.x += body.mass * gravity.x * 0.001;
-        }
-    };
-
-    /**
-     * Applys `Body.update` to all given `bodies`.
-     * @method updateAll
-     * @param {body[]} bodies
-     * @param {number} deltaTime 
-     * The amount of time elapsed between updates
-     * @param {number} timeScale
-     * @param {number} correction 
-     * The Verlet correction factor (deltaTime / lastDeltaTime)
-     * @param {bounds} worldBounds
-     */
-    Body.updateAll = function(bodies, deltaTime, timeScale, correction, worldBounds) {
-        for (var i = 0; i < bodies.length; i++) {
-            var body = bodies[i];
-
-            if (body.isStatic || body.isSleeping)
-                continue;
-
-            // don't update out of world bodies
-            if (body.bounds.max.x < worldBounds.min.x || body.bounds.min.x > worldBounds.max.x
-                || body.bounds.max.y < worldBounds.min.y || body.bounds.min.y > worldBounds.max.y)
-                continue;
-
-            Body.update(body, deltaTime, timeScale, correction);
-        }
-    };
-
-    /**
      * Performs a simulation step for the given `body`, including updating position and angle using Verlet integration.
      * @method update
      * @param {body} body
