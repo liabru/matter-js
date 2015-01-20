@@ -27,7 +27,8 @@ var Resolver = {};
             vertex,
             vertexCorrected,
             normal,
-            bodyBtoA;
+            bodyBtoA,
+            positionImpulse;
 
         // find impulses required to resolve penetration
         for (i = 0; i < pairs.length; i++) {
