@@ -137,6 +137,7 @@ var Mouse = {};
      * Sets the offset
      * @method setOffset
      * @param {mouse} mouse
+     * @param {offset} offset
      */
     Mouse.setOffset = function(mouse, offset) {
         mouse.offset.x = offset.x;
@@ -149,6 +150,7 @@ var Mouse = {};
      * Sets the scale
      * @method setScale
      * @param {mouse} mouse
+     * @param {scale} scale
      */
     Mouse.setScale = function(mouse, scale) {
         mouse.scale.x = scale.x;
