@@ -198,7 +198,7 @@ var Common = {};
     /**
      * Description
      * @method now
-     * @return {number} the current timestamp (high-res if avaliable)
+     * @return {number} the current timestamp (high-res if available)
      */
     Common.now = function() {
         // http://stackoverflow.com/questions/221294/how-do-you-get-a-timestamp-in-javascript
