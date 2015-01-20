@@ -9,10 +9,10 @@
 * @class Constraint
 */
 
-// TODO: fix instabillity issues with torque
+// TODO: fix instability issues with torque
 // TODO: linked constraints
 // TODO: breakable constraints
-// TODO: collidable constraints
+// TODO: collision constraints
 // TODO: allow constrained bodies to sleep
 // TODO: handle 0 length constraints properly
 // TODO: impulse caching and warming
@@ -27,7 +27,7 @@ var Constraint = {};
     /**
      * Creates a new constraint.
      * All properties have default values, and many are pre-calculated automatically based on other properties.
-     * See the properites section below for detailed information on what you can pass via the `options` object.
+     * See the properties section below for detailed information on what you can pass via the `options` object.
      * @method create
      * @param {} options
      * @return {constraint} constraint
@@ -200,8 +200,8 @@ var Constraint = {};
 
             Sleeping.set(bodyA, false);
             
-            // clamp to prevent instabillity
-            // TODO: solve this properlly
+            // clamp to prevent instability
+            // TODO: solve this properly
             torque = Common.clamp(torque, -0.01, 0.01);
 
             // keep track of applied impulses for post solving
@@ -220,8 +220,8 @@ var Constraint = {};
 
             Sleeping.set(bodyB, false);
             
-            // clamp to prevent instabillity
-            // TODO: solve this properlly
+            // clamp to prevent instability
+            // TODO: solve this properly
             torque = Common.clamp(torque, -0.01, 0.01);
 
             // keep track of applied impulses for post solving
@@ -370,7 +370,7 @@ var Constraint = {};
 
     /**
      * A `Number` that specifies the target resting length of the constraint. 
-     * It is calculated automatically in `Constraint.create` from intial positions of the `constraint.bodyA` and `constraint.bodyB`.
+     * It is calculated automatically in `Constraint.create` from initial positions of the `constraint.bodyA` and `constraint.bodyB`.
      *
      * @property length
      * @type number
