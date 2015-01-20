@@ -191,8 +191,7 @@ var Engine = {};
     /**
      * Renders the world by calling its defined renderer `engine.render.controller`. Triggers `beforeRender` and `afterRender` events.
      * @method render
-     * @param {engine} engineA
-     * @param {engine} engineB
+     * @param {engine} engine
      */
     Engine.render = function(engine) {
         // create an event object
