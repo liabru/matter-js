@@ -172,6 +172,7 @@ var Resolver = {};
      * Description
      * @method solveVelocity
      * @param {pair[]} pairs
+     * @param {timescale} timeScale
      */
     Resolver.solveVelocity = function(pairs, timeScale) {
         var impulse = {},
