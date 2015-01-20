@@ -302,7 +302,7 @@ var Composite = {};
      * Removes all bodies, constraints and composites from the given composite
      * Optionally clearing its children recursively
      * @method clear
-     * @param {world} world
+     * @param {composite} composite
      * @param {boolean} keepStatic
      * @param {boolean} [deep=false]
      */
