@@ -106,7 +106,7 @@ var MouseConstraint = {};
      * Triggers mouse constraint events
      * @method _triggerEvents
      * @private
-     * @param {mouse} mouse
+     * @param {mouse} mouseConstraint
      */
     var _triggerEvents = function(mouseConstraint) {
         var mouse = mouseConstraint.mouse,
