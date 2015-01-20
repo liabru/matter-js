@@ -398,7 +398,7 @@ var RenderPixi = {};
             if (options.wireframes) {
                 primitive.lineStyle(1, Common.colorToNumber('#CD5C5C'), 1);
             } else {
-                primitive.lineStyle(1, Common.colorToNumber(body.render.strokeStyle));
+                primitive.lineStyle(1, Common.colorToNumber(body.render.strokeStyle), 1);
             }
 
             primitive.moveTo(0, 0);
