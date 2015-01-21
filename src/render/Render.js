@@ -74,7 +74,7 @@ var Render = {};
         if (Common.isElement(render.element)) {
             render.element.appendChild(render.canvas);
         } else {
-            Common.log('No "render.element" passed, "render.canvas" was not inserted into document.', 'warn');
+            Common.log('Render.create: options.element was undefined, render.canvas was created but not appended', 'warn');
         }
 
         return render;
