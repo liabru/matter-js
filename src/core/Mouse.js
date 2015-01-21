@@ -16,6 +16,10 @@ var Mouse = {};
      */
     Mouse.create = function(element) {
         var mouse = {};
+
+        if (!element) {
+            Common.log('Mouse.create: element was undefined, defaulting to document.body', 'warn');
+        }
         
         mouse.element = element || document.body;
         mouse.absolute = { x: 0, y: 0 };
@@ -26,7 +30,7 @@ var Mouse = {};
         mouse.scale = { x: 1, y: 1 };
         mouse.wheelDelta = 0;
         mouse.button = -1;
-        mouse.pixelRatio = element.getAttribute('data-pixel-ratio') || 1;
+        mouse.pixelRatio = mouse.element.getAttribute('data-pixel-ratio') || 1;
 
         mouse.sourceEvents = {
             mousemove: null,
