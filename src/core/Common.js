@@ -218,8 +218,9 @@ var Common = {};
             performance.msNow         ||
             performance.oNow          ||
             performance.mozNow        ||
+            window.Date.now                  ||
             function() {
-                return Date.now && Date.now() || new Date().getTime();
+                return new Date().getTime();
             };
         })();
 
