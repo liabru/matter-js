@@ -1,5 +1,5 @@
 /**
-* matter.js 0.8.0-edge 2015-01-01
+* matter.js 0.8.0-edge 2015-01-21
 * http://brm.io/matter-js/
 * License: MIT
 */
@@ -444,68 +444,6 @@ var Body = {};
 
         // update bounds
         Bounds.update(body.bounds, body.vertices, body.velocity);
-    };
-
-    /**
-     * Zeroes the `body.force` and `body.torque` force buffers.
-     * @method resetForcesAll
-     * @param {body[]} bodies
-     */
-    Body.resetForcesAll = function(bodies) {
-        for (var i = 0; i < bodies.length; i++) {
-            var body = bodies[i];
-
-            // reset force buffers
-            body.force.x = 0;
-            body.force.y = 0;
-            body.torque = 0;
-        }
-    };
-
-    /**
-     * Applys a mass dependant force to all given bodies.
-     * @method applyGravityAll
-     * @param {body[]} bodies
-     * @param {vector} gravity
-     */
-    Body.applyGravityAll = function(bodies, gravity) {
-        for (var i = 0; i < bodies.length; i++) {
-            var body = bodies[i];
-
-            if (body.isStatic || body.isSleeping)
-                continue;
-
-            // apply gravity
-            body.force.y += body.mass * gravity.y * 0.001;
-            body.force.x += body.mass * gravity.x * 0.001;
-        }
-    };
-
-    /**
-     * Applys `Body.update` to all given `bodies`.
-     * @method updateAll
-     * @param {body[]} bodies
-     * @param {number} deltaTime 
-     * The amount of time elapsed between updates
-     * @param {number} timeScale
-     * @param {number} correction 
-     * The Verlet correction factor (deltaTime / lastDeltaTime)
-     * @param {bounds} worldBounds
-     */
-    Body.updateAll = function(bodies, deltaTime, timeScale, correction, worldBounds) {
-        for (var i = 0; i < bodies.length; i++) {
-            var body = bodies[i];
-
-            if (body.isStatic || body.isSleeping)
-                continue;
-
-            // don't update out of world bodies
-            if (body.bounds.max.x < worldBounds.min.x || body.bounds.min.x > worldBounds.max.x
-                || body.bounds.max.y < worldBounds.min.y || body.bounds.min.y > worldBounds.max.y)
-                continue;
-
-            Body.update(body, deltaTime, timeScale, correction);
-        }
     };
 
     /**
@@ -3504,7 +3442,14 @@ var MouseConstraint = {};
      * @return {MouseConstraint} A new MouseConstraint
      */
     MouseConstraint.create = function(engine, options) {
-        var mouse = (options && options.mouse) || Mouse.create(engine.render.canvas);
+        var mouse = (engine ? engine.mouse : null) || (options ? options.mouse : null);
+
+        if (!mouse && engine && engine.render && engine.render.canvas) {
+            mouse = Mouse.create(engine.render.canvas);
+        } else {
+            mouse = Mouse.create();
+            Common.log('MouseConstraint.create: options.mouse was undefined, engine.render.canvas was undefined, may not function as expected', 'warn');
+        }
 
         var constraint = Constraint.create({ 
             label: 'Mouse Constraint',
@@ -3974,7 +3919,7 @@ var Common = {};
      * @param {string} type
      */
     Common.log = function(message, type) {
-        if (!console || !console.log)
+        if (!console || !console.log || !console.warn)
             return;
 
         var style;
@@ -3982,15 +3927,13 @@ var Common = {};
         switch (type) {
 
         case 'warn':
-            style = 'color: coral';
+            console.warn('Matter.js:', message);
             break;
         case 'error':
-            style = 'color: red';
+            console.log('Matter.js:', message);
             break;
 
         }
-
-        console.log('%c [Matter] ' + type + ': ' + message, style);
     };
 
     /**
@@ -4145,10 +4088,10 @@ var Engine = {};
             Sleeping.update(allBodies, timing.timeScale);
 
         // applies gravity to all bodies
-        Body.applyGravityAll(allBodies, world.gravity);
+        _bodiesApplyGravity(allBodies, world.gravity);
 
         // update all body position and rotation by integration
-        Body.updateAll(allBodies, delta, timing.timeScale, correction, world.bounds);
+        _bodiesUpdate(allBodies, delta, timing.timeScale, correction, world.bounds);
 
         // update all constraints
         for (i = 0; i < engine.constraintIterations; i++) {
@@ -4212,7 +4155,7 @@ var Engine = {};
         Metrics.update(engine.metrics, engine);
 
         // clear force buffers
-        Body.resetForcesAll(allBodies);
+        _bodiesClearForces(allBodies);
 
         // clear all composite modified flags
         if (world.isModified)
@@ -4279,6 +4222,71 @@ var Engine = {};
             var bodies = Composite.allBodies(world);
             broadphase.controller.clear(broadphase);
             broadphase.controller.update(broadphase, bodies, engine, true);
+        }
+    };
+
+    /**
+     * Zeroes the `body.force` and `body.torque` force buffers.
+     * @method bodiesClearForces
+     * @private
+     * @param {body[]} bodies
+     */
+    var _bodiesClearForces = function(bodies) {
+        for (var i = 0; i < bodies.length; i++) {
+            var body = bodies[i];
+
+            // reset force buffers
+            body.force.x = 0;
+            body.force.y = 0;
+            body.torque = 0;
+        }
+    };
+
+    /**
+     * Applys a mass dependant force to all given bodies.
+     * @method bodiesApplyGravity
+     * @private
+     * @param {body[]} bodies
+     * @param {vector} gravity
+     */
+    var _bodiesApplyGravity = function(bodies, gravity) {
+        for (var i = 0; i < bodies.length; i++) {
+            var body = bodies[i];
+
+            if (body.isStatic || body.isSleeping)
+                continue;
+
+            // apply gravity
+            body.force.y += body.mass * gravity.y * 0.001;
+            body.force.x += body.mass * gravity.x * 0.001;
+        }
+    };
+
+    /**
+     * Applys `Body.update` to all given `bodies`.
+     * @method updateAll
+     * @private
+     * @param {body[]} bodies
+     * @param {number} deltaTime 
+     * The amount of time elapsed between updates
+     * @param {number} timeScale
+     * @param {number} correction 
+     * The Verlet correction factor (deltaTime / lastDeltaTime)
+     * @param {bounds} worldBounds
+     */
+    var _bodiesUpdate = function(bodies, deltaTime, timeScale, correction, worldBounds) {
+        for (var i = 0; i < bodies.length; i++) {
+            var body = bodies[i];
+
+            if (body.isStatic || body.isSleeping)
+                continue;
+
+            // don't update out of world bodies
+            if (body.bounds.max.x < worldBounds.min.x || body.bounds.min.x > worldBounds.max.x
+                || body.bounds.max.y < worldBounds.min.y || body.bounds.min.y > worldBounds.max.y)
+                continue;
+
+            Body.update(body, deltaTime, timeScale, correction);
         }
     };
 
@@ -4761,6 +4769,10 @@ var Mouse = {};
      */
     Mouse.create = function(element) {
         var mouse = {};
+
+        if (!element) {
+            Common.log('Mouse.create: element was undefined, defaulting to document.body', 'warn');
+        }
         
         mouse.element = element || document.body;
         mouse.absolute = { x: 0, y: 0 };
@@ -4771,7 +4783,7 @@ var Mouse = {};
         mouse.scale = { x: 1, y: 1 };
         mouse.wheelDelta = 0;
         mouse.button = -1;
-        mouse.pixelRatio = element.getAttribute('data-pixel-ratio') || 1;
+        mouse.pixelRatio = mouse.element.getAttribute('data-pixel-ratio') || 1;
 
         mouse.sourceEvents = {
             mousemove: null,
@@ -5043,7 +5055,7 @@ var Runner = {};
             Events.trigger(engine, 'tick', event);
 
             // if world has been modified, clear the render scene graph
-            if (engine.world.isModified)
+            if (engine.world.isModified && engine.render.controller.clear)
                 engine.render.controller.clear(engine.render);
 
             // update
@@ -6462,8 +6474,6 @@ var Render = {};
             }
         };
 
-        Render.setBackground(render, render.options.background);
-
         if (render.options.pixelRatio !== 1) {
             Render.setPixelRatio(render, render.options.pixelRatio);
         }
@@ -6471,20 +6481,10 @@ var Render = {};
         if (Common.isElement(render.element)) {
             render.element.appendChild(render.canvas);
         } else {
-            Common.log('No "render.element" passed, "render.canvas" was not inserted into document.', 'warn');
+            Common.log('Render.create: options.element was undefined, render.canvas was created but not appended', 'warn');
         }
 
         return render;
-    };
-
-    /**
-     * Clears the renderer. In this implementation, this is a noop.
-     * @method clear
-     * @param {render} render
-     */
-    Render.clear = function(render) {
-        // nothing required to clear this renderer implentation
-        // if a scene graph is required, clear it here (see RenderPixi.js)
     };
 
     /**
@@ -6512,25 +6512,6 @@ var Render = {};
     };
 
     /**
-     * Sets the background CSS property of the canvas 
-     * @method setBackground
-     * @param {render} render
-     * @param {string} background
-     */
-    Render.setBackground = function(render, background) {
-        if (render.currentBackground !== background) {
-            var cssBackground = background;
-
-            if (/(jpg|gif|png)$/.test(background))
-                cssBackground = 'url(' + background + ')';
-
-            render.canvas.style.background = cssBackground;
-            render.canvas.style.backgroundSize = "contain";
-            render.currentBackground = background;
-        }
-    };
-
-    /**
      * Renders the given `engine`'s `Matter.World` object.
      * This is the entry point for all rendering and should be called every time the scene changes.
      * @method world
@@ -6544,15 +6525,14 @@ var Render = {};
             options = render.options,
             allBodies = Composite.allBodies(world),
             allConstraints = Composite.allConstraints(world),
+            background = options.wireframes ? options.wireframeBackground : options.background,
             bodies = [],
             constraints = [],
             i;
 
-        if (options.wireframes) {
-            Render.setBackground(render, options.wireframeBackground);
-        } else {
-            Render.setBackground(render, options.background);
-        }
+        // apply background if it has changed
+        if (render.currentBackground !== background)
+            _applyBackground(render, background);
 
         // clear the canvas with a transparent fill, to allow the canvas background to show
         context.globalCompositeOperation = 'source-in';
@@ -7319,6 +7299,24 @@ var Render = {};
         image.src = imagePath;
 
         return image;
+    };
+
+    /**
+     * Applies the background to the canvas using CSS.
+     * @method applyBackground
+     * @private
+     * @param {render} render
+     * @param {string} background
+     */
+    var _applyBackground = function(render, background) {
+        var cssBackground = background;
+
+        if (/(jpg|gif|png)$/.test(background))
+            cssBackground = 'url(' + background + ')';
+
+        render.canvas.style.background = cssBackground;
+        render.canvas.style.backgroundSize = "contain";
+        render.currentBackground = background;
     };
 
     /*
