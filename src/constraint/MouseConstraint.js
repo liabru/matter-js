@@ -22,7 +22,14 @@ var MouseConstraint = {};
      * @return {MouseConstraint} A new MouseConstraint
      */
     MouseConstraint.create = function(engine, options) {
-        var mouse = (options && options.mouse) || Mouse.create(engine.render.canvas);
+        var mouse = (engine ? engine.mouse : null) || (options ? options.mouse : null);
+
+        if (!mouse && engine && engine.render && engine.render.canvas) {
+            mouse = Mouse.create(engine.render.canvas);
+        } else {
+            mouse = Mouse.create();
+            Common.log('MouseConstraint.create: options.mouse was undefined, engine.render.canvas was undefined, may not function as expected', 'warn');
+        }
 
         var constraint = Constraint.create({ 
             label: 'Mouse Constraint',
