@@ -51,7 +51,7 @@ var Common = {};
                 }
             }
         }
-        
+
         return obj;
     };
 
@@ -91,7 +91,7 @@ var Common = {};
      */
     Common.values = function(obj) {
         var values = [];
-        
+
         if (Object.keys) {
             var keys = Object.keys(obj);
             for (var i = 0; i < keys.length; i++) {
@@ -99,7 +99,7 @@ var Common = {};
             }
             return values;
         }
-        
+
         // avoid hasOwnProperty for performance
         for (var key in obj)
             values.push(obj[key]);
@@ -113,15 +113,15 @@ var Common = {};
      * @param {number} percent
      * @return {string} A hex colour string made by lightening or darkening color by percent
      */
-    Common.shadeColor = function(color, percent) {   
+    Common.shadeColor = function(color, percent) {
         // http://stackoverflow.com/questions/5560248/programmatically-lighten-or-darken-a-hex-color
-        var colorInteger = parseInt(color.slice(1),16), 
-            amount = Math.round(2.55 * percent), 
-            R = (colorInteger >> 16) + amount, 
-            B = (colorInteger >> 8 & 0x00FF) + amount, 
+        var colorInteger = parseInt(color.slice(1),16),
+            amount = Math.round(2.55 * percent),
+            R = (colorInteger >> 16) + amount,
+            B = (colorInteger >> 8 & 0x00FF) + amount,
             G = (colorInteger & 0x0000FF) + amount;
-        return "#" + (0x1000000 + (R < 255 ? R < 1 ? 0 : R :255) * 0x10000 
-                + (B < 255 ? B < 1 ? 0 : B : 255) * 0x100 
+        return "#" + (0x1000000 + (R < 255 ? R < 1 ? 0 : R :255) * 0x10000
+                + (B < 255 ? B < 1 ? 0 : B : 255) * 0x100
                 + (G < 255 ? G < 1 ? 0 : G : 255)).toString(16).slice(1);
     };
 
@@ -168,7 +168,7 @@ var Common = {};
               (typeof obj.ownerDocument ==="object");
         }
     };
-    
+
     /**
      * Description
      * @method clamp
@@ -184,7 +184,7 @@ var Common = {};
             return max;
         return value;
     };
-    
+
     /**
      * Description
      * @method sign
@@ -194,7 +194,7 @@ var Common = {};
     Common.sign = function(value) {
         return value < 0 ? -1 : 1;
     };
-    
+
     /**
      * Description
      * @method now
@@ -218,13 +218,15 @@ var Common = {};
             performance.msNow         ||
             performance.oNow          ||
             performance.mozNow        ||
-            function() { return new Date().getTime(); };
+            function() {
+                return Date.now && Date.now() || new Date().getTime();
+            };
         })();
 
         return performance.now();
     };
 
-    
+
     /**
      * Description
      * @method random
