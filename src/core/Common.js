@@ -253,7 +253,7 @@ var Common = {};
      * @param {string} type
      */
     Common.log = function(message, type) {
-        if (!console || !console.log)
+        if (!console || !console.log || !console.warn)
             return;
 
         var style;
@@ -261,15 +261,13 @@ var Common = {};
         switch (type) {
 
         case 'warn':
-            style = 'color: coral';
+            console.warn('Matter.js:', message);
             break;
         case 'error':
-            style = 'color: red';
+            console.log('Matter.js:', message);
             break;
 
         }
-
-        console.log('%c [Matter] ' + type + ': ' + message, style);
     };
 
     /**
