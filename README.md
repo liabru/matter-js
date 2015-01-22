@@ -10,37 +10,50 @@
 
 ### Demos
 
-- [Mixed Shapes](http://brm.io/matter-js-demo#mixed)
-- [Solid Shapes](http://brm.io/matter-js-demo#mixedSolid)
-- [Newton's Cradle](http://brm.io/matter-js-demo#newtonsCradle)
-- [Wrecking Ball](http://brm.io/matter-js-demo#wreckingBall)
-- [Slingshot Game](http://brm.io/matter-js-demo#slingshot)
-- [Rounded Corners (Chamfering)](http://brm.io/matter-js-demo#rounded)
-- [Views](http://brm.io/matter-js-demo/#views)
-- [Time Scaling](http://brm.io/matter-js-demo/#timescale)
-- [Raycasting](http://brm.io/matter-js-demo/#raycasting)
-- [Sprites](http://brm.io/matter-js-demo/#sprites)
-- [Pyramid](http://brm.io/matter-js-demo#pyramid)
-- [Car](http://brm.io/matter-js-demo#car)
-- [Catapult](http://brm.io/matter-js-demo#catapult)
-- [Reverse Gravity](http://brm.io/matter-js-demo#gravity)
-- [Bridge](http://brm.io/matter-js-demo#bridge)
-- [Avalanche](http://brm.io/matter-js-demo#avalanche)
-- [Basic Soft Bodies](http://brm.io/matter-js-demo#softBody)
-- [Cloth](http://brm.io/matter-js-demo#cloth)
-- [Events](http://brm.io/matter-js-demo/#events)
-- [Chains](http://brm.io/matter-js-demo#chains)
-- [Ball Pool](http://brm.io/matter-js-demo#ballPool)
-- [Stack](http://brm.io/matter-js-demo#stack)
-- [Circle Stack](http://brm.io/matter-js-demo#circleStack)
-- [Restitution](http://brm.io/matter-js-demo#restitution)
-- [Friction](http://brm.io/matter-js-demo#friction)
-- [Air Friction](http://brm.io/matter-js-demo#airFriction)
-- [Sleeping](http://brm.io/matter-js-demo#sleeping)
-- [Grid Broadphase](http://brm.io/matter-js-demo#broadphase)
-- [Beach Balls](http://brm.io/matter-js-demo#beachBalls)
-- [Stress 1](http://brm.io/matter-js-demo#stress)
-- [Stress 2](http://brm.io/matter-js-demo#stress2)
+<table>
+  <tr>
+    <td>
+      <ul>
+        <li><a href="http://brm.io/matter-js-demo#mixed">Mixed Shapes</a></li>
+        <li><a href="http://brm.io/matter-js-demo#mixedSolid">Solid Shapes</a></li>
+        <li><a href="http://brm.io/matter-js-demo#newtonsCradle">Newton's Cradle</a></li>
+        <li><a href="http://brm.io/matter-js-demo#wreckingBall">Wrecking Ball</a></li>
+        <li><a href="http://brm.io/matter-js-demo#slingshot">Slingshot Game</a></li>
+        <li><a href="http://brm.io/matter-js-demo#rounded">Rounded Corners</a></li>
+        <li><a href="http://brm.io/matter-js-demo/#views">Views</a></li>
+        <li><a href="http://brm.io/matter-js-demo/#timescale">Time Scaling</a></li>
+        <li><a href="http://brm.io/matter-js-demo/#raycasting">Raycasting</a></li>
+        <li><a href="http://brm.io/matter-js-demo/#sprites">Sprites</a></li>
+        <li><a href="http://brm.io/matter-js-demo#pyramid">Pyramid</a></li>
+        <li><a href="http://brm.io/matter-js-demo#car">Car</a></li>
+        <li><a href="http://brm.io/matter-js-demo#catapult">Catapult</a></li>
+        <li><a href="http://brm.io/matter-js-demo#gravity">Reverse Gravity</a></li>
+        <li><a href="http://brm.io/matter-js-demo#bridge">Bridge</a></li>
+        <li><a href="http://brm.io/matter-js-demo#avalanche">Avalanche</a></li>
+      </ul>
+    </td>
+    <td>
+      <ul>
+        <li><a href="http://brm.io/matter-js-demo#softBody">Basic Soft Bodies</a></li>
+        <li><a href="http://brm.io/matter-js-demo#cloth">Cloth</a></li>
+        <li><a href="http://brm.io/matter-js-demo/#events">Events</a></li>
+        <li><a href="http://brm.io/matter-js-demo#chains">Chains</a></li>
+        <li><a href="http://brm.io/matter-js-demo#ballPool">Ball Pool</a></li>
+        <li><a href="http://brm.io/matter-js-demo#stack">Stack</a></li>
+        <li><a href="http://brm.io/matter-js-demo#circleStack">Circle Stack</a></li>
+        <li><a href="http://brm.io/matter-js-demo#restitution">Restitution</a></li>
+        <li><a href="http://brm.io/matter-js-demo#friction">Friction</a></li>
+        <li><a href="http://brm.io/matter-js-demo#airFriction">Air Friction</a></li>
+        <li><a href="http://brm.io/matter-js-demo#sleeping">Sleeping</a></li>
+        <li><a href="http://brm.io/matter-js-demo#broadphase">Grid Broadphase</a></li>
+        <li><a href="http://brm.io/matter-js-demo#beachBalls">Beach Balls</a></li>
+        <li><a href="http://brm.io/matter-js-demo#stress">Stress 1</a></li>
+        <li><a href="http://brm.io/matter-js-demo#stress2">Stress 2</a></li>
+      </ul>
+      <br>
+    </td>
+  </tr>
+</table>
 
 ### Features
 
@@ -70,11 +83,9 @@
 
 ### Install
 
-Download the [latest release](https://github.com/liabru/matter-js/releases) and include the script in your web page:
+Download the [edge build (master)](https://github.com/liabru/matter-js/blob/master/build/matter.js) or get a [stable release](https://github.com/liabru/matter-js/releases) and include the script in your web page:
 
-    <script src="matter-0.8.0.js" type="text/javascript"></script>
-
-For the latest features try the [edge version (master)](https://raw.github.com/liabru/matter-js/master/build/matter.js), but it may not be fully stable.
+    <script src="matter.js" type="text/javascript"></script>
 
 You can also install using the package managers [Bower](http://bower.io/search/?q=matter-js) and [NPM](https://www.npmjs.org/package/matter-js).
 
@@ -85,12 +96,15 @@ You can also install using the package managers [Bower](http://bower.io/search/?
 
 See the [Getting started](https://github.com/liabru/matter-js/wiki/Getting-started) wiki page for a minimal usage example.
 
+Matter.js includes a sample renderer, but this is optional and it's easy to use your own.<br>
+See the [Rendering](https://github.com/liabru/matter-js/wiki/Rendering) wiki page for information, including on how to use your own custom game loop.
+
 Check out the [demo page](http://brm.io/matter-js-demo/) for more examples and then refer to [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) to see how they work. Some of the demos are also available on [codepen](http://codepen.io/collection/Fuagy/), where you can easily experiment with them.
 
 ### Documentation
 
-See the [Matter.js API Docs (v0.8.0)](http://brm.io/matter-js-docs/).
-<br>If you're using the [edge version (master)](https://raw2.github.com/liabru/matter-js/master/build/matter.js) then see the [API Docs (master)](http://brm.io/matter-js-docs-master/).
+Edge build documentation is at [Matter.js API Docs (master)](http://brm.io/matter-js-docs-master/)<br>
+Stable release documentation is at [Matter.js API Docs (v0.8.0)](http://brm.io/matter-js-docs-master/)
 
 ### Status
 
