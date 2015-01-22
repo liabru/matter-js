@@ -95,6 +95,12 @@ module.exports = function(grunt) {
           linkNatives: true
         }
       }
+    },
+    jasmine : {
+      src : ['src/**/*.js', '!src/module/*'],
+      options : {
+        specs : 'spec/**/*.js'
+      }
     }
   });
 
@@ -105,9 +111,10 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-contrib-yuidoc');
+  grunt.loadNpmTasks('grunt-contrib-jasmine');
 
   grunt.registerTask('default', ['test', 'build']);
-  grunt.registerTask('test', ['jshint']);
+  grunt.registerTask('test', ['jshint', 'jasmine']);
   grunt.registerTask('dev', ['build:dev', 'connect:watch', 'watch']);
 
   grunt.registerTask('build', function(mode) {
@@ -145,7 +152,7 @@ module.exports = function(grunt) {
 
     if (isEdge)
       grunt.config.set('docVersion', 'edge version (master)');
-    
+
     grunt.task.run('yuidoc');
   });
 
