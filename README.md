@@ -104,7 +104,7 @@ Check out the [demo page](http://brm.io/matter-js-demo/) for more examples and t
 ### Documentation
 
 Edge build documentation is at [Matter.js API Docs (master)](http://brm.io/matter-js-docs-master/)<br>
-Stable release documentation is at [Matter.js API Docs (v0.8.0)](http://brm.io/matter-js-docs-master/)
+Stable release documentation is at [Matter.js API Docs (v0.8.0)](http://brm.io/matter-js-docs/)
 
 ### Status
 
