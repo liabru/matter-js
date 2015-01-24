@@ -16,6 +16,17 @@ var Vector = {};
 (function() {
 
     /**
+     * Creates a new vector.
+     * @method create
+     * @param {number} x
+     * @param {number} y
+     * @return {vector} A new vector
+     */
+    Vector.create = function(x, y) {
+        return { x: x || 0, y: y || 0 };
+    };
+
+    /**
      * Returns a new vector with `x` and `y` copied from the given `vector`.
      * @method clone
      * @param {vector} vector
