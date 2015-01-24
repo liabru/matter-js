@@ -27,7 +27,10 @@ var Resolver = {};
             vertex,
             vertexCorrected,
             normal,
-            bodyBtoA;
+            bodyBtoA,
+            tempA = Vector._temp[0],
+            tempB = Vector._temp[1],
+            tempC = Vector._temp[2];
 
         // find impulses required to resolve penetration
         for (i = 0; i < pairs.length; i++) {
@@ -43,9 +46,10 @@ var Resolver = {};
             vertexCorrected = collision.supportCorrected;
             normal = collision.normal;
 
+
             // get current separation between body edges involved in collision
-            bodyBtoA = Vector.sub(Vector.add(bodyB.positionImpulse, vertex), 
-                                    Vector.add(bodyA.positionImpulse, vertexCorrected));
+            bodyBtoA = Vector.sub(Vector.add(bodyB.positionImpulse, vertex, tempA), 
+                                    Vector.add(bodyA.positionImpulse, vertexCorrected, tempB), tempC);
 
             pair.separation = Vector.dot(normal, bodyBtoA);
         }
@@ -110,8 +114,7 @@ var Resolver = {};
      * @param {pair[]} pairs
      */
     Resolver.preSolveVelocity = function(pairs) {
-        var impulse = {},
-            i,
+        var i,
             j,
             pair,
             contacts,
@@ -124,7 +127,9 @@ var Resolver = {};
             contactVertex,
             normalImpulse,
             tangentImpulse,
-            offset;
+            offset,
+            impulse = Vector._temp[0],
+            tempA = Vector._temp[1];
         
         for (i = 0; i < pairs.length; i++) {
             pair = pairs[i];
@@ -152,14 +157,14 @@ var Resolver = {};
                 
                 // apply impulse from contact
                 if (!(bodyA.isStatic || bodyA.isSleeping)) {
-                    offset = Vector.sub(contactVertex, bodyA.position);
+                    offset = Vector.sub(contactVertex, bodyA.position, tempA);
                     bodyA.positionPrev.x += impulse.x * bodyA.inverseMass;
                     bodyA.positionPrev.y += impulse.y * bodyA.inverseMass;
                     bodyA.anglePrev += Vector.cross(offset, impulse) * bodyA.inverseInertia;
                 }
 
                 if (!(bodyB.isStatic || bodyB.isSleeping)) {
-                    offset = Vector.sub(contactVertex, bodyB.position);
+                    offset = Vector.sub(contactVertex, bodyB.position, tempA);
                     bodyB.positionPrev.x -= impulse.x * bodyB.inverseMass;
                     bodyB.positionPrev.y -= impulse.y * bodyB.inverseMass;
                     bodyB.anglePrev -= Vector.cross(offset, impulse) * bodyB.inverseInertia;
@@ -174,8 +179,13 @@ var Resolver = {};
      * @param {pair[]} pairs
      */
     Resolver.solveVelocity = function(pairs, timeScale) {
-        var impulse = {},
-            timeScaleSquared = timeScale * timeScale;
+        var timeScaleSquared = timeScale * timeScale,
+            impulse = Vector._temp[0],
+            tempA = Vector._temp[1],
+            tempB = Vector._temp[2],
+            tempC = Vector._temp[3],
+            tempD = Vector._temp[4],
+            tempE = Vector._temp[5];
         
         for (var i = 0; i < pairs.length; i++) {
             var pair = pairs[i];
@@ -203,11 +213,11 @@ var Resolver = {};
             for (var j = 0; j < contacts.length; j++) {
                 var contact = contacts[j],
                     contactVertex = contact.vertex,
-                    offsetA = Vector.sub(contactVertex, bodyA.position),
-                    offsetB = Vector.sub(contactVertex, bodyB.position),
-                    velocityPointA = Vector.add(bodyA.velocity, Vector.mult(Vector.perp(offsetA), bodyA.angularVelocity)),
-                    velocityPointB = Vector.add(bodyB.velocity, Vector.mult(Vector.perp(offsetB), bodyB.angularVelocity)), 
-                    relativeVelocity = Vector.sub(velocityPointA, velocityPointB),
+                    offsetA = Vector.sub(contactVertex, bodyA.position, tempA),
+                    offsetB = Vector.sub(contactVertex, bodyB.position, tempB),
+                    velocityPointA = Vector.add(bodyA.velocity, Vector.mult(Vector.perp(offsetA), bodyA.angularVelocity), tempC),
+                    velocityPointB = Vector.add(bodyB.velocity, Vector.mult(Vector.perp(offsetB), bodyB.angularVelocity), tempD), 
+                    relativeVelocity = Vector.sub(velocityPointA, velocityPointB, tempE),
                     normalVelocity = Vector.dot(normal, relativeVelocity);
 
                 var tangentVelocity = Vector.dot(tangent, relativeVelocity),

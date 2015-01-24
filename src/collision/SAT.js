@@ -145,8 +145,8 @@ var SAT = {};
      * @return result
      */
     var _overlapAxes = function(verticesA, verticesB, axes) {
-        var projectionA = {}, 
-            projectionB = {},
+        var projectionA = Vector._temp[0], 
+            projectionB = Vector._temp[1],
             result = { overlap: Number.MAX_VALUE },
             overlap,
             axis;
@@ -213,7 +213,7 @@ var SAT = {};
      */
     var _findSupports = function(bodyA, bodyB, normal) {
         var nearestDistance = Number.MAX_VALUE,
-            vertexToBody = { x: 0, y: 0 },
+            vertexToBody = Vector._temp[0],
             vertices = bodyB.vertices,
             bodyAPosition = bodyA.position,
             distance,

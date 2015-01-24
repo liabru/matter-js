@@ -127,10 +127,14 @@ var Vector = {};
      * @method add
      * @param {vector} vectorA
      * @param {vector} vectorB
+     * @param {vector} [output]
      * @return {vector} A new vector of vectorA and vectorB added
      */
-    Vector.add = function(vectorA, vectorB) {
-        return { x: vectorA.x + vectorB.x, y: vectorA.y + vectorB.y };
+    Vector.add = function(vectorA, vectorB, output) {
+        if (!output) output = {};
+        output.x = vectorA.x + vectorB.x;
+        output.y = vectorA.y + vectorB.y;
+        return output;
     };
 
     /**
@@ -138,10 +142,14 @@ var Vector = {};
      * @method sub
      * @param {vector} vectorA
      * @param {vector} vectorB
+     * @param {vector} [output]
      * @return {vector} A new vector of vectorA and vectorB subtracted
      */
-    Vector.sub = function(vectorA, vectorB) {
-        return { x: vectorA.x - vectorB.x, y: vectorA.y - vectorB.y };
+    Vector.sub = function(vectorA, vectorB, output) {
+        if (!output) output = {};
+        output.x = vectorA.x - vectorB.x;
+        output.y = vectorA.y - vectorB.y;
+        return output;
     };
 
     /**
@@ -198,5 +206,15 @@ var Vector = {};
     Vector.angle = function(vectorA, vectorB) {
         return Math.atan2(vectorB.y - vectorA.y, vectorB.x - vectorA.x);
     };
+
+    /**
+     * Temporary vector pool (not thread-safe).
+     * @property _temp
+     * @type {vector[]}
+     * @private
+     */
+    Vector._temp = [Vector.create(), Vector.create(), 
+                    Vector.create(), Vector.create(), 
+                    Vector.create(), Vector.create()];
 
 })();
