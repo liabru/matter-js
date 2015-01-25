@@ -19,9 +19,12 @@ var Detector = {};
      */
     Detector.collisions = function(broadphasePairs, engine) {
         var collisions = [],
-            metrics = engine.metrics,
             pairsTable = engine.pairs.table;
 
+        // @if DEBUG
+        var metrics = engine.metrics;
+        // @endif
+        
         for (var i = 0; i < broadphasePairs.length; i++) {
             var bodyA = broadphasePairs[i][0], 
                 bodyB = broadphasePairs[i][1];
@@ -32,7 +35,9 @@ var Detector = {};
             if (!Detector.canCollide(bodyA.collisionFilter, bodyB.collisionFilter))
                 continue;
 
+            // @if DEBUG
             metrics.midphaseTests += 1;
+            // @endif
 
             // mid phase
             if (Bounds.overlaps(bodyA.bounds, bodyB.bounds)) {
@@ -51,14 +56,17 @@ var Detector = {};
                 // narrow phase
                 var collision = SAT.collides(bodyA, bodyB, previousCollision);
 
+                // @if DEBUG
                 metrics.narrowphaseTests += 1;
-
                 if (collision.reused)
                     metrics.narrowReuseCount += 1;
+                // @endif
 
                 if (collision.collided) {
                     collisions.push(collision);
+                    // @if DEBUG
                     metrics.narrowDetections += 1;
+                    // @endif
                 }
             }
         }
@@ -75,8 +83,11 @@ var Detector = {};
      */
     Detector.bruteForce = function(bodies, engine) {
         var collisions = [],
-            metrics = engine.metrics,
             pairsTable = engine.pairs.table;
+
+        // @if DEBUG
+        var metrics = engine.metrics;
+        // @endif
 
         for (var i = 0; i < bodies.length; i++) {
             for (var j = i + 1; j < bodies.length; j++) {
@@ -91,7 +102,9 @@ var Detector = {};
                 if (!Detector.canCollide(bodyA.collisionFilter, bodyB.collisionFilter))
                     continue;
 
+                // @if DEBUG
                 metrics.midphaseTests += 1;
+                // @endif
 
                 // mid phase
                 if (Bounds.overlaps(bodyA.bounds, bodyB.bounds)) {
@@ -110,14 +123,17 @@ var Detector = {};
                     // narrow phase
                     var collision = SAT.collides(bodyA, bodyB, previousCollision);
 
+                    // @if DEBUG
                     metrics.narrowphaseTests += 1;
-
                     if (collision.reused)
                         metrics.narrowReuseCount += 1;
+                    // @endif
 
                     if (collision.collided) {
                         collisions.push(collision);
+                        // @if DEBUG
                         metrics.narrowDetections += 1;
+                        // @endif
                     }
                 }
             }

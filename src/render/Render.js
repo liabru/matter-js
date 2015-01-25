@@ -232,6 +232,7 @@ var Render = {};
             var text = "";
             text += "fps: " + Math.round(engine.timing.fps) + space;
 
+            // @if DEBUG
             if (engine.metrics.extended) {
                 text += "delta: " + engine.timing.delta.toFixed(3) + space;
                 text += "correction: " + engine.timing.correction.toFixed(3) + space;
@@ -247,7 +248,8 @@ var Render = {};
                 text += "broad: " + engine.metrics.broadEff + space;
                 text += "mid: " + engine.metrics.midEff + space;
                 text += "narrow: " + engine.metrics.narrowEff + space;
-            }            
+            }
+            // @endif            
 
             render.debugString = text;
             render.debugTimestamp = engine.timing.timestamp;

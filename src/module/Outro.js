@@ -25,7 +25,6 @@ Matter.Constraint = Constraint;
 Matter.MouseConstraint = MouseConstraint;
 Matter.Common = Common;
 Matter.Engine = Engine;
-Matter.Metrics = Metrics;
 Matter.Mouse = Mouse;
 Matter.Sleeping = Sleeping;
 Matter.Bodies = Bodies;
@@ -39,6 +38,10 @@ Matter.RenderPixi = RenderPixi;
 Matter.Events = Events;
 Matter.Query = Query;
 Matter.Runner = Runner;
+
+// @if DEBUG
+Matter.Metrics = Metrics;
+// @endif
 
 // CommonJS module
 if (typeof exports !== 'undefined') {

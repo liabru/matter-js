@@ -1,7 +1,7 @@
+// @if DEBUG
 /**
 * _Internal Class_, not generally used outside of the engine's internals.
 *
-* @class Metrics
 */
 
 var Metrics = {};
@@ -11,6 +11,7 @@ var Metrics = {};
     /**
      * Description
      * @method create
+     * @private
      * @return {metrics} A new metrics
      */
     Metrics.create = function() {
@@ -35,6 +36,7 @@ var Metrics = {};
     /**
      * Description
      * @method reset
+     * @private
      * @param {metrics} metrics
      */
     Metrics.reset = function(metrics) {
@@ -58,6 +60,7 @@ var Metrics = {};
     /**
      * Description
      * @method update
+     * @private
      * @param {metrics} metrics
      * @param {engine} engine
      */
@@ -80,3 +83,4 @@ var Metrics = {};
     };
 
 })();
+// @endif

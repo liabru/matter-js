@@ -63,8 +63,12 @@ var Engine = {};
         engine.render = engine.render.controller.create(engine.render);
         engine.world = World.create(engine.world);
         engine.pairs = Pairs.create();
-        engine.metrics = engine.metrics || Metrics.create();
         engine.broadphase = engine.broadphase.controller.create(engine.broadphase);
+        engine.metrics = engine.metrics || { extended: false };
+
+        // @if DEBUG
+        engine.metrics = engine.metrics || Metrics.create();
+        // @endif
 
         return engine;
     };
@@ -102,8 +106,10 @@ var Engine = {};
         var allBodies = Composite.allBodies(world),
             allConstraints = Composite.allConstraints(world);
 
+        // @if DEBUG
         // reset metrics logging
         Metrics.reset(engine.metrics);
+        // @endif
 
         // if sleeping enabled, call the sleeping controller
         if (engine.enableSleeping)
@@ -173,8 +179,10 @@ var Engine = {};
         if (pairs.collisionEnd.length > 0)
             Events.trigger(engine, 'collisionEnd', { pairs: pairs.collisionEnd });
 
+        // @if DEBUG
         // update metrics log
         Metrics.update(engine.metrics, engine);
+        // @endif
 
         // clear force buffers
         _bodiesClearForces(allBodies);

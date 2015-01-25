@@ -95,6 +95,18 @@ module.exports = function(grunt) {
           linkNatives: true
         }
       }
+    },
+    preprocess: {
+      options: {
+        inline: true,
+        context : {
+          DEBUG: false
+        }
+      },
+      js: {
+        src: 'build/<%= buildName %>.js',
+        dest: 'build/<%= buildName %>.js'
+      }
     }
   });
 
@@ -105,6 +117,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-contrib-yuidoc');
+  grunt.loadNpmTasks('grunt-preprocess');
 
   grunt.registerTask('default', ['test', 'build']);
   grunt.registerTask('test', ['jshint']);
@@ -134,7 +147,7 @@ module.exports = function(grunt) {
     // edge build mode (default)
     if (isEdge || (!isDev && !isRelease)) {
       grunt.config.set('buildVersion', pkg.version + '-edge');
-      grunt.task.run('concat', 'uglify:min');
+      grunt.task.run('concat', 'preprocess', 'uglify:min');
     }
   });
 
