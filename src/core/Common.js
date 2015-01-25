@@ -256,8 +256,6 @@ var Common = {};
         if (!console || !console.log || !console.warn)
             return;
 
-        var style;
-
         switch (type) {
 
         case 'warn':

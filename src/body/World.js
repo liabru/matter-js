@@ -9,6 +9,7 @@
 * and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
 *
 * @class World
+* @extends Composite
 */
 
 var World = {};
