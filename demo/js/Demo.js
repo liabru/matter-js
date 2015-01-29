@@ -117,6 +117,54 @@
         var renderOptions = _engine.render.options;
     };
 
+    Demo.concave = function() {
+        var _world = _engine.world;
+
+        Demo.reset();
+
+        var s = 50;
+        //var vertices = [{ x: 0, y: 0 }, { x: 0, y: 2 * s }, 
+        //                { x: 1 * s, y: 2 * s }, { x: 1 * s, y: 1 * s },
+        //                { x: 2 * s, y: 1 * s }, { x: 2 * s, y: 0 }];
+
+        //var vertices = Matter.Vertices.fromPath('-5 78,70 126,57 195,114 139,191 201,161 136,217 83,151 83,122 -1,82 85');
+
+        var partA = Bodies.rectangle(200, 200, 200, 20);
+        var partB = Bodies.rectangle(200, 200, 20, 200);
+        var middle = Bodies.rectangle(200, 200, 20, 20);
+        //var parent = Bodies.rectangle(200, 200, 200, 200);
+
+        var vertices = Matter.Vertices.create(partA.vertices.concat(partB.vertices.concat(middle.vertices)), true);
+        Matter.Vertices.clockwiseSort(vertices);
+
+        //debugger;
+
+        var hull = Matter.Vertices.hull(vertices);
+
+        console.log(vertices);
+        console.log(hull);
+
+        var parent = Body.create({
+            position: { x: 200, y: 200 },
+            vertices: hull
+        });
+
+        //debugger;
+
+        partA.parent = parent;
+        partB.parent = parent;
+
+        parent.parts = [parent, partA, partB];
+
+        World.add(_world, parent);
+
+        _world.gravity.y = 0;
+        
+        var renderOptions = _engine.render.options;
+        renderOptions.showCollisions = true;
+        renderOptions.showBounds = true;
+    };
+
     Demo.slingshot = function() {
         var _world = _engine.world;
 

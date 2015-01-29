@@ -249,15 +249,18 @@ var Constraint = {};
                 impulse = body.constraintImpulse;
 
             // update geometry and reset
-            Vertices.translate(body.vertices, impulse);
+            for (var j = 0; j < body.parts.length; j++) {
+                var part = body.parts[j];
+                Vertices.translate(part.vertices, impulse);
 
-            if (impulse.angle !== 0) {
-                Vertices.rotate(body.vertices, impulse.angle, body.position);
-                Axes.rotate(body.axes, impulse.angle);
-                impulse.angle = 0;
+                if (impulse.angle !== 0) {
+                    Vertices.rotate(part.vertices, impulse.angle, body.position);
+                    Axes.rotate(part.axes, impulse.angle);
+                    impulse.angle = 0;
+                }
+
+                Bounds.update(part.bounds, body.vertices);
             }
-
-            Bounds.update(body.bounds, body.vertices);
 
             impulse.x = 0;
             impulse.y = 0;

@@ -448,14 +448,15 @@ var Render = {};
     Render.bodyWireframes = function(engine, bodies, context) {
         var c = context,
             i,
-            j;
+            j,
+            k;
 
         c.beginPath();
 
         for (i = 0; i < bodies.length; i++) {
             var body = bodies[i];
 
-            if (!body.render.visible)
+            if (!body.render.visible || body.parts.length === 1)
                 continue;
 
             c.moveTo(body.vertices[0].x, body.vertices[0].y);
@@ -465,6 +466,39 @@ var Render = {};
             }
             
             c.lineTo(body.vertices[0].x, body.vertices[0].y);
+        }
+
+        c.lineWidth = 1;
+        c.strokeStyle = '#9E9277';
+        c.stroke();
+
+        for (i = 0; i < bodies.length; i++) {
+            var body = bodies[i];
+            for (j = 0; j < body.vertices.length; j++) {
+                c.fillStyle = 'yellow';
+                c.fillText(j, body.vertices[j].x, body.vertices[j].y + 10);
+            }
+        }
+
+        c.beginPath();
+
+        for (i = 0; i < bodies.length; i++) {
+            var body = bodies[i];
+
+            if (!body.render.visible)
+                continue;
+
+            for (k = body.parts.length > 1 ? 1 : 0; k < body.parts.length; k++) {
+                var part = body.parts[k];
+
+                c.moveTo(part.vertices[0].x, part.vertices[0].y);
+
+                for (j = 1; j < part.vertices.length; j++) {
+                    c.lineTo(part.vertices[j].x, part.vertices[j].y);
+                }
+                
+                c.lineTo(part.vertices[0].x, part.vertices[0].y);
+            }
         }
 
         c.lineWidth = 1;

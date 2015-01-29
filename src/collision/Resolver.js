@@ -98,8 +98,11 @@ var Resolver = {};
                 body.positionPrev.y += body.positionImpulse.y;
 
                 // update body geometry
-                Vertices.translate(body.vertices, body.positionImpulse);
-                Bounds.update(body.bounds, body.vertices, body.velocity);
+                for (var j = 0; j < body.parts.length; j++) {
+                    var part = body.parts[j];
+                    Vertices.translate(part.vertices, body.positionImpulse);
+                    Bounds.update(part.bounds, body.vertices, body.velocity);
+                }
                 
                 // dampen accumulator to warm the next step
                 body.positionImpulse.x *= _positionWarming;

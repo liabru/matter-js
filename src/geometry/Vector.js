@@ -123,6 +123,18 @@ var Vector = {};
     };
 
     /**
+     * Returns the cross-product of three vectors.
+     * @method cross3
+     * @param {vector} vectorA
+     * @param {vector} vectorB
+     * @param {vector} vectorC
+     * @return {number} The cross product of the three vectors
+     */
+    Vector.cross3 = function(vectorA, vectorB, vectorC) {
+        return (vectorB.x - vectorA.x) * (vectorC.y - vectorA.y) - (vectorB.y - vectorA.y) * (vectorC.x - vectorA.x);
+    };
+
+    /**
      * Adds the two vectors.
      * @method add
      * @param {vector} vectorA

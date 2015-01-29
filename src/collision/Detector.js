@@ -41,33 +41,43 @@ var Detector = {};
 
             // mid phase
             if (Bounds.overlaps(bodyA.bounds, bodyB.bounds)) {
+               /*for (var j = 1; j < bodyA.parts.length; j++) {
+                    var partA = bodyA.parts[j];
 
-                // find a previous collision we could reuse
-                var pairId = Pair.id(bodyA, bodyB),
-                    pair = pairsTable[pairId],
-                    previousCollision;
+                    for (var k = 1; k < bodyB.parts.length; k++) {
+                        var partB = bodyB.parts[k];
 
-                if (pair && pair.isActive) {
-                    previousCollision = pair.collision;
-                } else {
-                    previousCollision = null;
-                }
+                        if (Bounds.overlaps(partA.bounds, partB.bounds)) {*/
 
-                // narrow phase
-                var collision = SAT.collides(bodyA, bodyB, previousCollision);
+                            // find a previous collision we could reuse
+                            var pairId = Pair.id(bodyA, bodyB),
+                                pair = pairsTable[pairId],
+                                previousCollision;
 
-                // @if DEBUG
-                metrics.narrowphaseTests += 1;
-                if (collision.reused)
-                    metrics.narrowReuseCount += 1;
-                // @endif
+                            if (pair && pair.isActive) {
+                                previousCollision = pair.collision;
+                            } else {
+                                previousCollision = null;
+                            }
 
-                if (collision.collided) {
-                    collisions.push(collision);
-                    // @if DEBUG
-                    metrics.narrowDetections += 1;
-                    // @endif
-                }
+                            // narrow phase
+                            var collision = SAT.collides(bodyA, bodyB, previousCollision);
+
+                            // @if DEBUG
+                            metrics.narrowphaseTests += 1;
+                            if (collision.reused)
+                                metrics.narrowReuseCount += 1;
+                            // @endif
+
+                            if (collision.collided) {
+                                collisions.push(collision);
+                                // @if DEBUG
+                                metrics.narrowDetections += 1;
+                                // @endif
+                            }
+                       //}
+                    //}
+                //}
             }
         }
 

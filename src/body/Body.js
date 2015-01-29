@@ -116,7 +116,8 @@ var Body = {};
             anglePrev: body.anglePrev || body.angle,
             vertices: body.vertices,
             isStatic: body.isStatic,
-            isSleeping: body.isSleeping
+            isSleeping: body.isSleeping,
+            parts: body.parts || [body]
         });
 
         Vertices.rotate(body.vertices, body.angle, body.position);
@@ -313,6 +314,8 @@ var Body = {};
 
         Vertices.translate(body.vertices, delta);
         Bounds.update(body.bounds, body.vertices, body.velocity);
+
+        //Common.each(body.children, Body.setPosition, position);
     };
 
     /**
@@ -330,6 +333,8 @@ var Body = {};
         Vertices.rotate(body.vertices, delta, body.position);
         Axes.rotate(body.axes, delta);
         Bounds.update(body.bounds, body.vertices, body.velocity);
+
+        //Common.each(body.children, Body.setAngle, angle);
     };
 
     /**
@@ -439,12 +444,15 @@ var Body = {};
         body.angularSpeed = Math.abs(body.angularVelocity);
 
         // transform the body geometry
-        Vertices.translate(body.vertices, body.velocity);
-        if (body.angularVelocity !== 0) {
-            Vertices.rotate(body.vertices, body.angularVelocity, body.position);
-            Axes.rotate(body.axes, body.angularVelocity);
+        for (var i = 0; i < body.parts.length; i++) {
+            var part = body.parts[i];
+            Vertices.translate(part.vertices, body.velocity);
+            if (body.angularVelocity !== 0) {
+                Vertices.rotate(part.vertices, body.angularVelocity, body.position);
+                Axes.rotate(part.axes, body.angularVelocity);
+            }
+            Bounds.update(part.bounds, body.vertices, body.velocity);
         }
-        Bounds.update(body.bounds, body.vertices, body.velocity);
     };
 
     /**
