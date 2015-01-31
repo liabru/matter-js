@@ -46,7 +46,9 @@ var Render = {};
                 showPositions: false,
                 showAngleIndicator: false,
                 showIds: false,
-                showShadows: false
+                showShadows: false,
+                showVertexNumbers: false,
+                showConvexHulls: false
             }
         };
 
@@ -177,6 +179,9 @@ var Render = {};
             // fully featured rendering of bodies
             Render.bodies(engine, bodies, context);
         } else {
+            if (options.showConvexHulls)
+                Render.bodyConvexHulls(engine, bodies, context);
+
             // optimised method for wireframes only
             Render.bodyWireframes(engine, bodies, context);
         }
@@ -198,6 +203,9 @@ var Render = {};
 
         if (options.showCollisions)
             Render.collisions(engine, engine.pairs.list, context);
+
+        if (options.showVertexNumbers)
+            Render.vertexNumbers(engine, bodies, context);
 
         Render.constraints(constraints, context);
 
@@ -372,69 +380,75 @@ var Render = {};
         var c = context,
             render = engine.render,
             options = render.options,
+            body,
+            part,
             i;
 
         for (i = 0; i < bodies.length; i++) {
-            var body = bodies[i];
+            body = bodies[i];
 
             if (!body.render.visible)
                 continue;
 
-            if (body.render.sprite && body.render.sprite.texture && !options.wireframes) {
-                // body sprite
-                var sprite = body.render.sprite,
-                    texture = _getTexture(render, sprite.texture);
+            // handle compound parts
+            for (k = body.parts.length > 1 ? 1 : 0; k < body.parts.length; k++) {
+                part = body.parts[k];
 
-                if (options.showSleeping && body.isSleeping) 
-                    c.globalAlpha = 0.5;
+                if (part.render.sprite && part.render.sprite.texture && !options.wireframes) {
+                    // part sprite
+                    var sprite = part.render.sprite,
+                        texture = _getTexture(render, sprite.texture);
 
-                c.translate(body.position.x, body.position.y); 
-                c.rotate(body.angle);
+                    if (options.showSleeping && part.isSleeping) 
+                        c.globalAlpha = 0.5;
 
-                c.drawImage(texture, texture.width * -0.5 * sprite.xScale, texture.height * -0.5 * sprite.yScale, 
-                            texture.width * sprite.xScale, texture.height * sprite.yScale);
+                    c.translate(part.position.x, part.position.y); 
+                    c.rotate(part.angle);
 
-                // revert translation, hopefully faster than save / restore
-                c.rotate(-body.angle);
-                c.translate(-body.position.x, -body.position.y); 
+                    c.drawImage(texture, texture.width * -0.5 * sprite.xScale, texture.height * -0.5 * sprite.yScale, 
+                                texture.width * sprite.xScale, texture.height * sprite.yScale);
 
-                if (options.showSleeping && body.isSleeping) 
-                    c.globalAlpha = 1;
-            } else {
-                // body polygon
-                if (body.circleRadius) {
-                    c.beginPath();
-                    c.arc(body.position.x, body.position.y, body.circleRadius, 0, 2 * Math.PI);
+                    // revert translation, hopefully faster than save / restore
+                    c.rotate(-part.angle);
+                    c.translate(-part.position.x, -part.position.y); 
+
+                    if (options.showSleeping && part.isSleeping) 
+                        c.globalAlpha = 1;
                 } else {
-                    c.beginPath();
-                    c.moveTo(body.vertices[0].x, body.vertices[0].y);
-                    for (var j = 1; j < body.vertices.length; j++) {
-                        c.lineTo(body.vertices[j].x, body.vertices[j].y);
-                    }
-                    c.closePath();
-                }
-
-                if (!options.wireframes) {
-                    if (options.showSleeping && body.isSleeping) {
-                        c.fillStyle = Common.shadeColor(body.render.fillStyle, 50);
+                    // part polygon
+                    if (part.circleRadius) {
+                        c.beginPath();
+                        c.arc(part.position.x, part.position.y, part.circleRadius, 0, 2 * Math.PI);
                     } else {
-                        c.fillStyle = body.render.fillStyle;
+                        c.beginPath();
+                        c.moveTo(part.vertices[0].x, part.vertices[0].y);
+                        for (var j = 1; j < part.vertices.length; j++) {
+                            c.lineTo(part.vertices[j].x, part.vertices[j].y);
+                        }
+                        c.closePath();
                     }
 
-                    c.lineWidth = body.render.lineWidth;
-                    c.strokeStyle = body.render.strokeStyle;
-                    c.fill();
-                    c.stroke();
-                } else {
-                    c.lineWidth = 1;
-                    c.strokeStyle = '#bbb';
-                    if (options.showSleeping && body.isSleeping)
-                        c.strokeStyle = 'rgba(255,255,255,0.2)';
-                    c.stroke();
+                    if (!options.wireframes) {
+                        if (options.showSleeping && part.isSleeping) {
+                            c.fillStyle = Common.shadeColor(part.render.fillStyle, 50);
+                        } else {
+                            c.fillStyle = part.render.fillStyle;
+                        }
+
+                        c.lineWidth = part.render.lineWidth;
+                        c.strokeStyle = part.render.strokeStyle;
+                        c.fill();
+                        c.stroke();
+                    } else {
+                        c.lineWidth = 1;
+                        c.strokeStyle = '#bbb';
+                        if (options.showSleeping && part.isSleeping)
+                            c.strokeStyle = 'rgba(255,255,255,0.2)';
+                        c.stroke();
+                    }
                 }
             }
         }
-
     };
 
     /**
@@ -447,49 +461,24 @@ var Render = {};
      */
     Render.bodyWireframes = function(engine, bodies, context) {
         var c = context,
+            body,
+            part,
             i,
             j,
             k;
 
         c.beginPath();
 
+        // render all bodies
         for (i = 0; i < bodies.length; i++) {
-            var body = bodies[i];
-
-            if (!body.render.visible || body.parts.length === 1)
-                continue;
-
-            c.moveTo(body.vertices[0].x, body.vertices[0].y);
-
-            for (j = 1; j < body.vertices.length; j++) {
-                c.lineTo(body.vertices[j].x, body.vertices[j].y);
-            }
-            
-            c.lineTo(body.vertices[0].x, body.vertices[0].y);
-        }
-
-        c.lineWidth = 1;
-        c.strokeStyle = '#9E9277';
-        c.stroke();
-
-        for (i = 0; i < bodies.length; i++) {
-            var body = bodies[i];
-            for (j = 0; j < body.vertices.length; j++) {
-                c.fillStyle = 'yellow';
-                c.fillText(j, body.vertices[j].x, body.vertices[j].y + 10);
-            }
-        }
-
-        c.beginPath();
-
-        for (i = 0; i < bodies.length; i++) {
-            var body = bodies[i];
+            body = bodies[i];
 
             if (!body.render.visible)
                 continue;
 
+            // handle compound parts
             for (k = body.parts.length > 1 ? 1 : 0; k < body.parts.length; k++) {
-                var part = body.parts[k];
+                part = body.parts[k];
 
                 c.moveTo(part.vertices[0].x, part.vertices[0].y);
 
@@ -504,6 +493,67 @@ var Render = {};
         c.lineWidth = 1;
         c.strokeStyle = '#bbb';
         c.stroke();
+    };
+
+    /**
+     * Optimised method for drawing body convex hull wireframes in one pass
+     * @private
+     * @method bodyWireframes
+     * @param {engine} engine
+     * @param {body[]} bodies
+     * @param {RenderingContext} context
+     */
+    Render.bodyConvexHulls = function(engine, bodies, context) {
+        var c = context,
+            body,
+            part,
+            i,
+            j,
+            k;
+
+        c.beginPath();
+
+        // render convex hulls
+        for (i = 0; i < bodies.length; i++) {
+            body = bodies[i];
+
+            if (!body.render.visible || body.parts.length === 1)
+                continue;
+
+            c.moveTo(body.vertices[0].x, body.vertices[0].y);
+
+            for (j = 1; j < body.vertices.length; j++) {
+                c.lineTo(body.vertices[j].x, body.vertices[j].y);
+            }
+            
+            c.lineTo(body.vertices[0].x, body.vertices[0].y);
+        }
+
+        c.lineWidth = 1;
+        c.strokeStyle = 'rgba(255,255,255,0.2)';
+        c.stroke();
+    };
+
+    /**
+     * Renders body vertex numbers.
+     * @private
+     * @method vertexNumbers
+     * @param {engine} engine
+     * @param {body[]} bodies
+     * @param {RenderingContext} context
+     */
+    Render.vertexNumbers = function(engine, bodies, context) {
+        var c = context,
+            i,
+            j;
+
+        for (i = 0; i < bodies.length; i++) {
+            var body = bodies[i];
+            for (j = 0; j < body.vertices.length; j++) {
+                c.fillStyle = 'yellow';
+                c.fillText(j, body.vertices[j].x, body.vertices[j].y + 10);
+            }
+        }
     };
 
     /**
