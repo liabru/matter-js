@@ -144,10 +144,20 @@
 
         Demo.reset();
 
-        var vertices = Matter.Vertices.fromPath('354 89,336 118,310 145,302 227,322 271,375 292,490 289,539 271,540 233,549 133,526 100,552 36,601 63,633 122,628 227,594 304,505 340,426 340,327 330,265 294,246 242,246 181,256 133,283 81,346 44');
+        //var vertices = Matter.Vertices.fromPath('354 89,336 118,310 145,302 227,322 271,375 292,490 289,539 271,540 233,549 133,526 100,552 36,601 63,633 122,628 227,594 304,505 340,426 340,327 330,265 294,246 242,246 181,256 133,283 81,346 44');
         //var vertices = Matter.Vertices.fromPath('164 171,232 233,213 302,273 241,342 305,316 231,364 170,309 188,281 117,240 182');
+        var vertices = Matter.Vertices.fromPath('272 83,266 237,459 236,452 65,526 62,536 297,195 296,203 84');
+        //var vertices = Matter.Vertices.fromPath('243 68,274 53,318 54,366 76,391 112,390 159,370 198,316 214,260 210,215 187,205 141,206 103,235 75');
 
-        var concave = Bodies.fromVertices(200, 200, vertices);
+        var concave = Bodies.fromVertices(200, 200, vertices, {
+            restitution: 1,
+            friction: 0,
+            render: {
+                fillStyle: '#556270',
+                strokeStyle: '#556270'
+            }
+        });
+
         World.add(_world, concave);
 
         var renderOptions = _engine.render.options;

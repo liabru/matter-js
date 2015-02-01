@@ -234,10 +234,10 @@ var Bodies = {};
 
                 // create a compound part
                 parts.push(
-                    Body.create({
+                    Body.create(Common.extend({
                         position: Vertices.centre(chunkVertices),
                         vertices: chunkVertices
-                    })
+                    }, options))
                 );
             }
 
