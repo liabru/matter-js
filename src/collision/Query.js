@@ -29,12 +29,19 @@ var Query = {};
 
         for (var i = 0; i < bodies.length; i++) {
             var bodyA = bodies[i];
-
+            
             if (Bounds.overlaps(bodyA.bounds, ray.bounds)) {
-                var collision = SAT.collides(bodyA, ray);
-                if (collision.collided) {
-                    collision.body = collision.bodyA = collision.bodyB = bodyA;
-                    collisions.push(collision);
+                for (var j = bodyA.parts.length === 1 ? 0 : 1; j < bodyA.parts.length; j++) {
+                    var part = bodyA.parts[j];
+
+                    if (Bounds.overlaps(part.bounds, ray.bounds)) {
+                        var collision = SAT.collides(part, ray);
+                        if (collision.collided) {
+                            collision.body = collision.bodyA = collision.bodyB = bodyA;
+                            collisions.push(collision);
+                            break;
+                        }
+                    }
                 }
             }
         }

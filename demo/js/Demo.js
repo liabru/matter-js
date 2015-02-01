@@ -1285,8 +1285,11 @@
                 return Bodies.polygon(x, y, sides, Common.random(20, 50));
             }
         });
+
+        var vertices = Matter.Vertices.fromPath('164 171,232 233,213 302,273 241,342 305,316 231,364 170,309 188,281 117,240 182'),
+            concave = Bodies.fromVertices(200, 200, vertices);
         
-        World.add(_world, stack);
+        World.add(_world, [stack, concave]);
 
         _sceneEvents.push(
             Events.on(_engine, 'afterRender', function() {
