@@ -40,8 +40,8 @@ var Resolver = {};
                 continue;
             
             collision = pair.collision;
-            bodyA = collision.bodyA;
-            bodyB = collision.bodyB;
+            bodyA = collision.parentA;
+            bodyB = collision.parentB;
             vertex = collision.supports[0];
             vertexCorrected = collision.supportCorrected;
             normal = collision.normal;
@@ -61,8 +61,8 @@ var Resolver = {};
                 continue;
             
             collision = pair.collision;
-            bodyA = collision.bodyA;
-            bodyB = collision.bodyB;
+            bodyA = collision.parentA;
+            bodyB = collision.parentB;
             normal = collision.normal;
             positionImpulse = ((pair.separation * _positionDampen) - pair.slop) * timeScale;
         
@@ -102,6 +102,10 @@ var Resolver = {};
                     var part = body.parts[j];
                     Vertices.translate(part.vertices, body.positionImpulse);
                     Bounds.update(part.bounds, body.vertices, body.velocity);
+                    if (j > 0) {
+                        part.position.x += body.positionImpulse.x;
+                        part.position.y += body.positionImpulse.y;
+                    }
                 }
                 
                 // dampen accumulator to warm the next step
@@ -142,8 +146,8 @@ var Resolver = {};
             
             contacts = pair.activeContacts;
             collision = pair.collision;
-            bodyA = collision.bodyA;
-            bodyB = collision.bodyB;
+            bodyA = collision.parentA;
+            bodyB = collision.parentB;
             normal = collision.normal;
             tangent = collision.tangent;
                 
@@ -197,8 +201,8 @@ var Resolver = {};
                 continue;
             
             var collision = pair.collision,
-                bodyA = collision.bodyA,
-                bodyB = collision.bodyB,
+                bodyA = collision.parentA,
+                bodyB = collision.parentB,
                 normal = collision.normal,
                 tangent = collision.tangent,
                 contacts = pair.activeContacts,

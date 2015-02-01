@@ -260,6 +260,11 @@ var Constraint = {};
                 }
 
                 Bounds.update(part.bounds, body.vertices);
+
+                if (j > 0) {
+                    part.position.x += impulse.x;
+                    part.position.y += impulse.y;
+                }
             }
 
             impulse.x = 0;

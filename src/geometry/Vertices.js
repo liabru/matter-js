@@ -337,7 +337,7 @@ var Vertices = {};
         });
 
         return vertices;
-    }
+    };
 
     /**
      * Returns the convex hull of the input vertices as a new array of points.

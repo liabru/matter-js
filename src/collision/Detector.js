@@ -41,16 +41,15 @@ var Detector = {};
 
             // mid phase
             if (Bounds.overlaps(bodyA.bounds, bodyB.bounds)) {
-               /*for (var j = 1; j < bodyA.parts.length; j++) {
+                for (var j = bodyA.parts.length > 1 ? 1 : 0; j < bodyA.parts.length; j++) {
                     var partA = bodyA.parts[j];
 
-                    for (var k = 1; k < bodyB.parts.length; k++) {
+                    for (var k = bodyB.parts.length > 1 ? 1 : 0; k < bodyB.parts.length; k++) {
                         var partB = bodyB.parts[k];
 
-                        if (Bounds.overlaps(partA.bounds, partB.bounds)) {*/
-
+                        if ((partA === bodyA && partB === bodyB) || Bounds.overlaps(partA.bounds, partB.bounds)) {
                             // find a previous collision we could reuse
-                            var pairId = Pair.id(bodyA, bodyB),
+                            var pairId = Pair.id(partA, partB),
                                 pair = pairsTable[pairId],
                                 previousCollision;
 
@@ -61,7 +60,7 @@ var Detector = {};
                             }
 
                             // narrow phase
-                            var collision = SAT.collides(bodyA, bodyB, previousCollision);
+                            var collision = SAT.collides(partA, partB, previousCollision);
 
                             // @if DEBUG
                             metrics.narrowphaseTests += 1;
@@ -75,9 +74,9 @@ var Detector = {};
                                 metrics.narrowDetections += 1;
                                 // @endif
                             }
-                       //}
-                    //}
-                //}
+                        }
+                    }
+                }
             }
         }
 

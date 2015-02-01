@@ -87,6 +87,8 @@ var SAT = {};
         collision.collided = true;
         collision.normal = minOverlap.axis;
         collision.depth = minOverlap.overlap;
+        collision.parentA = collision.bodyA.parent;
+        collision.parentB = collision.bodyB.parent;
         
         bodyA = collision.bodyA;
         bodyB = collision.bodyB;

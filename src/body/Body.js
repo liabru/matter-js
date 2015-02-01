@@ -117,6 +117,7 @@ var Body = {};
             vertices: body.vertices,
             isStatic: body.isStatic,
             isSleeping: body.isSleeping,
+            parent: body.parent || body,
             parts: body.parts || [body]
         });
 
@@ -193,6 +194,9 @@ var Body = {};
                 break;
             case 'angularVelocity':
                 Body.setAngularVelocity(body, value);
+                break;
+            case 'parts':
+                Body.setParts(body, value);
                 break;
             default:
                 body[property] = value;
@@ -299,6 +303,78 @@ var Body = {};
     };
 
     /**
+     * Sets the parts of the `body` and updates mass, inertia and centroid.
+     * Each part will have its parent set to `body`.
+     * By default the convex hull will be automatically computed and set on `body`, unless `autoHull` is set to `false.`
+     * Note that this method will ensure that the first part in `body.parts` will always be the `body`.
+     * @method setParts
+     * @param {body} body
+     * @param [body] parts
+     * @param {bool} [autoHull=true]
+     */
+    Body.setParts = function(body, parts, autoHull) {
+        autoHull = typeof autoHull !== 'undefined' ? autoHull : true;
+
+        // ensure the body is always at index 0
+        var index = Common.indexOf(parts, body);
+        if (index > -1) {
+            parts.splice(index, 1);
+        }
+
+        parts.unshift(body);
+        body.parts = parts;
+
+        if (parts.length === 1)
+            return;
+
+        var i;
+
+        // find the convex hull of all parts to set on the parent body
+        if (autoHull) {
+            var vertices = [];
+            for (i = 1; i < parts.length; i++) {
+                vertices = vertices.concat(parts[i].vertices);
+            }
+
+            Vertices.clockwiseSort(vertices);
+
+            var hull = Vertices.hull(vertices),
+                hullCentre = Vertices.centre(hull);
+
+            Body.setVertices(body, hull);
+            Body.setPosition(body, hullCentre);
+        }
+
+        // find the combined properties of all parts to set on the parent body
+        var mass = 0,
+            area = 0,
+            inertia = 0,
+            centroid = { x: 0, y: 0 };
+
+        for (i = 1; i < parts.length; i++) {
+            var part = parts[i];
+            part.parent = body;
+            mass += part.mass;
+            area += part.area;
+            inertia += part.inertia;
+            Vector.add(centroid, part.position, centroid);
+        }
+
+        centroid = Vector.div(centroid, parts.length - 1);
+
+        body.area = area;
+        body.parent = body;
+        body.position.x = centroid.x;
+        body.position.y = centroid.y;
+        body.positionPrev.x = centroid.x;
+        body.positionPrev.y = centroid.y;
+
+        Body.setMass(body, mass);
+        Body.setInertia(body, inertia);
+        Body.setPosition(body, centroid);
+    };
+
+    /**
      * Sets the position of the body instantly. Velocity, angle, force etc. are unchanged.
      * @method setPosition
      * @param {body} body
@@ -314,8 +390,6 @@ var Body = {};
 
         Vertices.translate(body.vertices, delta);
         Bounds.update(body.bounds, body.vertices, body.velocity);
-
-        //Common.each(body.children, Body.setPosition, position);
     };
 
     /**
@@ -333,8 +407,6 @@ var Body = {};
         Vertices.rotate(body.vertices, delta, body.position);
         Axes.rotate(body.axes, delta);
         Bounds.update(body.bounds, body.vertices, body.velocity);
-
-        //Common.each(body.children, Body.setAngle, angle);
     };
 
     /**
@@ -452,6 +524,10 @@ var Body = {};
                 Axes.rotate(part.axes, body.angularVelocity);
             }
             Bounds.update(part.bounds, body.vertices, body.velocity);
+            if (i > 0) {
+                part.position.x += body.velocity.x;
+                part.position.y += body.velocity.y;
+            }
         }
     };
 
