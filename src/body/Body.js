@@ -563,6 +563,9 @@ var Body = {};
      * @return {}
      */
     var _totalProperties = function(body) {
+        // https://ecourses.ou.edu/cgi-bin/ebook.cgi?doc=&topic=st&chap_sec=07.2&page=theory
+        // http://output.to/sideway/default.asp?qno=121100087
+
         var properties = {
             mass: 0,
             area: 0,
@@ -576,10 +579,10 @@ var Body = {};
             properties.mass += part.mass;
             properties.area += part.area;
             properties.inertia += part.inertia;
-            Vector.add(properties.centre, part.position, properties.centre);
+            properties.centre = Vector.add(properties.centre, Vector.mult(part.position, part.mass));
         }
 
-        properties.centre = Vector.div(properties.centre, body.parts.length - 1);
+        properties.centre = Vector.div(properties.centre, properties.mass);
 
         return properties;
     };

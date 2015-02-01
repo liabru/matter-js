@@ -130,8 +130,6 @@
         });
 
         World.add(_world, compound);
-
-        _world.gravity.y = 1;
         
         var renderOptions = _engine.render.options;
         renderOptions.showCollisions = true;
@@ -139,6 +137,26 @@
         renderOptions.showAxes = true;
         renderOptions.showPositions = true;
         renderOptions.showConvexHulls = true;
+    };
+
+    Demo.concave = function() {
+        var _world = _engine.world;
+
+        Demo.reset();
+
+        var vertices = Matter.Vertices.fromPath('354 89,336 118,310 145,302 227,322 271,375 292,490 289,539 271,540 233,549 133,526 100,552 36,601 63,633 122,628 227,594 304,505 340,426 340,327 330,265 294,246 242,246 181,256 133,283 81,346 44');
+        //var vertices = Matter.Vertices.fromPath('164 171,232 233,213 302,273 241,342 305,316 231,364 170,309 188,281 117,240 182');
+
+        var concave = Bodies.fromVertices(200, 200, vertices);
+        World.add(_world, concave);
+
+        var renderOptions = _engine.render.options;
+        renderOptions.showCollisions = true;
+        renderOptions.showBounds = true;
+        renderOptions.showAxes = true;
+        renderOptions.showPositions = true;
+        renderOptions.showConvexHulls = true;
+        //renderOptions.showVertexNumbers = true;
     };
 
     Demo.slingshot = function() {

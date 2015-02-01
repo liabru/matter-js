@@ -56,7 +56,7 @@ var Vertices = {};
      * @return {vertices} vertices
      */
     Vertices.fromPath = function(path, body) {
-        var pathPattern = /L\s*([\-\d\.]*)\s*([\-\d\.]*)/ig,
+        var pathPattern = /L?\s*([\-\d\.]+)\s*([\-\d\.]+)\s*,?/ig,
             points = [];
 
         path.replace(pathPattern, function(match, x, y) {
@@ -330,13 +330,56 @@ var Vertices = {};
      * @return {vertices} vertices
      */
     Vertices.clockwiseSort = function(vertices) {
-        var mean = Vertices.mean(vertices);
+        var centre = Vertices.mean(vertices);
 
         vertices.sort(function(vertexA, vertexB) {
-            return Vector.angle(mean, vertexA) - Vector.angle(mean, vertexB);
+            return Vector.angle(centre, vertexA) - Vector.angle(centre, vertexB);
         });
 
         return vertices;
+    };
+
+    /**
+     * Returns true if the vertices form a convex shape (vertices must be in clockwise order).
+     * @method isConvex
+     * @param {vertices} vertices
+     * @return {bool} `true` if the `vertices` are convex, `false` if not (or `null` if not computable).
+     */
+    Vertices.isConvex = function(vertices) {
+        // http://paulbourke.net/geometry/polygonmesh/
+
+        var flag = 0,
+            n = vertices.length,
+            i,
+            j,
+            k,
+            z;
+
+        if (n < 3)
+            return null;
+
+        for (i = 0; i < n; i++) {
+            j = (i + 1) % n;
+            k = (i + 2) % n;
+            z = (vertices[j].x - vertices[i].x) * (vertices[k].y - vertices[j].y);
+            z -= (vertices[j].y - vertices[i].y) * (vertices[k].x - vertices[j].x);
+
+            if (z < 0) {
+                flag |= 1;
+            } else if (z > 0) {
+                flag |= 2;
+            }
+
+            if (flag === 3) {
+                return false;
+            }
+        }
+
+        if (flag !== 0){
+            return true;
+        } else {
+            return null;
+        }
     };
 
     /**

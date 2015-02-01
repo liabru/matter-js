@@ -6,6 +6,9 @@
         <meta name="viewport" content="width=device-width,minimal-ui">
         <meta name="robots" content="noindex">
 
+        <!-- only required if using Bodies.fromVertices with concave vertices -->
+        <script type="text/javascript" src="./js/lib/decomp.js"></script>
+
         <!-- only required if using Matter.RenderPixi -->
         <script type="text/javascript" src="./js/lib/pixi.dev.js"></script>
 
@@ -32,6 +35,7 @@
                     <option value="mixed">Mixed Shapes</option>
                     <option value="mixedSolid">Solid Rendering</option>
                     <option value="compound">Compound Bodies</option>
+                    <option value="concave">Concave Bodies</option>
                     <option value="newtonsCradle">Newton's Cradle</option>
                     <option value="wreckingBall">Wrecking Ball</option>
                     <option value="slingshot">Slingshot Game</option>

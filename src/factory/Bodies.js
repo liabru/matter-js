@@ -93,7 +93,7 @@ var Bodies = {};
      * @param {number} y
      * @param {number} radius
      * @param {object} [options]
-     * @param {number} maxSides
+     * @param {number} [maxSides]
      * @return {body} A new circle body
      */
     Bodies.circle = function(x, y, radius, options, maxSides) {
@@ -159,6 +159,102 @@ var Bodies = {};
         }
 
         return Body.create(Common.extend({}, polygon, options));
+    };
+
+    /**
+     * Creates a body using the supplied vertices.
+     * If the vertices are not convex, they will be decomposed if [poly-decomp.js](https://github.com/schteppe/poly-decomp.js) is available.
+     * If the vertices can not be decomposed, the function will use the convex hull.
+     * By default the decomposition will discard collinear edges (to improve performance).
+     * The options parameter is an object that specifies any properties you wish to override the defaults.
+     * See the properties section of the `Matter.Body` module for detailed information on what you can pass via the `options` object.
+     * @method fromVertices
+     * @param {number} x
+     * @param {number} y
+     * @param [vector] vertices
+     * @param {object} [options]
+     * @param {bool} [removeCollinear=true]
+     * @return {body}
+     */
+    Bodies.fromVertices = function(x, y, vertices, options, removeCollinear) {
+        var canDecompose = true,
+            body,
+            i;
+
+        options = options || {};
+        removeCollinear = typeof removeCollinear !== 'undefined' ? removeCollinear : true;
+
+        if (Vertices.isConvex(vertices)) {
+            // vertices are convex, so just create a body normally
+            body = {
+                position: { x: x, y: y },
+                vertices: vertices
+            };
+
+            return Body.create(Common.extend({}, body, options));
+        }
+
+        // check for poly-decomp.js
+        if (!window.decomp) {
+            Common.log('Bodies.fromVertices: poly-decomp.js required. Could not decompose vertices. Fallback to convex hull.', 'warn');
+            canDecompose = false;
+        }
+
+        // initialise a decomposition
+        var concave = new decomp.Polygon();
+        for (i = 0; i < vertices.length; i++) {
+            concave.vertices.push([vertices[i].x, vertices[i].y]);
+        }
+
+        // check for complexity
+        if (!concave.isSimple()) {
+            Common.log('Bodies.fromVertices: Non-simple polygons are not supported. Could not decompose vertices. Fallback to convex hull.', 'warn');
+            canDecompose = false;
+        }
+
+        // try to decompose
+        if (canDecompose) {
+            // vertices are concave and simple, we can decompose into parts
+            concave.makeCCW();
+            if (removeCollinear)
+                concave.removeCollinearPoints(0.001);
+
+            var decomposed = concave.quickDecomp(),
+                parts = [];
+
+            // for each decomposed chunk
+            for (i = 0; i < decomposed.length; i++) {
+                var chunk = decomposed[i],
+                    chunkVertices = [];
+
+                // convert vertices into the correct structure
+                for (var j = 0; j < chunk.vertices.length; j++) {
+                    chunkVertices.push({ x: chunk.vertices[j][0], y: chunk.vertices[j][1] });
+                }
+
+                // create a compound part
+                parts.push(
+                    Body.create({
+                        position: Vertices.centre(chunkVertices),
+                        vertices: chunkVertices
+                    })
+                );
+            }
+
+            // create the parent body to be returned, that contains generated compound parts
+            body = Body.create(Common.extend({}, { parts: parts }, options));
+            Body.setPosition(body, { x: x, y: y });
+
+            return body;
+        } else {
+            // fallback to convex hull when decomposition is not possible
+            body = {
+                position: { x: x, y: y },
+                vertices: Vertices.hull(vertices)
+            };
+
+            return Body.create(Common.extend({}, body, options));
+        }
     };
 
 })();
