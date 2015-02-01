@@ -67,8 +67,8 @@ var Sleeping = {};
                 continue;
 
             var collision = pair.collision,
-                bodyA = collision.bodyA, 
-                bodyB = collision.bodyB;
+                bodyA = collision.bodyA.parent, 
+                bodyB = collision.bodyB.parent;
         
             // don't wake if at least one body is static
             if ((bodyA.isSleeping && bodyB.isSleeping) || bodyA.isStatic || bodyB.isStatic)

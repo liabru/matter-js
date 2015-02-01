@@ -399,7 +399,7 @@ var Render = {};
                     var sprite = part.render.sprite,
                         texture = _getTexture(render, sprite.texture);
 
-                    if (options.showSleeping && part.isSleeping) 
+                    if (options.showSleeping && body.isSleeping) 
                         c.globalAlpha = 0.5;
 
                     c.translate(part.position.x, part.position.y); 
@@ -412,7 +412,7 @@ var Render = {};
                     c.rotate(-part.angle);
                     c.translate(-part.position.x, -part.position.y); 
 
-                    if (options.showSleeping && part.isSleeping) 
+                    if (options.showSleeping && body.isSleeping) 
                         c.globalAlpha = 1;
                 } else {
                     // part polygon
@@ -429,7 +429,7 @@ var Render = {};
                     }
 
                     if (!options.wireframes) {
-                        if (options.showSleeping && part.isSleeping) {
+                        if (options.showSleeping && body.isSleeping) {
                             c.fillStyle = Common.shadeColor(part.render.fillStyle, 50);
                         } else {
                             c.fillStyle = part.render.fillStyle;
@@ -442,7 +442,7 @@ var Render = {};
                     } else {
                         c.lineWidth = 1;
                         c.strokeStyle = '#bbb';
-                        if (options.showSleeping && part.isSleeping)
+                        if (options.showSleeping && body.isSleeping)
                             c.strokeStyle = 'rgba(255,255,255,0.2)';
                         c.stroke();
                     }

@@ -78,6 +78,12 @@ var Composite = {};
             switch (obj.type) {
 
             case 'body':
+                // skip adding compound parts
+                if (obj.parent !== obj) {
+                    Common.log('Composite.add: skipped adding a compound body part (you must add its parent instead)', 'warn');
+                    break;
+                }
+
                 Composite.addBody(composite, obj);
                 break;
             case 'constraint':

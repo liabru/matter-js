@@ -32,6 +32,7 @@ var Body = {};
             id: Common.nextId(),
             type: 'body',
             label: 'Body',
+            parts: [],
             angle: 0,
             vertices: Vertices.fromPath('L 0 0 L 40 0 L 40 40 L 0 40'),
             position: { x: 0, y: 0 },
@@ -118,7 +119,7 @@ var Body = {};
             isStatic: body.isStatic,
             isSleeping: body.isSleeping,
             parent: body.parent || body,
-            parts: body.parts || [body]
+            parts: body.parts
         });
 
         Vertices.rotate(body.vertices, body.angle, body.position);
@@ -313,26 +314,31 @@ var Body = {};
      * @param {bool} [autoHull=true]
      */
     Body.setParts = function(body, parts, autoHull) {
-        autoHull = typeof autoHull !== 'undefined' ? autoHull : true;
+        var i;
 
-        // ensure the body is always at index 0
-        var index = Common.indexOf(parts, body);
-        if (index > -1) {
-            parts.splice(index, 1);
+        // add all the parts, ensuring that the first part is always the parent body
+        parts = parts.slice(0);
+        body.parts.length = 0;
+        body.parts.push(body);
+        body.parent = body;
+
+        for (i = 0; i < parts.length; i++) {
+            var part = parts[i];
+            if (part !== body) {
+                part.parent = body;
+                body.parts.push(part);
+            }
         }
 
-        parts.unshift(body);
-        body.parts = parts;
-
-        if (parts.length === 1)
+        if (body.parts.length === 1)
             return;
 
-        var i;
+        autoHull = typeof autoHull !== 'undefined' ? autoHull : true;
 
         // find the convex hull of all parts to set on the parent body
         if (autoHull) {
             var vertices = [];
-            for (i = 1; i < parts.length; i++) {
+            for (i = 0; i < parts.length; i++) {
                 vertices = vertices.concat(parts[i].vertices);
             }
 
@@ -342,36 +348,22 @@ var Body = {};
                 hullCentre = Vertices.centre(hull);
 
             Body.setVertices(body, hull);
-            Body.setPosition(body, hullCentre);
+            Vertices.translate(body.vertices, hullCentre);
         }
 
-        // find the combined properties of all parts to set on the parent body
-        var mass = 0,
-            area = 0,
-            inertia = 0,
-            centroid = { x: 0, y: 0 };
+        // sum the properties of all compound parts of the parent body
+        var total = _totalProperties(body);
 
-        for (i = 1; i < parts.length; i++) {
-            var part = parts[i];
-            part.parent = body;
-            mass += part.mass;
-            area += part.area;
-            inertia += part.inertia;
-            Vector.add(centroid, part.position, centroid);
-        }
-
-        centroid = Vector.div(centroid, parts.length - 1);
-
-        body.area = area;
+        body.area = total.area;
         body.parent = body;
-        body.position.x = centroid.x;
-        body.position.y = centroid.y;
-        body.positionPrev.x = centroid.x;
-        body.positionPrev.y = centroid.y;
+        body.position.x = total.centre.x;
+        body.position.y = total.centre.y;
+        body.positionPrev.x = total.centre.x;
+        body.positionPrev.y = total.centre.y;
 
-        Body.setMass(body, mass);
-        Body.setInertia(body, inertia);
-        Body.setPosition(body, centroid);
+        Body.setMass(body, total.mass);
+        Body.setInertia(body, total.inertia);
+        Body.setPosition(body, total.centre);
     };
 
     /**
@@ -382,14 +374,16 @@ var Body = {};
      */
     Body.setPosition = function(body, position) {
         var delta = Vector.sub(position, body.position);
-
-        body.position.x = position.x;
-        body.position.y = position.y;
         body.positionPrev.x += delta.x;
         body.positionPrev.y += delta.y;
 
-        Vertices.translate(body.vertices, delta);
-        Bounds.update(body.bounds, body.vertices, body.velocity);
+        for (var i = 0; i < body.parts.length; i++) {
+            var part = body.parts[i];
+            part.position.x += delta.x;
+            part.position.y += delta.y;
+            Vertices.translate(part.vertices, delta);
+            Bounds.update(part.bounds, part.vertices, body.velocity);
+        }
     };
 
     /**
@@ -400,13 +394,15 @@ var Body = {};
      */
     Body.setAngle = function(body, angle) {
         var delta = angle - body.angle;
-
-        body.angle = angle;
         body.anglePrev += delta;
 
-        Vertices.rotate(body.vertices, delta, body.position);
-        Axes.rotate(body.axes, delta);
-        Bounds.update(body.bounds, body.vertices, body.velocity);
+        for (var i = 0; i < body.parts.length; i++) {
+            var part = body.parts[i];
+            part.angle += delta;
+            Vertices.rotate(part.vertices, delta, body.position);
+            Axes.rotate(part.axes, delta);
+            Bounds.update(part.bounds, part.vertices, body.velocity);
+        }
     };
 
     /**
@@ -464,21 +460,35 @@ var Body = {};
      * @param {vector} [point]
      */
     Body.scale = function(body, scaleX, scaleY, point) {
-        // scale vertices
-        Vertices.scale(body.vertices, scaleX, scaleY, point);
+        for (var i = 0; i < body.parts.length; i++) {
+            var part = body.parts[i];
 
-        // update properties
-        body.axes = Axes.fromVertices(body.vertices);
-        body.area = Vertices.area(body.vertices);
-        Body.setMass(body, body.density * body.area);
+            // scale vertices
+            Vertices.scale(part.vertices, scaleX, scaleY, body.position);
 
-        // update inertia (requires vertices to be at origin)
-        Vertices.translate(body.vertices, { x: -body.position.x, y: -body.position.y });
-        Body.setInertia(body, Vertices.inertia(body.vertices, body.mass));
-        Vertices.translate(body.vertices, { x: body.position.x, y: body.position.y });
+            // update properties
+            part.axes = Axes.fromVertices(part.vertices);
 
-        // update bounds
-        Bounds.update(body.bounds, body.vertices, body.velocity);
+            if (!body.isStatic) {
+                part.area = Vertices.area(part.vertices);
+                Body.setMass(part, body.density * part.area);
+
+                // update inertia (requires vertices to be at origin)
+                Vertices.translate(part.vertices, { x: -part.position.x, y: -part.position.y });
+                Body.setInertia(part, Vertices.inertia(part.vertices, part.mass));
+                Vertices.translate(part.vertices, { x: part.position.x, y: part.position.y });
+            }
+
+            // update bounds
+            Bounds.update(part.bounds, part.vertices, body.velocity);
+        }
+
+        if (!body.isStatic) {
+            var total = _totalProperties(body);
+            body.area = total.area;
+            Body.setMass(body, total.mass);
+            Body.setInertia(body, total.inertia);
+        }
     };
 
     /**
@@ -543,6 +553,35 @@ var Body = {};
         body.force.y += force.y;
         var offset = { x: position.x - body.position.x, y: position.y - body.position.y };
         body.torque += (offset.x * force.y - offset.y * force.x) * body.inverseInertia;
+    };
+
+    /**
+     * Returns the sums of the properties of all compound parts of the parent body.
+     * @method _totalProperties
+     * @private
+     * @param {body} body
+     * @return {}
+     */
+    var _totalProperties = function(body) {
+        var properties = {
+            mass: 0,
+            area: 0,
+            inertia: 0,
+            centre: { x: 0, y: 0 }
+        };
+
+        // sum the properties of all compound parts of the parent body
+        for (var i = body.parts.length === 1 ? 0 : 1; i < body.parts.length; i++) {
+            var part = body.parts[i];
+            properties.mass += part.mass;
+            properties.area += part.area;
+            properties.inertia += part.inertia;
+            Vector.add(properties.centre, part.position, properties.centre);
+        }
+
+        properties.centre = Vector.div(properties.centre, body.parts.length - 1);
+
+        return properties;
     };
 
     /*

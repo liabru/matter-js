@@ -244,21 +244,27 @@
 
         Demo.reset();
 
-        var bodyA = Bodies.rectangle(100, 200, 50, 50),
+        var bodyA = Bodies.rectangle(100, 200, 50, 50, { isStatic: true }),
             bodyB = Bodies.rectangle(200, 200, 50, 50),
             bodyC = Bodies.rectangle(300, 200, 50, 50),
             bodyD = Bodies.rectangle(400, 200, 50, 50),
             bodyE = Bodies.rectangle(550, 200, 50, 50),
             bodyF = Bodies.rectangle(700, 200, 50, 50),
-            bodyG = Bodies.circle(400, 100, 25);
+            bodyG = Bodies.circle(400, 100, 25),
+            partA = Bodies.rectangle(600, 200, 120, 50),
+            partB = Bodies.rectangle(660, 200, 50, 190),
+            compound = Body.create({
+                parts: [partA, partB],
+                isStatic: true
+            });
 
-        World.add(_world, [bodyA, bodyB, bodyC, bodyD, bodyE, bodyF, bodyG]);
+        World.add(_world, [bodyA, bodyB, bodyC, bodyD, bodyE, bodyF, bodyG, compound]);
 
         var counter = 0,
             scaleFactor = 1.01;
 
         _sceneEvents.push(
-            Events.on(_engine, 'tick', function(event) {
+            Events.on(_engine, 'beforeUpdate', function(event) {
                 counter += 1;
 
                 if (counter === 40)
@@ -266,6 +272,7 @@
 
                 if (scaleFactor > 1) {
                     Body.scale(bodyF, scaleFactor, scaleFactor);
+                    Body.scale(compound, 0.995, 0.995);
 
                     // modify bodyE vertices
                     bodyE.vertices[0].x -= 0.2;
@@ -277,7 +284,11 @@
 
                 // make bodyA move up and down and rotate constantly
                 Body.setPosition(bodyA, { x: 100, y: 300 + 100 * Math.sin(_engine.timing.timestamp * 0.005) });
-                Body.setAngularVelocity(bodyA, 0.02);
+                Body.rotate(bodyA, 0.02);
+
+                // make compound body move up and down and rotate constantly
+                Body.setPosition(compound, { x: 600, y: 300 + 100 * Math.sin(_engine.timing.timestamp * 0.005) });
+                Body.rotate(compound, 0.02);
 
                 // every 1.5 sec
                 if (counter >= 60 * 1.5) {
@@ -293,9 +304,10 @@
         );
 
         var renderOptions = _engine.render.options;
-        renderOptions.wireframes = false;
         renderOptions.showAxes = true;
         renderOptions.showCollisions = true;
+        renderOptions.showPositions = true;
+        renderOptions.showConvexHulls = true;
     };
 
     Demo.compositeManipulation = function() {
