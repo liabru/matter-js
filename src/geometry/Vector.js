@@ -77,14 +77,16 @@ var Vector = {};
      * @param {vector} vector
      * @param {number} angle
      * @param {vector} point
+     * @param {vector} [output]
      * @return {vector} A new vector rotated about the point
      */
-    Vector.rotateAbout = function(vector, angle, point) {
+    Vector.rotateAbout = function(vector, angle, point, output) {
         var cos = Math.cos(angle), sin = Math.sin(angle);
-        return {
-            x: point.x + ((vector.x - point.x) * cos - (vector.y - point.y) * sin),
-            y: point.y + ((vector.x - point.x) * sin + (vector.y - point.y) * cos)
-        };
+        if (!output) output = {};
+        var x = point.x + ((vector.x - point.x) * cos - (vector.y - point.y) * sin);
+        output.y = point.y + ((vector.x - point.x) * sin + (vector.y - point.y) * cos);
+        output.x = x;
+        return output;
     };
 
     /**

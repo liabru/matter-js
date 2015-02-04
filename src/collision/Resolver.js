@@ -91,22 +91,18 @@ var Resolver = {};
             var body = bodies[i];
 
             if (body.positionImpulse.x !== 0 || body.positionImpulse.y !== 0) {
-                // move the body without changing velocity
-                body.position.x += body.positionImpulse.x;
-                body.position.y += body.positionImpulse.y;
-                body.positionPrev.x += body.positionImpulse.x;
-                body.positionPrev.y += body.positionImpulse.y;
-
                 // update body geometry
                 for (var j = 0; j < body.parts.length; j++) {
                     var part = body.parts[j];
                     Vertices.translate(part.vertices, body.positionImpulse);
-                    Bounds.update(part.bounds, body.vertices, body.velocity);
-                    if (j > 0) {
-                        part.position.x += body.positionImpulse.x;
-                        part.position.y += body.positionImpulse.y;
-                    }
+                    Bounds.update(part.bounds, part.vertices, body.velocity);
+                    part.position.x += body.positionImpulse.x;
+                    part.position.y += body.positionImpulse.y;
                 }
+
+                // move the body without changing velocity
+                body.positionPrev.x += body.positionImpulse.x;
+                body.positionPrev.y += body.positionImpulse.y;
                 
                 // dampen accumulator to warm the next step
                 body.positionImpulse.x *= _positionWarming;

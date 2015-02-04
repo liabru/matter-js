@@ -251,20 +251,24 @@ var Constraint = {};
             // update geometry and reset
             for (var j = 0; j < body.parts.length; j++) {
                 var part = body.parts[j];
+                
                 Vertices.translate(part.vertices, impulse);
-
-                if (impulse.angle !== 0) {
-                    Vertices.rotate(part.vertices, impulse.angle, body.position);
-                    Axes.rotate(part.axes, impulse.angle);
-                    impulse.angle = 0;
-                }
-
-                Bounds.update(part.bounds, body.vertices);
 
                 if (j > 0) {
                     part.position.x += impulse.x;
                     part.position.y += impulse.y;
                 }
+
+                if (impulse.angle !== 0) {
+                    Vertices.rotate(part.vertices, impulse.angle, body.position);
+                    Axes.rotate(part.axes, impulse.angle);
+                    if (j > 0) {
+                        Vector.rotateAbout(part.position, impulse.angle, body.position, part.position);
+                    }
+                    impulse.angle = 0;
+                }
+
+                Bounds.update(part.bounds, part.vertices);
             }
 
             impulse.x = 0;

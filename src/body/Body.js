@@ -402,6 +402,9 @@ var Body = {};
             Vertices.rotate(part.vertices, delta, body.position);
             Axes.rotate(part.axes, delta);
             Bounds.update(part.bounds, part.vertices, body.velocity);
+            if (i > 0) {
+                Vector.rotateAbout(part.position, delta, body.position, part.position);
+            }
         }
     };
 
@@ -528,16 +531,23 @@ var Body = {};
         // transform the body geometry
         for (var i = 0; i < body.parts.length; i++) {
             var part = body.parts[i];
+
             Vertices.translate(part.vertices, body.velocity);
-            if (body.angularVelocity !== 0) {
-                Vertices.rotate(part.vertices, body.angularVelocity, body.position);
-                Axes.rotate(part.axes, body.angularVelocity);
-            }
-            Bounds.update(part.bounds, body.vertices, body.velocity);
+            
             if (i > 0) {
                 part.position.x += body.velocity.x;
                 part.position.y += body.velocity.y;
             }
+
+            if (body.angularVelocity !== 0) {
+                Vertices.rotate(part.vertices, body.angularVelocity, body.position);
+                Axes.rotate(part.axes, body.angularVelocity);
+                if (i > 0) {
+                    Vector.rotateAbout(part.position, body.angularVelocity, body.position, part.position);
+                }
+            }
+
+            Bounds.update(part.bounds, part.vertices, body.velocity);
         }
     };
 
