@@ -84,16 +84,21 @@ var MouseConstraint = {};
                 for (var i = 0; i < bodies.length; i++) {
                     body = bodies[i];
                     if (Bounds.contains(body.bounds, mouse.position) 
-                            && Vertices.contains(body.vertices, mouse.position)
                             && Detector.canCollide(body.collisionFilter, mouseConstraint.collisionFilter)) {
-                       
-                        constraint.pointA = mouse.position;
-                        constraint.bodyB = mouseConstraint.body = body;
-                        constraint.pointB = { x: mouse.position.x - body.position.x, y: mouse.position.y - body.position.y };
-                        constraint.angleB = body.angle;
+                        for (var j = body.parts.length > 1 ? 1 : 0; j < body.parts.length; j++) {
+                            var part = body.parts[j];
+                            if (Vertices.contains(part.vertices, mouse.position)) {
+                                constraint.pointA = mouse.position;
+                                constraint.bodyB = mouseConstraint.body = body;
+                                constraint.pointB = { x: mouse.position.x - body.position.x, y: mouse.position.y - body.position.y };
+                                constraint.angleB = body.angle;
 
-                        Sleeping.set(body, false);
-                        Events.trigger(mouseConstraint, 'startdrag', { mouse: mouse, body: body });
+                                Sleeping.set(body, false);
+                                Events.trigger(mouseConstraint, 'startdrag', { mouse: mouse, body: body });
+
+                                break;
+                            }
+                        }
                     }
                 }
             } else {
