@@ -28,8 +28,10 @@ var SAT = {};
 
         if (prevCol) {
             // estimate total motion
-            var motion = bodyA.speed * bodyA.speed + bodyA.angularSpeed * bodyA.angularSpeed
-                       + bodyB.speed * bodyB.speed + bodyB.angularSpeed * bodyB.angularSpeed;
+            var parentA = bodyA.parent,
+                parentB = bodyB.parent,
+                motion = parentA.speed * parentA.speed + parentA.angularSpeed * parentA.angularSpeed
+                       + parentB.speed * parentB.speed + parentB.angularSpeed * parentB.angularSpeed;
 
             // we may be able to (partially) reuse collision result 
             // but only safe if collision was resting
@@ -113,7 +115,7 @@ var SAT = {};
         if (Vertices.contains(bodyA.vertices, verticesB[0]))
             supports.push(verticesB[0]);
 
-        if (Vertices.contains(bodyA.vertices, verticesB[1]))
+        if (verticesB[1] && Vertices.contains(bodyA.vertices, verticesB[1]))
             supports.push(verticesB[1]);
 
         // find the supports from bodyA that are inside bodyB
@@ -123,12 +125,12 @@ var SAT = {};
             if (Vertices.contains(bodyB.vertices, verticesA[0]))
                 supports.push(verticesA[0]);
 
-            if (supports.length < 2 && Vertices.contains(bodyB.vertices, verticesA[1]))
+            if (verticesA[1] && supports.length < 2 && Vertices.contains(bodyB.vertices, verticesA[1]))
                 supports.push(verticesA[1]);
         }
 
         // account for the edge case of overlapping but no vertex containment
-        if (supports.length < 2)
+        if (supports.length < 1)
             supports = [verticesB[0]];
         
         collision.supports = supports;
@@ -220,8 +222,8 @@ var SAT = {};
             bodyAPosition = bodyA.position,
             distance,
             vertex,
-            vertexA = vertices[0],
-            vertexB = vertices[1];
+            vertexA,
+            vertexB;
 
         // find closest vertex on bodyB
         for (var i = 0; i < vertices.length; i++) {
@@ -244,14 +246,20 @@ var SAT = {};
         nearestDistance = -Vector.dot(normal, vertexToBody);
         vertexB = vertex;
 
-        var nextIndex = (vertexA.index + 1) % vertices.length;
-        vertex = vertices[nextIndex];
-        vertexToBody.x = vertex.x - bodyAPosition.x;
-        vertexToBody.y = vertex.y - bodyAPosition.y;
-        distance = -Vector.dot(normal, vertexToBody);
-        if (distance < nearestDistance) {
-            vertexB = vertex;
+        // if the closest vertex is internal, we can't use the next connected vertex
+        if (!vertexA.isInternal) {
+            var nextIndex = (vertexA.index + 1) % vertices.length;
+            vertex = vertices[nextIndex];
+            vertexToBody.x = vertex.x - bodyAPosition.x;
+            vertexToBody.y = vertex.y - bodyAPosition.y;
+            distance = -Vector.dot(normal, vertexToBody);
+            if (distance < nearestDistance) {
+                vertexB = vertex;
+            }
         }
+
+        if (!vertexB)
+            return [vertexA];
 
         return [vertexA, vertexB];
     };

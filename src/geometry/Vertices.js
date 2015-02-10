@@ -35,12 +35,13 @@ var Vertices = {};
 
         for (var i = 0; i < points.length; i++) {
             var point = points[i],
-                vertex = {};
-
-            vertex.x = point.x;
-            vertex.y = point.y;
-            vertex.index = i;
-            vertex.body = body;
+                vertex = {
+                    x: point.x,
+                    y: point.y,
+                    index: i,
+                    body: body,
+                    isInternal: false
+                };
 
             vertices.push(vertex);
         }
