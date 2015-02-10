@@ -48,7 +48,8 @@ var Render = {};
                 showIds: false,
                 showShadows: false,
                 showVertexNumbers: false,
-                showConvexHulls: false
+                showConvexHulls: false,
+                showInternalEdges: false
             }
         };
 
@@ -461,6 +462,7 @@ var Render = {};
      */
     Render.bodyWireframes = function(engine, bodies, context) {
         var c = context,
+            showInternalEdges = engine.render.options.showInternalEdges,
             body,
             part,
             i,
@@ -483,7 +485,15 @@ var Render = {};
                 c.moveTo(part.vertices[0].x, part.vertices[0].y);
 
                 for (j = 1; j < part.vertices.length; j++) {
-                    c.lineTo(part.vertices[j].x, part.vertices[j].y);
+                    if (!part.vertices[j - 1].isInternal || showInternalEdges) {
+                        c.lineTo(part.vertices[j].x, part.vertices[j].y);
+                    } else {
+                        c.moveTo(part.vertices[j].x, part.vertices[j].y);
+                    }
+
+                    if (part.vertices[j].isInternal && !showInternalEdges) {
+                        c.moveTo(part.vertices[(j + 1) % part.vertices.length].x, part.vertices[(j + 1) % part.vertices.length].y);
+                    }
                 }
                 
                 c.lineTo(part.vertices[0].x, part.vertices[0].y);
@@ -498,7 +508,7 @@ var Render = {};
     /**
      * Optimised method for drawing body convex hull wireframes in one pass
      * @private
-     * @method bodyWireframes
+     * @method bodyConvexHulls
      * @param {engine} engine
      * @param {body[]} bodies
      * @param {RenderingContext} context
@@ -545,13 +555,17 @@ var Render = {};
     Render.vertexNumbers = function(engine, bodies, context) {
         var c = context,
             i,
-            j;
+            j,
+            k;
 
         for (i = 0; i < bodies.length; i++) {
-            var body = bodies[i];
-            for (j = 0; j < body.vertices.length; j++) {
-                c.fillStyle = 'yellow';
-                c.fillText(j, body.vertices[j].x, body.vertices[j].y + 10);
+            var parts = bodies[i].parts;
+            for (k = parts.length > 1 ? 1 : 0; k < parts.length; k++) {
+                var part = parts[k];
+                for (j = 0; j < part.vertices.length; j++) {
+                    c.fillStyle = 'yellow';
+                    c.fillText(i + '_' + j, part.position.x + (part.vertices[j].x - part.position.x) * 0.8, part.position.y + (part.vertices[j].y - part.position.y) * 0.8);
+                }
             }
         }
     };
@@ -574,8 +588,13 @@ var Render = {};
         for (var i = 0; i < bodies.length; i++) {
             var body = bodies[i];
 
-            if (body.render.visible)
-                c.rect(body.bounds.min.x, body.bounds.min.y, body.bounds.max.x - body.bounds.min.x, body.bounds.max.y - body.bounds.min.y);
+            if (body.render.visible) {
+                var parts = bodies[i].parts;
+                for (var j = parts.length > 1 ? 1 : 0; j < parts.length; j++) {
+                    var part = parts[j];
+                    c.rect(part.bounds.min.x, part.bounds.min.y, part.bounds.max.x - part.bounds.min.x, part.bounds.max.y - part.bounds.min.y);
+                }
+            }
         }
 
         if (options.wireframes) {
@@ -601,22 +620,27 @@ var Render = {};
             render = engine.render,
             options = render.options,
             i,
-            j;
+            j,
+            k;
 
         c.beginPath();
 
         for (i = 0; i < bodies.length; i++) {
-            var body = bodies[i];
+            var body = bodies[i],
+                parts = body.parts;
 
             if (!body.render.visible)
                 continue;
 
             if (options.showAxes) {
                 // render all axes
-                for (j = 0; j < body.axes.length; j++) {
-                    var axis = body.axes[j];
-                    c.moveTo(body.position.x, body.position.y);
-                    c.lineTo(body.position.x + axis.x * 20, body.position.y + axis.y * 20);
+                for (j = parts.length > 1 ? 1 : 0; j < parts.length; j++) {
+                    var part = parts[j];
+                    for (k = 0; k < part.axes.length; k++) {
+                        var axis = part.axes[k];
+                        c.moveTo(part.position.x, part.position.y);
+                        c.lineTo(part.position.x + axis.x * 20, part.position.y + axis.y * 20);
+                    }
                 }
             } else {
                 // render a single axis indicator
@@ -649,6 +673,7 @@ var Render = {};
             render = engine.render,
             options = render.options,
             body,
+            part,
             i;
 
         c.beginPath();
@@ -656,8 +681,14 @@ var Render = {};
         // render current positions
         for (i = 0; i < bodies.length; i++) {
             body = bodies[i];
-            if (body.render.visible) {
-                c.arc(body.position.x, body.position.y, 3, 0, 2 * Math.PI, false);
+
+            if (!body.render.visible)
+                continue;
+
+            // handle compound parts
+            for (k = 0; k < body.parts.length; k++) {
+                part = body.parts[k];
+                c.arc(part.position.x, part.position.y, 3, 0, 2 * Math.PI, false);
                 c.closePath();
             }
         }
