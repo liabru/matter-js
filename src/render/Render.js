@@ -779,6 +779,7 @@ var Render = {};
             options = engine.render.options,
             pair,
             collision,
+            corrected,
             i,
             j;
 
@@ -787,6 +788,10 @@ var Render = {};
         // render collision positions
         for (i = 0; i < pairs.length; i++) {
             pair = pairs[i];
+
+            if (!pair.isActive)
+                continue;
+
             collision = pair.collision;
             for (j = 0; j < pair.activeContacts.length; j++) {
                 var contact = pair.activeContacts[j],
@@ -803,10 +808,40 @@ var Render = {};
         c.fill();
 
         c.beginPath();
+
+        // render corrected positions
+        for (i = 0; i < pairs.length; i++) {
+            pair = pairs[i];
+
+            if (!pair.isActive)
+                continue;
+
+            collision = pair.collision;
+            corrected = collision.supportCorrected;
+
+            if (collision.bodyB === collision.supports[0].body) {
+                c.rect(collision.supportCorrected.x - 1.5, collision.supportCorrected.y - 1.5, 3.5, 3.5);
+            } else {
+                c.rect(collision.supportCorrected.x - 1.5 + (2 * collision.penetration.x), collision.supportCorrected.y - 1.5 + (2 * collision.penetration.y), 3.5, 3.5);
+            }
+        }
+
+        if (options.wireframes) {
+            c.strokeStyle = 'rgba(255,165,0,0.7)';
+        } else {
+            c.strokeStyle = 'orange';
+        }
+        c.stroke();
+
+        c.beginPath();
             
         // render collision normals
         for (i = 0; i < pairs.length; i++) {
             pair = pairs[i];
+
+            if (!pair.isActive)
+                continue;
+
             collision = pair.collision;
 
             if (pair.activeContacts.length > 0) {
@@ -818,7 +853,12 @@ var Render = {};
                     normalPosY = (pair.activeContacts[0].vertex.y + pair.activeContacts[1].vertex.y) / 2;
                 }
                 
-                c.moveTo(normalPosX - collision.normal.x * 8, normalPosY - collision.normal.y * 8);
+                if (collision.bodyB === collision.supports[0].body) {
+                    c.moveTo(normalPosX - collision.normal.x * 8, normalPosY - collision.normal.y * 8);
+                } else {
+                    c.moveTo(normalPosX + collision.normal.x * 8, normalPosY + collision.normal.y * 8);
+                }
+
                 c.lineTo(normalPosX, normalPosY);
             }
         }
