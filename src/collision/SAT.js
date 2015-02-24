@@ -161,9 +161,7 @@ var SAT = {};
             _projectToAxis(projectionA, verticesA, axis);
             _projectToAxis(projectionB, verticesB, axis);
 
-            overlap = projectionA.min < projectionB.min 
-                        ? projectionA.max - projectionB.min 
-                        : projectionB.max - projectionA.min;
+            overlap = Math.min(projectionA.max - projectionB.min, projectionB.max - projectionA.min);
 
             if (overlap <= 0) {
                 result.overlap = overlap;
