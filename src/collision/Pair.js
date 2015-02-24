@@ -16,7 +16,9 @@ var Pair = {};
      */
     Pair.create = function(collision, timestamp) {
         var bodyA = collision.bodyA,
-            bodyB = collision.bodyB;
+            bodyB = collision.bodyB,
+            parentA = collision.parentA,
+            parentB = collision.parentB;
 
         var pair = {
             id: Pair.id(bodyA, bodyB),
@@ -28,10 +30,10 @@ var Pair = {};
             isActive: true,
             timeCreated: timestamp,
             timeUpdated: timestamp,
-            inverseMass: bodyA.inverseMass + bodyB.inverseMass,
-            friction: Math.min(bodyA.friction, bodyB.friction),
-            restitution: Math.max(bodyA.restitution, bodyB.restitution),
-            slop: Math.max(bodyA.slop, bodyB.slop)
+            inverseMass: parentA.inverseMass + parentB.inverseMass,
+            friction: Math.min(parentA.friction, parentB.friction),
+            restitution: Math.max(parentA.restitution, parentB.restitution),
+            slop: Math.max(parentA.slop, parentB.slop)
         };
 
         Pair.update(pair, collision, timestamp);
@@ -48,13 +50,15 @@ var Pair = {};
     Pair.update = function(pair, collision, timestamp) {
         var contacts = pair.contacts,
             supports = collision.supports,
-            activeContacts = pair.activeContacts;
+            activeContacts = pair.activeContacts,
+            parentA = collision.parentA,
+            parentB = collision.parentB;
         
         pair.collision = collision;
-        pair.inverseMass = collision.bodyA.inverseMass + collision.bodyB.inverseMass;
-        pair.friction = Math.min(collision.bodyA.friction, collision.bodyB.friction);
-        pair.restitution = Math.max(collision.bodyA.restitution, collision.bodyB.restitution);
-        pair.slop = Math.max(collision.bodyA.slop, collision.bodyB.slop);
+        pair.inverseMass = parentA.inverseMass + parentB.inverseMass;
+        pair.friction = Math.min(parentA.friction, parentB.friction);
+        pair.restitution = Math.max(parentA.restitution, parentB.restitution);
+        pair.slop = Math.max(parentA.slop, parentB.slop);
         activeContacts.length = 0;
         
         if (collision.collided) {
