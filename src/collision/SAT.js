@@ -46,9 +46,11 @@ var SAT = {};
         if (prevCol && canReusePrevCol) {
             // if we can reuse the collision result
             // we only need to test the previously found axis
-            var axes = [prevCol.bodyA.axes[prevCol.axisNumber]];
+            var axisBodyA = collision.axisBody,
+                axisBodyB = axisBodyA === bodyA ? bodyB : bodyA,
+                axes = [axisBodyA.axes[prevCol.axisNumber]];
 
-            minOverlap = _overlapAxes(prevCol.bodyA.vertices, prevCol.bodyB.vertices, axes);
+            minOverlap = _overlapAxes(axisBodyA.vertices, axisBodyB.vertices, axes);
             collision.reused = true;
 
             if (minOverlap.overlap <= 0) {
@@ -74,18 +76,18 @@ var SAT = {};
 
             if (overlapAB.overlap < overlapBA.overlap) {
                 minOverlap = overlapAB;
-                collision.bodyA = bodyA;
-                collision.bodyB = bodyB;
+                collision.axisBody = bodyA;
             } else {
                 minOverlap = overlapBA;
-                collision.bodyA = bodyB;
-                collision.bodyB = bodyA;
+                collision.axisBody = bodyB;
             }
 
             // important for reuse later
             collision.axisNumber = minOverlap.axisNumber;
         }
 
+        collision.bodyA = bodyA.id < bodyB.id ? bodyA : bodyB;
+        collision.bodyB = bodyA.id < bodyB.id ? bodyB : bodyA;
         collision.collided = true;
         collision.normal = minOverlap.axis;
         collision.depth = minOverlap.overlap;
