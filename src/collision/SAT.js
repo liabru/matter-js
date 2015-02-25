@@ -117,7 +117,7 @@ var SAT = {};
         if (Vertices.contains(bodyA.vertices, verticesB[0]))
             supports.push(verticesB[0]);
 
-        if (verticesB[1] && Vertices.contains(bodyA.vertices, verticesB[1]))
+        if (verticesB.length > 1 && Vertices.contains(bodyA.vertices, verticesB[1]))
             supports.push(verticesB[1]);
 
         // find the supports from bodyA that are inside bodyB
@@ -127,7 +127,7 @@ var SAT = {};
             if (Vertices.contains(bodyB.vertices, verticesA[0]))
                 supports.push(verticesA[0]);
 
-            if (verticesA[1] && supports.length < 2 && Vertices.contains(bodyB.vertices, verticesA[1]))
+            if (verticesA.length > 1 && supports.length < 2 && Vertices.contains(bodyB.vertices, verticesA[1]))
                 supports.push(verticesA[1]);
         }
 
