@@ -179,7 +179,10 @@ var Bodies = {};
     Bodies.fromVertices = function(x, y, vertices, options, removeCollinear) {
         var canDecompose = true,
             body,
-            i;
+            i,
+            j,
+            k,
+            z;
 
         options = options || {};
         removeCollinear = typeof removeCollinear !== 'undefined' ? removeCollinear : true;
@@ -228,7 +231,7 @@ var Bodies = {};
                     chunkVertices = [];
 
                 // convert vertices into the correct structure
-                for (var j = 0; j < chunk.vertices.length; j++) {
+                for (j = 0; j < chunk.vertices.length; j++) {
                     chunkVertices.push({ x: chunk.vertices[j][0], y: chunk.vertices[j][1] });
                 }
 
@@ -241,8 +244,46 @@ var Bodies = {};
                 );
             }
 
+            // flag internal edges (coincident part edges)
+            var coincident_max_dist = 1;
+
+            for (i = 0; i < parts.length; i++) {
+                var partA = parts[i];
+
+                for (j = i + 1; j < parts.length; j++) {
+                    var partB = parts[j];
+
+                    if (Bounds.overlaps(partA.bounds, partB.bounds)) {
+                        var pav = partA.vertices,
+                            pbv = partB.vertices;
+
+                        // iterate vertices of both parts
+                        for (k = 0; k < partA.vertices.length; k++) {
+                            for (z = 0; z < partB.vertices.length; z++) {
+                                // find distances between the vertices
+                                var da = Vector.magnitudeSquared(Vector.sub(pav[(k + 1) % pav.length], pbv[z])),
+                                    db = Vector.magnitudeSquared(Vector.sub(pav[k], pbv[(z + 1) % pbv.length]));
+
+                                // if both vertices are very close, consider the edge concident (internal)
+                                if (da < coincident_max_dist && db < coincident_max_dist) {
+                                    pav[k].isInternal = true;
+                                    pbv[z].isInternal = true;
+                                }
+                            }
+                        }
+
+                    }
+                }
+            }
+
+            // update axes now that we have flagged the internal edges
+            for (i = 0; i < parts.length; i++) {
+                var part = parts[i];
+                part.axes = Axes.fromVertices(part.vertices);
+            }
+
             // create the parent body to be returned, that contains generated compound parts
-            body = Body.create(Common.extend({}, { parts: parts }, options));
+            body = Body.create(Common.extend({ parts: parts.slice(0) }, options));
             Body.setPosition(body, { x: x, y: y });
 
             return body;
