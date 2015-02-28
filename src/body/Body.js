@@ -213,21 +213,24 @@ var Body = {};
      * @param {bool} isStatic
      */
     Body.setStatic = function(body, isStatic) {
-        body.isStatic = isStatic;
+        for (var i = 0; i < body.parts.length; i++) {
+            var part = body.parts[i];
+            part.isStatic = isStatic;
 
-        if (isStatic) {
-            body.restitution = 0;
-            body.friction = 1;
-            body.mass = body.inertia = body.density = Infinity;
-            body.inverseMass = body.inverseInertia = 0;
+            if (isStatic) {
+                part.restitution = 0;
+                part.friction = 1;
+                part.mass = part.inertia = part.density = Infinity;
+                part.inverseMass = part.inverseInertia = 0;
 
-            body.positionPrev.x = body.position.x;
-            body.positionPrev.y = body.position.y;
-            body.anglePrev = body.angle;
-            body.angularVelocity = 0;
-            body.speed = 0;
-            body.angularSpeed = 0;
-            body.motion = 0;
+                part.positionPrev.x = part.position.x;
+                part.positionPrev.y = part.position.y;
+                part.anglePrev = part.angle;
+                part.angularVelocity = 0;
+                part.speed = 0;
+                part.angularSpeed = 0;
+                part.motion = 0;
+            }
         }
     };
 
@@ -589,10 +592,12 @@ var Body = {};
             properties.mass += part.mass;
             properties.area += part.area;
             properties.inertia += part.inertia;
-            properties.centre = Vector.add(properties.centre, Vector.mult(part.position, part.mass));
+            properties.centre = Vector.add(properties.centre, 
+                                           Vector.mult(part.position, part.mass !== Infinity ? part.mass : 1));
         }
 
-        properties.centre = Vector.div(properties.centre, properties.mass);
+        properties.centre = Vector.div(properties.centre, 
+                                       properties.mass !== Infinity ? properties.mass : body.parts.length);
 
         return properties;
     };
