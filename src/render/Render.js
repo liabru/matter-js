@@ -643,10 +643,12 @@ var Render = {};
                     }
                 }
             } else {
-                // render a single axis indicator
-                c.moveTo(body.position.x, body.position.y);
-                c.lineTo((body.vertices[0].x + body.vertices[body.vertices.length-1].x) / 2, 
-                         (body.vertices[0].y + body.vertices[body.vertices.length-1].y) / 2);
+                if (body.parts.length === 1) {
+                    // render a single axis indicator
+                    c.moveTo(body.position.x, body.position.y);
+                    c.lineTo((body.vertices[0].x + body.vertices[body.vertices.length-1].x) / 2, 
+                             (body.vertices[0].y + body.vertices[body.vertices.length-1].y) / 2);
+                }
             }
         }
 
