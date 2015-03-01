@@ -15,13 +15,16 @@ var Svg = {};
      * Converts an SVG path into a `Matter.Vertices` object for the given `Matter.Body`.
      * @method pathToPoints
      * @param {string} path
+     * @param {Number} [sampleLength=15]
      * @return {Vector} points
      */
-    Svg.pathToPoints = function(path) {
-        var i, il, total, point, distance, segment, segments, 
+    Svg.pathToPoints = function(path, sampleLength) {
+        var i, il, total, point, segment, segments, 
             segmentsQueue, lastSegment, 
             lastPoint, segmentIndex, points = [],
             length = 0, x = 0, y = 0;
+
+        sampleLength = sampleLength || 15;
 
         // prepare helpers functions
         var addPoint = function(px, py, pathSegType) {
@@ -68,6 +71,9 @@ var Svg = {};
             case 'M':
             case 'L':
             case 'T':
+            case 'C':
+            case 'S':
+            case 'Q':
                 x = segment.x;
                 y = segment.y;
                 break;
@@ -77,16 +83,6 @@ var Svg = {};
             case 'V':
                 y = segment.y;
                 break;
-            case 'C':
-                x = segment.x;
-                y = segment.y;
-                break;
-            case 'S':
-            case 'Q':
-                x = segment.x;
-                y = segment.y;
-                break;
-
             }
 
             // add point
@@ -96,25 +92,8 @@ var Svg = {};
         // ensure path is absolute
         _svgPathToAbsolute(path);
 
-        // parse sample value
-        sample = '1%';
-
         // get total length
         total = path.getTotalLength();
-
-        // calculate sample distance
-        if (typeof sample === 'string') {
-            if (sample.indexOf('%') > -1) {
-                // sample distance in %
-                distance = total * (parseFloat(sample) / 100);
-            } else if (sample.indexOf('px') > -1) {
-                // fixed sample distance in px
-                distance = parseFloat(sample);
-            }
-        } else {
-            // specific number of samples
-            distance = total / sample;
-        }
 
         // Put all path segments in a queue
         segments = [];
@@ -140,6 +119,7 @@ var Svg = {};
             }
 
             // add points in between when curving
+            // TODO: adaptive sampling
             switch (segment.pathSegTypeAsLetter.toUpperCase()) {
 
             case 'C':
@@ -154,7 +134,7 @@ var Svg = {};
             }
 
             // increment by sample value
-            length += distance;
+            length += sampleLength;
         }
 
         // add remaining segments we didn't pass while sampling
