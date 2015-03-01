@@ -9,8 +9,6 @@
 * @class Vertices
 */
 
-// TODO: convex decomposition - http://mnbayazit.com/406/bayazit
-
 var Vertices = {};
 
 (function() {

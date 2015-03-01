@@ -38,6 +38,7 @@ Matter.RenderPixi = RenderPixi;
 Matter.Events = Events;
 Matter.Query = Query;
 Matter.Runner = Runner;
+Matter.Svg = Svg;
 
 // @if DEBUG
 Matter.Metrics = Metrics;
