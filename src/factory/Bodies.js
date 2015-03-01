@@ -191,7 +191,7 @@ var Bodies = {};
             // vertices are convex, so just create a body normally
             body = {
                 position: { x: x, y: y },
-                vertices: vertices
+                vertices: Vertices.clockwiseSort(vertices)
             };
 
             return Body.create(Common.extend({}, body, options));
@@ -207,12 +207,6 @@ var Bodies = {};
         var concave = new decomp.Polygon();
         for (i = 0; i < vertices.length; i++) {
             concave.vertices.push([vertices[i].x, vertices[i].y]);
-        }
-
-        // check for complexity
-        if (!concave.isSimple()) {
-            Common.log('Bodies.fromVertices: Non-simple polygons are not supported. Could not decompose vertices. Fallback to convex hull.', 'warn');
-            canDecompose = false;
         }
 
         // try to decompose
