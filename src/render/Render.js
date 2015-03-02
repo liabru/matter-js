@@ -855,7 +855,7 @@ var Render = {};
                     normalPosY = (pair.activeContacts[0].vertex.y + pair.activeContacts[1].vertex.y) / 2;
                 }
                 
-                if (collision.bodyB === collision.supports[0].body) {
+                if (collision.bodyB === collision.supports[0].body || collision.bodyA.isStatic === true) {
                     c.moveTo(normalPosX - collision.normal.x * 8, normalPosY - collision.normal.y * 8);
                 } else {
                     c.moveTo(normalPosX + collision.normal.x * 8, normalPosY + collision.normal.y * 8);
