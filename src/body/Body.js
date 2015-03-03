@@ -110,16 +110,16 @@ var Body = {};
      * @param {} options
      */
     var _initProperties = function(body, options) {
-        // init required properties
+        // init required properties (order is important)
         Body.set(body, {
             bounds: body.bounds || Bounds.create(body.vertices),
             positionPrev: body.positionPrev || Vector.clone(body.position),
             anglePrev: body.anglePrev || body.angle,
             vertices: body.vertices,
+            parts: body.parts || [body],
             isStatic: body.isStatic,
             isSleeping: body.isSleeping,
-            parent: body.parent || body,
-            parts: body.parts
+            parent: body.parent || body
         });
 
         Vertices.rotate(body.vertices, body.angle, body.position);
