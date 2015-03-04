@@ -42,6 +42,7 @@ var Render = {};
                 showBounds: false,
                 showVelocity: false,
                 showCollisions: false,
+                showSeparations: false,
                 showAxes: false,
                 showPositions: false,
                 showAngleIndicator: false,
@@ -201,6 +202,9 @@ var Render = {};
 
         if (options.showIds)
             Render.bodyIds(engine, bodies, context);
+
+        if (options.showSeparations)
+            Render.separations(engine, engine.pairs.list, context);
 
         if (options.showCollisions)
             Render.collisions(engine, engine.pairs.list, context);
@@ -782,6 +786,8 @@ var Render = {};
             pair,
             collision,
             corrected,
+            bodyA,
+            bodyB,
             i,
             j;
 
@@ -808,32 +814,6 @@ var Render = {};
             c.fillStyle = 'orange';
         }
         c.fill();
-
-        c.beginPath();
-
-        // render corrected positions
-        for (i = 0; i < pairs.length; i++) {
-            pair = pairs[i];
-
-            if (!pair.isActive)
-                continue;
-
-            collision = pair.collision;
-            corrected = collision.supportCorrected;
-
-            if (collision.bodyB === collision.supports[0].body) {
-                c.rect(collision.supportCorrected.x - 1.5, collision.supportCorrected.y - 1.5, 3.5, 3.5);
-            } else {
-                c.rect(collision.supportCorrected.x - 1.5 + (2 * collision.penetration.x), collision.supportCorrected.y - 1.5 + (2 * collision.penetration.y), 3.5, 3.5);
-            }
-        }
-
-        if (options.wireframes) {
-            c.strokeStyle = 'rgba(255,165,0,0.7)';
-        } else {
-            c.strokeStyle = 'orange';
-        }
-        c.stroke();
 
         c.beginPath();
             
@@ -872,6 +852,63 @@ var Render = {};
         }
 
         c.lineWidth = 1;
+        c.stroke();
+    };
+
+    /**
+     * Description
+     * @private
+     * @method separations
+     * @param {engine} engine
+     * @param {pair[]} pairs
+     * @param {RenderingContext} context
+     */
+    Render.separations = function(engine, pairs, context) {
+        var c = context,
+            options = engine.render.options,
+            pair,
+            collision,
+            corrected,
+            bodyA,
+            bodyB,
+            i,
+            j;
+
+        c.beginPath();
+
+        // render separations
+        for (i = 0; i < pairs.length; i++) {
+            pair = pairs[i];
+
+            if (!pair.isActive)
+                continue;
+
+            collision = pair.collision;
+            bodyA = collision.bodyA;
+            bodyB = collision.bodyB;
+
+            var k = 1;
+
+            if (!bodyB.isStatic && !bodyA.isStatic) k = 0.5;
+            if (bodyB.isStatic) k = 0;
+
+            c.moveTo(bodyB.position.x, bodyB.position.y);
+            c.lineTo(bodyB.position.x - collision.penetration.x * k, bodyB.position.y - collision.penetration.y * k);
+
+            k = 1;
+
+            if (!bodyB.isStatic && !bodyA.isStatic) k = 0.5;
+            if (bodyA.isStatic) k = 0;
+
+            c.moveTo(bodyA.position.x, bodyA.position.y);
+            c.lineTo(bodyA.position.x + collision.penetration.x * k, bodyA.position.y + collision.penetration.y * k);
+        }
+
+        if (options.wireframes) {
+            c.strokeStyle = 'rgba(255,165,0,0.5)';
+        } else {
+            c.strokeStyle = 'orange';
+        }
         c.stroke();
     };
 

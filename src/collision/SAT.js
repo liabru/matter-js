@@ -136,7 +136,6 @@ var SAT = {};
             supports = [verticesB[0]];
         
         collision.supports = supports;
-        collision.supportCorrected = Vector.sub(supports[0], collision.penetration);
 
         return collision;
     };

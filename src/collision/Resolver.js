@@ -24,13 +24,12 @@ var Resolver = {};
             collision,
             bodyA,
             bodyB,
-            vertex,
-            vertexCorrected,
             normal,
             bodyBtoA,
             tempA = Vector._temp[0],
             tempB = Vector._temp[1],
-            tempC = Vector._temp[2];
+            tempC = Vector._temp[2],
+            tempD = Vector._temp[3];
 
         // find impulses required to resolve penetration
         for (i = 0; i < pairs.length; i++) {
@@ -42,14 +41,12 @@ var Resolver = {};
             collision = pair.collision;
             bodyA = collision.parentA;
             bodyB = collision.parentB;
-            vertex = collision.supports[0];
-            vertexCorrected = collision.supportCorrected;
             normal = collision.normal;
 
-
             // get current separation between body edges involved in collision
-            bodyBtoA = Vector.sub(Vector.add(bodyB.positionImpulse, vertex, tempA), 
-                                    Vector.add(bodyA.positionImpulse, vertexCorrected, tempB), tempC);
+            bodyBtoA = Vector.sub(Vector.add(bodyB.positionImpulse, bodyB.position, tempA), 
+                                    Vector.add(bodyA.positionImpulse, 
+                                        Vector.sub(bodyB.position, collision.penetration, tempB), tempC), tempD);
 
             pair.separation = Vector.dot(normal, bodyBtoA);
         }
