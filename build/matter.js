@@ -1,5 +1,5 @@
 /**
-* matter.js 0.8.0-edge 2015-01-21
+* matter.js 0.8.0-edge 2015-03-03
 * http://brm.io/matter-js/
 * License: MIT
 */
@@ -5115,7 +5115,7 @@ var Sleeping = {};
                 motion = body.speed * body.speed + body.angularSpeed * body.angularSpeed;
 
             // wake up bodies if they have a force applied
-            if (body.force.x > 0 || body.force.y > 0) {
+            if (body.force.x != 0 || body.force.y != 0) {
                 Sleeping.set(body, false);
                 continue;
             }
@@ -5172,7 +5172,7 @@ var Sleeping = {};
             }
         }
     };
-
+  
     /**
      * Description
      * @method set
