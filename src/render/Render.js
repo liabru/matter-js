@@ -758,17 +758,21 @@ var Render = {};
      * @param {RenderingContext} context
      */
     Render.bodyIds = function(engine, bodies, context) {
-        var c = context;
+        var c = context,
+            i,
+            j;
 
-        for (var i = 0; i < bodies.length; i++) {
-            var body = bodies[i];
-
-            if (!body.render.visible)
+        for (i = 0; i < bodies.length; i++) {
+            if (!bodies[i].render.visible)
                 continue;
 
-            c.font = "12px Arial";
-            c.fillStyle = 'rgba(255,255,255,0.5)';
-            c.fillText(body.id, body.position.x + 10, body.position.y - 10);
+            var parts = bodies[i].parts;
+            for (j = parts.length > 1 ? 1 : 0; j < parts.length; j++) {
+                var part = parts[j];
+                c.font = "12px Arial";
+                c.fillStyle = 'rgba(255,255,255,0.5)';
+                c.fillText(part.id, part.position.x + 10, part.position.y - 10);
+            }
         }
     };
 
