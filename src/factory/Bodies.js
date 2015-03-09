@@ -166,6 +166,7 @@ var Bodies = {};
      * If the vertices are not convex, they will be decomposed if [poly-decomp.js](https://github.com/schteppe/poly-decomp.js) is available.
      * If the vertices can not be decomposed, the function will use the convex hull.
      * By default the decomposition will discard collinear edges (to improve performance).
+     * It will also discard any particularly small parts that have an area less than `minimumArea` (to improve stability).
      * The options parameter is an object that specifies any properties you wish to override the defaults.
      * See the properties section of the `Matter.Body` module for detailed information on what you can pass via the `options` object.
      * @method fromVertices
@@ -174,9 +175,10 @@ var Bodies = {};
      * @param [vector] vertices
      * @param {object} [options]
      * @param {bool} [removeCollinear=true]
+     * @param {number} [minimumArea=100]
      * @return {body}
      */
-    Bodies.fromVertices = function(x, y, vertices, options, removeCollinear) {
+    Bodies.fromVertices = function(x, y, vertices, options, removeCollinear, minimumArea) {
         var canDecompose = true,
             body,
             i,
@@ -186,6 +188,7 @@ var Bodies = {};
 
         options = options || {};
         removeCollinear = typeof removeCollinear !== 'undefined' ? removeCollinear : true;
+        minimumArea = typeof minimumArea !== 'undefined' ? minimumArea : 100;
 
         if (Vertices.isConvex(vertices)) {
             // vertices are convex, so just create a body normally
@@ -228,6 +231,10 @@ var Bodies = {};
                 for (j = 0; j < chunk.vertices.length; j++) {
                     chunkVertices.push({ x: chunk.vertices[j][0], y: chunk.vertices[j][1] });
                 }
+
+                // skip small chunks
+                if (minimumArea > 0 && Vertices.area(chunkVertices) < minimumArea)
+                    continue;
 
                 // create a compound part
                 parts.push(
