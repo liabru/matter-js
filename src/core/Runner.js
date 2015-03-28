@@ -36,7 +36,7 @@ var Runner = {};
         var runner = Engine.runner(engine);
         (function callback(time){
             runner(time);
-            _requestAnimationFrame(callback);
+            engine.timing.frameRequestId = _requestAnimationFrame(callback);
         })();
     };
     
@@ -51,8 +51,6 @@ var Runner = {};
             var timing = engine.timing,
                 delta,
                 correction = 1;
-
-            timing.frameRequestId = _requestAnimationFrame(render);
 
             if (!engine.enabled)
                 return;
