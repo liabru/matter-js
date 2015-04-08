@@ -8,9 +8,32 @@ var Resolver = {};
 
 (function() {
 
-    var _restingThresh = 4,
-        _positionDampen = 0.2,
-        _positionWarming = 0.6;
+    Resolver._restingThresh = 4;
+    Resolver._positionDampen = 0.9;
+    Resolver._positionWarming = 0.8;
+
+    /**
+     * Description
+     * @method preSolvePosition
+     * @param {pair[]} pairs
+     */
+    Resolver.preSolvePosition = function(pairs) {
+        var i,
+            pair,
+            activeCount;
+
+        // find total contacts on each body
+        for (i = 0; i < pairs.length; i++) {
+            pair = pairs[i];
+            
+            if (!pair.isActive)
+                continue;
+            
+            activeCount = pair.activeContacts.length;
+            pair.collision.parentA.totalContacts += activeCount;
+            pair.collision.parentB.totalContacts += activeCount;
+        }
+    };
 
     /**
      * Description
@@ -26,6 +49,8 @@ var Resolver = {};
             bodyB,
             normal,
             bodyBtoA,
+            contactShare,
+            contactCount = {},
             tempA = Vector._temp[0],
             tempB = Vector._temp[1],
             tempC = Vector._temp[2],
@@ -53,27 +78,29 @@ var Resolver = {};
         
         for (i = 0; i < pairs.length; i++) {
             pair = pairs[i];
-            
-            if (!pair.isActive)
+
+            if (!pair.isActive || pair.separation < 0)
                 continue;
             
             collision = pair.collision;
             bodyA = collision.parentA;
             bodyB = collision.parentB;
             normal = collision.normal;
-            positionImpulse = ((pair.separation * _positionDampen) - pair.slop) * timeScale;
+            positionImpulse = (pair.separation - pair.slop) * timeScale;
         
             if (bodyA.isStatic || bodyB.isStatic)
                 positionImpulse *= 2;
             
             if (!(bodyA.isStatic || bodyA.isSleeping)) {
-                bodyA.positionImpulse.x += normal.x * positionImpulse;
-                bodyA.positionImpulse.y += normal.y * positionImpulse;
+                contactShare = Resolver._positionDampen / bodyA.totalContacts;
+                bodyA.positionImpulse.x += normal.x * positionImpulse * contactShare;
+                bodyA.positionImpulse.y += normal.y * positionImpulse * contactShare;
             }
 
             if (!(bodyB.isStatic || bodyB.isSleeping)) {
-                bodyB.positionImpulse.x -= normal.x * positionImpulse;
-                bodyB.positionImpulse.y -= normal.y * positionImpulse;
+                contactShare = Resolver._positionDampen / bodyB.totalContacts;
+                bodyB.positionImpulse.x -= normal.x * positionImpulse * contactShare;
+                bodyB.positionImpulse.y -= normal.y * positionImpulse * contactShare;
             }
         }
     };
@@ -86,6 +113,9 @@ var Resolver = {};
     Resolver.postSolvePosition = function(bodies) {
         for (var i = 0; i < bodies.length; i++) {
             var body = bodies[i];
+
+            // reset contact count
+            body.totalContacts = 0;
 
             if (body.positionImpulse.x !== 0 || body.positionImpulse.y !== 0) {
                 // update body geometry
@@ -100,10 +130,16 @@ var Resolver = {};
                 // move the body without changing velocity
                 body.positionPrev.x += body.positionImpulse.x;
                 body.positionPrev.y += body.positionImpulse.y;
-                
-                // dampen accumulator to warm the next step
-                body.positionImpulse.x *= _positionWarming;
-                body.positionImpulse.y *= _positionWarming;
+
+                if (Vector.dot(body.positionImpulse, body.velocity) < 0) {
+                    // reset cached impulse if the body has velocity along it
+                    body.positionImpulse.x = 0;
+                    body.positionImpulse.y = 0;
+                } else {
+                    // warm the next iteration
+                    body.positionImpulse.x *= Resolver._positionWarming;
+                    body.positionImpulse.y *= Resolver._positionWarming;
+                }
             }
         }
     };
@@ -241,7 +277,7 @@ var Resolver = {};
                 tangentImpulse *= share;
                 
                 // handle high velocity and resting collisions separately
-                if (normalVelocity < 0 && normalVelocity * normalVelocity > _restingThresh * timeScaleSquared) {
+                if (normalVelocity < 0 && normalVelocity * normalVelocity > Resolver._restingThresh * timeScaleSquared) {
                     // high velocity so clear cached contact impulse
                     contact.normalImpulse = 0;
                     contact.tangentImpulse = 0;

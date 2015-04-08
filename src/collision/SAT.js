@@ -117,7 +117,7 @@ var SAT = {};
         if (Vertices.contains(bodyA.vertices, verticesB[0]))
             supports.push(verticesB[0]);
 
-        if (verticesB.length > 1 && Vertices.contains(bodyA.vertices, verticesB[1]))
+        if (Vertices.contains(bodyA.vertices, verticesB[1]))
             supports.push(verticesB[1]);
 
         // find the supports from bodyA that are inside bodyB
@@ -127,7 +127,7 @@ var SAT = {};
             if (Vertices.contains(bodyB.vertices, verticesA[0]))
                 supports.push(verticesA[0]);
 
-            if (verticesA.length > 1 && supports.length < 2 && Vertices.contains(bodyB.vertices, verticesA[1]))
+            if (supports.length < 2 && Vertices.contains(bodyB.vertices, verticesA[1]))
                 supports.push(verticesA[1]);
         }
 
@@ -245,20 +245,14 @@ var SAT = {};
         nearestDistance = -Vector.dot(normal, vertexToBody);
         vertexB = vertex;
 
-        // if the closest vertex is internal, we can't use the next connected vertex
-        if (!vertexA.isInternal) {
-            var nextIndex = (vertexA.index + 1) % vertices.length;
-            vertex = vertices[nextIndex];
-            vertexToBody.x = vertex.x - bodyAPosition.x;
-            vertexToBody.y = vertex.y - bodyAPosition.y;
-            distance = -Vector.dot(normal, vertexToBody);
-            if (distance < nearestDistance) {
-                vertexB = vertex;
-            }
+        var nextIndex = (vertexA.index + 1) % vertices.length;
+        vertex = vertices[nextIndex];
+        vertexToBody.x = vertex.x - bodyAPosition.x;
+        vertexToBody.y = vertex.y - bodyAPosition.y;
+        distance = -Vector.dot(normal, vertexToBody);
+        if (distance < nearestDistance) {
+            vertexB = vertex;
         }
-
-        if (!vertexB)
-            return [vertexA];
 
         return [vertexA, vertexB];
     };

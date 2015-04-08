@@ -19,11 +19,6 @@ var Axes = {};
 
         // find the unique axes, using edge normal gradients
         for (var i = 0; i < vertices.length; i++) {
-            // skip internal edges
-            if (vertices[i].isInternal) {
-                continue;
-            }
-
             var j = (i + 1) % vertices.length, 
                 normal = Vector.normalise({ 
                     x: vertices[j].y - vertices[i].y, 
@@ -33,7 +28,6 @@ var Axes = {};
             
             // limit precision
             gradient = gradient.toFixed(3).toString();
-
             axes[gradient] = normal;
         }
 
