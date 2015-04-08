@@ -929,7 +929,7 @@
         
         Demo.reset();
         
-        var stack = Composites.stack(90, 30, 18, 15, 0, 0, function(x, y, column, row) {
+        var stack = Composites.stack(90, 50, 18, 15, 0, 0, function(x, y, column, row) {
             return Bodies.rectangle(x, y, 35, 35);
         });
         
