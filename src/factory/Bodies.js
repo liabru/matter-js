@@ -174,50 +174,51 @@ var Bodies = {};
      * @param {number} y
      * @param [vector] vertices
      * @param {object} [options]
-     * @param {bool} [removeCollinear=true]
+     * @param {number} [removeCollinear=0.01]
      * @param {number} [minimumArea=100]
+     * @param {bool} [flagInternal=false]
      * @return {body}
      */
-    Bodies.fromVertices = function(x, y, vertices, options, removeCollinear, minimumArea) {
-        var canDecompose = true,
-            body,
+    Bodies.fromVertices = function(x, y, vertices, options, removeCollinear, minimumArea, flagInternal) {
+        var body,
+            isConvex,
             i,
             j,
             k,
             z;
 
         options = options || {};
-        removeCollinear = typeof removeCollinear !== 'undefined' ? removeCollinear : true;
-        minimumArea = typeof minimumArea !== 'undefined' ? minimumArea : 100;
+        removeCollinear = typeof removeCollinear !== 'undefined' ? removeCollinear : 0.01;
+        minimumArea = typeof minimumArea !== 'undefined' ? minimumArea : 10;
+        flagInternal = typeof flagInternal !== 'undefined' ? flagInternal : false;
+        isConvex = Vertices.isConvex(vertices);
 
-        if (Vertices.isConvex(vertices)) {
-            // vertices are convex, so just create a body normally
+        if (isConvex || !window.decomp) {
+            if (isConvex) {
+                vertices = Vertices.clockwiseSort(vertices);
+            } else {
+                // fallback to convex hull when decomposition is not possible
+                vertices = Vertices.hull(vertices);
+                Common.log('Bodies.fromVertices: poly-decomp.js required. Could not decompose vertices. Fallback to convex hull.', 'warn');
+            }
+
             body = {
                 position: { x: x, y: y },
-                vertices: Vertices.clockwiseSort(vertices)
+                vertices: vertices
             };
 
             return Body.create(Common.extend({}, body, options));
-        }
+        } else {
+            // initialise a decomposition
+            var concave = new decomp.Polygon();
+            for (i = 0; i < vertices.length; i++) {
+                concave.vertices.push([vertices[i].x, vertices[i].y]);
+            }
 
-        // check for poly-decomp.js
-        if (!window.decomp) {
-            Common.log('Bodies.fromVertices: poly-decomp.js required. Could not decompose vertices. Fallback to convex hull.', 'warn');
-            canDecompose = false;
-        }
-
-        // initialise a decomposition
-        var concave = new decomp.Polygon();
-        for (i = 0; i < vertices.length; i++) {
-            concave.vertices.push([vertices[i].x, vertices[i].y]);
-        }
-
-        // try to decompose
-        if (canDecompose) {
             // vertices are concave and simple, we can decompose into parts
             concave.makeCCW();
-            if (removeCollinear)
-                concave.removeCollinearPoints(0.001);
+            if (removeCollinear !== false)
+                concave.removeCollinearPoints(removeCollinear);
 
             var decomposed = concave.quickDecomp(),
                 parts = [];
@@ -245,42 +246,38 @@ var Bodies = {};
                 );
             }
 
-            // flag internal edges (coincident part edges)
-            var coincident_max_dist = 1;
+            if (flagInternal) {
+                // flag internal edges (coincident part edges)
+                var coincident_max_dist = 1;
 
-            for (i = 0; i < parts.length; i++) {
-                var partA = parts[i];
+                for (i = 0; i < parts.length; i++) {
+                    var partA = parts[i];
 
-                for (j = i + 1; j < parts.length; j++) {
-                    var partB = parts[j];
+                    for (j = i + 1; j < parts.length; j++) {
+                        var partB = parts[j];
 
-                    if (Bounds.overlaps(partA.bounds, partB.bounds)) {
-                        var pav = partA.vertices,
-                            pbv = partB.vertices;
+                        if (Bounds.overlaps(partA.bounds, partB.bounds)) {
+                            var pav = partA.vertices,
+                                pbv = partB.vertices;
 
-                        // iterate vertices of both parts
-                        for (k = 0; k < partA.vertices.length; k++) {
-                            for (z = 0; z < partB.vertices.length; z++) {
-                                // find distances between the vertices
-                                var da = Vector.magnitudeSquared(Vector.sub(pav[(k + 1) % pav.length], pbv[z])),
-                                    db = Vector.magnitudeSquared(Vector.sub(pav[k], pbv[(z + 1) % pbv.length]));
+                            // iterate vertices of both parts
+                            for (k = 0; k < partA.vertices.length; k++) {
+                                for (z = 0; z < partB.vertices.length; z++) {
+                                    // find distances between the vertices
+                                    var da = Vector.magnitudeSquared(Vector.sub(pav[(k + 1) % pav.length], pbv[z])),
+                                        db = Vector.magnitudeSquared(Vector.sub(pav[k], pbv[(z + 1) % pbv.length]));
 
-                                // if both vertices are very close, consider the edge concident (internal)
-                                if (da < coincident_max_dist && db < coincident_max_dist) {
-                                    pav[k].isInternal = true;
-                                    pbv[z].isInternal = true;
+                                    // if both vertices are very close, consider the edge concident (internal)
+                                    if (da < coincident_max_dist && db < coincident_max_dist) {
+                                        pav[k].isInternal = true;
+                                        pbv[z].isInternal = true;
+                                    }
                                 }
                             }
-                        }
 
+                        }
                     }
                 }
-            }
-
-            // update axes now that we have flagged the internal edges
-            for (i = 0; i < parts.length; i++) {
-                var part = parts[i];
-                part.axes = Axes.fromVertices(part.vertices);
             }
 
             // create the parent body to be returned, that contains generated compound parts
@@ -288,14 +285,6 @@ var Bodies = {};
             Body.setPosition(body, { x: x, y: y });
 
             return body;
-        } else {
-            // fallback to convex hull when decomposition is not possible
-            body = {
-                position: { x: x, y: y },
-                vertices: Vertices.hull(vertices)
-            };
-
-            return Body.create(Common.extend({}, body, options));
         }
     };
 
