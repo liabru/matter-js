@@ -12,9 +12,11 @@
         Events = Matter.Events,
         Bounds = Matter.Bounds,
         Vector = Matter.Vector,
+        Vertices = Matter.Vertices,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
-        Query = Matter.Query;
+        Query = Matter.Query,
+        Svg = Matter.Svg;
 
     // MatterTools aliases
     if (window.MatterTools) {
@@ -42,7 +44,8 @@
         var options = {
             positionIterations: 6,
             velocityIterations: 4,
-            enableSleeping: false
+            enableSleeping: false,
+            metrics: { extended: true }
         };
 
         // create a Matter engine
@@ -122,21 +125,53 @@
 
         Demo.reset();
 
-        var partA = Bodies.rectangle(200, 200, 200, 40),
-            partB = Bodies.rectangle(200, 200, 40, 200);
+        var size = 200,
+            x = 200,
+            y = 200,
+            partA = Bodies.rectangle(x, y, size, size / 5),
+            partB = Bodies.rectangle(x, y, size / 5, size, { render: partA.render });
 
-        var compound = Body.create({
+        var compoundBodyA = Body.create({
             parts: [partA, partB]
         });
 
-        World.add(_world, compound);
+        size = 150;
+        x = 400;
+
+        var partC = Bodies.circle(x, y, 30),
+            partD = Bodies.circle(x + size, y, 30),
+            partE = Bodies.circle(x + size, y + size, 30),
+            partF = Bodies.circle(x, y + size, 30);
+
+        var compoundBodyB = Body.create({
+            parts: [partC, partD, partE, partF]
+        });
+
+        World.add(_world, [compoundBodyA, compoundBodyB]);
         
         var renderOptions = _engine.render.options;
-        renderOptions.showCollisions = true;
-        renderOptions.showBounds = true;
         renderOptions.showAxes = true;
         renderOptions.showPositions = true;
         renderOptions.showConvexHulls = true;
+    };
+
+    Demo.compoundStack = function() {
+        var _world = _engine.world;
+
+        Demo.reset();
+
+        var size = 50;
+
+        var stack = Composites.stack(100, 220, 12, 6, 0, 0, function(x, y, column, row) {
+            var partA = Bodies.rectangle(x, y, size, size / 5),
+                partB = Bodies.rectangle(x, y, size / 5, size, { render: partA.render });
+
+            return Body.create({
+                parts: [partA, partB]
+            });
+        });
+
+        World.add(_world, stack);
     };
 
     Demo.concave = function() {
@@ -144,29 +179,73 @@
 
         Demo.reset();
 
-        //var vertices = Matter.Vertices.fromPath('354 89,336 118,310 145,302 227,322 271,375 292,490 289,539 271,540 233,549 133,526 100,552 36,601 63,633 122,628 227,594 304,505 340,426 340,327 330,265 294,246 242,246 181,256 133,283 81,346 44');
-        //var vertices = Matter.Vertices.fromPath('164 171,232 233,213 302,273 241,342 305,316 231,364 170,309 188,281 117,240 182');
-        var vertices = Matter.Vertices.fromPath('272 83,266 237,459 236,452 65,526 62,536 297,195 296,203 84');
-        //var vertices = Matter.Vertices.fromPath('243 68,274 53,318 54,366 76,391 112,390 159,370 198,316 214,260 210,215 187,205 141,206 103,235 75');
+        var arrow = Vertices.fromPath('40 0 40 20 100 20 100 80 40 80 40 100 0 50'),
+            chevron = Vertices.fromPath('100 0 75 50 100 100 25 100 0 50 25 0'),
+            star = Vertices.fromPath('50 0 63 38 100 38 69 59 82 100 50 75 18 100 31 59 0 38 37 38'),
+            horseShoe = Vertices.fromPath('35 7 19 17 14 38 14 58 25 79 45 85 65 84 65 66 46 67 34 59 30 44 33 29 45 23 66 23 66 7 53 7');
 
-        var concave = Bodies.fromVertices(200, 200, vertices, {
-            restitution: 1,
-            friction: 0,
-            render: {
-                fillStyle: '#556270',
-                strokeStyle: '#556270'
-            }
+        var stack = Composites.stack(50, 50, 6, 4, 10, 10, function(x, y, column, row) {
+            var color = Common.choose(['#556270', '#4ECDC4', '#C7F464', '#FF6B6B', '#C44D58']);
+            return Bodies.fromVertices(x, y, Common.choose([arrow, chevron, star, horseShoe]), {
+                render: {
+                    fillStyle: color,
+                    strokeStyle: color
+                }
+            }, true);
         });
 
-        World.add(_world, concave);
+        World.add(_world, stack);
+    };
 
-        var renderOptions = _engine.render.options;
-        renderOptions.showCollisions = true;
-        renderOptions.showBounds = true;
-        renderOptions.showAxes = true;
-        renderOptions.showPositions = true;
-        renderOptions.showConvexHulls = true;
-        //renderOptions.showVertexNumbers = true;
+    Demo.svg = function() {
+        var _world = _engine.world;
+
+        Demo.reset();
+
+        var svgs = [
+            'iconmonstr-check-mark-8-icon', 
+            'iconmonstr-direction-4-icon', 
+            'iconmonstr-paperclip-2-icon',
+            'iconmonstr-puzzle-icon',
+            'iconmonstr-user-icon'
+        ];
+
+        for (var i = 0; i < svgs.length; i += 1) {
+            (function(i) {
+                $.get('./svg/' + svgs[i] + '.svg').done(function(data) {
+                    var vertexSets = [],
+                        color = Common.choose(['#556270', '#4ECDC4', '#C7F464', '#FF6B6B', '#C44D58']);
+
+                    $(data).find('path').each(function(i, path) {
+                        var points = Svg.pathToVertices(path, 30);
+                        vertexSets.push(Vertices.scale(points, 0.4, 0.4));
+                    });
+
+                    World.add(_world, Bodies.fromVertices(100 + i * 150, 200 + i * 50, vertexSets, {
+                        render: {
+                            fillStyle: color,
+                            strokeStyle: color
+                        }
+                    }, true));
+                });
+            })(i);
+        }
+
+        $.get('./svg/svg.svg').done(function(data) {
+            var vertexSets = [],
+                color = Common.choose(['#556270', '#4ECDC4', '#C7F464', '#FF6B6B', '#C44D58']);
+
+            $(data).find('path').each(function(i, path) {
+                vertexSets.push(Svg.pathToVertices(path, 30));
+            });
+
+            World.add(_world, Bodies.fromVertices(400, 80, vertexSets, {
+                render: {
+                    fillStyle: color,
+                    strokeStyle: color
+                }
+            }, true));
+        });
     };
 
     Demo.slingshot = function() {
@@ -1231,7 +1310,7 @@
             Bodies.rectangle(-offset, 300, 50.5, 600.5 + 2 * offset, options)
         ]);
 
-        var stack = Composites.stack(20, 20, 15, 4, 0, 0, function(x, y, column, row) {
+        var stack = Composites.stack(20, 20, 10, 4, 0, 0, function(x, y, column, row) {
             if (Common.random() > 0.35) {
                 return Bodies.rectangle(x, y, 64, 64, {
                     render: {
@@ -1286,7 +1365,7 @@
             }
         });
 
-        var vertices = Matter.Vertices.fromPath('164 171,232 233,213 302,273 241,342 305,316 231,364 170,309 188,281 117,240 182'),
+        var vertices = Vertices.fromPath('164 171,232 233,213 302,273 241,342 305,316 231,364 170,309 188,281 117,240 182'),
             concave = Bodies.fromVertices(200, 200, vertices);
         
         World.add(_world, [stack, concave]);
@@ -1574,6 +1653,10 @@
         renderOptions.showAngleIndicator = true;
         renderOptions.showIds = false;
         renderOptions.showShadows = false;
+        renderOptions.showVertexNumbers = false;
+        renderOptions.showConvexHulls = false;
+        renderOptions.showInternalEdges = false;
+        renderOptions.showSeparations = false;
         renderOptions.background = '#fff';
 
         if (_isMobile)

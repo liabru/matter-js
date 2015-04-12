@@ -114,3 +114,7 @@ canvas:active {
 .dg.a {
     margin-right: 0;
 }
+
+svg {
+    display: none;
+}
