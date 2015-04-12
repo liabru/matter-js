@@ -1,5 +1,5 @@
 /**
-* The `Matter.Svg` module contains methods for converting SVG images into sets of `Matter.Vertices`.
+* The `Matter.Svg` module contains methods for converting SVG images into an array of vector points.
 *
 * See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
 * and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
@@ -12,13 +12,17 @@ var Svg = {};
 (function() {
 
     /**
-     * Converts an SVG path into a `Matter.Vertices` object for the given `Matter.Body`.
-     * @method pathToPoints
-     * @param {string} path
+     * Converts an SVG path into an array of vector points.
+     * If the input path forms a concave shape, you must decompose the result into convex parts before use.
+     * See `Bodies.fromVertices` which provides support for this.
+     * Note that this function is not guaranteed to support complex paths (such as those with holes).
+     * @method pathToVertices
+     * @param {SVGPathElement} path
      * @param {Number} [sampleLength=15]
      * @return {Vector} points
      */
-    Svg.pathToPoints = function(path, sampleLength) {
+    Svg.pathToVertices = function(path, sampleLength) {
+        // https://github.com/wout/svg.topoly.js/blob/master/svg.topoly.js
         var i, il, total, point, segment, segments, 
             segmentsQueue, lastSegment, 
             lastPoint, segmentIndex, points = [],
@@ -26,9 +30,8 @@ var Svg = {};
 
         sampleLength = sampleLength || 15;
 
-        // prepare helpers functions
         var addPoint = function(px, py, pathSegType) {
-            // all odd-numbered path types are relative, except PATHSEG_CLOSEPATH (1)
+            // all odd-numbered path types are relative except PATHSEG_CLOSEPATH (1)
             var isRelative = pathSegType % 2 === 1 && pathSegType > 1;
 
             // when the last point doesn't equal the current point add the current point
@@ -61,7 +64,7 @@ var Svg = {};
         var addSegmentPoint = function(segment) {
             var segType = segment.pathSegTypeAsLetter.toUpperCase();
 
-            // don't bother processing path ends
+            // skip path ends
             if (segType === 'Z') 
                 return;
 
@@ -85,7 +88,6 @@ var Svg = {};
                 break;
             }
 
-            // add point
             addPoint(x, y, segment.pathSegType);
         };
 
@@ -95,7 +97,7 @@ var Svg = {};
         // get total length
         total = path.getTotalLength();
 
-        // Put all path segments in a queue
+        // queue segments
         segments = [];
         for (i = 0; i < path.pathSegList.numberOfItems; i += 1)
             segments.push(path.pathSegList.getItem(i));
@@ -104,13 +106,11 @@ var Svg = {};
 
         // sample through path
         while (length < total) {
-            // get segment index
+            // get segment at position
             segmentIndex = path.getPathSegAtLength(length);
-
-            // get segment
             segment = segments[segmentIndex];
 
-            // new segment? 
+            // new segment
             if (segment != lastSegment) {
                 while (segmentsQueue.length && segmentsQueue[0] != segment)
                     addSegmentPoint(segmentsQueue.shift());
@@ -137,7 +137,7 @@ var Svg = {};
             length += sampleLength;
         }
 
-        // add remaining segments we didn't pass while sampling
+        // add remaining segments not passed by sampling
         for (i = 0, il = segmentsQueue.length; i < il; ++i)
             addSegmentPoint(segmentsQueue[i]);
 
@@ -146,15 +146,14 @@ var Svg = {};
 
     var _svgPathToAbsolute = function(path) {
         // http://phrogz.net/convert-svg-path-to-all-absolute-commands
-
         var x0, y0, x1, y1, x2, y2, segs = path.pathSegList,
             x = 0, y = 0, len = segs.numberOfItems;
 
         for (var i = 0; i < len; ++i) {
             var seg = segs.getItem(i),
-                c = seg.pathSegTypeAsLetter;
+                segType = seg.pathSegTypeAsLetter;
 
-            if (/[MLHVCSQTA]/.test(c)) {
+            if (/[MLHVCSQTA]/.test(segType)) {
                 if ('x' in seg) x = seg.x;
                 if ('y' in seg) y = seg.y;
             } else {
@@ -165,7 +164,7 @@ var Svg = {};
                 if ('x' in seg) x += seg.x;
                 if ('y' in seg) y += seg.y;
 
-                switch (c) {
+                switch (segType) {
 
                 case 'm':
                     segs.replaceItem(path.createSVGPathSegMovetoAbs(x, y), i);
@@ -203,7 +202,7 @@ var Svg = {};
                 }
             }
 
-            if (c == 'M' || c == 'm') {
+            if (segType == 'M' || segType == 'm') {
                 x0 = x;
                 y0 = y;
             }

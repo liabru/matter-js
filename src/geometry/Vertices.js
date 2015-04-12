@@ -48,14 +48,16 @@ var Vertices = {};
     };
 
     /**
-     * Parses a _simple_ SVG-style path into a `Matter.Vertices` object for the given `Matter.Body`.
+     * Parses a string containing ordered x y pairs separated by spaces (and optionally commas), 
+     * into a `Matter.Vertices` object for the given `Matter.Body`.
+     * For parsing SVG paths, see `Svg.pathToVertices`.
      * @method fromPath
      * @param {string} path
      * @param {body} body
      * @return {vertices} vertices
      */
     Vertices.fromPath = function(path, body) {
-        var pathPattern = /L?\s*([\-\d\.]+)\s*([\-\d\.]+)\s*,?/ig,
+        var pathPattern = /L?\s*([\-\d\.]+)[\s,]*([\-\d\.]+)*/ig,
             points = [];
 
         path.replace(pathPattern, function(match, x, y) {
