@@ -162,129 +162,153 @@ var Bodies = {};
     };
 
     /**
-     * Creates a body using the supplied vertices.
-     * If the vertices are not convex, they will be decomposed if [poly-decomp.js](https://github.com/schteppe/poly-decomp.js) is available.
-     * If the vertices can not be decomposed, the function will use the convex hull.
+     * Creates a body using the supplied vertices (or an array containing multiple sets of vertices).
+     * If the vertices are convex, they will pass through as supplied.
+     * Otherwise if the vertices are concave, they will be decomposed if [poly-decomp.js](https://github.com/schteppe/poly-decomp.js) is available.
+     * Note that this process is not guaranteed to support complex sets of vertices (e.g. those with holes may fail).
      * By default the decomposition will discard collinear edges (to improve performance).
-     * It will also discard any particularly small parts that have an area less than `minimumArea` (to improve stability).
-     * The options parameter is an object that specifies any properties you wish to override the defaults.
+     * It can also optionally discard any parts that have an area less than `minimumArea`.
+     * If the vertices can not be decomposed, the result will fall back to using the convex hull.
+     * The options parameter is an object that specifies any `Matter.Body` properties you wish to override the defaults.
      * See the properties section of the `Matter.Body` module for detailed information on what you can pass via the `options` object.
      * @method fromVertices
      * @param {number} x
      * @param {number} y
-     * @param [vector] vertices
+     * @param [[vector]] vertexSets
      * @param {object} [options]
-     * @param {number} [removeCollinear=0.01]
-     * @param {number} [minimumArea=100]
      * @param {bool} [flagInternal=false]
+     * @param {number} [removeCollinear=0.01]
+     * @param {number} [minimumArea=0]
      * @return {body}
      */
-    Bodies.fromVertices = function(x, y, vertices, options, removeCollinear, minimumArea, flagInternal) {
+    Bodies.fromVertices = function(x, y, vertexSets, options, flagInternal, removeCollinear, minimumArea) {
         var body,
+            parts,
             isConvex,
+            vertices,
             i,
             j,
             k,
+            v,
             z;
 
         options = options || {};
-        removeCollinear = typeof removeCollinear !== 'undefined' ? removeCollinear : 0.01;
-        minimumArea = typeof minimumArea !== 'undefined' ? minimumArea : 10;
+        parts = [];
+
         flagInternal = typeof flagInternal !== 'undefined' ? flagInternal : false;
-        isConvex = Vertices.isConvex(vertices);
+        removeCollinear = typeof removeCollinear !== 'undefined' ? removeCollinear : 0.01;
+        minimumArea = typeof minimumArea !== 'undefined' ? minimumArea : 0;
 
-        if (isConvex || !window.decomp) {
-            if (isConvex) {
-                vertices = Vertices.clockwiseSort(vertices);
-            } else {
-                // fallback to convex hull when decomposition is not possible
-                vertices = Vertices.hull(vertices);
-                Common.log('Bodies.fromVertices: poly-decomp.js required. Could not decompose vertices. Fallback to convex hull.', 'warn');
-            }
+        if (!window.decomp) {
+            Common.log('Bodies.fromVertices: poly-decomp.js required. Could not decompose vertices. Fallback to convex hull.', 'warn');
+        }
 
-            body = {
-                position: { x: x, y: y },
-                vertices: vertices
-            };
+        // ensure vertexSets is an array of arrays
+        if (!Common.isArray(vertexSets[0])) {
+            vertexSets = [vertexSets];
+        }
 
-            return Body.create(Common.extend({}, body, options));
-        } else {
-            // initialise a decomposition
-            var concave = new decomp.Polygon();
-            for (i = 0; i < vertices.length; i++) {
-                concave.vertices.push([vertices[i].x, vertices[i].y]);
-            }
+        for (v = 0; v < vertexSets.length; v += 1) {
+            vertices = vertexSets[v];
+            isConvex = Vertices.isConvex(vertices);
 
-            // vertices are concave and simple, we can decompose into parts
-            concave.makeCCW();
-            if (removeCollinear !== false)
-                concave.removeCollinearPoints(removeCollinear);
-
-            var decomposed = concave.quickDecomp(),
-                parts = [];
-
-            // for each decomposed chunk
-            for (i = 0; i < decomposed.length; i++) {
-                var chunk = decomposed[i],
-                    chunkVertices = [];
-
-                // convert vertices into the correct structure
-                for (j = 0; j < chunk.vertices.length; j++) {
-                    chunkVertices.push({ x: chunk.vertices[j][0], y: chunk.vertices[j][1] });
+            if (isConvex || !window.decomp) {
+                if (isConvex) {
+                    vertices = Vertices.clockwiseSort(vertices);
+                } else {
+                    // fallback to convex hull when decomposition is not possible
+                    vertices = Vertices.hull(vertices);
                 }
 
-                // skip small chunks
-                if (minimumArea > 0 && Vertices.area(chunkVertices) < minimumArea)
-                    continue;
+                parts.push({
+                    position: { x: x, y: y },
+                    vertices: vertices
+                });
+            } else {
+                // initialise a decomposition
+                var concave = new decomp.Polygon();
+                for (i = 0; i < vertices.length; i++) {
+                    concave.vertices.push([vertices[i].x, vertices[i].y]);
+                }
 
-                // create a compound part
-                parts.push(
-                    Body.create(Common.extend({
+                // vertices are concave and simple, we can decompose into parts
+                concave.makeCCW();
+                if (removeCollinear !== false)
+                    concave.removeCollinearPoints(removeCollinear);
+
+                // use the quick decomposition algorithm (Bayazit)
+                var decomposed = concave.quickDecomp();
+
+                // for each decomposed chunk
+                for (i = 0; i < decomposed.length; i++) {
+                    var chunk = decomposed[i],
+                        chunkVertices = [];
+
+                    // convert vertices into the correct structure
+                    for (j = 0; j < chunk.vertices.length; j++) {
+                        chunkVertices.push({ x: chunk.vertices[j][0], y: chunk.vertices[j][1] });
+                    }
+
+                    // skip small chunks
+                    if (minimumArea > 0 && Vertices.area(chunkVertices) < minimumArea)
+                        continue;
+
+                    // create a compound part
+                    parts.push({
                         position: Vertices.centre(chunkVertices),
                         vertices: chunkVertices
-                    }, options))
-                );
+                    });
+                }
             }
+        }
 
-            if (flagInternal) {
-                // flag internal edges (coincident part edges)
-                var coincident_max_dist = 1;
+        // create body parts
+        for (i = 0; i < parts.length; i++) {
+            parts[i] = Body.create(Common.extend(parts[i], options));
+        }
 
-                for (i = 0; i < parts.length; i++) {
-                    var partA = parts[i];
+        // flag internal edges (coincident part edges)
+        if (flagInternal) {
+            var coincident_max_dist = 1;
 
-                    for (j = i + 1; j < parts.length; j++) {
-                        var partB = parts[j];
+            for (i = 0; i < parts.length; i++) {
+                var partA = parts[i];
 
-                        if (Bounds.overlaps(partA.bounds, partB.bounds)) {
-                            var pav = partA.vertices,
-                                pbv = partB.vertices;
+                for (j = i + 1; j < parts.length; j++) {
+                    var partB = parts[j];
 
-                            // iterate vertices of both parts
-                            for (k = 0; k < partA.vertices.length; k++) {
-                                for (z = 0; z < partB.vertices.length; z++) {
-                                    // find distances between the vertices
-                                    var da = Vector.magnitudeSquared(Vector.sub(pav[(k + 1) % pav.length], pbv[z])),
-                                        db = Vector.magnitudeSquared(Vector.sub(pav[k], pbv[(z + 1) % pbv.length]));
+                    if (Bounds.overlaps(partA.bounds, partB.bounds)) {
+                        var pav = partA.vertices,
+                            pbv = partB.vertices;
 
-                                    // if both vertices are very close, consider the edge concident (internal)
-                                    if (da < coincident_max_dist && db < coincident_max_dist) {
-                                        pav[k].isInternal = true;
-                                        pbv[z].isInternal = true;
-                                    }
+                        // iterate vertices of both parts
+                        for (k = 0; k < partA.vertices.length; k++) {
+                            for (z = 0; z < partB.vertices.length; z++) {
+                                // find distances between the vertices
+                                var da = Vector.magnitudeSquared(Vector.sub(pav[(k + 1) % pav.length], pbv[z])),
+                                    db = Vector.magnitudeSquared(Vector.sub(pav[k], pbv[(z + 1) % pbv.length]));
+
+                                // if both vertices are very close, consider the edge concident (internal)
+                                if (da < coincident_max_dist && db < coincident_max_dist) {
+                                    pav[k].isInternal = true;
+                                    pbv[z].isInternal = true;
                                 }
                             }
-
                         }
+
                     }
                 }
             }
+        }
 
+        if (parts.length > 1) {
             // create the parent body to be returned, that contains generated compound parts
             body = Body.create(Common.extend({ parts: parts.slice(0) }, options));
             Body.setPosition(body, { x: x, y: y });
 
             return body;
+        } else {
+            return parts[0];
         }
     };
 

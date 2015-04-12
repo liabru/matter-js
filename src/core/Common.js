@@ -168,6 +168,16 @@ var Common = {};
               (typeof obj.ownerDocument ==="object");
         }
     };
+
+    /**
+     * Description
+     * @method isArray
+     * @param {object} obj
+     * @return {boolean} True if the object is an array, otherwise false
+     */
+    Common.isArray = function(obj) {
+        return Object.prototype.toString.call(obj) === '[object Array]';
+    };
     
     /**
      * Description
