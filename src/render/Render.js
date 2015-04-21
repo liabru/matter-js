@@ -623,6 +623,7 @@ var Render = {};
         var c = context,
             render = engine.render,
             options = render.options,
+            part,
             i,
             j,
             k;
@@ -639,7 +640,7 @@ var Render = {};
             if (options.showAxes) {
                 // render all axes
                 for (j = parts.length > 1 ? 1 : 0; j < parts.length; j++) {
-                    var part = parts[j];
+                    part = parts[j];
                     for (k = 0; k < part.axes.length; k++) {
                         var axis = part.axes[k];
                         c.moveTo(part.position.x, part.position.y);
@@ -647,11 +648,14 @@ var Render = {};
                     }
                 }
             } else {
-                if (body.parts.length === 1) {
-                    // render a single axis indicator
-                    c.moveTo(body.position.x, body.position.y);
-                    c.lineTo((body.vertices[0].x + body.vertices[body.vertices.length-1].x) / 2, 
-                             (body.vertices[0].y + body.vertices[body.vertices.length-1].y) / 2);
+                for (j = parts.length > 1 ? 1 : 0; j < parts.length; j++) {
+                    part = parts[j];
+                    for (k = 0; k < part.axes.length; k++) {
+                        // render a single axis indicator
+                        c.moveTo(part.position.x, part.position.y);
+                        c.lineTo((part.vertices[0].x + part.vertices[part.vertices.length-1].x) / 2, 
+                                 (part.vertices[0].y + part.vertices[part.vertices.length-1].y) / 2);
+                    }
                 }
             }
         }
