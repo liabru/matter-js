@@ -265,12 +265,12 @@ var Constraint = {};
                     if (j > 0) {
                         Vector.rotateAbout(part.position, impulse.angle, body.position, part.position);
                     }
-                    impulse.angle = 0;
                 }
 
                 Bounds.update(part.bounds, part.vertices);
             }
 
+            impulse.angle = 0;
             impulse.x = 0;
             impulse.y = 0;
         }
