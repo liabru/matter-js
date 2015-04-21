@@ -49,6 +49,8 @@ var Composites = {};
                     
                     lastBody = body;
                     i += 1;
+                } else {
+                    x += columnGap;
                 }
             }
             
