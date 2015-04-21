@@ -369,43 +369,54 @@ var RenderPixi = {};
     var _createBodyPrimitive = function(render, body) {
         var bodyRender = body.render,
             options = render.options,
-            primitive = new PIXI.Graphics();
+            primitive = new PIXI.Graphics(),
+            fillStyle = Common.colorToNumber(bodyRender.fillStyle),
+            strokeStyle = Common.colorToNumber(bodyRender.strokeStyle),
+            strokeStyleIndicator = Common.colorToNumber(bodyRender.strokeStyle),
+            strokeStyleWireframe = Common.colorToNumber('#bbb'),
+            strokeStyleWireframeIndicator = Common.colorToNumber('#CD5C5C'),
+            part;
 
         primitive.clear();
 
-        if (!options.wireframes) {
-            primitive.beginFill(Common.colorToNumber(bodyRender.fillStyle), 1);
-            primitive.lineStyle(body.render.lineWidth, Common.colorToNumber(bodyRender.strokeStyle), 1);
-        } else {
-            primitive.beginFill(0, 0);
-            primitive.lineStyle(1, Common.colorToNumber('#bbb'), 1);
-        }
+        // handle compound parts
+        for (var k = body.parts.length > 1 ? 1 : 0; k < body.parts.length; k++) {
+            part = body.parts[k];
 
-        primitive.moveTo(body.vertices[0].x - body.position.x, body.vertices[0].y - body.position.y);
-
-        for (var j = 1; j < body.vertices.length; j++) {
-            primitive.lineTo(body.vertices[j].x - body.position.x, body.vertices[j].y - body.position.y);
-        }
-
-        primitive.lineTo(body.vertices[0].x - body.position.x, body.vertices[0].y - body.position.y);
-
-        primitive.endFill();
-
-        // angle indicator
-        if (options.showAngleIndicator || options.showAxes) {
-            primitive.beginFill(0, 0);
-
-            if (options.wireframes) {
-                primitive.lineStyle(1, Common.colorToNumber('#CD5C5C'), 1);
+            if (!options.wireframes) {
+                primitive.beginFill(fillStyle, 1);
+                primitive.lineStyle(bodyRender.lineWidth, strokeStyle, 1);
             } else {
-                primitive.lineStyle(1, Common.colorToNumber(body.render.strokeStyle));
+                primitive.beginFill(0, 0);
+                primitive.lineStyle(1, strokeStyleWireframe, 1);
             }
 
-            primitive.moveTo(0, 0);
-            primitive.lineTo(((body.vertices[0].x + body.vertices[body.vertices.length-1].x) / 2) - body.position.x, 
-                             ((body.vertices[0].y + body.vertices[body.vertices.length-1].y) / 2) - body.position.y);
+            primitive.moveTo(part.vertices[0].x - body.position.x, part.vertices[0].y - body.position.y);
+
+            for (var j = 1; j < part.vertices.length; j++) {
+                primitive.lineTo(part.vertices[j].x - body.position.x, part.vertices[j].y - body.position.y);
+            }
+
+            primitive.lineTo(part.vertices[0].x - body.position.x, part.vertices[0].y - body.position.y);
 
             primitive.endFill();
+
+            // angle indicator
+            if (options.showAngleIndicator || options.showAxes) {
+                primitive.beginFill(0, 0);
+
+                if (options.wireframes) {
+                    primitive.lineStyle(1, strokeStyleWireframeIndicator, 1);
+                } else {
+                    primitive.lineStyle(1, strokeStyleIndicator);
+                }
+
+                primitive.moveTo(part.position.x - body.position.x, part.position.y - body.position.y);
+                primitive.lineTo(((part.vertices[0].x + part.vertices[part.vertices.length-1].x) / 2 - body.position.x), 
+                                 ((part.vertices[0].y + part.vertices[part.vertices.length-1].y) / 2 - body.position.y));
+
+                primitive.endFill();
+            }
         }
 
         return primitive;
