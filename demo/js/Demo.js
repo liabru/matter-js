@@ -137,6 +137,7 @@
 
         size = 150;
         x = 400;
+        y = 300;
 
         var partC = Bodies.circle(x, y, 30),
             partD = Bodies.circle(x + size, y, 30),
@@ -147,7 +148,13 @@
             parts: [partC, partD, partE, partF]
         });
 
-        World.add(_world, [compoundBodyA, compoundBodyB]);
+        var constraint = Constraint.create({
+            pointA: { x: 400, y: 100 },
+            bodyB: compoundBodyB,
+            pointB: { x: 0, y: -50 }
+        });
+
+        World.add(_world, [compoundBodyA, compoundBodyB, constraint]);
         
         var renderOptions = _engine.render.options;
         renderOptions.showAxes = true;
