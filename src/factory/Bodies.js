@@ -178,7 +178,7 @@ var Bodies = {};
      * @param {object} [options]
      * @param {bool} [flagInternal=false]
      * @param {number} [removeCollinear=0.01]
-     * @param {number} [minimumArea=0]
+     * @param {number} [minimumArea=10]
      * @return {body}
      */
     Bodies.fromVertices = function(x, y, vertexSets, options, flagInternal, removeCollinear, minimumArea) {
@@ -197,7 +197,7 @@ var Bodies = {};
 
         flagInternal = typeof flagInternal !== 'undefined' ? flagInternal : false;
         removeCollinear = typeof removeCollinear !== 'undefined' ? removeCollinear : 0.01;
-        minimumArea = typeof minimumArea !== 'undefined' ? minimumArea : 0;
+        minimumArea = typeof minimumArea !== 'undefined' ? minimumArea : 10;
 
         if (!window.decomp) {
             Common.log('Bodies.fromVertices: poly-decomp.js required. Could not decompose vertices. Fallback to convex hull.', 'warn');
