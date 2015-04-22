@@ -202,6 +202,9 @@
         });
 
         World.add(_world, stack);
+
+        var renderOptions = _engine.render.options;
+        renderOptions.showAngleIndicator = false;
     };
 
     Demo.svg = function() {
@@ -253,6 +256,9 @@
                 }
             }, true));
         });
+
+        var renderOptions = _engine.render.options;
+        renderOptions.showAngleIndicator = false;
     };
 
     Demo.terrain = function() {
