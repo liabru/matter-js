@@ -269,7 +269,7 @@ var Bodies = {};
 
         // flag internal edges (coincident part edges)
         if (flagInternal) {
-            var coincident_max_dist = 1;
+            var coincident_max_dist = 5;
 
             for (i = 0; i < parts.length; i++) {
                 var partA = parts[i];
