@@ -567,7 +567,7 @@ var Render = {};
             for (k = parts.length > 1 ? 1 : 0; k < parts.length; k++) {
                 var part = parts[k];
                 for (j = 0; j < part.vertices.length; j++) {
-                    c.fillStyle = 'yellow';
+                    c.fillStyle = 'rgba(255,255,255,0.2)';
                     c.fillText(i + '_' + j, part.position.x + (part.vertices[j].x - part.position.x) * 0.8, part.position.y + (part.vertices[j].y - part.position.y) * 0.8);
                 }
             }
