@@ -57,7 +57,7 @@ var Vertices = {};
      * @return {vertices} vertices
      */
     Vertices.fromPath = function(path, body) {
-        var pathPattern = /L?\s*([\-\d\.]+)[\s,]*([\-\d\.]+)*/ig,
+        var pathPattern = /L?\s*([\-\d\.e]+)[\s,]*([\-\d\.e]+)*/ig,
             points = [];
 
         path.replace(pathPattern, function(match, x, y) {
