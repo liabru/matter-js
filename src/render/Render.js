@@ -46,7 +46,8 @@ var Render = {};
                 showPositions: false,
                 showAngleIndicator: false,
                 showIds: false,
-                showShadows: false
+                showShadows: false,
+                showStress: false
             }
         };
 
@@ -192,6 +193,9 @@ var Render = {};
 
         if (options.showVelocity)
             Render.bodyVelocity(engine, bodies, context);
+
+        if (options.showStress)
+            Render.bodyStress(engine, bodies, context);
 
         if (options.showIds)
             Render.bodyIds(engine, bodies, context);
@@ -646,6 +650,27 @@ var Render = {};
             c.font = "12px Arial";
             c.fillStyle = 'rgba(255,255,255,0.5)';
             c.fillText(body.id, body.position.x + 10, body.position.y - 10);
+        }
+    };
+
+    Render.bodyStress = function(engine, bodies, context) {
+        var c = context;
+
+        for (var i = 0; i < bodies.length; i++) {
+            var body = bodies[i];
+
+            if (!body.render.visible)
+                continue;
+
+            c.beginPath();
+            c.moveTo(body.position.x + body.stress.x*4, body.position.y);
+            c.lineTo(body.position.x, body.position.y);
+            c.lineTo(body.position.x, body.position.y - body.stress.y*4);
+
+            c.lineWidth = 1;
+            c.strokeStyle = 'teal';
+            c.stroke();
+            
         }
     };
 

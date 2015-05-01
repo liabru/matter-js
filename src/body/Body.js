@@ -43,6 +43,7 @@ var Body = {};
             angularSpeed: 0,
             velocity: { x: 0, y: 0 },
             angularVelocity: 0,
+            stress: { x: 0, y: 0 },
             isStatic: false,
             isSleeping: false,
             motion: 0,
@@ -428,6 +429,10 @@ var Body = {};
         body.positionPrev.y = body.position.y;
         body.position.x += body.velocity.x;
         body.position.y += body.velocity.y;
+
+        // set stress due to forces
+        body.stress.x = Math.abs(body.force.x * (deltaTime * timeScale * body.timeScale));
+        body.stress.y = Math.abs(body.force.y * (deltaTime * timeScale * body.timeScale));
 
         // update angular velocity with verlet integration
         body.angularVelocity = ((body.angle - body.anglePrev) * frictionAir * correction) + (body.torque / body.inertia) * deltaTimeSquared;
