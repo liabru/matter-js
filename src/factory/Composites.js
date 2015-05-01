@@ -34,22 +34,22 @@ var Composites = {};
             for (var column = 0; column < columns; column++) {
                 var body = callback(x, y, column, row, lastBody, i);
                     
-                if (body) {
-                    var bodyHeight = body.bounds.max.y - body.bounds.min.y,
-                        bodyWidth = body.bounds.max.x - body.bounds.min.x; 
+                if (!body) continue;
 
-                    if (bodyHeight > maxHeight)
-                        maxHeight = bodyHeight;
-                    
-                    Body.translate(body, { x: bodyWidth * 0.5, y: bodyHeight * 0.5 });
+                var bodyHeight = body.bounds.max.y - body.bounds.min.y,
+                    bodyWidth = body.bounds.max.x - body.bounds.min.x; 
 
-                    x = body.bounds.max.x + columnGap;
+                if (bodyHeight > maxHeight)
+                    maxHeight = bodyHeight;
+            
+                Body.translate(body, { x: bodyWidth * 0.5, y: bodyHeight * 0.5 });
 
-                    Composite.addBody(stack, body);
-                    
-                    lastBody = body;
-                    i += 1;
-                }
+                x = body.bounds.max.x + columnGap;
+
+                Composite.addBody(stack, body);
+             
+                lastBody = body;
+                i ++;
             }
             
             y += maxHeight + rowGap;
@@ -115,29 +115,48 @@ var Composites = {};
             bodyA,
             bodyB,
             bodyC;
-        
-        for (row = 0; row < rows; row++) {
-            for (col = 0; col < columns; col++) {
-                if (col > 0) {
-                    bodyA = bodies[(col - 1) + (row * columns)];
-                    bodyB = bodies[col + (row * columns)];
-                    Composite.addConstraint(composite, Constraint.create(Common.extend({ bodyA: bodyA, bodyB: bodyB }, options)));
-                }
+
+        row=0;        
+        for (col = 1; col < columns; col++) {
+            bodyA = bodies[(col - 1)];
+            bodyB = bodies[col];
+            Composite.addConstraint(composite, Constraint.create(Common.extend({ bodyA: bodyA, bodyB: bodyB }, options)));
+        }
+
+        for (row = 1; row < rows; row++) {
+            var prevoffset = (row - 1)*columns;
+            var offset = row*columns;
+
+            for (col = 1; col < columns; col++) {
+                bodyA = bodies[(col - 1) + offset];
+                bodyB = bodies[col + offset];
+                Composite.addConstraint(composite, Constraint.create(Common.extend({ bodyA: bodyA, bodyB: bodyB }, options)));
             }
-
-            for (col = 0; col < columns; col++) {
-                if (row > 0) {
-                    bodyA = bodies[col + ((row - 1) * columns)];
-                    bodyB = bodies[col + (row * columns)];
+            
+            if (!crossBrace)
+            {
+                for (col = 0; col < columns; col++) {
+                    bodyA = bodies[col + prevoffset];
+                    bodyB = bodies[col + offset];
                     Composite.addConstraint(composite, Constraint.create(Common.extend({ bodyA: bodyA, bodyB: bodyB }, options)));
-
-                    if (crossBrace && col > 0) {
-                        bodyC = bodies[(col - 1) + ((row - 1) * columns)];
+		}
+            } else {
+                /* If the order of the constraints does not matter,
+                   we can optimize further by always performing the above loop
+                   and then conditionally executing the second half of the below loop.
+                */
+                for (col = 0; col < columns; col++) {
+                    bodyA = bodies[col + prevoffset];
+                    bodyB = bodies[col + offset];
+                    Composite.addConstraint(composite, Constraint.create(Common.extend({ bodyA: bodyA, bodyB: bodyB }, options)));
+                    // second half starts here
+                    if (col > 0) {
+                        bodyC = bodies[(col - 1) + prevoffset];
                         Composite.addConstraint(composite, Constraint.create(Common.extend({ bodyA: bodyC, bodyB: bodyB }, options)));
                     }
 
-                    if (crossBrace && col < columns - 1) {
-                        bodyC = bodies[(col + 1) + ((row - 1) * columns)];
+                    if (col < columns - 1) {
+                        bodyC = bodies[(col + 1) + prevoffset];
                         Composite.addConstraint(composite, Constraint.create(Common.extend({ bodyA: bodyC, bodyB: bodyB }, options)));
                     }
                 }
