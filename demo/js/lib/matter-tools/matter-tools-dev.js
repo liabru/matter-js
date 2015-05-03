@@ -1,5 +1,5 @@
 /**
-* matter-tools-dev.min.js 0.5.0-dev 2014-06-21
+* matter-tools-dev.min.js 0.5.0-dev 2015-05-03
 * https://github.com/liabru/matter-tools
 * License: MIT
 */
@@ -9,6 +9,7 @@
   var Engine = Matter.Engine, World = Matter.World, Bodies = Matter.Bodies, Body = Matter.Body, Composite = Matter.Composite, Composites = Matter.Composites, Common = Matter.Common, Constraint = Matter.Constraint, Events = Matter.Events, Bounds = Matter.Bounds, Vector = Matter.Vector, Vertices = Matter.Vertices, MouseConstraint = Matter.MouseConstraint, Render = Matter.Render, RenderPixi = Matter.RenderPixi, Mouse = Matter.Mouse, Query = Matter.Query, Grid = Matter.Grid, Detector = Matter.Detector;
   var Gui = {};
   (function() {
+    var _isWebkit = "WebkitAppearance" in document.documentElement.style;
     Gui.create = function(engine, options) {
       var _datGuiSupported = window.dat && window.localStorage;
       if (!_datGuiSupported) {
@@ -32,13 +33,15 @@
         density:.001,
         restitution:0,
         friction:.1,
+        frictionStatic:.5,
         frictionAir:.01,
         offset:{
           x:0,
           y:0
         },
         renderer:"canvas",
-        chamfer:0
+        chamfer:0,
+        isRecording:false
       };
       if (Resurrect) {
         gui.serializer = new Resurrect({
@@ -48,6 +51,7 @@
         gui.serializer.parse = gui.serializer.resurrect;
       }
       _initDatGui(gui);
+      _initGif(gui);
       return gui;
     };
     Gui.update = function(gui, datGui) {
@@ -112,6 +116,39 @@
         },
         inspect:function() {
           if (!Inspector.instance) gui.inspector = Inspector.create(gui.engine);
+        },
+        recordGif:function() {
+          if (!gui.isRecording) {
+            gui.gif = new GIF({
+              workers:5,
+              quality:100,
+              width:800,
+              height:600
+            });
+            gui.gif.on("finished", function(blob) {
+              if (_isWebkit) {
+                var anchor = document.createElement("a");
+                anchor.download = "matter-tools-gif.gif";
+                anchor.href = (window.webkitURL || window.URL).createObjectURL(blob);
+                anchor.dataset.downloadurl = [ "image/gif", anchor.download, anchor.href ].join(":");
+                anchor.click();
+              } else {
+                window.open(URL.createObjectURL(blob));
+              }
+            });
+            gui.isRecording = true;
+          } else {
+            if (!gui.gif.running) {
+              gui.isRecording = false;
+              gui.gif.render();
+            }
+          }
+          setTimeout(function() {
+            if (gui.isRecording && !gui.gif.running) {
+              gui.gif.render();
+            }
+            gui.isRecording = false;
+          }, 5e3);
         }
       };
       var metrics = datGui.addFolder("Metrics");
@@ -136,17 +173,21 @@
       controls.add(gui, "sides", 1, 8).step(1);
       controls.add(gui, "density", 1e-4, .01).step(.001);
       controls.add(gui, "friction", 0, 1).step(.05);
+      controls.add(gui, "frictionStatic", 0, 10).step(.1);
       controls.add(gui, "frictionAir", 0, gui.frictionAir * 10).step(gui.frictionAir / 10);
       controls.add(gui, "restitution", 0, 1).step(.1);
       controls.add(gui, "chamfer", 0, 30).step(2);
       controls.add(funcs, "addBody");
       controls.open();
       var worldGui = datGui.addFolder("World");
-      worldGui.add(funcs, "inspect");
       worldGui.add(funcs, "load");
       worldGui.add(funcs, "save");
       worldGui.add(funcs, "clear");
       worldGui.open();
+      var toolsGui = datGui.addFolder("Tools");
+      toolsGui.add(funcs, "inspect");
+      if (window.GIF) toolsGui.add(funcs, "recordGif");
+      toolsGui.open();
       var gravity = worldGui.addFolder("Gravity");
       gravity.add(engine.world.gravity, "x", -1, 1).step(.01);
       gravity.add(engine.world.gravity, "y", -1, 1).step(.01);
@@ -173,11 +214,14 @@
       render.add(engine.render.options, "showBounds");
       render.add(engine.render.options, "showVelocity");
       render.add(engine.render.options, "showCollisions");
+      render.add(engine.render.options, "showSeparations");
       render.add(engine.render.options, "showAxes");
       render.add(engine.render.options, "showAngleIndicator");
       render.add(engine.render.options, "showSleeping");
       render.add(engine.render.options, "showIds");
-      render.add(engine.render.options, "showShadows");
+      render.add(engine.render.options, "showVertexNumbers");
+      render.add(engine.render.options, "showConvexHulls");
+      render.add(engine.render.options, "showInternalEdges");
       render.add(engine.render.options, "enabled");
       render.open();
     };
@@ -199,6 +243,7 @@
       var options = {
         density:gui.density,
         friction:gui.friction,
+        frictionStatic:gui.frictionStatic,
         frictionAir:gui.frictionAir,
         restitution:gui.restitution
       };
@@ -218,6 +263,21 @@
       var renderController = engine.render.controller;
       if (renderController.clear) renderController.clear(engine.render);
       Events.trigger(gui, "clear");
+    };
+    var _initGif = function(gui) {
+      if (!window.GIF) {
+        return;
+      }
+      var engine = gui.engine, skipFrame = false;
+      Matter.Events.on(engine, "beforeTick", function(event) {
+        if (gui.isRecording && !skipFrame) {
+          gui.gif.addFrame(engine.render.context, {
+            copy:true,
+            delay:25
+          });
+        }
+        skipFrame = !skipFrame;
+      });
     };
   })();
   var Inspector = {};
@@ -259,6 +319,10 @@
       };
       inspector = Common.extend(inspector, options);
       Inspector.instance = inspector;
+      inspector.mouse = Mouse.create(engine.render.canvas);
+      inspector.mouseConstraint = MouseConstraint.create(engine, {
+        mouse:inspector.mouse
+      });
       inspector.serializer = new Resurrect({
         prefix:"$",
         cleanup:true
@@ -538,7 +602,7 @@
         } else {
           _removeBodyClass(inspector, "ins-cursor-scale");
         }
-        if (mouse.button === 2 && !mouse.sourceEvents.mousedown && !mouse.sourceEvents.mouseup) {
+        if (mouse.button === 2) {
           _addBodyClass(inspector, "ins-cursor-move");
           _moveSelectedObjects(inspector, mousePosition.x, mousePosition.y);
         } else {
@@ -546,7 +610,7 @@
         }
         inspector.mousePrevPosition = Common.clone(mousePosition);
       });
-      Events.on(engine, "mouseup", function(event) {
+      Events.on(inspector.mouseConstraint, "mouseup", function(event) {
         if (inspector.selectStart !== null) {
           var selected = Query.region(Composite.allBodies(engine.world), inspector.selectBounds);
           _setSelectedObjects(inspector, selected);
@@ -555,8 +619,8 @@
         inspector.selectEnd = null;
         Events.trigger(inspector, "selectEnd");
       });
-      Events.on(engine, "mousedown", function(event) {
-        var engine = event.source, bodies = Composite.allBodies(engine.world), constraints = Composite.allConstraints(engine.world), isUnionSelect = _key.shift || _key.control, worldTree = inspector.controls.worldTree.data("jstree"), i;
+      Events.on(inspector.mouseConstraint, "mousedown", function(event) {
+        var bodies = Composite.allBodies(engine.world), constraints = Composite.allConstraints(engine.world), isUnionSelect = _key.shift || _key.control, worldTree = inspector.controls.worldTree.data("jstree"), i;
         if (mouse.button === 2) {
           var hasSelected = false;
           for (i = 0; i < bodies.length; i++) {
