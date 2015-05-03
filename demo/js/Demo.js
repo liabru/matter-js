@@ -214,7 +214,6 @@
 
         var svgs = [
             'iconmonstr-check-mark-8-icon', 
-            'iconmonstr-direction-4-icon', 
             'iconmonstr-paperclip-2-icon',
             'iconmonstr-puzzle-icon',
             'iconmonstr-user-icon'
@@ -995,7 +994,7 @@
         
         Demo.reset();
         
-        var stack = Composites.stack(100, 100, 10, 5, 0, 0, function(x, y, column, row) {
+        var stack = Composites.stack(100, 300, 10, 5, 0, 0, function(x, y, column, row) {
             return Bodies.rectangle(x, y, 40, 40);
         });
         
@@ -1023,12 +1022,12 @@
             yy = 600 - 21 - 40 * rows;
         
         var stack = Composites.stack(400, yy, 5, rows, 0, 0, function(x, y, column, row) {
-            return Bodies.rectangle(x, y, 40, 40, { friction: 0.9, restitution: 0.1 });
+            return Bodies.rectangle(x, y, 40, 40);
         });
         
         World.add(_world, stack);
         
-        var ball = Bodies.circle(100, 400, 50, { density: 0.07, frictionAir: 0.001});
+        var ball = Bodies.circle(100, 400, 50, { density: 0.04, frictionAir: 0.005});
         
         World.add(_world, ball);
         World.add(_world, Constraint.create({
@@ -1095,7 +1094,7 @@
         
         Demo.reset();
         
-        var stack = Composites.pyramid(100, 100, 15, 10, 0, 0, function(x, y, column, row) {
+        var stack = Composites.pyramid(100, 258, 15, 10, 0, 0, function(x, y, column, row) {
             return Bodies.rectangle(x, y, 40, 40);
         });
         
