@@ -1129,7 +1129,11 @@
         
         Demo.reset();
 
-        var particleOptions = { render: { visible: true } };
+        var particleOptions = { 
+            friction: 0.05,
+            frictionStatic: 0.1,
+            render: { visible: true } 
+        };
 
         World.add(_world, [
             Composites.softBody(250, 100, 5, 5, 0, 0, true, 18, particleOptions),
@@ -1422,8 +1426,8 @@
             }
         });
 
-        var vertices = Vertices.fromPath('164 171,232 233,213 302,273 241,342 305,316 231,364 170,309 188,281 117,240 182'),
-            concave = Bodies.fromVertices(200, 200, vertices);
+        var star = Vertices.fromPath('50 0 63 38 100 38 69 59 82 100 50 75 18 100 31 59 0 38 37 38'),
+            concave = Bodies.fromVertices(200, 200, star);
         
         World.add(_world, [stack, concave]);
 

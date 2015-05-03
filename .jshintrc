@@ -14,6 +14,7 @@
 
     // options
     "laxbreak"      : true,   // Tolerate unsafe line breaks e.g. `return [\n] x` without semicolons.
+    "loopfunc"      : true,   // Allow functions in loops (e.g. for async closures)
 
     // style
     "newcap"        : true,   // Require capitalization of all constructor functions e.g. `new F()`.
