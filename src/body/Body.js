@@ -52,6 +52,7 @@ var Body = {};
             density: 0.001,
             restitution: 0,
             friction: 0.1,
+            frictionStatic: 0.5,
             frictionAir: 0.01,
             collisionFilter: {
                 category: 0x0001,

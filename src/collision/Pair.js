@@ -32,6 +32,7 @@ var Pair = {};
             timeUpdated: timestamp,
             inverseMass: parentA.inverseMass + parentB.inverseMass,
             friction: Math.min(parentA.friction, parentB.friction),
+            frictionStatic: Math.max(parentA.frictionStatic, parentB.frictionStatic),
             restitution: Math.max(parentA.restitution, parentB.restitution),
             slop: Math.max(parentA.slop, parentB.slop)
         };
@@ -57,6 +58,7 @@ var Pair = {};
         pair.collision = collision;
         pair.inverseMass = parentA.inverseMass + parentB.inverseMass;
         pair.friction = Math.min(parentA.friction, parentB.friction);
+        pair.frictionStatic = Math.max(parentA.frictionStatic, parentB.frictionStatic);
         pair.restitution = Math.max(parentA.restitution, parentB.restitution);
         pair.slop = Math.max(parentA.slop, parentB.slop);
         activeContacts.length = 0;

@@ -11,6 +11,7 @@ var Resolver = {};
     Resolver._restingThresh = 4;
     Resolver._positionDampen = 0.9;
     Resolver._positionWarming = 0.8;
+    Resolver._frictionNormalMultiplier = 5;
 
     /**
      * Description
@@ -264,20 +265,25 @@ var Resolver = {};
 
                 // raw impulses
                 var normalImpulse = (1 + pair.restitution) * normalVelocity,
-                    normalForce = Common.clamp(pair.separation + normalVelocity, 0, 1);
+                    normalForce = Common.clamp(pair.separation + normalVelocity, 0, 1) * Resolver._frictionNormalMultiplier;
 
                 // coulomb friction
-                var tangentImpulse = tangentVelocity;
-                if (tangentSpeed > normalForce * pair.friction * timeScaleSquared)
-                    tangentImpulse = normalForce * pair.friction * timeScaleSquared * tangentVelocityDirection;
+                var tangentImpulse = tangentVelocity,
+                    maxFriction = Infinity;
+
+                if (tangentSpeed > pair.friction * pair.frictionStatic * normalForce * timeScaleSquared) {
+                    tangentImpulse = pair.friction * tangentVelocityDirection * timeScaleSquared;
+                    maxFriction = tangentSpeed;
+                }
 
                 // modify impulses accounting for mass, inertia and offset
                 var oAcN = Vector.cross(offsetA, normal),
                     oBcN = Vector.cross(offsetB, normal),
-                    share = contactShare / (pair.inverseMass + bodyA.inverseInertia * oAcN * oAcN  + bodyB.inverseInertia * oBcN * oBcN);
+                    share = contactShare / (bodyA.inverseMass + bodyB.inverseMass + bodyA.inverseInertia * oAcN * oAcN  + bodyB.inverseInertia * oBcN * oBcN);
+
                 normalImpulse *= share;
-                tangentImpulse *= share;
-                
+                tangentImpulse *= Math.min(share, 1);
+
                 // handle high velocity and resting collisions separately
                 if (normalVelocity < 0 && normalVelocity * normalVelocity > Resolver._restingThresh * timeScaleSquared) {
                     // high velocity so clear cached contact impulse
@@ -293,7 +299,7 @@ var Resolver = {};
                     
                     // tangent impulse, tends to -maxFriction or maxFriction
                     var contactTangentImpulse = contact.tangentImpulse;
-                    contact.tangentImpulse = Common.clamp(contact.tangentImpulse + tangentImpulse, -tangentSpeed, tangentSpeed);
+                    contact.tangentImpulse = Common.clamp(contact.tangentImpulse + tangentImpulse, -maxFriction, maxFriction);
                     tangentImpulse = contact.tangentImpulse - contactTangentImpulse;
                 }
                 
