@@ -213,6 +213,9 @@ var Constraint = {};
             bodyA.position.x -= force.x;
             bodyA.position.y -= force.y;
             bodyA.angle += torque;
+
+            bodyA.stress.x += Math.abs(force.x);
+            bodyA.stress.y += Math.abs(force.y);
         }
 
         if (bodyB && !bodyB.isStatic) {
@@ -233,6 +236,9 @@ var Constraint = {};
             bodyB.position.x += force.x;
             bodyB.position.y += force.y;
             bodyB.angle -= torque;
+
+            bodyB.stress.x += Math.abs(force.x);
+            bodyB.stress.y += Math.abs(force.y);
         }
 
     };

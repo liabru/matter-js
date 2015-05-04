@@ -161,6 +161,9 @@ var Resolver = {};
                     bodyA.positionPrev.x += impulse.x * bodyA.inverseMass;
                     bodyA.positionPrev.y += impulse.y * bodyA.inverseMass;
                     bodyA.anglePrev += Vector.cross(offset, impulse) * bodyA.inverseInertia;
+
+                    bodyA.stress.x += Math.abs(impulse.x);
+                    bodyA.stress.y += Math.abs(impulse.y);
                 }
 
                 if (!(bodyB.isStatic || bodyB.isSleeping)) {
@@ -168,6 +171,9 @@ var Resolver = {};
                     bodyB.positionPrev.x -= impulse.x * bodyB.inverseMass;
                     bodyB.positionPrev.y -= impulse.y * bodyB.inverseMass;
                     bodyB.anglePrev -= Vector.cross(offset, impulse) * bodyB.inverseInertia;
+
+                    bodyB.stress.x += Math.abs(impulse.x);
+                    bodyB.stress.y += Math.abs(impulse.y);
                 }
             }
         }

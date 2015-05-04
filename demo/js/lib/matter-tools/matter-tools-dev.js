@@ -174,6 +174,7 @@
       render.add(engine.render.options, "showVelocity");
       render.add(engine.render.options, "showCollisions");
       render.add(engine.render.options, "showAxes");
+      render.add(engine.render.options, "showStress");
       render.add(engine.render.options, "showAngleIndicator");
       render.add(engine.render.options, "showSleeping");
       render.add(engine.render.options, "showIds");

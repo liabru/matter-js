@@ -873,6 +873,7 @@
 
         var renderOptions = _engine.render.options;
         renderOptions.showAngleIndicator = false;
+        renderOptions.showStress = true;
     };
     
     Demo.stress2 = function() {
@@ -1503,6 +1504,7 @@
         renderOptions.showVelocity = false;
         renderOptions.showCollisions = false;
         renderOptions.showAxes = false;
+        renderOptions.showStress = false;
         renderOptions.showPositions = false;
         renderOptions.showAngleIndicator = true;
         renderOptions.showIds = false;
