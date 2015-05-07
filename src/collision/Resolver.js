@@ -279,10 +279,10 @@ var Resolver = {};
                 // modify impulses accounting for mass, inertia and offset
                 var oAcN = Vector.cross(offsetA, normal),
                     oBcN = Vector.cross(offsetB, normal),
-                    share = contactShare / (bodyA.inverseMass + bodyB.inverseMass + bodyA.inverseInertia * oAcN * oAcN  + bodyB.inverseInertia * oBcN * oBcN);
+                    denom = bodyA.inverseMass + bodyB.inverseMass + bodyA.inverseInertia * oAcN * oAcN  + bodyB.inverseInertia * oBcN * oBcN;
 
-                normalImpulse *= share;
-                tangentImpulse *= Math.min(share, 1);
+                normalImpulse *= contactShare / denom;
+                tangentImpulse *= contactShare / (1 + denom);
 
                 // handle high velocity and resting collisions separately
                 if (normalVelocity < 0 && normalVelocity * normalVelocity > Resolver._restingThresh * timeScaleSquared) {
