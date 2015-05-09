@@ -445,12 +445,16 @@
                     Body.setVertices(bodyE, bodyE.vertices);
                 }
 
-                // make bodyA move up and down and rotate constantly
-                Body.setPosition(bodyA, { x: 100, y: 300 + 100 * Math.sin(_engine.timing.timestamp * 0.005) });
-                Body.rotate(bodyA, 0.02);
+                // make bodyA move up and down
+                // body is static so must manually update velocity for friction to work
+                var py = 300 + 100 * Math.sin(_engine.timing.timestamp * 0.002);
+                Body.setVelocity(bodyA, { x: 0, y: py - bodyA.position.y });
+                Body.setPosition(bodyA, { x: 100, y: py });
 
                 // make compound body move up and down and rotate constantly
-                Body.setPosition(compound, { x: 600, y: 300 + 100 * Math.sin(_engine.timing.timestamp * 0.005) });
+                Body.setVelocity(compound, { x: 0, y: py - compound.position.y });
+                Body.setAngularVelocity(compound, 0.02);
+                Body.setPosition(compound, { x: 600, y: py });
                 Body.rotate(compound, 0.02);
 
                 // every 1.5 sec
