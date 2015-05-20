@@ -31,8 +31,8 @@ var World = {};
             label: 'World',
             gravity: { x: 0, y: 1 },
             bounds: { 
-                min: { x: 0, y: 0 }, 
-                max: { x: 800, y: 600 } 
+                min: { x: -Infinity, y: -Infinity }, 
+                max: { x: Infinity, y: Infinity } 
             }
         };
         
