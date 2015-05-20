@@ -27,7 +27,7 @@ var Sleeping = {};
                 motion = body.speed * body.speed + body.angularSpeed * body.angularSpeed;
 
             // wake up bodies if they have a force applied
-            if (body.force.x > 0 || body.force.y > 0) {
+            if (body.force.x !== 0 || body.force.y !== 0) {
                 Sleeping.set(body, false);
                 continue;
             }
@@ -84,7 +84,7 @@ var Sleeping = {};
             }
         }
     };
-
+  
     /**
      * Description
      * @method set
