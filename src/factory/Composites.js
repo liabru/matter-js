@@ -119,16 +119,14 @@ var Composites = {};
             bodyC;
         
         for (row = 0; row < rows; row++) {
-            for (col = 0; col < columns; col++) {
-                if (col > 0) {
-                    bodyA = bodies[(col - 1) + (row * columns)];
-                    bodyB = bodies[col + (row * columns)];
-                    Composite.addConstraint(composite, Constraint.create(Common.extend({ bodyA: bodyA, bodyB: bodyB }, options)));
-                }
+            for (col = 1; col < columns; col++) {
+                bodyA = bodies[(col - 1) + (row * columns)];
+                bodyB = bodies[col + (row * columns)];
+                Composite.addConstraint(composite, Constraint.create(Common.extend({ bodyA: bodyA, bodyB: bodyB }, options)));
             }
 
-            for (col = 0; col < columns; col++) {
-                if (row > 0) {
+            if (row > 0) {
+                for (col = 0; col < columns; col++) {
                     bodyA = bodies[col + ((row - 1) * columns)];
                     bodyB = bodies[col + (row * columns)];
                     Composite.addConstraint(composite, Constraint.create(Common.extend({ bodyA: bodyA, bodyB: bodyB }, options)));
