@@ -2,7 +2,7 @@ module.exports = function(grunt) {
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
     buildName: 'matter',
-    buildVersion: '<%= pkg.version %>-edge',
+    buildVersion: 'edge-master',
     docVersion: 'v<%= pkg.version %>',
     concat: {
       build: {
@@ -146,7 +146,7 @@ module.exports = function(grunt) {
 
     // edge build mode (default)
     if (isEdge || (!isDev && !isRelease)) {
-      grunt.config.set('buildVersion', pkg.version + '-edge');
+      grunt.config.set('buildVersion', 'edge-master');
       grunt.task.run('concat', 'preprocess', 'uglify:min');
     }
   });
