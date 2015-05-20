@@ -634,6 +634,27 @@ var Body = {};
      */
 
     /**
+     * An array of bodies that make up this body. 
+     * The first body in the array must always be a self reference to the current body instance.
+     * All bodies in the `parts` array together form a single rigid compound body.
+     * Parts are allowed to overlap, have gaps or holes or even form concave bodies.
+     * Parts themselves should never be added to a `World`, only the parent body should be.
+     * Use `Body.setParts` when setting parts to ensure correct updates of all properties.
+     *
+     * @property parts
+     * @type body[]
+     */
+
+    /**
+     * A self reference if the body is _not_ a part of another body.
+     * Otherwise this is a reference to the body that this is a part of.
+     * See `body.parts`.
+     *
+     * @property parent
+     * @type body
+     */
+
+    /**
      * A `Number` specifying the angle of the body, in radians.
      *
      * @property angle
@@ -826,6 +847,17 @@ var Body = {};
      * @property friction
      * @type number
      * @default 0.1
+     */
+
+    /**
+     * A `Number` that defines the static friction of the body (in the Coulomb friction model). 
+     * A value of `0` means the body will never 'stick' when it is nearly stationary and only dynamic `friction` is used.
+     * The higher the value (e.g. `10`), the more force it will take to initially get the body moving when nearly stationary.
+     * This value is multiplied with the `friction` property to make it easier to change `friction` and maintain an appropriate amount of static friction.
+     *
+     * @property frictionStatic
+     * @type number
+     * @default 0.5
      */
 
     /**

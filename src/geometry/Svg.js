@@ -19,7 +19,7 @@ var Svg = {};
      * @method pathToVertices
      * @param {SVGPathElement} path
      * @param {Number} [sampleLength=15]
-     * @return {Vector} points
+     * @return {Vector[]} points
      */
     Svg.pathToVertices = function(path, sampleLength) {
         // https://github.com/wout/svg.topoly.js/blob/master/svg.topoly.js
