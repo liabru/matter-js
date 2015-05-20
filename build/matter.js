@@ -1,5 +1,5 @@
 /**
-* matter.js 0.8.0-edge 2015-01-21
+* matter.js edge-master 2015-05-20
 * http://brm.io/matter-js/
 * License: MIT
 */
@@ -74,6 +74,7 @@ var Body = {};
             id: Common.nextId(),
             type: 'body',
             label: 'Body',
+            parts: [],
             angle: 0,
             vertices: Vertices.fromPath('L 0 0 L 40 0 L 40 40 L 0 40'),
             position: { x: 0, y: 0 },
@@ -81,6 +82,7 @@ var Body = {};
             torque: 0,
             positionImpulse: { x: 0, y: 0 },
             constraintImpulse: { x: 0, y: 0, angle: 0 },
+            totalContacts: 0,
             speed: 0,
             angularSpeed: 0,
             velocity: { x: 0, y: 0 },
@@ -92,6 +94,7 @@ var Body = {};
             density: 0.001,
             restitution: 0,
             friction: 0.1,
+            frictionStatic: 0.5,
             frictionAir: 0.01,
             collisionFilter: {
                 category: 0x0001,
@@ -151,14 +154,16 @@ var Body = {};
      * @param {} options
      */
     var _initProperties = function(body, options) {
-        // init required properties
+        // init required properties (order is important)
         Body.set(body, {
             bounds: body.bounds || Bounds.create(body.vertices),
             positionPrev: body.positionPrev || Vector.clone(body.position),
             anglePrev: body.anglePrev || body.angle,
             vertices: body.vertices,
+            parts: body.parts || [body],
             isStatic: body.isStatic,
-            isSleeping: body.isSleeping
+            isSleeping: body.isSleeping,
+            parent: body.parent || body
         });
 
         Vertices.rotate(body.vertices, body.angle, body.position);
@@ -235,6 +240,9 @@ var Body = {};
             case 'angularVelocity':
                 Body.setAngularVelocity(body, value);
                 break;
+            case 'parts':
+                Body.setParts(body, value);
+                break;
             default:
                 body[property] = value;
 
@@ -249,21 +257,24 @@ var Body = {};
      * @param {bool} isStatic
      */
     Body.setStatic = function(body, isStatic) {
-        body.isStatic = isStatic;
+        for (var i = 0; i < body.parts.length; i++) {
+            var part = body.parts[i];
+            part.isStatic = isStatic;
 
-        if (isStatic) {
-            body.restitution = 0;
-            body.friction = 1;
-            body.mass = body.inertia = body.density = Infinity;
-            body.inverseMass = body.inverseInertia = 0;
+            if (isStatic) {
+                part.restitution = 0;
+                part.friction = 1;
+                part.mass = part.inertia = part.density = Infinity;
+                part.inverseMass = part.inverseInertia = 0;
 
-            body.positionPrev.x = body.position.x;
-            body.positionPrev.y = body.position.y;
-            body.anglePrev = body.angle;
-            body.angularVelocity = 0;
-            body.speed = 0;
-            body.angularSpeed = 0;
-            body.motion = 0;
+                part.positionPrev.x = part.position.x;
+                part.positionPrev.y = part.position.y;
+                part.anglePrev = part.angle;
+                part.angularVelocity = 0;
+                part.speed = 0;
+                part.angularSpeed = 0;
+                part.motion = 0;
+            }
         }
     };
 
@@ -340,6 +351,69 @@ var Body = {};
     };
 
     /**
+     * Sets the parts of the `body` and updates mass, inertia and centroid.
+     * Each part will have its parent set to `body`.
+     * By default the convex hull will be automatically computed and set on `body`, unless `autoHull` is set to `false.`
+     * Note that this method will ensure that the first part in `body.parts` will always be the `body`.
+     * @method setParts
+     * @param {body} body
+     * @param [body] parts
+     * @param {bool} [autoHull=true]
+     */
+    Body.setParts = function(body, parts, autoHull) {
+        var i;
+
+        // add all the parts, ensuring that the first part is always the parent body
+        parts = parts.slice(0);
+        body.parts.length = 0;
+        body.parts.push(body);
+        body.parent = body;
+
+        for (i = 0; i < parts.length; i++) {
+            var part = parts[i];
+            if (part !== body) {
+                part.parent = body;
+                body.parts.push(part);
+            }
+        }
+
+        if (body.parts.length === 1)
+            return;
+
+        autoHull = typeof autoHull !== 'undefined' ? autoHull : true;
+
+        // find the convex hull of all parts to set on the parent body
+        if (autoHull) {
+            var vertices = [];
+            for (i = 0; i < parts.length; i++) {
+                vertices = vertices.concat(parts[i].vertices);
+            }
+
+            Vertices.clockwiseSort(vertices);
+
+            var hull = Vertices.hull(vertices),
+                hullCentre = Vertices.centre(hull);
+
+            Body.setVertices(body, hull);
+            Vertices.translate(body.vertices, hullCentre);
+        }
+
+        // sum the properties of all compound parts of the parent body
+        var total = _totalProperties(body);
+
+        body.area = total.area;
+        body.parent = body;
+        body.position.x = total.centre.x;
+        body.position.y = total.centre.y;
+        body.positionPrev.x = total.centre.x;
+        body.positionPrev.y = total.centre.y;
+
+        Body.setMass(body, total.mass);
+        Body.setInertia(body, total.inertia);
+        Body.setPosition(body, total.centre);
+    };
+
+    /**
      * Sets the position of the body instantly. Velocity, angle, force etc. are unchanged.
      * @method setPosition
      * @param {body} body
@@ -347,14 +421,16 @@ var Body = {};
      */
     Body.setPosition = function(body, position) {
         var delta = Vector.sub(position, body.position);
-
-        body.position.x = position.x;
-        body.position.y = position.y;
         body.positionPrev.x += delta.x;
         body.positionPrev.y += delta.y;
 
-        Vertices.translate(body.vertices, delta);
-        Bounds.update(body.bounds, body.vertices, body.velocity);
+        for (var i = 0; i < body.parts.length; i++) {
+            var part = body.parts[i];
+            part.position.x += delta.x;
+            part.position.y += delta.y;
+            Vertices.translate(part.vertices, delta);
+            Bounds.update(part.bounds, part.vertices, body.velocity);
+        }
     };
 
     /**
@@ -365,13 +441,18 @@ var Body = {};
      */
     Body.setAngle = function(body, angle) {
         var delta = angle - body.angle;
-
-        body.angle = angle;
         body.anglePrev += delta;
 
-        Vertices.rotate(body.vertices, delta, body.position);
-        Axes.rotate(body.axes, delta);
-        Bounds.update(body.bounds, body.vertices, body.velocity);
+        for (var i = 0; i < body.parts.length; i++) {
+            var part = body.parts[i];
+            part.angle += delta;
+            Vertices.rotate(part.vertices, delta, body.position);
+            Axes.rotate(part.axes, delta);
+            Bounds.update(part.bounds, part.vertices, body.velocity);
+            if (i > 0) {
+                Vector.rotateAbout(part.position, delta, body.position, part.position);
+            }
+        }
     };
 
     /**
@@ -429,21 +510,35 @@ var Body = {};
      * @param {vector} [point]
      */
     Body.scale = function(body, scaleX, scaleY, point) {
-        // scale vertices
-        Vertices.scale(body.vertices, scaleX, scaleY, point);
+        for (var i = 0; i < body.parts.length; i++) {
+            var part = body.parts[i];
 
-        // update properties
-        body.axes = Axes.fromVertices(body.vertices);
-        body.area = Vertices.area(body.vertices);
-        Body.setMass(body, body.density * body.area);
+            // scale vertices
+            Vertices.scale(part.vertices, scaleX, scaleY, body.position);
 
-        // update inertia (requires vertices to be at origin)
-        Vertices.translate(body.vertices, { x: -body.position.x, y: -body.position.y });
-        Body.setInertia(body, Vertices.inertia(body.vertices, body.mass));
-        Vertices.translate(body.vertices, { x: body.position.x, y: body.position.y });
+            // update properties
+            part.axes = Axes.fromVertices(part.vertices);
 
-        // update bounds
-        Bounds.update(body.bounds, body.vertices, body.velocity);
+            if (!body.isStatic) {
+                part.area = Vertices.area(part.vertices);
+                Body.setMass(part, body.density * part.area);
+
+                // update inertia (requires vertices to be at origin)
+                Vertices.translate(part.vertices, { x: -part.position.x, y: -part.position.y });
+                Body.setInertia(part, Vertices.inertia(part.vertices, part.mass));
+                Vertices.translate(part.vertices, { x: part.position.x, y: part.position.y });
+            }
+
+            // update bounds
+            Bounds.update(part.bounds, part.vertices, body.velocity);
+        }
+
+        if (!body.isStatic) {
+            var total = _totalProperties(body);
+            body.area = total.area;
+            Body.setMass(body, total.mass);
+            Body.setInertia(body, total.inertia);
+        }
     };
 
     /**
@@ -481,12 +576,26 @@ var Body = {};
         body.angularSpeed = Math.abs(body.angularVelocity);
 
         // transform the body geometry
-        Vertices.translate(body.vertices, body.velocity);
-        if (body.angularVelocity !== 0) {
-            Vertices.rotate(body.vertices, body.angularVelocity, body.position);
-            Axes.rotate(body.axes, body.angularVelocity);
+        for (var i = 0; i < body.parts.length; i++) {
+            var part = body.parts[i];
+
+            Vertices.translate(part.vertices, body.velocity);
+            
+            if (i > 0) {
+                part.position.x += body.velocity.x;
+                part.position.y += body.velocity.y;
+            }
+
+            if (body.angularVelocity !== 0) {
+                Vertices.rotate(part.vertices, body.angularVelocity, body.position);
+                Axes.rotate(part.axes, body.angularVelocity);
+                if (i > 0) {
+                    Vector.rotateAbout(part.position, body.angularVelocity, body.position, part.position);
+                }
+            }
+
+            Bounds.update(part.bounds, part.vertices, body.velocity);
         }
-        Bounds.update(body.bounds, body.vertices, body.velocity);
     };
 
     /**
@@ -501,6 +610,40 @@ var Body = {};
         body.force.y += force.y;
         var offset = { x: position.x - body.position.x, y: position.y - body.position.y };
         body.torque += (offset.x * force.y - offset.y * force.x) * body.inverseInertia;
+    };
+
+    /**
+     * Returns the sums of the properties of all compound parts of the parent body.
+     * @method _totalProperties
+     * @private
+     * @param {body} body
+     * @return {}
+     */
+    var _totalProperties = function(body) {
+        // https://ecourses.ou.edu/cgi-bin/ebook.cgi?doc=&topic=st&chap_sec=07.2&page=theory
+        // http://output.to/sideway/default.asp?qno=121100087
+
+        var properties = {
+            mass: 0,
+            area: 0,
+            inertia: 0,
+            centre: { x: 0, y: 0 }
+        };
+
+        // sum the properties of all compound parts of the parent body
+        for (var i = body.parts.length === 1 ? 0 : 1; i < body.parts.length; i++) {
+            var part = body.parts[i];
+            properties.mass += part.mass;
+            properties.area += part.area;
+            properties.inertia += part.inertia;
+            properties.centre = Vector.add(properties.centre, 
+                                           Vector.mult(part.position, part.mass !== Infinity ? part.mass : 1));
+        }
+
+        properties.centre = Vector.div(properties.centre, 
+                                       properties.mass !== Infinity ? properties.mass : body.parts.length);
+
+        return properties;
     };
 
     /*
@@ -530,6 +673,27 @@ var Body = {};
      * @property label
      * @type string
      * @default "Body"
+     */
+
+    /**
+     * An array of bodies that make up this body. 
+     * The first body in the array must always be a self reference to the current body instance.
+     * All bodies in the `parts` array together form a single rigid compound body.
+     * Parts are allowed to overlap, have gaps or holes or even form concave bodies.
+     * Parts themselves should never be added to a `World`, only the parent body should be.
+     * Use `Body.setParts` when setting parts to ensure correct updates of all properties.
+     *
+     * @property parts
+     * @type body[]
+     */
+
+    /**
+     * A self reference if the body is _not_ a part of another body.
+     * Otherwise this is a reference to the body that this is a part of.
+     * See `body.parts`.
+     *
+     * @property parent
+     * @type body
      */
 
     /**
@@ -725,6 +889,17 @@ var Body = {};
      * @property friction
      * @type number
      * @default 0.1
+     */
+
+    /**
+     * A `Number` that defines the static friction of the body (in the Coulomb friction model). 
+     * A value of `0` means the body will never 'stick' when it is nearly stationary and only dynamic `friction` is used.
+     * The higher the value (e.g. `10`), the more force it will take to initially get the body moving when nearly stationary.
+     * This value is multiplied with the `friction` property to make it easier to change `friction` and maintain an appropriate amount of static friction.
+     *
+     * @property frictionStatic
+     * @type number
+     * @default 0.5
      */
 
     /**
@@ -996,6 +1171,12 @@ var Composite = {};
             switch (obj.type) {
 
             case 'body':
+                // skip adding compound parts
+                if (obj.parent !== obj) {
+                    Common.log('Composite.add: skipped adding a compound body part (you must add its parent instead)', 'warn');
+                    break;
+                }
+
                 Composite.addBody(composite, obj);
                 break;
             case 'constraint':
@@ -1579,6 +1760,7 @@ var Composite = {};
 * and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
 *
 * @class World
+* @extends Composite
 */
 
 var World = {};
@@ -1713,9 +1895,9 @@ var Detector = {};
      */
     Detector.collisions = function(broadphasePairs, engine) {
         var collisions = [],
-            metrics = engine.metrics,
             pairsTable = engine.pairs.table;
 
+        
         for (var i = 0; i < broadphasePairs.length; i++) {
             var bodyA = broadphasePairs[i][0], 
                 bodyB = broadphasePairs[i][1];
@@ -1726,33 +1908,34 @@ var Detector = {};
             if (!Detector.canCollide(bodyA.collisionFilter, bodyB.collisionFilter))
                 continue;
 
-            metrics.midphaseTests += 1;
-
             // mid phase
             if (Bounds.overlaps(bodyA.bounds, bodyB.bounds)) {
+                for (var j = bodyA.parts.length > 1 ? 1 : 0; j < bodyA.parts.length; j++) {
+                    var partA = bodyA.parts[j];
 
-                // find a previous collision we could reuse
-                var pairId = Pair.id(bodyA, bodyB),
-                    pair = pairsTable[pairId],
-                    previousCollision;
+                    for (var k = bodyB.parts.length > 1 ? 1 : 0; k < bodyB.parts.length; k++) {
+                        var partB = bodyB.parts[k];
 
-                if (pair && pair.isActive) {
-                    previousCollision = pair.collision;
-                } else {
-                    previousCollision = null;
-                }
+                        if ((partA === bodyA && partB === bodyB) || Bounds.overlaps(partA.bounds, partB.bounds)) {
+                            // find a previous collision we could reuse
+                            var pairId = Pair.id(partA, partB),
+                                pair = pairsTable[pairId],
+                                previousCollision;
 
-                // narrow phase
-                var collision = SAT.collides(bodyA, bodyB, previousCollision);
+                            if (pair && pair.isActive) {
+                                previousCollision = pair.collision;
+                            } else {
+                                previousCollision = null;
+                            }
 
-                metrics.narrowphaseTests += 1;
+                            // narrow phase
+                            var collision = SAT.collides(partA, partB, previousCollision);
 
-                if (collision.reused)
-                    metrics.narrowReuseCount += 1;
-
-                if (collision.collided) {
-                    collisions.push(collision);
-                    metrics.narrowDetections += 1;
+                            if (collision.collided) {
+                                collisions.push(collision);
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -1769,7 +1952,6 @@ var Detector = {};
      */
     Detector.bruteForce = function(bodies, engine) {
         var collisions = [],
-            metrics = engine.metrics,
             pairsTable = engine.pairs.table;
 
         for (var i = 0; i < bodies.length; i++) {
@@ -1784,8 +1966,6 @@ var Detector = {};
                 
                 if (!Detector.canCollide(bodyA.collisionFilter, bodyB.collisionFilter))
                     continue;
-
-                metrics.midphaseTests += 1;
 
                 // mid phase
                 if (Bounds.overlaps(bodyA.bounds, bodyB.bounds)) {
@@ -1804,14 +1984,8 @@ var Detector = {};
                     // narrow phase
                     var collision = SAT.collides(bodyA, bodyB, previousCollision);
 
-                    metrics.narrowphaseTests += 1;
-
-                    if (collision.reused)
-                        metrics.narrowReuseCount += 1;
-
                     if (collision.collided) {
                         collisions.push(collision);
-                        metrics.narrowDetections += 1;
                     }
                 }
             }
@@ -1888,10 +2062,7 @@ var Grid = {};
             buckets = grid.buckets,
             bucket,
             bucketId,
-            metrics = engine.metrics,
             gridChanged = false;
-
-        metrics.broadphaseTests = 0;
 
         for (i = 0; i < bodies.length; i++) {
             var body = bodies[i];
@@ -1908,8 +2079,6 @@ var Grid = {};
 
             // if the body has changed grid region
             if (!body.region || newRegion.id !== body.region.id || forceUpdate) {
-
-                metrics.broadphaseTests += 1;
 
                 if (!body.region || forceUpdate)
                     body.region = newRegion;
@@ -2163,7 +2332,9 @@ var Pair = {};
      */
     Pair.create = function(collision, timestamp) {
         var bodyA = collision.bodyA,
-            bodyB = collision.bodyB;
+            bodyB = collision.bodyB,
+            parentA = collision.parentA,
+            parentB = collision.parentB;
 
         var pair = {
             id: Pair.id(bodyA, bodyB),
@@ -2175,10 +2346,11 @@ var Pair = {};
             isActive: true,
             timeCreated: timestamp,
             timeUpdated: timestamp,
-            inverseMass: bodyA.inverseMass + bodyB.inverseMass,
-            friction: Math.min(bodyA.friction, bodyB.friction),
-            restitution: Math.max(bodyA.restitution, bodyB.restitution),
-            slop: Math.max(bodyA.slop, bodyB.slop)
+            inverseMass: parentA.inverseMass + parentB.inverseMass,
+            friction: Math.min(parentA.friction, parentB.friction),
+            frictionStatic: Math.max(parentA.frictionStatic, parentB.frictionStatic),
+            restitution: Math.max(parentA.restitution, parentB.restitution),
+            slop: Math.max(parentA.slop, parentB.slop)
         };
 
         Pair.update(pair, collision, timestamp);
@@ -2195,13 +2367,16 @@ var Pair = {};
     Pair.update = function(pair, collision, timestamp) {
         var contacts = pair.contacts,
             supports = collision.supports,
-            activeContacts = pair.activeContacts;
+            activeContacts = pair.activeContacts,
+            parentA = collision.parentA,
+            parentB = collision.parentB;
         
         pair.collision = collision;
-        pair.inverseMass = collision.bodyA.inverseMass + collision.bodyB.inverseMass;
-        pair.friction = Math.min(collision.bodyA.friction, collision.bodyB.friction);
-        pair.restitution = Math.max(collision.bodyA.restitution, collision.bodyB.restitution);
-        pair.slop = Math.max(collision.bodyA.slop, collision.bodyB.slop);
+        pair.inverseMass = parentA.inverseMass + parentB.inverseMass;
+        pair.friction = Math.min(parentA.friction, parentB.friction);
+        pair.frictionStatic = Math.max(parentA.frictionStatic, parentB.frictionStatic);
+        pair.restitution = Math.max(parentA.restitution, parentB.restitution);
+        pair.slop = Math.max(parentA.slop, parentB.slop);
         activeContacts.length = 0;
         
         if (collision.collided) {
@@ -2439,7 +2614,7 @@ var Query = {};
      * @return {object[]} Collisions
      */
     Query.ray = function(bodies, startPoint, endPoint, rayWidth) {
-        rayWidth = rayWidth || Number.MIN_VALUE;
+        rayWidth = rayWidth || 1e-100;
 
         var rayAngle = Vector.angle(startPoint, endPoint),
             rayLength = Vector.magnitude(Vector.sub(startPoint, endPoint)),
@@ -2450,12 +2625,19 @@ var Query = {};
 
         for (var i = 0; i < bodies.length; i++) {
             var bodyA = bodies[i];
-
+            
             if (Bounds.overlaps(bodyA.bounds, ray.bounds)) {
-                var collision = SAT.collides(bodyA, ray);
-                if (collision.collided) {
-                    collision.body = collision.bodyA = collision.bodyB = bodyA;
-                    collisions.push(collision);
+                for (var j = bodyA.parts.length === 1 ? 0 : 1; j < bodyA.parts.length; j++) {
+                    var part = bodyA.parts[j];
+
+                    if (Bounds.overlaps(part.bounds, ray.bounds)) {
+                        var collision = SAT.collides(part, ray);
+                        if (collision.collided) {
+                            collision.body = collision.bodyA = collision.bodyB = bodyA;
+                            collisions.push(collision);
+                            break;
+                        }
+                    }
                 }
             }
         }
@@ -2484,6 +2666,35 @@ var Query = {};
         return result;
     };
 
+    /**
+     * Returns all bodies whose vertices contain the given point, from the given set of bodies.
+     * @method point
+     * @param {body[]} bodies
+     * @param {vector} point
+     * @return {body[]} The bodies matching the query
+     */
+    Query.point = function(bodies, point) {
+        var result = [];
+
+        for (var i = 0; i < bodies.length; i++) {
+            var body = bodies[i];
+            
+            if (Bounds.contains(body.bounds, point)) {
+                for (var j = body.parts.length === 1 ? 0 : 1; j < body.parts.length; j++) {
+                    var part = body.parts[j];
+
+                    if (Bounds.contains(part.bounds, point)
+                        && Vertices.contains(part.vertices, point)) {
+                        result.push(body);
+                        break;
+                    }
+                }
+            }
+        }
+
+        return result;
+    };
+
 })();
 
 ;   // End src/collision/Query.js
@@ -2501,9 +2712,33 @@ var Resolver = {};
 
 (function() {
 
-    var _restingThresh = 4,
-        _positionDampen = 0.2,
-        _positionWarming = 0.6;
+    Resolver._restingThresh = 4;
+    Resolver._positionDampen = 0.9;
+    Resolver._positionWarming = 0.8;
+    Resolver._frictionNormalMultiplier = 5;
+
+    /**
+     * Description
+     * @method preSolvePosition
+     * @param {pair[]} pairs
+     */
+    Resolver.preSolvePosition = function(pairs) {
+        var i,
+            pair,
+            activeCount;
+
+        // find total contacts on each body
+        for (i = 0; i < pairs.length; i++) {
+            pair = pairs[i];
+            
+            if (!pair.isActive)
+                continue;
+            
+            activeCount = pair.activeContacts.length;
+            pair.collision.parentA.totalContacts += activeCount;
+            pair.collision.parentB.totalContacts += activeCount;
+        }
+    };
 
     /**
      * Description
@@ -2517,10 +2752,14 @@ var Resolver = {};
             collision,
             bodyA,
             bodyB,
-            vertex,
-            vertexCorrected,
             normal,
-            bodyBtoA;
+            bodyBtoA,
+            contactShare,
+            contactCount = {},
+            tempA = Vector._temp[0],
+            tempB = Vector._temp[1],
+            tempC = Vector._temp[2],
+            tempD = Vector._temp[3];
 
         // find impulses required to resolve penetration
         for (i = 0; i < pairs.length; i++) {
@@ -2530,42 +2769,43 @@ var Resolver = {};
                 continue;
             
             collision = pair.collision;
-            bodyA = collision.bodyA;
-            bodyB = collision.bodyB;
-            vertex = collision.supports[0];
-            vertexCorrected = collision.supportCorrected;
+            bodyA = collision.parentA;
+            bodyB = collision.parentB;
             normal = collision.normal;
 
             // get current separation between body edges involved in collision
-            bodyBtoA = Vector.sub(Vector.add(bodyB.positionImpulse, vertex), 
-                                    Vector.add(bodyA.positionImpulse, vertexCorrected));
+            bodyBtoA = Vector.sub(Vector.add(bodyB.positionImpulse, bodyB.position, tempA), 
+                                    Vector.add(bodyA.positionImpulse, 
+                                        Vector.sub(bodyB.position, collision.penetration, tempB), tempC), tempD);
 
             pair.separation = Vector.dot(normal, bodyBtoA);
         }
         
         for (i = 0; i < pairs.length; i++) {
             pair = pairs[i];
-            
-            if (!pair.isActive)
+
+            if (!pair.isActive || pair.separation < 0)
                 continue;
             
             collision = pair.collision;
-            bodyA = collision.bodyA;
-            bodyB = collision.bodyB;
+            bodyA = collision.parentA;
+            bodyB = collision.parentB;
             normal = collision.normal;
-            positionImpulse = ((pair.separation * _positionDampen) - pair.slop) * timeScale;
+            positionImpulse = (pair.separation - pair.slop) * timeScale;
         
             if (bodyA.isStatic || bodyB.isStatic)
                 positionImpulse *= 2;
             
             if (!(bodyA.isStatic || bodyA.isSleeping)) {
-                bodyA.positionImpulse.x += normal.x * positionImpulse;
-                bodyA.positionImpulse.y += normal.y * positionImpulse;
+                contactShare = Resolver._positionDampen / bodyA.totalContacts;
+                bodyA.positionImpulse.x += normal.x * positionImpulse * contactShare;
+                bodyA.positionImpulse.y += normal.y * positionImpulse * contactShare;
             }
 
             if (!(bodyB.isStatic || bodyB.isSleeping)) {
-                bodyB.positionImpulse.x -= normal.x * positionImpulse;
-                bodyB.positionImpulse.y -= normal.y * positionImpulse;
+                contactShare = Resolver._positionDampen / bodyB.totalContacts;
+                bodyB.positionImpulse.x -= normal.x * positionImpulse * contactShare;
+                bodyB.positionImpulse.y -= normal.y * positionImpulse * contactShare;
             }
         }
     };
@@ -2579,20 +2819,32 @@ var Resolver = {};
         for (var i = 0; i < bodies.length; i++) {
             var body = bodies[i];
 
+            // reset contact count
+            body.totalContacts = 0;
+
             if (body.positionImpulse.x !== 0 || body.positionImpulse.y !== 0) {
+                // update body geometry
+                for (var j = 0; j < body.parts.length; j++) {
+                    var part = body.parts[j];
+                    Vertices.translate(part.vertices, body.positionImpulse);
+                    Bounds.update(part.bounds, part.vertices, body.velocity);
+                    part.position.x += body.positionImpulse.x;
+                    part.position.y += body.positionImpulse.y;
+                }
+
                 // move the body without changing velocity
-                body.position.x += body.positionImpulse.x;
-                body.position.y += body.positionImpulse.y;
                 body.positionPrev.x += body.positionImpulse.x;
                 body.positionPrev.y += body.positionImpulse.y;
 
-                // update body geometry
-                Vertices.translate(body.vertices, body.positionImpulse);
-                Bounds.update(body.bounds, body.vertices, body.velocity);
-                
-                // dampen accumulator to warm the next step
-                body.positionImpulse.x *= _positionWarming;
-                body.positionImpulse.y *= _positionWarming;
+                if (Vector.dot(body.positionImpulse, body.velocity) < 0) {
+                    // reset cached impulse if the body has velocity along it
+                    body.positionImpulse.x = 0;
+                    body.positionImpulse.y = 0;
+                } else {
+                    // warm the next iteration
+                    body.positionImpulse.x *= Resolver._positionWarming;
+                    body.positionImpulse.y *= Resolver._positionWarming;
+                }
             }
         }
     };
@@ -2603,8 +2855,7 @@ var Resolver = {};
      * @param {pair[]} pairs
      */
     Resolver.preSolveVelocity = function(pairs) {
-        var impulse = {},
-            i,
+        var i,
             j,
             pair,
             contacts,
@@ -2617,7 +2868,9 @@ var Resolver = {};
             contactVertex,
             normalImpulse,
             tangentImpulse,
-            offset;
+            offset,
+            impulse = Vector._temp[0],
+            tempA = Vector._temp[1];
         
         for (i = 0; i < pairs.length; i++) {
             pair = pairs[i];
@@ -2627,8 +2880,8 @@ var Resolver = {};
             
             contacts = pair.activeContacts;
             collision = pair.collision;
-            bodyA = collision.bodyA;
-            bodyB = collision.bodyB;
+            bodyA = collision.parentA;
+            bodyB = collision.parentB;
             normal = collision.normal;
             tangent = collision.tangent;
                 
@@ -2638,24 +2891,26 @@ var Resolver = {};
                 contactVertex = contact.vertex;
                 normalImpulse = contact.normalImpulse;
                 tangentImpulse = contact.tangentImpulse;
-                
-                // total impulse from contact
-                impulse.x = (normal.x * normalImpulse) + (tangent.x * tangentImpulse);
-                impulse.y = (normal.y * normalImpulse) + (tangent.y * tangentImpulse);
-                
-                // apply impulse from contact
-                if (!(bodyA.isStatic || bodyA.isSleeping)) {
-                    offset = Vector.sub(contactVertex, bodyA.position);
-                    bodyA.positionPrev.x += impulse.x * bodyA.inverseMass;
-                    bodyA.positionPrev.y += impulse.y * bodyA.inverseMass;
-                    bodyA.anglePrev += Vector.cross(offset, impulse) * bodyA.inverseInertia;
-                }
 
-                if (!(bodyB.isStatic || bodyB.isSleeping)) {
-                    offset = Vector.sub(contactVertex, bodyB.position);
-                    bodyB.positionPrev.x -= impulse.x * bodyB.inverseMass;
-                    bodyB.positionPrev.y -= impulse.y * bodyB.inverseMass;
-                    bodyB.anglePrev -= Vector.cross(offset, impulse) * bodyB.inverseInertia;
+                if (normalImpulse !== 0 || tangentImpulse !== 0) {
+                    // total impulse from contact
+                    impulse.x = (normal.x * normalImpulse) + (tangent.x * tangentImpulse);
+                    impulse.y = (normal.y * normalImpulse) + (tangent.y * tangentImpulse);
+                    
+                    // apply impulse from contact
+                    if (!(bodyA.isStatic || bodyA.isSleeping)) {
+                        offset = Vector.sub(contactVertex, bodyA.position, tempA);
+                        bodyA.positionPrev.x += impulse.x * bodyA.inverseMass;
+                        bodyA.positionPrev.y += impulse.y * bodyA.inverseMass;
+                        bodyA.anglePrev += Vector.cross(offset, impulse) * bodyA.inverseInertia;
+                    }
+
+                    if (!(bodyB.isStatic || bodyB.isSleeping)) {
+                        offset = Vector.sub(contactVertex, bodyB.position, tempA);
+                        bodyB.positionPrev.x -= impulse.x * bodyB.inverseMass;
+                        bodyB.positionPrev.y -= impulse.y * bodyB.inverseMass;
+                        bodyB.anglePrev -= Vector.cross(offset, impulse) * bodyB.inverseInertia;
+                    }
                 }
             }
         }
@@ -2667,8 +2922,13 @@ var Resolver = {};
      * @param {pair[]} pairs
      */
     Resolver.solveVelocity = function(pairs, timeScale) {
-        var impulse = {},
-            timeScaleSquared = timeScale * timeScale;
+        var timeScaleSquared = timeScale * timeScale,
+            impulse = Vector._temp[0],
+            tempA = Vector._temp[1],
+            tempB = Vector._temp[2],
+            tempC = Vector._temp[3],
+            tempD = Vector._temp[4],
+            tempE = Vector._temp[5];
         
         for (var i = 0; i < pairs.length; i++) {
             var pair = pairs[i];
@@ -2677,8 +2937,8 @@ var Resolver = {};
                 continue;
             
             var collision = pair.collision,
-                bodyA = collision.bodyA,
-                bodyB = collision.bodyB,
+                bodyA = collision.parentA,
+                bodyB = collision.parentB,
                 normal = collision.normal,
                 tangent = collision.tangent,
                 contacts = pair.activeContacts,
@@ -2696,11 +2956,11 @@ var Resolver = {};
             for (var j = 0; j < contacts.length; j++) {
                 var contact = contacts[j],
                     contactVertex = contact.vertex,
-                    offsetA = Vector.sub(contactVertex, bodyA.position),
-                    offsetB = Vector.sub(contactVertex, bodyB.position),
-                    velocityPointA = Vector.add(bodyA.velocity, Vector.mult(Vector.perp(offsetA), bodyA.angularVelocity)),
-                    velocityPointB = Vector.add(bodyB.velocity, Vector.mult(Vector.perp(offsetB), bodyB.angularVelocity)), 
-                    relativeVelocity = Vector.sub(velocityPointA, velocityPointB),
+                    offsetA = Vector.sub(contactVertex, bodyA.position, tempA),
+                    offsetB = Vector.sub(contactVertex, bodyB.position, tempB),
+                    velocityPointA = Vector.add(bodyA.velocity, Vector.mult(Vector.perp(offsetA), bodyA.angularVelocity), tempC),
+                    velocityPointB = Vector.add(bodyB.velocity, Vector.mult(Vector.perp(offsetB), bodyB.angularVelocity), tempD), 
+                    relativeVelocity = Vector.sub(velocityPointA, velocityPointB, tempE),
                     normalVelocity = Vector.dot(normal, relativeVelocity);
 
                 var tangentVelocity = Vector.dot(tangent, relativeVelocity),
@@ -2709,22 +2969,27 @@ var Resolver = {};
 
                 // raw impulses
                 var normalImpulse = (1 + pair.restitution) * normalVelocity,
-                    normalForce = Common.clamp(pair.separation + normalVelocity, 0, 1);
+                    normalForce = Common.clamp(pair.separation + normalVelocity, 0, 1) * Resolver._frictionNormalMultiplier;
 
                 // coulomb friction
-                var tangentImpulse = tangentVelocity;
-                if (tangentSpeed > normalForce * pair.friction * timeScaleSquared)
-                    tangentImpulse = normalForce * pair.friction * timeScaleSquared * tangentVelocityDirection;
+                var tangentImpulse = tangentVelocity,
+                    maxFriction = Infinity;
+
+                if (tangentSpeed > pair.friction * pair.frictionStatic * normalForce * timeScaleSquared) {
+                    tangentImpulse = pair.friction * tangentVelocityDirection * timeScaleSquared;
+                    maxFriction = tangentSpeed;
+                }
 
                 // modify impulses accounting for mass, inertia and offset
                 var oAcN = Vector.cross(offsetA, normal),
                     oBcN = Vector.cross(offsetB, normal),
-                    share = contactShare / (pair.inverseMass + bodyA.inverseInertia * oAcN * oAcN  + bodyB.inverseInertia * oBcN * oBcN);
-                normalImpulse *= share;
-                tangentImpulse *= share;
-                
+                    denom = bodyA.inverseMass + bodyB.inverseMass + bodyA.inverseInertia * oAcN * oAcN  + bodyB.inverseInertia * oBcN * oBcN;
+
+                normalImpulse *= contactShare / denom;
+                tangentImpulse *= contactShare / (1 + denom);
+
                 // handle high velocity and resting collisions separately
-                if (normalVelocity < 0 && normalVelocity * normalVelocity > _restingThresh * timeScaleSquared) {
+                if (normalVelocity < 0 && normalVelocity * normalVelocity > Resolver._restingThresh * timeScaleSquared) {
                     // high velocity so clear cached contact impulse
                     contact.normalImpulse = 0;
                     contact.tangentImpulse = 0;
@@ -2738,7 +3003,7 @@ var Resolver = {};
                     
                     // tangent impulse, tends to -maxFriction or maxFriction
                     var contactTangentImpulse = contact.tangentImpulse;
-                    contact.tangentImpulse = Common.clamp(contact.tangentImpulse + tangentImpulse, -tangentSpeed, tangentSpeed);
+                    contact.tangentImpulse = Common.clamp(contact.tangentImpulse + tangentImpulse, -maxFriction, maxFriction);
                     tangentImpulse = contact.tangentImpulse - contactTangentImpulse;
                 }
                 
@@ -2799,8 +3064,10 @@ var SAT = {};
 
         if (prevCol) {
             // estimate total motion
-            var motion = bodyA.speed * bodyA.speed + bodyA.angularSpeed * bodyA.angularSpeed
-                       + bodyB.speed * bodyB.speed + bodyB.angularSpeed * bodyB.angularSpeed;
+            var parentA = bodyA.parent,
+                parentB = bodyB.parent,
+                motion = parentA.speed * parentA.speed + parentA.angularSpeed * parentA.angularSpeed
+                       + parentB.speed * parentB.speed + parentB.angularSpeed * parentB.angularSpeed;
 
             // we may be able to (partially) reuse collision result 
             // but only safe if collision was resting
@@ -2815,9 +3082,11 @@ var SAT = {};
         if (prevCol && canReusePrevCol) {
             // if we can reuse the collision result
             // we only need to test the previously found axis
-            var axes = [prevCol.bodyA.axes[prevCol.axisNumber]];
+            var axisBodyA = collision.axisBody,
+                axisBodyB = axisBodyA === bodyA ? bodyB : bodyA,
+                axes = [axisBodyA.axes[prevCol.axisNumber]];
 
-            minOverlap = _overlapAxes(prevCol.bodyA.vertices, prevCol.bodyB.vertices, axes);
+            minOverlap = _overlapAxes(axisBodyA.vertices, axisBodyB.vertices, axes);
             collision.reused = true;
 
             if (minOverlap.overlap <= 0) {
@@ -2843,21 +3112,23 @@ var SAT = {};
 
             if (overlapAB.overlap < overlapBA.overlap) {
                 minOverlap = overlapAB;
-                collision.bodyA = bodyA;
-                collision.bodyB = bodyB;
+                collision.axisBody = bodyA;
             } else {
                 minOverlap = overlapBA;
-                collision.bodyA = bodyB;
-                collision.bodyB = bodyA;
+                collision.axisBody = bodyB;
             }
 
             // important for reuse later
             collision.axisNumber = minOverlap.axisNumber;
         }
 
+        collision.bodyA = bodyA.id < bodyB.id ? bodyA : bodyB;
+        collision.bodyB = bodyA.id < bodyB.id ? bodyB : bodyA;
         collision.collided = true;
         collision.normal = minOverlap.axis;
         collision.depth = minOverlap.overlap;
+        collision.parentA = collision.bodyA.parent;
+        collision.parentB = collision.bodyB.parent;
         
         bodyA = collision.bodyA;
         bodyB = collision.bodyB;
@@ -2897,11 +3168,10 @@ var SAT = {};
         }
 
         // account for the edge case of overlapping but no vertex containment
-        if (supports.length < 2)
+        if (supports.length < 1)
             supports = [verticesB[0]];
         
         collision.supports = supports;
-        collision.supportCorrected = Vector.sub(supports[0], collision.penetration);
 
         return collision;
     };
@@ -2916,8 +3186,8 @@ var SAT = {};
      * @return result
      */
     var _overlapAxes = function(verticesA, verticesB, axes) {
-        var projectionA = {}, 
-            projectionB = {},
+        var projectionA = Vector._temp[0], 
+            projectionB = Vector._temp[1],
             result = { overlap: Number.MAX_VALUE },
             overlap,
             axis;
@@ -2928,9 +3198,7 @@ var SAT = {};
             _projectToAxis(projectionA, verticesA, axis);
             _projectToAxis(projectionB, verticesB, axis);
 
-            overlap = projectionA.min < projectionB.min 
-                        ? projectionA.max - projectionB.min 
-                        : projectionB.max - projectionA.min;
+            overlap = Math.min(projectionA.max - projectionB.min, projectionB.max - projectionA.min);
 
             if (overlap <= 0) {
                 result.overlap = overlap;
@@ -2984,13 +3252,13 @@ var SAT = {};
      */
     var _findSupports = function(bodyA, bodyB, normal) {
         var nearestDistance = Number.MAX_VALUE,
-            vertexToBody = { x: 0, y: 0 },
+            vertexToBody = Vector._temp[0],
             vertices = bodyB.vertices,
             bodyAPosition = bodyA.position,
             distance,
             vertex,
-            vertexA = vertices[0],
-            vertexB = vertices[1];
+            vertexA,
+            vertexB;
 
         // find closest vertex on bodyB
         for (var i = 0; i < vertices.length; i++) {
@@ -3284,16 +3552,28 @@ var Constraint = {};
                 impulse = body.constraintImpulse;
 
             // update geometry and reset
-            Vertices.translate(body.vertices, impulse);
+            for (var j = 0; j < body.parts.length; j++) {
+                var part = body.parts[j];
+                
+                Vertices.translate(part.vertices, impulse);
 
-            if (impulse.angle !== 0) {
-                Vertices.rotate(body.vertices, impulse.angle, body.position);
-                Axes.rotate(body.axes, impulse.angle);
-                impulse.angle = 0;
+                if (j > 0) {
+                    part.position.x += impulse.x;
+                    part.position.y += impulse.y;
+                }
+
+                if (impulse.angle !== 0) {
+                    Vertices.rotate(part.vertices, impulse.angle, body.position);
+                    Axes.rotate(part.axes, impulse.angle);
+                    if (j > 0) {
+                        Vector.rotateAbout(part.position, impulse.angle, body.position, part.position);
+                    }
+                }
+
+                Bounds.update(part.bounds, part.vertices);
             }
 
-            Bounds.update(body.bounds, body.vertices);
-
+            impulse.angle = 0;
             impulse.x = 0;
             impulse.y = 0;
         }
@@ -3504,16 +3784,21 @@ var MouseConstraint = {};
                 for (var i = 0; i < bodies.length; i++) {
                     body = bodies[i];
                     if (Bounds.contains(body.bounds, mouse.position) 
-                            && Vertices.contains(body.vertices, mouse.position)
                             && Detector.canCollide(body.collisionFilter, mouseConstraint.collisionFilter)) {
-                       
-                        constraint.pointA = mouse.position;
-                        constraint.bodyB = mouseConstraint.body = body;
-                        constraint.pointB = { x: mouse.position.x - body.position.x, y: mouse.position.y - body.position.y };
-                        constraint.angleB = body.angle;
+                        for (var j = body.parts.length > 1 ? 1 : 0; j < body.parts.length; j++) {
+                            var part = body.parts[j];
+                            if (Vertices.contains(part.vertices, mouse.position)) {
+                                constraint.pointA = mouse.position;
+                                constraint.bodyB = mouseConstraint.body = body;
+                                constraint.pointB = { x: mouse.position.x - body.position.x, y: mouse.position.y - body.position.y };
+                                constraint.angleB = body.angle;
 
-                        Sleeping.set(body, false);
-                        Events.trigger(mouseConstraint, 'startdrag', { mouse: mouse, body: body });
+                                Sleeping.set(body, false);
+                                Events.trigger(mouseConstraint, 'startdrag', { mouse: mouse, body: body });
+
+                                break;
+                            }
+                        }
                     }
                 }
             } else {
@@ -3834,6 +4119,16 @@ var Common = {};
               (typeof obj.ownerDocument ==="object");
         }
     };
+
+    /**
+     * Description
+     * @method isArray
+     * @param {object} obj
+     * @return {boolean} True if the object is an array, otherwise false
+     */
+    Common.isArray = function(obj) {
+        return Object.prototype.toString.call(obj) === '[object Array]';
+    };
     
     /**
      * Description
@@ -3921,8 +4216,6 @@ var Common = {};
     Common.log = function(message, type) {
         if (!console || !console.log || !console.warn)
             return;
-
-        var style;
 
         switch (type) {
 
@@ -4041,8 +4334,8 @@ var Engine = {};
         engine.render = engine.render.controller.create(engine.render);
         engine.world = World.create(engine.world);
         engine.pairs = Pairs.create();
-        engine.metrics = engine.metrics || Metrics.create();
         engine.broadphase = engine.broadphase.controller.create(engine.broadphase);
+        engine.metrics = engine.metrics || { extended: false };
 
         return engine;
     };
@@ -4079,9 +4372,6 @@ var Engine = {};
         // get lists of all bodies and constraints, no matter what composites they are in
         var allBodies = Composite.allBodies(world),
             allConstraints = Composite.allConstraints(world);
-
-        // reset metrics logging
-        Metrics.reset(engine.metrics);
 
         // if sleeping enabled, call the sleeping controller
         if (engine.enableSleeping)
@@ -4132,17 +4422,18 @@ var Engine = {};
         if (pairs.collisionStart.length > 0)
             Events.trigger(engine, 'collisionStart', { pairs: pairs.collisionStart });
 
+        // iteratively resolve position between collisions
+        Resolver.preSolvePosition(pairs.list);
+        for (i = 0; i < engine.positionIterations; i++) {
+            Resolver.solvePosition(pairs.list, timing.timeScale);
+        }
+        Resolver.postSolvePosition(allBodies);
+
         // iteratively resolve velocity between collisions
         Resolver.preSolveVelocity(pairs.list);
         for (i = 0; i < engine.velocityIterations; i++) {
             Resolver.solveVelocity(pairs.list, timing.timeScale);
         }
-        
-        // iteratively resolve position between collisions
-        for (i = 0; i < engine.positionIterations; i++) {
-            Resolver.solvePosition(pairs.list, timing.timeScale);
-        }
-        Resolver.postSolvePosition(allBodies);
 
         // trigger collision events
         if (pairs.collisionActive.length > 0)
@@ -4150,9 +4441,6 @@ var Engine = {};
 
         if (pairs.collisionEnd.length > 0)
             Events.trigger(engine, 'collisionEnd', { pairs: pairs.collisionEnd });
-
-        // update metrics log
-        Metrics.update(engine.metrics, engine);
 
         // clear force buffers
         _bodiesClearForces(allBodies);
@@ -4662,90 +4950,6 @@ var Events = {};
 
 // Begin src/core/Metrics.js
 
-/**
-* _Internal Class_, not generally used outside of the engine's internals.
-*
-* @class Metrics
-*/
-
-var Metrics = {};
-
-(function() {
-
-    /**
-     * Description
-     * @method create
-     * @return {metrics} A new metrics
-     */
-    Metrics.create = function() {
-        return {
-            extended: false,
-            narrowDetections: 0,
-            narrowphaseTests: 0,
-            narrowReuse: 0,
-            narrowReuseCount: 0,
-            midphaseTests: 0,
-            broadphaseTests: 0,
-            narrowEff: 0.0001,
-            midEff: 0.0001,
-            broadEff: 0.0001,
-            collisions: 0,
-            buckets: 0,
-            bodies: 0,
-            pairs: 0
-        };
-    };
-
-    /**
-     * Description
-     * @method reset
-     * @param {metrics} metrics
-     */
-    Metrics.reset = function(metrics) {
-        if (metrics.extended) {
-            metrics.narrowDetections = 0;
-            metrics.narrowphaseTests = 0;
-            metrics.narrowReuse = 0;
-            metrics.narrowReuseCount = 0;
-            metrics.midphaseTests = 0;
-            metrics.broadphaseTests = 0;
-            metrics.narrowEff = 0;
-            metrics.midEff = 0;
-            metrics.broadEff = 0;
-            metrics.collisions = 0;
-            metrics.buckets = 0;
-            metrics.pairs = 0;
-            metrics.bodies = 0;
-        }
-    };
-
-    /**
-     * Description
-     * @method update
-     * @param {metrics} metrics
-     * @param {engine} engine
-     */
-    Metrics.update = function(metrics, engine) {
-        if (metrics.extended) {
-            var world = engine.world,
-                bodies = Composite.allBodies(world);
-
-            metrics.collisions = metrics.narrowDetections;
-            metrics.pairs = engine.pairs.list.length;
-            metrics.bodies = bodies.length;
-            metrics.midEff = (metrics.narrowDetections / (metrics.midphaseTests || 1)).toFixed(2);
-            metrics.narrowEff = (metrics.narrowDetections / (metrics.narrowphaseTests || 1)).toFixed(2);
-            metrics.broadEff = (1 - (metrics.broadphaseTests / (bodies.length || 1))).toFixed(2);
-            metrics.narrowReuse = (metrics.narrowReuseCount / (metrics.narrowphaseTests || 1)).toFixed(2);
-            //var broadphase = engine.broadphase[engine.broadphase.current];
-            //if (broadphase.instance)
-            //    metrics.buckets = Common.keys(broadphase.instance.buckets).length;
-        }
-    };
-
-})();
-
-
 ;   // End src/core/Metrics.js
 
 
@@ -5155,8 +5359,8 @@ var Sleeping = {};
                 continue;
 
             var collision = pair.collision,
-                bodyA = collision.bodyA, 
-                bodyB = collision.bodyB;
+                bodyA = collision.bodyA.parent, 
+                bodyB = collision.bodyB.parent;
         
             // don't wake if at least one body is static
             if ((bodyA.isSleeping && bodyB.isSleeping) || bodyA.isStatic || bodyB.isStatic)
@@ -5302,7 +5506,7 @@ var Bodies = {};
      * @param {number} y
      * @param {number} radius
      * @param {object} [options]
-     * @param {number} maxSides
+     * @param {number} [maxSides]
      * @return {body} A new circle body
      */
     Bodies.circle = function(x, y, radius, options, maxSides) {
@@ -5370,8 +5574,158 @@ var Bodies = {};
         return Body.create(Common.extend({}, polygon, options));
     };
 
-})();
+    /**
+     * Creates a body using the supplied vertices (or an array containing multiple sets of vertices).
+     * If the vertices are convex, they will pass through as supplied.
+     * Otherwise if the vertices are concave, they will be decomposed if [poly-decomp.js](https://github.com/schteppe/poly-decomp.js) is available.
+     * Note that this process is not guaranteed to support complex sets of vertices (e.g. those with holes may fail).
+     * By default the decomposition will discard collinear edges (to improve performance).
+     * It can also optionally discard any parts that have an area less than `minimumArea`.
+     * If the vertices can not be decomposed, the result will fall back to using the convex hull.
+     * The options parameter is an object that specifies any `Matter.Body` properties you wish to override the defaults.
+     * See the properties section of the `Matter.Body` module for detailed information on what you can pass via the `options` object.
+     * @method fromVertices
+     * @param {number} x
+     * @param {number} y
+     * @param [[vector]] vertexSets
+     * @param {object} [options]
+     * @param {bool} [flagInternal=false]
+     * @param {number} [removeCollinear=0.01]
+     * @param {number} [minimumArea=10]
+     * @return {body}
+     */
+    Bodies.fromVertices = function(x, y, vertexSets, options, flagInternal, removeCollinear, minimumArea) {
+        var body,
+            parts,
+            isConvex,
+            vertices,
+            i,
+            j,
+            k,
+            v,
+            z;
 
+        options = options || {};
+        parts = [];
+
+        flagInternal = typeof flagInternal !== 'undefined' ? flagInternal : false;
+        removeCollinear = typeof removeCollinear !== 'undefined' ? removeCollinear : 0.01;
+        minimumArea = typeof minimumArea !== 'undefined' ? minimumArea : 10;
+
+        if (!window.decomp) {
+            Common.log('Bodies.fromVertices: poly-decomp.js required. Could not decompose vertices. Fallback to convex hull.', 'warn');
+        }
+
+        // ensure vertexSets is an array of arrays
+        if (!Common.isArray(vertexSets[0])) {
+            vertexSets = [vertexSets];
+        }
+
+        for (v = 0; v < vertexSets.length; v += 1) {
+            vertices = vertexSets[v];
+            isConvex = Vertices.isConvex(vertices);
+
+            if (isConvex || !window.decomp) {
+                if (isConvex) {
+                    vertices = Vertices.clockwiseSort(vertices);
+                } else {
+                    // fallback to convex hull when decomposition is not possible
+                    vertices = Vertices.hull(vertices);
+                }
+
+                parts.push({
+                    position: { x: x, y: y },
+                    vertices: vertices
+                });
+            } else {
+                // initialise a decomposition
+                var concave = new decomp.Polygon();
+                for (i = 0; i < vertices.length; i++) {
+                    concave.vertices.push([vertices[i].x, vertices[i].y]);
+                }
+
+                // vertices are concave and simple, we can decompose into parts
+                concave.makeCCW();
+                if (removeCollinear !== false)
+                    concave.removeCollinearPoints(removeCollinear);
+
+                // use the quick decomposition algorithm (Bayazit)
+                var decomposed = concave.quickDecomp();
+
+                // for each decomposed chunk
+                for (i = 0; i < decomposed.length; i++) {
+                    var chunk = decomposed[i],
+                        chunkVertices = [];
+
+                    // convert vertices into the correct structure
+                    for (j = 0; j < chunk.vertices.length; j++) {
+                        chunkVertices.push({ x: chunk.vertices[j][0], y: chunk.vertices[j][1] });
+                    }
+
+                    // skip small chunks
+                    if (minimumArea > 0 && Vertices.area(chunkVertices) < minimumArea)
+                        continue;
+
+                    // create a compound part
+                    parts.push({
+                        position: Vertices.centre(chunkVertices),
+                        vertices: chunkVertices
+                    });
+                }
+            }
+        }
+
+        // create body parts
+        for (i = 0; i < parts.length; i++) {
+            parts[i] = Body.create(Common.extend(parts[i], options));
+        }
+
+        // flag internal edges (coincident part edges)
+        if (flagInternal) {
+            var coincident_max_dist = 5;
+
+            for (i = 0; i < parts.length; i++) {
+                var partA = parts[i];
+
+                for (j = i + 1; j < parts.length; j++) {
+                    var partB = parts[j];
+
+                    if (Bounds.overlaps(partA.bounds, partB.bounds)) {
+                        var pav = partA.vertices,
+                            pbv = partB.vertices;
+
+                        // iterate vertices of both parts
+                        for (k = 0; k < partA.vertices.length; k++) {
+                            for (z = 0; z < partB.vertices.length; z++) {
+                                // find distances between the vertices
+                                var da = Vector.magnitudeSquared(Vector.sub(pav[(k + 1) % pav.length], pbv[z])),
+                                    db = Vector.magnitudeSquared(Vector.sub(pav[k], pbv[(z + 1) % pbv.length]));
+
+                                // if both vertices are very close, consider the edge concident (internal)
+                                if (da < coincident_max_dist && db < coincident_max_dist) {
+                                    pav[k].isInternal = true;
+                                    pbv[z].isInternal = true;
+                                }
+                            }
+                        }
+
+                    }
+                }
+            }
+        }
+
+        if (parts.length > 1) {
+            // create the parent body to be returned, that contains generated compound parts
+            body = Body.create(Common.extend({ parts: parts.slice(0) }, options));
+            Body.setPosition(body, { x: x, y: y });
+
+            return body;
+        } else {
+            return parts[0];
+        }
+    };
+
+})();
 
 ;   // End src/factory/Bodies.js
 
@@ -5429,6 +5783,8 @@ var Composites = {};
                     
                     lastBody = body;
                     i += 1;
+                } else {
+                    x += columnGap;
                 }
             }
             
@@ -5629,6 +5985,8 @@ var Composites = {};
             },
             restitution: 0.5, 
             friction: 0.9,
+            frictionStatic: 10,
+            slop: 0.5,
             density: 0.01
         });
                     
@@ -5638,6 +5996,8 @@ var Composites = {};
             },
             restitution: 0.5, 
             friction: 0.9,
+            frictionStatic: 10,
+            slop: 0.5,
             density: 0.01
         });
                     
@@ -5732,7 +6092,6 @@ var Axes = {};
             
             // limit precision
             gradient = gradient.toFixed(3).toString();
-
             axes[gradient] = normal;
         }
 
@@ -5890,6 +6249,224 @@ var Bounds = {};
 ;   // End src/geometry/Bounds.js
 
 
+// Begin src/geometry/Svg.js
+
+/**
+* The `Matter.Svg` module contains methods for converting SVG images into an array of vector points.
+*
+* See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
+* and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
+*
+* @class Svg
+*/
+
+var Svg = {};
+
+(function() {
+
+    /**
+     * Converts an SVG path into an array of vector points.
+     * If the input path forms a concave shape, you must decompose the result into convex parts before use.
+     * See `Bodies.fromVertices` which provides support for this.
+     * Note that this function is not guaranteed to support complex paths (such as those with holes).
+     * @method pathToVertices
+     * @param {SVGPathElement} path
+     * @param {Number} [sampleLength=15]
+     * @return {Vector[]} points
+     */
+    Svg.pathToVertices = function(path, sampleLength) {
+        // https://github.com/wout/svg.topoly.js/blob/master/svg.topoly.js
+        var i, il, total, point, segment, segments, 
+            segmentsQueue, lastSegment, 
+            lastPoint, segmentIndex, points = [],
+            length = 0, x = 0, y = 0;
+
+        sampleLength = sampleLength || 15;
+
+        var addPoint = function(px, py, pathSegType) {
+            // all odd-numbered path types are relative except PATHSEG_CLOSEPATH (1)
+            var isRelative = pathSegType % 2 === 1 && pathSegType > 1;
+
+            // when the last point doesn't equal the current point add the current point
+            if (!lastPoint || px != lastPoint.x || py != lastPoint.y) {
+                if (lastPoint && isRelative) {
+                    lx = lastPoint.x;
+                    ly = lastPoint.y;
+                } else {
+                    lx = 0;
+                    ly = 0;
+                }
+
+                var point = {
+                    x: lx + px,
+                    y: ly + py
+                };
+
+                // set last point
+                if (isRelative || !lastPoint) {
+                    lastPoint = point;
+                }
+
+                points.push(point);
+
+                x = lx + px;
+                y = ly + py;
+            }
+        };
+
+        var addSegmentPoint = function(segment) {
+            var segType = segment.pathSegTypeAsLetter.toUpperCase();
+
+            // skip path ends
+            if (segType === 'Z') 
+                return;
+
+            // map segment to x and y
+            switch (segType) {
+
+            case 'M':
+            case 'L':
+            case 'T':
+            case 'C':
+            case 'S':
+            case 'Q':
+                x = segment.x;
+                y = segment.y;
+                break;
+            case 'H':
+                x = segment.x;
+                break;
+            case 'V':
+                y = segment.y;
+                break;
+            }
+
+            addPoint(x, y, segment.pathSegType);
+        };
+
+        // ensure path is absolute
+        _svgPathToAbsolute(path);
+
+        // get total length
+        total = path.getTotalLength();
+
+        // queue segments
+        segments = [];
+        for (i = 0; i < path.pathSegList.numberOfItems; i += 1)
+            segments.push(path.pathSegList.getItem(i));
+
+        segmentsQueue = segments.concat();
+
+        // sample through path
+        while (length < total) {
+            // get segment at position
+            segmentIndex = path.getPathSegAtLength(length);
+            segment = segments[segmentIndex];
+
+            // new segment
+            if (segment != lastSegment) {
+                while (segmentsQueue.length && segmentsQueue[0] != segment)
+                    addSegmentPoint(segmentsQueue.shift());
+
+                lastSegment = segment;
+            }
+
+            // add points in between when curving
+            // TODO: adaptive sampling
+            switch (segment.pathSegTypeAsLetter.toUpperCase()) {
+
+            case 'C':
+            case 'T':
+            case 'S':
+            case 'Q':
+            case 'A':
+                point = path.getPointAtLength(length);
+                addPoint(point.x, point.y, 0);
+                break;
+
+            }
+
+            // increment by sample value
+            length += sampleLength;
+        }
+
+        // add remaining segments not passed by sampling
+        for (i = 0, il = segmentsQueue.length; i < il; ++i)
+            addSegmentPoint(segmentsQueue[i]);
+
+        return points;
+    };
+
+    var _svgPathToAbsolute = function(path) {
+        // http://phrogz.net/convert-svg-path-to-all-absolute-commands
+        var x0, y0, x1, y1, x2, y2, segs = path.pathSegList,
+            x = 0, y = 0, len = segs.numberOfItems;
+
+        for (var i = 0; i < len; ++i) {
+            var seg = segs.getItem(i),
+                segType = seg.pathSegTypeAsLetter;
+
+            if (/[MLHVCSQTA]/.test(segType)) {
+                if ('x' in seg) x = seg.x;
+                if ('y' in seg) y = seg.y;
+            } else {
+                if ('x1' in seg) x1 = x + seg.x1;
+                if ('x2' in seg) x2 = x + seg.x2;
+                if ('y1' in seg) y1 = y + seg.y1;
+                if ('y2' in seg) y2 = y + seg.y2;
+                if ('x' in seg) x += seg.x;
+                if ('y' in seg) y += seg.y;
+
+                switch (segType) {
+
+                case 'm':
+                    segs.replaceItem(path.createSVGPathSegMovetoAbs(x, y), i);
+                    break;
+                case 'l':
+                    segs.replaceItem(path.createSVGPathSegLinetoAbs(x, y), i);
+                    break;
+                case 'h':
+                    segs.replaceItem(path.createSVGPathSegLinetoHorizontalAbs(x), i);
+                    break;
+                case 'v':
+                    segs.replaceItem(path.createSVGPathSegLinetoVerticalAbs(y), i);
+                    break;
+                case 'c':
+                    segs.replaceItem(path.createSVGPathSegCurvetoCubicAbs(x, y, x1, y1, x2, y2), i);
+                    break;
+                case 's':
+                    segs.replaceItem(path.createSVGPathSegCurvetoCubicSmoothAbs(x, y, x2, y2), i);
+                    break;
+                case 'q':
+                    segs.replaceItem(path.createSVGPathSegCurvetoQuadraticAbs(x, y, x1, y1), i);
+                    break;
+                case 't':
+                    segs.replaceItem(path.createSVGPathSegCurvetoQuadraticSmoothAbs(x, y), i);
+                    break;
+                case 'a':
+                    segs.replaceItem(path.createSVGPathSegArcAbs(x, y, seg.r1, seg.r2, seg.angle, seg.largeArcFlag, seg.sweepFlag), i);
+                    break;
+                case 'z':
+                case 'Z':
+                    x = x0;
+                    y = y0;
+                    break;
+
+                }
+            }
+
+            if (segType == 'M' || segType == 'm') {
+                x0 = x;
+                y0 = y;
+            }
+        }
+    };
+
+})();
+
+;   // End src/geometry/Svg.js
+
+
 // Begin src/geometry/Vector.js
 
 /**
@@ -5908,6 +6485,17 @@ var Bounds = {};
 var Vector = {};
 
 (function() {
+
+    /**
+     * Creates a new vector.
+     * @method create
+     * @param {number} x
+     * @param {number} y
+     * @return {vector} A new vector
+     */
+    Vector.create = function(x, y) {
+        return { x: x || 0, y: y || 0 };
+    };
 
     /**
      * Returns a new vector with `x` and `y` copied from the given `vector`.
@@ -5960,14 +6548,16 @@ var Vector = {};
      * @param {vector} vector
      * @param {number} angle
      * @param {vector} point
+     * @param {vector} [output]
      * @return {vector} A new vector rotated about the point
      */
-    Vector.rotateAbout = function(vector, angle, point) {
+    Vector.rotateAbout = function(vector, angle, point, output) {
         var cos = Math.cos(angle), sin = Math.sin(angle);
-        return {
-            x: point.x + ((vector.x - point.x) * cos - (vector.y - point.y) * sin),
-            y: point.y + ((vector.x - point.x) * sin + (vector.y - point.y) * cos)
-        };
+        if (!output) output = {};
+        var x = point.x + ((vector.x - point.x) * cos - (vector.y - point.y) * sin);
+        output.y = point.y + ((vector.x - point.x) * sin + (vector.y - point.y) * cos);
+        output.x = x;
+        return output;
     };
 
     /**
@@ -6006,14 +6596,30 @@ var Vector = {};
     };
 
     /**
+     * Returns the cross-product of three vectors.
+     * @method cross3
+     * @param {vector} vectorA
+     * @param {vector} vectorB
+     * @param {vector} vectorC
+     * @return {number} The cross product of the three vectors
+     */
+    Vector.cross3 = function(vectorA, vectorB, vectorC) {
+        return (vectorB.x - vectorA.x) * (vectorC.y - vectorA.y) - (vectorB.y - vectorA.y) * (vectorC.x - vectorA.x);
+    };
+
+    /**
      * Adds the two vectors.
      * @method add
      * @param {vector} vectorA
      * @param {vector} vectorB
+     * @param {vector} [output]
      * @return {vector} A new vector of vectorA and vectorB added
      */
-    Vector.add = function(vectorA, vectorB) {
-        return { x: vectorA.x + vectorB.x, y: vectorA.y + vectorB.y };
+    Vector.add = function(vectorA, vectorB, output) {
+        if (!output) output = {};
+        output.x = vectorA.x + vectorB.x;
+        output.y = vectorA.y + vectorB.y;
+        return output;
     };
 
     /**
@@ -6021,10 +6627,14 @@ var Vector = {};
      * @method sub
      * @param {vector} vectorA
      * @param {vector} vectorB
+     * @param {vector} [output]
      * @return {vector} A new vector of vectorA and vectorB subtracted
      */
-    Vector.sub = function(vectorA, vectorB) {
-        return { x: vectorA.x - vectorB.x, y: vectorA.y - vectorB.y };
+    Vector.sub = function(vectorA, vectorB, output) {
+        if (!output) output = {};
+        output.x = vectorA.x - vectorB.x;
+        output.y = vectorA.y - vectorB.y;
+        return output;
     };
 
     /**
@@ -6082,6 +6692,16 @@ var Vector = {};
         return Math.atan2(vectorB.y - vectorA.y, vectorB.x - vectorA.x);
     };
 
+    /**
+     * Temporary vector pool (not thread-safe).
+     * @property _temp
+     * @type {vector[]}
+     * @private
+     */
+    Vector._temp = [Vector.create(), Vector.create(), 
+                    Vector.create(), Vector.create(), 
+                    Vector.create(), Vector.create()];
+
 })();
 
 ;   // End src/geometry/Vector.js
@@ -6099,8 +6719,6 @@ var Vector = {};
 *
 * @class Vertices
 */
-
-// TODO: convex decomposition - http://mnbayazit.com/406/bayazit
 
 var Vertices = {};
 
@@ -6126,12 +6744,13 @@ var Vertices = {};
 
         for (var i = 0; i < points.length; i++) {
             var point = points[i],
-                vertex = {};
-
-            vertex.x = point.x;
-            vertex.y = point.y;
-            vertex.index = i;
-            vertex.body = body;
+                vertex = {
+                    x: point.x,
+                    y: point.y,
+                    index: i,
+                    body: body,
+                    isInternal: false
+                };
 
             vertices.push(vertex);
         }
@@ -6140,14 +6759,16 @@ var Vertices = {};
     };
 
     /**
-     * Parses a _simple_ SVG-style path into a `Matter.Vertices` object for the given `Matter.Body`.
+     * Parses a string containing ordered x y pairs separated by spaces (and optionally commas), 
+     * into a `Matter.Vertices` object for the given `Matter.Body`.
+     * For parsing SVG paths, see `Svg.pathToVertices`.
      * @method fromPath
      * @param {string} path
      * @param {body} body
      * @return {vertices} vertices
      */
     Vertices.fromPath = function(path, body) {
-        var pathPattern = /L\s*([\-\d\.]*)\s*([\-\d\.]*)/ig,
+        var pathPattern = /L?\s*([\-\d\.e]+)[\s,]*([\-\d\.e]+)*/ig,
             points = [];
 
         path.replace(pathPattern, function(match, x, y) {
@@ -6178,6 +6799,23 @@ var Vertices = {};
         }
 
         return Vector.div(centre, 6 * area);
+    };
+
+    /**
+     * Returns the average (mean) of the set of vertices.
+     * @method mean
+     * @param {vertices} vertices
+     * @return {vector} The average point
+     */
+    Vertices.mean = function(vertices) {
+        var average = { x: 0, y: 0 };
+
+        for (var i = 0; i < vertices.length; i++) {
+            average.x += vertices[i].x;
+            average.y += vertices[i].y;
+        }
+
+        return Vector.div(average, vertices.length);
     };
 
     /**
@@ -6397,6 +7035,118 @@ var Vertices = {};
         return newVertices;
     };
 
+    /**
+     * Sorts the input vertices into clockwise order in place.
+     * @method clockwiseSort
+     * @param {vertices} vertices
+     * @return {vertices} vertices
+     */
+    Vertices.clockwiseSort = function(vertices) {
+        var centre = Vertices.mean(vertices);
+
+        vertices.sort(function(vertexA, vertexB) {
+            return Vector.angle(centre, vertexA) - Vector.angle(centre, vertexB);
+        });
+
+        return vertices;
+    };
+
+    /**
+     * Returns true if the vertices form a convex shape (vertices must be in clockwise order).
+     * @method isConvex
+     * @param {vertices} vertices
+     * @return {bool} `true` if the `vertices` are convex, `false` if not (or `null` if not computable).
+     */
+    Vertices.isConvex = function(vertices) {
+        // http://paulbourke.net/geometry/polygonmesh/
+
+        var flag = 0,
+            n = vertices.length,
+            i,
+            j,
+            k,
+            z;
+
+        if (n < 3)
+            return null;
+
+        for (i = 0; i < n; i++) {
+            j = (i + 1) % n;
+            k = (i + 2) % n;
+            z = (vertices[j].x - vertices[i].x) * (vertices[k].y - vertices[j].y);
+            z -= (vertices[j].y - vertices[i].y) * (vertices[k].x - vertices[j].x);
+
+            if (z < 0) {
+                flag |= 1;
+            } else if (z > 0) {
+                flag |= 2;
+            }
+
+            if (flag === 3) {
+                return false;
+            }
+        }
+
+        if (flag !== 0){
+            return true;
+        } else {
+            return null;
+        }
+    };
+
+    /**
+     * Returns the convex hull of the input vertices as a new array of points.
+     * @method hull
+     * @param {vertices} vertices
+     * @return [vertex] vertices
+     */
+    Vertices.hull = function(vertices) {
+        // http://en.wikibooks.org/wiki/Algorithm_Implementation/Geometry/Convex_hull/Monotone_chain
+
+        var upper = [],
+            lower = [], 
+            vertex,
+            i;
+
+        // sort vertices on x-axis (y-axis for ties)
+        vertices = vertices.slice(0);
+        vertices.sort(function(vertexA, vertexB) {
+            var dx = vertexA.x - vertexB.x;
+            return dx !== 0 ? dx : vertexA.y - vertexB.y;
+        });
+
+        // build lower hull
+        for (i = 0; i < vertices.length; i++) {
+            vertex = vertices[i];
+
+            while (lower.length >= 2 
+                   && Vector.cross3(lower[lower.length - 2], lower[lower.length - 1], vertex) <= 0) {
+                lower.pop();
+            }
+
+            lower.push(vertex);
+        }
+
+        // build upper hull
+        for (i = vertices.length - 1; i >= 0; i--) {
+            vertex = vertices[i];
+
+            while (upper.length >= 2 
+                   && Vector.cross3(upper[upper.length - 2], upper[upper.length - 1], vertex) <= 0) {
+                upper.pop();
+            }
+
+            upper.push(vertex);
+        }
+
+        // concatenation of the lower and upper hulls gives the convex hull
+        // omit last points because they are repeated at the beginning of the other list
+        upper.pop();
+        lower.pop();
+
+        return upper.concat(lower);
+    };
+
 })();
 
 
@@ -6449,11 +7199,15 @@ var Render = {};
                 showBounds: false,
                 showVelocity: false,
                 showCollisions: false,
+                showSeparations: false,
                 showAxes: false,
                 showPositions: false,
                 showAngleIndicator: false,
                 showIds: false,
-                showShadows: false
+                showShadows: false,
+                showVertexNumbers: false,
+                showConvexHulls: false,
+                showInternalEdges: false
             }
         };
 
@@ -6584,6 +7338,9 @@ var Render = {};
             // fully featured rendering of bodies
             Render.bodies(engine, bodies, context);
         } else {
+            if (options.showConvexHulls)
+                Render.bodyConvexHulls(engine, bodies, context);
+
             // optimised method for wireframes only
             Render.bodyWireframes(engine, bodies, context);
         }
@@ -6603,8 +7360,14 @@ var Render = {};
         if (options.showIds)
             Render.bodyIds(engine, bodies, context);
 
+        if (options.showSeparations)
+            Render.separations(engine, engine.pairs.list, context);
+
         if (options.showCollisions)
             Render.collisions(engine, engine.pairs.list, context);
+
+        if (options.showVertexNumbers)
+            Render.vertexNumbers(engine, bodies, context);
 
         Render.constraints(constraints, context);
 
@@ -6638,23 +7401,6 @@ var Render = {};
         if (engine.timing.timestamp - (render.debugTimestamp || 0) >= 500) {
             var text = "";
             text += "fps: " + Math.round(engine.timing.fps) + space;
-
-            if (engine.metrics.extended) {
-                text += "delta: " + engine.timing.delta.toFixed(3) + space;
-                text += "correction: " + engine.timing.correction.toFixed(3) + space;
-                text += "bodies: " + bodies.length + space;
-
-                if (engine.broadphase.controller === Grid)
-                    text += "buckets: " + engine.metrics.buckets + space;
-
-                text += "\n";
-
-                text += "collisions: " + engine.metrics.collisions + space;
-                text += "pairs: " + engine.pairs.list.length + space;
-                text += "broad: " + engine.metrics.broadEff + space;
-                text += "mid: " + engine.metrics.midEff + space;
-                text += "narrow: " + engine.metrics.narrowEff + space;
-            }            
 
             render.debugString = text;
             render.debugTimestamp = engine.timing.timestamp;
@@ -6777,69 +7523,75 @@ var Render = {};
         var c = context,
             render = engine.render,
             options = render.options,
+            body,
+            part,
             i;
 
         for (i = 0; i < bodies.length; i++) {
-            var body = bodies[i];
+            body = bodies[i];
 
             if (!body.render.visible)
                 continue;
 
-            if (body.render.sprite && body.render.sprite.texture && !options.wireframes) {
-                // body sprite
-                var sprite = body.render.sprite,
-                    texture = _getTexture(render, sprite.texture);
+            // handle compound parts
+            for (k = body.parts.length > 1 ? 1 : 0; k < body.parts.length; k++) {
+                part = body.parts[k];
 
-                if (options.showSleeping && body.isSleeping) 
-                    c.globalAlpha = 0.5;
+                if (part.render.sprite && part.render.sprite.texture && !options.wireframes) {
+                    // part sprite
+                    var sprite = part.render.sprite,
+                        texture = _getTexture(render, sprite.texture);
 
-                c.translate(body.position.x, body.position.y); 
-                c.rotate(body.angle);
+                    if (options.showSleeping && body.isSleeping) 
+                        c.globalAlpha = 0.5;
 
-                c.drawImage(texture, texture.width * -0.5 * sprite.xScale, texture.height * -0.5 * sprite.yScale, 
-                            texture.width * sprite.xScale, texture.height * sprite.yScale);
+                    c.translate(part.position.x, part.position.y); 
+                    c.rotate(part.angle);
 
-                // revert translation, hopefully faster than save / restore
-                c.rotate(-body.angle);
-                c.translate(-body.position.x, -body.position.y); 
+                    c.drawImage(texture, texture.width * -0.5 * sprite.xScale, texture.height * -0.5 * sprite.yScale, 
+                                texture.width * sprite.xScale, texture.height * sprite.yScale);
 
-                if (options.showSleeping && body.isSleeping) 
-                    c.globalAlpha = 1;
-            } else {
-                // body polygon
-                if (body.circleRadius) {
-                    c.beginPath();
-                    c.arc(body.position.x, body.position.y, body.circleRadius, 0, 2 * Math.PI);
+                    // revert translation, hopefully faster than save / restore
+                    c.rotate(-part.angle);
+                    c.translate(-part.position.x, -part.position.y); 
+
+                    if (options.showSleeping && body.isSleeping) 
+                        c.globalAlpha = 1;
                 } else {
-                    c.beginPath();
-                    c.moveTo(body.vertices[0].x, body.vertices[0].y);
-                    for (var j = 1; j < body.vertices.length; j++) {
-                        c.lineTo(body.vertices[j].x, body.vertices[j].y);
-                    }
-                    c.closePath();
-                }
-
-                if (!options.wireframes) {
-                    if (options.showSleeping && body.isSleeping) {
-                        c.fillStyle = Common.shadeColor(body.render.fillStyle, 50);
+                    // part polygon
+                    if (part.circleRadius) {
+                        c.beginPath();
+                        c.arc(part.position.x, part.position.y, part.circleRadius, 0, 2 * Math.PI);
                     } else {
-                        c.fillStyle = body.render.fillStyle;
+                        c.beginPath();
+                        c.moveTo(part.vertices[0].x, part.vertices[0].y);
+                        for (var j = 1; j < part.vertices.length; j++) {
+                            c.lineTo(part.vertices[j].x, part.vertices[j].y);
+                        }
+                        c.closePath();
                     }
 
-                    c.lineWidth = body.render.lineWidth;
-                    c.strokeStyle = body.render.strokeStyle;
-                    c.fill();
-                    c.stroke();
-                } else {
-                    c.lineWidth = 1;
-                    c.strokeStyle = '#bbb';
-                    if (options.showSleeping && body.isSleeping)
-                        c.strokeStyle = 'rgba(255,255,255,0.2)';
-                    c.stroke();
+                    if (!options.wireframes) {
+                        if (options.showSleeping && body.isSleeping) {
+                            c.fillStyle = Common.shadeColor(part.render.fillStyle, 50);
+                        } else {
+                            c.fillStyle = part.render.fillStyle;
+                        }
+
+                        c.lineWidth = part.render.lineWidth;
+                        c.strokeStyle = part.render.strokeStyle;
+                        c.fill();
+                        c.stroke();
+                    } else {
+                        c.lineWidth = 1;
+                        c.strokeStyle = '#bbb';
+                        if (options.showSleeping && body.isSleeping)
+                            c.strokeStyle = 'rgba(255,255,255,0.2)';
+                        c.stroke();
+                    }
                 }
             }
         }
-
     };
 
     /**
@@ -6852,15 +7604,72 @@ var Render = {};
      */
     Render.bodyWireframes = function(engine, bodies, context) {
         var c = context,
+            showInternalEdges = engine.render.options.showInternalEdges,
+            body,
+            part,
             i,
-            j;
+            j,
+            k;
 
         c.beginPath();
 
+        // render all bodies
         for (i = 0; i < bodies.length; i++) {
-            var body = bodies[i];
+            body = bodies[i];
 
             if (!body.render.visible)
+                continue;
+
+            // handle compound parts
+            for (k = body.parts.length > 1 ? 1 : 0; k < body.parts.length; k++) {
+                part = body.parts[k];
+
+                c.moveTo(part.vertices[0].x, part.vertices[0].y);
+
+                for (j = 1; j < part.vertices.length; j++) {
+                    if (!part.vertices[j - 1].isInternal || showInternalEdges) {
+                        c.lineTo(part.vertices[j].x, part.vertices[j].y);
+                    } else {
+                        c.moveTo(part.vertices[j].x, part.vertices[j].y);
+                    }
+
+                    if (part.vertices[j].isInternal && !showInternalEdges) {
+                        c.moveTo(part.vertices[(j + 1) % part.vertices.length].x, part.vertices[(j + 1) % part.vertices.length].y);
+                    }
+                }
+                
+                c.lineTo(part.vertices[0].x, part.vertices[0].y);
+            }
+        }
+
+        c.lineWidth = 1;
+        c.strokeStyle = '#bbb';
+        c.stroke();
+    };
+
+    /**
+     * Optimised method for drawing body convex hull wireframes in one pass
+     * @private
+     * @method bodyConvexHulls
+     * @param {engine} engine
+     * @param {body[]} bodies
+     * @param {RenderingContext} context
+     */
+    Render.bodyConvexHulls = function(engine, bodies, context) {
+        var c = context,
+            body,
+            part,
+            i,
+            j,
+            k;
+
+        c.beginPath();
+
+        // render convex hulls
+        for (i = 0; i < bodies.length; i++) {
+            body = bodies[i];
+
+            if (!body.render.visible || body.parts.length === 1)
                 continue;
 
             c.moveTo(body.vertices[0].x, body.vertices[0].y);
@@ -6873,8 +7682,34 @@ var Render = {};
         }
 
         c.lineWidth = 1;
-        c.strokeStyle = '#bbb';
+        c.strokeStyle = 'rgba(255,255,255,0.2)';
         c.stroke();
+    };
+
+    /**
+     * Renders body vertex numbers.
+     * @private
+     * @method vertexNumbers
+     * @param {engine} engine
+     * @param {body[]} bodies
+     * @param {RenderingContext} context
+     */
+    Render.vertexNumbers = function(engine, bodies, context) {
+        var c = context,
+            i,
+            j,
+            k;
+
+        for (i = 0; i < bodies.length; i++) {
+            var parts = bodies[i].parts;
+            for (k = parts.length > 1 ? 1 : 0; k < parts.length; k++) {
+                var part = parts[k];
+                for (j = 0; j < part.vertices.length; j++) {
+                    c.fillStyle = 'rgba(255,255,255,0.2)';
+                    c.fillText(i + '_' + j, part.position.x + (part.vertices[j].x - part.position.x) * 0.8, part.position.y + (part.vertices[j].y - part.position.y) * 0.8);
+                }
+            }
+        }
     };
 
     /**
@@ -6895,8 +7730,13 @@ var Render = {};
         for (var i = 0; i < bodies.length; i++) {
             var body = bodies[i];
 
-            if (body.render.visible)
-                c.rect(body.bounds.min.x, body.bounds.min.y, body.bounds.max.x - body.bounds.min.x, body.bounds.max.y - body.bounds.min.y);
+            if (body.render.visible) {
+                var parts = bodies[i].parts;
+                for (var j = parts.length > 1 ? 1 : 0; j < parts.length; j++) {
+                    var part = parts[j];
+                    c.rect(part.bounds.min.x, part.bounds.min.y, part.bounds.max.x - part.bounds.min.x, part.bounds.max.y - part.bounds.min.y);
+                }
+            }
         }
 
         if (options.wireframes) {
@@ -6921,29 +7761,40 @@ var Render = {};
         var c = context,
             render = engine.render,
             options = render.options,
+            part,
             i,
-            j;
+            j,
+            k;
 
         c.beginPath();
 
         for (i = 0; i < bodies.length; i++) {
-            var body = bodies[i];
+            var body = bodies[i],
+                parts = body.parts;
 
             if (!body.render.visible)
                 continue;
 
             if (options.showAxes) {
                 // render all axes
-                for (j = 0; j < body.axes.length; j++) {
-                    var axis = body.axes[j];
-                    c.moveTo(body.position.x, body.position.y);
-                    c.lineTo(body.position.x + axis.x * 20, body.position.y + axis.y * 20);
+                for (j = parts.length > 1 ? 1 : 0; j < parts.length; j++) {
+                    part = parts[j];
+                    for (k = 0; k < part.axes.length; k++) {
+                        var axis = part.axes[k];
+                        c.moveTo(part.position.x, part.position.y);
+                        c.lineTo(part.position.x + axis.x * 20, part.position.y + axis.y * 20);
+                    }
                 }
             } else {
-                // render a single axis indicator
-                c.moveTo(body.position.x, body.position.y);
-                c.lineTo((body.vertices[0].x + body.vertices[body.vertices.length-1].x) / 2, 
-                         (body.vertices[0].y + body.vertices[body.vertices.length-1].y) / 2);
+                for (j = parts.length > 1 ? 1 : 0; j < parts.length; j++) {
+                    part = parts[j];
+                    for (k = 0; k < part.axes.length; k++) {
+                        // render a single axis indicator
+                        c.moveTo(part.position.x, part.position.y);
+                        c.lineTo((part.vertices[0].x + part.vertices[part.vertices.length-1].x) / 2, 
+                                 (part.vertices[0].y + part.vertices[part.vertices.length-1].y) / 2);
+                    }
+                }
             }
         }
 
@@ -6970,6 +7821,7 @@ var Render = {};
             render = engine.render,
             options = render.options,
             body,
+            part,
             i;
 
         c.beginPath();
@@ -6977,8 +7829,14 @@ var Render = {};
         // render current positions
         for (i = 0; i < bodies.length; i++) {
             body = bodies[i];
-            if (body.render.visible) {
-                c.arc(body.position.x, body.position.y, 3, 0, 2 * Math.PI, false);
+
+            if (!body.render.visible)
+                continue;
+
+            // handle compound parts
+            for (k = 0; k < body.parts.length; k++) {
+                part = body.parts[k];
+                c.arc(part.position.x, part.position.y, 3, 0, 2 * Math.PI, false);
                 c.closePath();
             }
         }
@@ -7042,17 +7900,21 @@ var Render = {};
      * @param {RenderingContext} context
      */
     Render.bodyIds = function(engine, bodies, context) {
-        var c = context;
+        var c = context,
+            i,
+            j;
 
-        for (var i = 0; i < bodies.length; i++) {
-            var body = bodies[i];
-
-            if (!body.render.visible)
+        for (i = 0; i < bodies.length; i++) {
+            if (!bodies[i].render.visible)
                 continue;
 
-            c.font = "12px Arial";
-            c.fillStyle = 'rgba(255,255,255,0.5)';
-            c.fillText(body.id, body.position.x + 10, body.position.y - 10);
+            var parts = bodies[i].parts;
+            for (j = parts.length > 1 ? 1 : 0; j < parts.length; j++) {
+                var part = parts[j];
+                c.font = "12px Arial";
+                c.fillStyle = 'rgba(255,255,255,0.5)';
+                c.fillText(part.id, part.position.x + 10, part.position.y - 10);
+            }
         }
     };
 
@@ -7069,6 +7931,9 @@ var Render = {};
             options = engine.render.options,
             pair,
             collision,
+            corrected,
+            bodyA,
+            bodyB,
             i,
             j;
 
@@ -7077,6 +7942,10 @@ var Render = {};
         // render collision positions
         for (i = 0; i < pairs.length; i++) {
             pair = pairs[i];
+
+            if (!pair.isActive)
+                continue;
+
             collision = pair.collision;
             for (j = 0; j < pair.activeContacts.length; j++) {
                 var contact = pair.activeContacts[j],
@@ -7097,6 +7966,10 @@ var Render = {};
         // render collision normals
         for (i = 0; i < pairs.length; i++) {
             pair = pairs[i];
+
+            if (!pair.isActive)
+                continue;
+
             collision = pair.collision;
 
             if (pair.activeContacts.length > 0) {
@@ -7108,7 +7981,12 @@ var Render = {};
                     normalPosY = (pair.activeContacts[0].vertex.y + pair.activeContacts[1].vertex.y) / 2;
                 }
                 
-                c.moveTo(normalPosX - collision.normal.x * 8, normalPosY - collision.normal.y * 8);
+                if (collision.bodyB === collision.supports[0].body || collision.bodyA.isStatic === true) {
+                    c.moveTo(normalPosX - collision.normal.x * 8, normalPosY - collision.normal.y * 8);
+                } else {
+                    c.moveTo(normalPosX + collision.normal.x * 8, normalPosY + collision.normal.y * 8);
+                }
+
                 c.lineTo(normalPosX, normalPosY);
             }
         }
@@ -7120,6 +7998,63 @@ var Render = {};
         }
 
         c.lineWidth = 1;
+        c.stroke();
+    };
+
+    /**
+     * Description
+     * @private
+     * @method separations
+     * @param {engine} engine
+     * @param {pair[]} pairs
+     * @param {RenderingContext} context
+     */
+    Render.separations = function(engine, pairs, context) {
+        var c = context,
+            options = engine.render.options,
+            pair,
+            collision,
+            corrected,
+            bodyA,
+            bodyB,
+            i,
+            j;
+
+        c.beginPath();
+
+        // render separations
+        for (i = 0; i < pairs.length; i++) {
+            pair = pairs[i];
+
+            if (!pair.isActive)
+                continue;
+
+            collision = pair.collision;
+            bodyA = collision.bodyA;
+            bodyB = collision.bodyB;
+
+            var k = 1;
+
+            if (!bodyB.isStatic && !bodyA.isStatic) k = 0.5;
+            if (bodyB.isStatic) k = 0;
+
+            c.moveTo(bodyB.position.x, bodyB.position.y);
+            c.lineTo(bodyB.position.x - collision.penetration.x * k, bodyB.position.y - collision.penetration.y * k);
+
+            k = 1;
+
+            if (!bodyB.isStatic && !bodyA.isStatic) k = 0.5;
+            if (bodyA.isStatic) k = 0;
+
+            c.moveTo(bodyA.position.x, bodyA.position.y);
+            c.lineTo(bodyA.position.x + collision.penetration.x * k, bodyA.position.y + collision.penetration.y * k);
+        }
+
+        if (options.wireframes) {
+            c.strokeStyle = 'rgba(255,165,0,0.5)';
+        } else {
+            c.strokeStyle = 'orange';
+        }
         c.stroke();
     };
 
@@ -7782,43 +8717,54 @@ var RenderPixi = {};
     var _createBodyPrimitive = function(render, body) {
         var bodyRender = body.render,
             options = render.options,
-            primitive = new PIXI.Graphics();
+            primitive = new PIXI.Graphics(),
+            fillStyle = Common.colorToNumber(bodyRender.fillStyle),
+            strokeStyle = Common.colorToNumber(bodyRender.strokeStyle),
+            strokeStyleIndicator = Common.colorToNumber(bodyRender.strokeStyle),
+            strokeStyleWireframe = Common.colorToNumber('#bbb'),
+            strokeStyleWireframeIndicator = Common.colorToNumber('#CD5C5C'),
+            part;
 
         primitive.clear();
 
-        if (!options.wireframes) {
-            primitive.beginFill(Common.colorToNumber(bodyRender.fillStyle), 1);
-            primitive.lineStyle(body.render.lineWidth, Common.colorToNumber(bodyRender.strokeStyle), 1);
-        } else {
-            primitive.beginFill(0, 0);
-            primitive.lineStyle(1, Common.colorToNumber('#bbb'), 1);
-        }
+        // handle compound parts
+        for (var k = body.parts.length > 1 ? 1 : 0; k < body.parts.length; k++) {
+            part = body.parts[k];
 
-        primitive.moveTo(body.vertices[0].x - body.position.x, body.vertices[0].y - body.position.y);
-
-        for (var j = 1; j < body.vertices.length; j++) {
-            primitive.lineTo(body.vertices[j].x - body.position.x, body.vertices[j].y - body.position.y);
-        }
-
-        primitive.lineTo(body.vertices[0].x - body.position.x, body.vertices[0].y - body.position.y);
-
-        primitive.endFill();
-
-        // angle indicator
-        if (options.showAngleIndicator || options.showAxes) {
-            primitive.beginFill(0, 0);
-
-            if (options.wireframes) {
-                primitive.lineStyle(1, Common.colorToNumber('#CD5C5C'), 1);
+            if (!options.wireframes) {
+                primitive.beginFill(fillStyle, 1);
+                primitive.lineStyle(bodyRender.lineWidth, strokeStyle, 1);
             } else {
-                primitive.lineStyle(1, Common.colorToNumber(body.render.strokeStyle));
+                primitive.beginFill(0, 0);
+                primitive.lineStyle(1, strokeStyleWireframe, 1);
             }
 
-            primitive.moveTo(0, 0);
-            primitive.lineTo(((body.vertices[0].x + body.vertices[body.vertices.length-1].x) / 2) - body.position.x, 
-                             ((body.vertices[0].y + body.vertices[body.vertices.length-1].y) / 2) - body.position.y);
+            primitive.moveTo(part.vertices[0].x - body.position.x, part.vertices[0].y - body.position.y);
+
+            for (var j = 1; j < part.vertices.length; j++) {
+                primitive.lineTo(part.vertices[j].x - body.position.x, part.vertices[j].y - body.position.y);
+            }
+
+            primitive.lineTo(part.vertices[0].x - body.position.x, part.vertices[0].y - body.position.y);
 
             primitive.endFill();
+
+            // angle indicator
+            if (options.showAngleIndicator || options.showAxes) {
+                primitive.beginFill(0, 0);
+
+                if (options.wireframes) {
+                    primitive.lineStyle(1, strokeStyleWireframeIndicator, 1);
+                } else {
+                    primitive.lineStyle(1, strokeStyleIndicator);
+                }
+
+                primitive.moveTo(part.position.x - body.position.x, part.position.y - body.position.y);
+                primitive.lineTo(((part.vertices[0].x + part.vertices[part.vertices.length-1].x) / 2 - body.position.x), 
+                                 ((part.vertices[0].y + part.vertices[part.vertices.length-1].y) / 2 - body.position.y));
+
+                primitive.endFill();
+            }
         }
 
         return primitive;
@@ -7874,7 +8820,6 @@ Matter.Constraint = Constraint;
 Matter.MouseConstraint = MouseConstraint;
 Matter.Common = Common;
 Matter.Engine = Engine;
-Matter.Metrics = Metrics;
 Matter.Mouse = Mouse;
 Matter.Sleeping = Sleeping;
 Matter.Bodies = Bodies;
@@ -7888,6 +8833,7 @@ Matter.RenderPixi = RenderPixi;
 Matter.Events = Events;
 Matter.Query = Query;
 Matter.Runner = Runner;
+Matter.Svg = Svg;
 
 // CommonJS module
 if (typeof exports !== 'undefined') {
