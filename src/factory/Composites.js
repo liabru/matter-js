@@ -251,6 +251,8 @@ var Composites = {};
             },
             restitution: 0.5, 
             friction: 0.9,
+            frictionStatic: 10,
+            slop: 0.5,
             density: 0.01
         });
                     
@@ -260,6 +262,8 @@ var Composites = {};
             },
             restitution: 0.5, 
             friction: 0.9,
+            frictionStatic: 10,
+            slop: 0.5,
             density: 0.01
         });
                     
