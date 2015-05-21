@@ -1,5 +1,5 @@
 /**
-* matter.js edge-master 2015-05-20
+* matter.js edge-master 2015-05-22
 * http://brm.io/matter-js/
 * License: MIT
 */
@@ -1782,8 +1782,8 @@ var World = {};
             label: 'World',
             gravity: { x: 0, y: 1 },
             bounds: { 
-                min: { x: 0, y: 0 }, 
-                max: { x: 800, y: 600 } 
+                min: { x: -Infinity, y: -Infinity }, 
+                max: { x: Infinity, y: Infinity } 
             }
         };
         
@@ -4164,15 +4164,19 @@ var Common = {};
     Common.now = function() {
         // http://stackoverflow.com/questions/221294/how-do-you-get-a-timestamp-in-javascript
         // https://gist.github.com/davidwaterston/2982531
-        
-        var perf = window.performance;
 
-        if (perf) {
-            perf.now = perf.now || perf.webkitNow || perf.msNow || perf.oNow || perf.mozNow;
-            return +(perf.now());
-        }
-        
-        return +(new Date());
+        var performance = window.performance || {};
+
+        performance.now = (function() {
+            return performance.now    ||
+            performance.webkitNow     ||
+            performance.msNow         ||
+            performance.oNow          ||
+            performance.mozNow        ||
+            function() { return +(new Date()); };
+        })();
+              
+        return performance.now();
     };
 
     
@@ -4567,11 +4571,6 @@ var Engine = {};
             var body = bodies[i];
 
             if (body.isStatic || body.isSleeping)
-                continue;
-
-            // don't update out of world bodies
-            if (body.bounds.max.x < worldBounds.min.x || body.bounds.min.x > worldBounds.max.x
-                || body.bounds.max.y < worldBounds.min.y || body.bounds.min.y > worldBounds.max.y)
                 continue;
 
             Body.update(body, deltaTime, timeScale, correction);
@@ -5319,7 +5318,7 @@ var Sleeping = {};
                 motion = body.speed * body.speed + body.angularSpeed * body.angularSpeed;
 
             // wake up bodies if they have a force applied
-            if (body.force.x > 0 || body.force.y > 0) {
+            if (body.force.x !== 0 || body.force.y !== 0) {
                 Sleeping.set(body, false);
                 continue;
             }
@@ -5376,7 +5375,7 @@ var Sleeping = {};
             }
         }
     };
-
+  
     /**
      * Description
      * @method set
@@ -5853,16 +5852,14 @@ var Composites = {};
             bodyC;
         
         for (row = 0; row < rows; row++) {
-            for (col = 0; col < columns; col++) {
-                if (col > 0) {
-                    bodyA = bodies[(col - 1) + (row * columns)];
-                    bodyB = bodies[col + (row * columns)];
-                    Composite.addConstraint(composite, Constraint.create(Common.extend({ bodyA: bodyA, bodyB: bodyB }, options)));
-                }
+            for (col = 1; col < columns; col++) {
+                bodyA = bodies[(col - 1) + (row * columns)];
+                bodyB = bodies[col + (row * columns)];
+                Composite.addConstraint(composite, Constraint.create(Common.extend({ bodyA: bodyA, bodyB: bodyB }, options)));
             }
 
-            for (col = 0; col < columns; col++) {
-                if (row > 0) {
+            if (row > 0) {
+                for (col = 0; col < columns; col++) {
                     bodyA = bodies[col + ((row - 1) * columns)];
                     bodyB = bodies[col + (row * columns)];
                     Composite.addConstraint(composite, Constraint.create(Common.extend({ bodyA: bodyA, bodyB: bodyB }, options)));
@@ -8394,11 +8391,15 @@ var RenderPixi = {};
             transparent = !render.options.wireframes && render.options.background === 'transparent';
 
         // init pixi
-        render.context = new PIXI.WebGLRenderer(render.options.width, render.options.height, render.canvas, transparent, true);
+        render.context = new PIXI.WebGLRenderer(render.options.width, render.options.height, {
+            view: render.canvas,
+            transparent: transparent,
+            antialias: true,
+            backgroundColor: options.background
+        });
+        
         render.canvas = render.context.view;
-        render.container = new PIXI.DisplayObjectContainer();
-        render.stage = new PIXI.Stage();
-        render.stage.addChild(render.container);
+        render.container = new PIXI.Container();
         render.bounds = render.bounds || { 
             min: { 
                 x: 0,
@@ -8416,8 +8417,8 @@ var RenderPixi = {};
         render.primitives = {};
 
         // use a sprite batch for performance
-        render.spriteBatch = new PIXI.SpriteBatch();
-        render.container.addChild(render.spriteBatch);
+        render.spriteContainer = new PIXI.Container();
+        render.container.addChild(render.spriteContainer);
 
         // insert canvas
         if (Common.isElement(render.element)) {
@@ -8440,7 +8441,7 @@ var RenderPixi = {};
      */
     RenderPixi.clear = function(render) {
         var container = render.container,
-            spriteBatch = render.spriteBatch;
+            spriteContainer = render.spriteContainer;
 
         // clear stage container
         while (container.children[0]) { 
@@ -8448,8 +8449,8 @@ var RenderPixi = {};
         }
 
         // clear sprite batch
-        while (spriteBatch.children[0]) { 
-            spriteBatch.removeChild(spriteBatch.children[0]); 
+        while (spriteContainer.children[0]) { 
+            spriteContainer.removeChild(spriteContainer.children[0]); 
         }
 
         var bgSprite = render.sprites['bg-0'];
@@ -8462,10 +8463,10 @@ var RenderPixi = {};
         // set background sprite
         render.sprites['bg-0'] = bgSprite;
         if (bgSprite)
-            spriteBatch.addChildAt(bgSprite, 0);
+            container.addChildAt(bgSprite, 0);
 
         // add sprite batch back into container
-        render.container.addChild(render.spriteBatch);
+        render.container.addChild(render.spriteContainer);
 
         // reset background state
         render.currentBackground = null;
@@ -8489,11 +8490,11 @@ var RenderPixi = {};
             if (isColor) {
                 // if solid background color
                 var color = Common.colorToNumber(background);
-                render.stage.setBackgroundColor(color);
+                render.context.backgroundColor = color;
 
                 // remove background sprite if existing
                 if (bgSprite)
-                    render.spriteBatch.removeChild(bgSprite); 
+                    render.container.removeChild(bgSprite); 
             } else {
                 // initialise background sprite if needed
                 if (!bgSprite) {
@@ -8502,7 +8503,7 @@ var RenderPixi = {};
                     bgSprite = render.sprites['bg-0'] = new PIXI.Sprite(texture);
                     bgSprite.position.x = 0;
                     bgSprite.position.y = 0;
-                    render.spriteBatch.addChildAt(bgSprite, 0);
+                    render.container.addChildAt(bgSprite, 0);
                 }
             }
 
@@ -8519,7 +8520,6 @@ var RenderPixi = {};
         var render = engine.render,
             world = engine.world,
             context = render.context,
-            stage = render.stage,
             container = render.container,
             options = render.options,
             bodies = Composite.allBodies(world),
@@ -8577,7 +8577,7 @@ var RenderPixi = {};
         for (i = 0; i < constraints.length; i++)
             RenderPixi.constraint(engine, constraints[i]);
 
-        context.render(stage);
+        context.render(container);
     };
 
 
@@ -8648,15 +8648,15 @@ var RenderPixi = {};
         if (bodyRender.sprite && bodyRender.sprite.texture) {
             var spriteId = 'b-' + body.id,
                 sprite = render.sprites[spriteId],
-                spriteBatch = render.spriteBatch;
+                spriteContainer = render.spriteContainer;
 
             // initialise body sprite if not existing
             if (!sprite)
                 sprite = render.sprites[spriteId] = _createBodySprite(render, body);
 
             // add to scene graph if not already there
-            if (Common.indexOf(spriteBatch.children, sprite) === -1)
-                spriteBatch.addChild(sprite);
+            if (Common.indexOf(spriteContainer.children, sprite) === -1)
+                spriteContainer.addChild(sprite);
 
             // update body sprite
             sprite.position.x = body.position.x;
