@@ -48,7 +48,6 @@ var RenderPixi = {};
         // init pixi
         render.context = new PIXI.WebGLRenderer(render.options.width, render.options.height, {
             view: render.canvas,
-            autoResize: true,
             transparent: transparent,
             antialias: true,
             backgroundColor: options.background
@@ -72,8 +71,8 @@ var RenderPixi = {};
         render.primitives = {};
 
         // use a sprite batch for performance
-        render.bodies = new PIXI.Container();
-        render.container.addChild(render.bodies);
+        render.spriteContainer = new PIXI.Container();
+        render.container.addChild(render.spriteContainer);
 
         // insert canvas
         if (Common.isElement(render.element)) {
@@ -96,7 +95,7 @@ var RenderPixi = {};
      */
     RenderPixi.clear = function(render) {
         var container = render.container,
-            bodies = render.bodies;
+            spriteContainer = render.spriteContainer;
 
         // clear stage container
         while (container.children[0]) { 
@@ -104,8 +103,8 @@ var RenderPixi = {};
         }
 
         // clear sprite batch
-        while (bodies.children[0]) { 
-            bodies.removeChild(bodies.children[0]); 
+        while (spriteContainer.children[0]) { 
+            spriteContainer.removeChild(spriteContainer.children[0]); 
         }
 
         var bgSprite = render.sprites['bg-0'];
@@ -121,7 +120,7 @@ var RenderPixi = {};
             container.addChildAt(bgSprite, 0);
 
         // add sprite batch back into container
-        render.container.addChild(render.bodies);
+        render.container.addChild(render.spriteContainer);
 
         // reset background state
         render.currentBackground = null;
@@ -232,7 +231,7 @@ var RenderPixi = {};
         for (i = 0; i < constraints.length; i++)
             RenderPixi.constraint(engine, constraints[i]);
 
-        context.render(container); // render just render.bodies?
+        context.render(container);
     };
 
 
@@ -303,15 +302,15 @@ var RenderPixi = {};
         if (bodyRender.sprite && bodyRender.sprite.texture) {
             var spriteId = 'b-' + body.id,
                 sprite = render.sprites[spriteId],
-                bodies = render.bodies;
+                spriteContainer = render.spriteContainer;
 
             // initialise body sprite if not existing
             if (!sprite)
                 sprite = render.sprites[spriteId] = _createBodySprite(render, body);
 
             // add to scene graph if not already there
-            if (Common.indexOf(bodies.children, sprite) === -1)
-                bodies.addChild(sprite);
+            if (Common.indexOf(spriteContainer.children, sprite) === -1)
+                spriteContainer.addChild(sprite);
 
             // update body sprite
             sprite.position.x = body.position.x;
@@ -369,7 +368,7 @@ var RenderPixi = {};
      * @param {body} body
      * @return {PIXI.Graphics} graphics
      */
-    var _createBodyPrimitive = function(render, body) { // TODO: use canvas to create sprite, not PIXI.Graphics
+    var _createBodyPrimitive = function(render, body) {
         var bodyRender = body.render,
             options = render.options,
             primitive = new PIXI.Graphics(),
