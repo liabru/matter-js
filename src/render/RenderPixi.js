@@ -52,6 +52,7 @@ var RenderPixi = {};
             antialias: true,
             backgroundColor: options.background
         });
+        
         render.canvas = render.context.view;
         render.container = new PIXI.Container();
         render.bounds = render.bounds || { 
