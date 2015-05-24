@@ -1610,6 +1610,11 @@
                 _mouseConstraint = MouseConstraint.create(_engine);
                 World.add(_engine.world, _mouseConstraint);
             });
+
+            // need to rebind mouse on render change
+            Events.on(_gui, 'setRenderer', function() {
+                Mouse.setElement(_mouseConstraint.mouse, _engine.render.canvas);
+            });
         }
 
         // create a Matter.Inspector

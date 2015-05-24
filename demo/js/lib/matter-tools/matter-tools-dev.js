@@ -1,5 +1,5 @@
 /**
-* matter-tools-dev.min.js 0.5.0-dev 2015-05-03
+* matter-tools-dev.min.js 0.5.0-dev 2015-05-24
 * https://github.com/liabru/matter-tools
 * License: MIT
 */
@@ -236,7 +236,7 @@
         options:options
       });
       engine.render.options = options;
-      Mouse.setElement(engine.input.mouse, engine.render.canvas);
+      Events.trigger(gui, "setRenderer");
     };
     var _addBody = function(gui) {
       var engine = gui.engine;
