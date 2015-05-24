@@ -862,6 +862,13 @@
         
         World.add(_world, stack);
 
+        for (var i = 0; i < stack.bodies.length; i++) {
+            Events.on(stack.bodies[i], 'sleepStart sleepEnd', function(event) {
+                var body = this;
+                console.log('body id', body.id, 'sleeping:', body.isSleeping);
+            });
+        }
+
         _engine.enableSleeping = true;
     };
 

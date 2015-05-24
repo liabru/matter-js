@@ -92,6 +92,8 @@ var Sleeping = {};
      * @param {boolean} isSleeping
      */
     Sleeping.set = function(body, isSleeping) {
+        var wasSleeping = body.isSleeping;
+
         if (isSleeping) {
             body.isSleeping = true;
             body.sleepCounter = body.sleepThreshold;
@@ -106,9 +108,17 @@ var Sleeping = {};
             body.speed = 0;
             body.angularSpeed = 0;
             body.motion = 0;
+
+            if (!wasSleeping) {
+                Events.trigger(body, 'sleepStart');
+            }
         } else {
             body.isSleeping = false;
             body.sleepCounter = 0;
+
+            if (wasSleeping) {
+                Events.trigger(body, 'sleepEnd');
+            }
         }
     };
 
