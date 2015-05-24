@@ -19,7 +19,7 @@ var Engine = {};
     /**
      * Creates a new engine. The options parameter is an object that specifies any properties you wish to override the defaults.
      * All properties have default values, and many are pre-calculated automatically based on other properties.
-     * See the properites section below for detailed information on what you can pass via the `options` object.
+     * See the properties section below for detailed information on what you can pass via the `options` object.
      * @method create
      * @param {HTMLElement} element
      * @param {object} [options]
@@ -200,8 +200,7 @@ var Engine = {};
     /**
      * Renders the world by calling its defined renderer `engine.render.controller`. Triggers `beforeRender` and `afterRender` events.
      * @method render
-     * @param {engine} engineA
-     * @param {engine} engineB
+     * @param {engine} engine
      */
     Engine.render = function(engine) {
         // create an event object
@@ -511,8 +510,8 @@ var Engine = {};
 
     /**
      * A `Boolean` that specifies if the `Engine.run` game loop should use a fixed timestep (otherwise it is variable).
-     * If timing is fixed, then the apparant simulation speed will change depending on the frame rate (but behaviour will be deterministic).
-     * If the timing is variable, then the apparant simulation speed will be constant (approximately, but at the cost of determininism).
+     * If timing is fixed, then the apparent simulation speed will change depending on the frame rate (but behaviour will be deterministic).
+     * If the timing is variable, then the apparent simulation speed will be constant (approximately, but at the cost of determininism).
      *
      * @property timing.isFixed
      * @type boolean
@@ -522,7 +521,7 @@ var Engine = {};
     /**
      * A `Number` that specifies the time step between updates in milliseconds.
      * If `engine.timing.isFixed` is set to `true`, then `delta` is fixed.
-     * If it is `false`, then `delta` can dynamically change to maintain the correct apparant simulation speed.
+     * If it is `false`, then `delta` can dynamically change to maintain the correct apparent simulation speed.
      *
      * @property timing.delta
      * @type number

@@ -17,7 +17,7 @@ var Render = {};
     /**
      * Creates a new renderer. The options parameter is an object that specifies any properties you wish to override the defaults.
      * All properties have default values, and many are pre-calculated automatically based on other properties.
-     * See the properites section below for detailed information on what you can pass via the `options` object.
+     * See the properties section below for detailed information on what you can pass via the `options` object.
      * @method create
      * @param {object} [options]
      * @return {render} A new renderer

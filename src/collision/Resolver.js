@@ -216,6 +216,7 @@ var Resolver = {};
      * Description
      * @method solveVelocity
      * @param {pair[]} pairs
+     * @param {number} timeScale
      */
     Resolver.solveVelocity = function(pairs, timeScale) {
         var timeScaleSquared = timeScale * timeScale,

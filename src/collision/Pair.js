@@ -12,6 +12,7 @@ var Pair = {};
      * Description
      * @method create
      * @param {collision} collision
+     * @param {number} timestamp
      * @return {pair} A new pair
      */
     Pair.create = function(collision, timestamp) {
@@ -47,6 +48,7 @@ var Pair = {};
      * @method update
      * @param {pair} pair
      * @param {collision} collision
+     * @param {number} timestamp
      */
     Pair.update = function(pair, collision, timestamp) {
         var contacts = pair.contacts,
@@ -89,6 +91,7 @@ var Pair = {};
      * @method setActive
      * @param {pair} pair
      * @param {bool} isActive
+     * @param {number} timestamp
      */
     Pair.setActive = function(pair, isActive, timestamp) {
         if (isActive) {

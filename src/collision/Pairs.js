@@ -31,6 +31,7 @@ var Pairs = {};
      * @method update
      * @param {object} pairs
      * @param {collision[]} collisions
+     * @param {number} timestamp
      */
     Pairs.update = function(pairs, collisions, timestamp) {
         var pairsList = pairs.list,
@@ -96,6 +97,7 @@ var Pairs = {};
      * Description
      * @method removeOld
      * @param {object} pairs
+     * @param {number} timestamp
      */
     Pairs.removeOld = function(pairs, timestamp) {
         var pairsList = pairs.list,
@@ -133,9 +135,9 @@ var Pairs = {};
 
     /**
      * Clears the given pairs structure
-     * @method create
-     * @param {object} options
+     * @method clear
      * @param {pairs} pairs
+     * @return {pairs} pairs
      */
     Pairs.clear = function(pairs) {
         pairs.table = {};

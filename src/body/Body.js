@@ -22,7 +22,7 @@ var Body = {};
     /**
      * Creates a new rigid body model. The options parameter is an object that specifies any properties you wish to override the defaults.
      * All properties have default values, and many are pre-calculated automatically based on other properties.
-     * See the properites section below for detailed information on what you can pass via the `options` object.
+     * See the properties section below for detailed information on what you can pass via the `options` object.
      * @method create
      * @param {} options
      * @return {body} body
@@ -515,7 +515,7 @@ var Body = {};
             velocityPrevX = body.position.x - body.positionPrev.x,
             velocityPrevY = body.position.y - body.positionPrev.y;
 
-        // update velocity with verlet integration
+        // update velocity with Verlet integration
         body.velocity.x = (velocityPrevX * frictionAir * correction) + (body.force.x / body.mass) * deltaTimeSquared;
         body.velocity.y = (velocityPrevY * frictionAir * correction) + (body.force.y / body.mass) * deltaTimeSquared;
 
@@ -524,7 +524,7 @@ var Body = {};
         body.position.x += body.velocity.x;
         body.position.y += body.velocity.y;
 
-        // update angular velocity with verlet integration
+        // update angular velocity with Verlet integration
         body.angularVelocity = ((body.angle - body.anglePrev) * frictionAir * correction) + (body.torque / body.inertia) * deltaTimeSquared;
         body.anglePrev = body.angle;
         body.angle += body.angularVelocity;
@@ -668,7 +668,7 @@ var Body = {};
      *
      *     [{ x: 0, y: 0 }, { x: 25, y: 50 }, { x: 50, y: 0 }]
      *
-     * When passed via `Body.create`, the verticies are translated relative to `body.position` (i.e. world-space, and constantly updated by `Body.update` during simulation).
+     * When passed via `Body.create`, the vertices are translated relative to `body.position` (i.e. world-space, and constantly updated by `Body.update` during simulation).
      * The `Vector` objects are also augmented with additional properties required for efficient collision detection. 
      *
      * Other properties such as `inertia` and `bounds` are automatically calculated from the passed vertices (unless provided via `options`).
