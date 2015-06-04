@@ -4,23 +4,11 @@ module.exports = function(grunt) {
     buildName: 'matter',
     buildVersion: 'edge-master',
     docVersion: 'v<%= pkg.version %>',
-    concat: {
-      build: {
-        options: {
-          process: function(src, filepath) {
-            return '// Begin ' + filepath + '\n\n' + src + '\n\n;   // End ' + filepath + '\n\n';
-          }
-        },
-        src: ['src/**/*.js', '!src/module/*'],
-        dest: 'build/<%= buildName %>.js'
+    browserify: {
+      options: {
+        banner: '/**\n* <%= buildName %>.js <%= buildVersion %> <%= grunt.template.today("yyyy-mm-dd") %>\n* <%= pkg.homepage %>\n* License: <%= pkg.license %>\n*/\n\n',
       },
-      pack: {
-        options: {
-          banner: '/**\n* <%= buildName %>.js <%= buildVersion %> <%= grunt.template.today("yyyy-mm-dd") %>\n* <%= pkg.homepage %>\n* License: <%= pkg.license %>\n*/\n\n'
-        },
-        src: ['src/module/Intro.js', 'build/<%= buildName %>.js', 'src/module/Outro.js'],
-        dest: 'build/<%= buildName %>.js'
-      }
+      'build/<%= buildName %>.js': ['src/module/main.js']
     },
     uglify: {
       min: {
@@ -49,9 +37,9 @@ module.exports = function(grunt) {
     },
     copy: {
       demo: {
-        src: 'build/<%= buildName %>.js',
-        dest: 'demo/js/lib/<%= buildName %>.js'
-      }
+          src: 'build/<%= buildName %>.js',
+          dest: 'demo/js/lib/<%= buildName %>.js'
+        }
     },
     jshint: {
       options: {
@@ -110,7 +98,7 @@ module.exports = function(grunt) {
     }
   });
 
-  grunt.loadNpmTasks('grunt-contrib-concat');
+  grunt.loadNpmTasks('grunt-browserify');
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-contrib-connect');
   grunt.loadNpmTasks('grunt-contrib-watch');
@@ -134,20 +122,20 @@ module.exports = function(grunt) {
     if (isDev) {
       grunt.config.set('buildName', 'matter-dev');
       grunt.config.set('buildVersion', pkg.version + '-dev');
-      grunt.task.run('concat', 'uglify:dev', 'uglify:min', 'copy');
+      grunt.task.run('browserify', 'uglify:dev', 'uglify:min', 'copy');
     }
 
     // release build mode
     if (isRelease) {
       grunt.config.set('buildName', 'matter-' + pkg.version);
       grunt.config.set('buildVersion', pkg.version + '-alpha');
-      grunt.task.run('concat', 'uglify:min', 'copy');
+      grunt.task.run('browserify', 'uglify:min', 'copy');
     }
 
     // edge build mode (default)
     if (isEdge || (!isDev && !isRelease)) {
       grunt.config.set('buildVersion', 'edge-master');
-      grunt.task.run('concat', 'preprocess', 'uglify:min');
+      grunt.task.run('browserify', 'preprocess', 'uglify:min');
     }
   });
 
@@ -158,7 +146,7 @@ module.exports = function(grunt) {
 
     if (isEdge)
       grunt.config.set('docVersion', 'edge version (master)');
-    
+
     grunt.task.run('yuidoc');
   });
 

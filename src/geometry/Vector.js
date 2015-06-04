@@ -13,6 +13,8 @@
 
 var Vector = {};
 
+module.exports = Vector;
+
 (function() {
 
     /**

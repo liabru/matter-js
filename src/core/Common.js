@@ -6,6 +6,8 @@
 
 var Common = {};
 
+module.exports = Common;
+
 (function() {
 
     Common._nextId = 0;

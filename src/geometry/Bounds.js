@@ -6,6 +6,8 @@
 
 var Bounds = {};
 
+module.exports = Bounds;
+
 (function() {
 
     /**

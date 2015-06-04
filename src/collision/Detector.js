@@ -1,3 +1,7 @@
+var SAT = require('./SAT');
+var Pair = require('./Pair');
+var Bounds = require('../geometry/Bounds');
+
 /**
 * _Internal Class_, not generally used outside of the engine's internals.
 *
@@ -7,6 +11,8 @@
 // TODO: speculative contacts
 
 var Detector = {};
+
+module.exports = Detector;
 
 (function() {
 

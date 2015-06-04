@@ -1,3 +1,7 @@
+var Events = require('./Events');
+var Engine = require('./Engine');
+var Common = require('./Common');
+
 /**
 * The `Matter.Runner` module is an optional utility which provides a game loop, 
 * that handles updating and rendering a `Matter.Engine` for you within a browser.
@@ -10,6 +14,8 @@
 */
 
 var Runner = {};
+
+module.exports = Runner;
 
 (function() {
 

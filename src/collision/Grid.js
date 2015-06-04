@@ -1,3 +1,7 @@
+var Pair = require('./Pair');
+var Detector = require('./Detector');
+var Common = require('../core/Common');
+
 /**
 * See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
 * and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
@@ -6,6 +10,8 @@
 */
 
 var Grid = {};
+
+module.exports = Grid;
 
 (function() {
 

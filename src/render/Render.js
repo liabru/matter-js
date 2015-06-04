@@ -1,3 +1,8 @@
+var Common = require('../core/Common');
+var Composite = require('../body/Composite');
+var Bounds = require('../geometry/Bounds');
+var Grid = require('../collision/Grid');
+
 /**
 * The `Matter.Render` module is the default `render.controller` used by a `Matter.Engine`.
 * This renderer is HTML5 canvas based and supports a number of drawing options including sprites and viewports.
@@ -11,6 +16,8 @@
 */
 
 var Render = {};
+
+module.exports = Render;
 
 (function() {
     

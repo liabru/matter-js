@@ -1,3 +1,11 @@
+var Vertices = require('../geometry/Vertices');
+var Vector = require('../geometry/Vector');
+var Sleeping = require('../core/Sleeping');
+var Render = require('../render/Render');
+var Common = require('../core/Common');
+var Bounds = require('../geometry/Bounds');
+var Axes = require('../geometry/Axes');
+
 /**
 * The `Matter.Body` module contains methods for creating and manipulating body models.
 * A `Matter.Body` is a rigid body that can be simulated by a `Matter.Engine`.
@@ -10,6 +18,8 @@
 */
 
 var Body = {};
+
+module.exports = Body;
 
 (function() {
 

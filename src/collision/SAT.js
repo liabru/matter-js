@@ -1,3 +1,6 @@
+var Vertices = require('../geometry/Vertices');
+var Vector = require('../geometry/Vector');
+
 /**
 * _Internal Class_, not generally used outside of the engine's internals.
 *
@@ -7,6 +10,8 @@
 // TODO: true circles and curves
 
 var SAT = {};
+
+module.exports = SAT;
 
 (function() {
 

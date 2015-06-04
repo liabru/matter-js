@@ -1,3 +1,16 @@
+var World = require('../body/World');
+var Sleeping = require('./Sleeping');
+var Resolver = require('../collision/Resolver');
+var Render = require('../render/Render');
+var Pairs = require('../collision/Pairs');
+var Metrics = require('./Metrics');
+var Grid = require('../collision/Grid');
+var Events = require('./Events');
+var Composite = require('../body/Composite');
+var Constraint = require('../constraint/Constraint');
+var Common = require('./Common');
+var Body = require('../body/Body');
+
 /**
 * The `Matter.Engine` module contains methods for creating and manipulating engines.
 * An engine is a controller that manages updating and rendering the simulation of the world.
@@ -10,6 +23,8 @@
 */
 
 var Engine = {};
+
+module.exports = Engine;
 
 (function() {
 

@@ -1,3 +1,9 @@
+var Composite = require('../body/Composite');
+var Constraint = require('../constraint/Constraint');
+var Common = require('../core/Common');
+var Body = require('../body/Body');
+var Bodies = require('./Bodies');
+
 /**
 * See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
 * and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
@@ -6,6 +12,8 @@
 */
 
 var Composites = {};
+
+module.exports = Composites;
 
 (function() {
 

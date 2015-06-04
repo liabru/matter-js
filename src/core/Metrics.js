@@ -1,10 +1,14 @@
 // @if DEBUG
+var Composite = require('../body/Composite');
+
 /**
 * _Internal Class_, not generally used outside of the engine's internals.
 *
 */
 
 var Metrics = {};
+
+module.exports = Metrics;
 
 (function() {
 

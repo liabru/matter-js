@@ -7,6 +7,8 @@
 
 var RenderPixi = {};
 
+module.exports = RenderPixi;
+
 (function() {
     
     /**

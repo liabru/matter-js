@@ -1,3 +1,6 @@
+var Vector = require('../geometry/Vector');
+var Common = require('../core/Common');
+
 /**
 * _Internal Class_, not generally used outside of the engine's internals.
 *
@@ -5,6 +8,8 @@
 */
 
 var Axes = {};
+
+module.exports = Axes;
 
 (function() {
 

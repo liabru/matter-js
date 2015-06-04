@@ -1,3 +1,6 @@
+var Vector = require('../geometry/Vector');
+var Common = require('../core/Common');
+
 /**
 * The `Matter.Vertices` module contains methods for creating and manipulating sets of vertices.
 * A set of vertices is an array of `Matter.Vector` with additional indexing properties inserted by `Vertices.create`.
@@ -10,6 +13,8 @@
 */
 
 var Vertices = {};
+
+module.exports = Vertices;
 
 (function() {
 

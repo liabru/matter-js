@@ -1,3 +1,8 @@
+var Vertices = require('../geometry/Vertices');
+var Vector = require('../geometry/Vector');
+var Common = require('../core/Common');
+var Bounds = require('../geometry/Bounds');
+
 /**
 * _Internal Class_, not generally used outside of the engine's internals.
 *
@@ -5,6 +10,8 @@
 */
 
 var Resolver = {};
+
+module.exports = Resolver;
 
 (function() {
 

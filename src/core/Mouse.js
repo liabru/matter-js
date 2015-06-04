@@ -1,3 +1,5 @@
+var Common = require('../core/Common');
+
 /**
 * _Internal Class_, not generally used outside of the engine's internals.
 *
@@ -5,6 +7,8 @@
 */
 
 var Mouse = {};
+
+module.exports = Mouse;
 
 (function() {
 

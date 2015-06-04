@@ -1,3 +1,5 @@
+var Bounds = require('../geometry/Bounds');
+
 /**
 * The `Matter.Svg` module contains methods for converting SVG images into an array of vector points.
 *
@@ -8,6 +10,8 @@
 */
 
 var Svg = {};
+
+module.exports = Svg;
 
 (function() {
 

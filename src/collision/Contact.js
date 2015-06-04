@@ -6,6 +6,8 @@
 
 var Contact = {};
 
+module.exports = Contact;
+
 (function() {
 
     /**
