@@ -34,6 +34,8 @@
         _sceneEvents = [],
         _useInspector = window.location.hash.indexOf('-inspect') !== -1,
         _isMobile = /(ipad|iphone|ipod|android)/gi.test(navigator.userAgent);
+
+    window.Matter.Demo = Demo;
     
     // initialise the demo
 
@@ -51,6 +53,7 @@
         // create a Matter engine
         // NOTE: this is actually Matter.Engine.create(), see the aliases at top of this file
         _engine = Engine.create(container, options);
+        window.Matter.Demo._engine = _engine;
 
         // add a mouse controlled constraint
         _mouseConstraint = MouseConstraint.create(_engine);
