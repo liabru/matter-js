@@ -1,5 +1,5 @@
 /**
-* matter.js edge-master 2015-05-22
+* matter.js edge-master 2015-06-29
 * http://brm.io/matter-js/
 * License: MIT
 */
@@ -64,7 +64,7 @@ var Body = {};
     /**
      * Creates a new rigid body model. The options parameter is an object that specifies any properties you wish to override the defaults.
      * All properties have default values, and many are pre-calculated automatically based on other properties.
-     * See the properites section below for detailed information on what you can pass via the `options` object.
+     * See the properties section below for detailed information on what you can pass via the `options` object.
      * @method create
      * @param {} options
      * @return {body} body
@@ -557,7 +557,7 @@ var Body = {};
             velocityPrevX = body.position.x - body.positionPrev.x,
             velocityPrevY = body.position.y - body.positionPrev.y;
 
-        // update velocity with verlet integration
+        // update velocity with Verlet integration
         body.velocity.x = (velocityPrevX * frictionAir * correction) + (body.force.x / body.mass) * deltaTimeSquared;
         body.velocity.y = (velocityPrevY * frictionAir * correction) + (body.force.y / body.mass) * deltaTimeSquared;
 
@@ -566,7 +566,7 @@ var Body = {};
         body.position.x += body.velocity.x;
         body.position.y += body.velocity.y;
 
-        // update angular velocity with verlet integration
+        // update angular velocity with Verlet integration
         body.angularVelocity = ((body.angle - body.anglePrev) * frictionAir * correction) + (body.torque / body.inertia) * deltaTimeSquared;
         body.anglePrev = body.angle;
         body.angle += body.angularVelocity;
@@ -648,6 +648,32 @@ var Body = {};
 
     /*
     *
+    *  Events Documentation
+    *
+    */
+
+    /**
+    * Fired when a body starts sleeping (where `this` is the body).
+    *
+    * @event sleepStart
+    * @this {body} The body that has started sleeping
+    * @param {} event An event object
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired when a body ends sleeping (where `this` is the body).
+    *
+    * @event sleepEnd
+    * @this {body} The body that has ended sleeping
+    * @param {} event An event object
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /*
+    *
     *  Properties Documentation
     *
     */
@@ -710,7 +736,7 @@ var Body = {};
      *
      *     [{ x: 0, y: 0 }, { x: 25, y: 50 }, { x: 50, y: 0 }]
      *
-     * When passed via `Body.create`, the verticies are translated relative to `body.position` (i.e. world-space, and constantly updated by `Body.update` during simulation).
+     * When passed via `Body.create`, the vertices are translated relative to `body.position` (i.e. world-space, and constantly updated by `Body.update` during simulation).
      * The `Vector` objects are also augmented with additional properties required for efficient collision detection. 
      *
      * Other properties such as `inertia` and `bounds` are automatically calculated from the passed vertices (unless provided via `options`).
@@ -1401,7 +1427,7 @@ var Composite = {};
      * Removes all bodies, constraints and composites from the given composite
      * Optionally clearing its children recursively
      * @method clear
-     * @param {world} world
+     * @param {composite} composite
      * @param {boolean} keepStatic
      * @param {boolean} [deep=false]
      */
@@ -1744,6 +1770,7 @@ var Composite = {};
 
 })();
 
+
 ;   // End src/body/Composite.js
 
 
@@ -1769,7 +1796,7 @@ var World = {};
 
     /**
      * Creates a new world composite. The options parameter is an object that specifies any properties you wish to override the defaults.
-     * See the properites section below for detailed information on what you can pass via the `options` object.
+     * See the properties section below for detailed information on what you can pass via the `options` object.
      * @method create
      * @constructor
      * @param {} options
@@ -1825,6 +1852,7 @@ var World = {};
       */
 
 })();
+
 
 ;   // End src/body/World.js
 
@@ -2328,6 +2356,7 @@ var Pair = {};
      * Description
      * @method create
      * @param {collision} collision
+     * @param {number} timestamp
      * @return {pair} A new pair
      */
     Pair.create = function(collision, timestamp) {
@@ -2363,6 +2392,7 @@ var Pair = {};
      * @method update
      * @param {pair} pair
      * @param {collision} collision
+     * @param {number} timestamp
      */
     Pair.update = function(pair, collision, timestamp) {
         var contacts = pair.contacts,
@@ -2405,6 +2435,7 @@ var Pair = {};
      * @method setActive
      * @param {pair} pair
      * @param {bool} isActive
+     * @param {number} timestamp
      */
     Pair.setActive = function(pair, isActive, timestamp) {
         if (isActive) {
@@ -2472,6 +2503,7 @@ var Pairs = {};
      * @method update
      * @param {object} pairs
      * @param {collision[]} collisions
+     * @param {number} timestamp
      */
     Pairs.update = function(pairs, collisions, timestamp) {
         var pairsList = pairs.list,
@@ -2537,6 +2569,7 @@ var Pairs = {};
      * Description
      * @method removeOld
      * @param {object} pairs
+     * @param {number} timestamp
      */
     Pairs.removeOld = function(pairs, timestamp) {
         var pairsList = pairs.list,
@@ -2574,9 +2607,9 @@ var Pairs = {};
 
     /**
      * Clears the given pairs structure
-     * @method create
-     * @param {object} options
+     * @method clear
      * @param {pairs} pairs
+     * @return {pairs} pairs
      */
     Pairs.clear = function(pairs) {
         pairs.table = {};
@@ -2588,6 +2621,7 @@ var Pairs = {};
     };
 
 })();
+
 
 ;   // End src/collision/Pairs.js
 
@@ -2920,6 +2954,7 @@ var Resolver = {};
      * Description
      * @method solveVelocity
      * @param {pair[]} pairs
+     * @param {number} timeScale
      */
     Resolver.solveVelocity = function(pairs, timeScale) {
         var timeScaleSquared = timeScale * timeScale,
@@ -3028,6 +3063,7 @@ var Resolver = {};
     };
 
 })();
+
 
 ;   // End src/collision/Resolver.js
 
@@ -3312,10 +3348,10 @@ var SAT = {};
 * @class Constraint
 */
 
-// TODO: fix instabillity issues with torque
+// TODO: fix instability issues with torque
 // TODO: linked constraints
 // TODO: breakable constraints
-// TODO: collidable constraints
+// TODO: collision constraints
 // TODO: allow constrained bodies to sleep
 // TODO: handle 0 length constraints properly
 // TODO: impulse caching and warming
@@ -3330,7 +3366,7 @@ var Constraint = {};
     /**
      * Creates a new constraint.
      * All properties have default values, and many are pre-calculated automatically based on other properties.
-     * See the properites section below for detailed information on what you can pass via the `options` object.
+     * See the properties section below for detailed information on what you can pass via the `options` object.
      * @method create
      * @param {} options
      * @return {constraint} constraint
@@ -3503,8 +3539,8 @@ var Constraint = {};
 
             Sleeping.set(bodyA, false);
             
-            // clamp to prevent instabillity
-            // TODO: solve this properlly
+            // clamp to prevent instability
+            // TODO: solve this properly
             torque = Common.clamp(torque, -0.01, 0.01);
 
             // keep track of applied impulses for post solving
@@ -3523,8 +3559,8 @@ var Constraint = {};
 
             Sleeping.set(bodyB, false);
             
-            // clamp to prevent instabillity
-            // TODO: solve this properlly
+            // clamp to prevent instability
+            // TODO: solve this properly
             torque = Common.clamp(torque, -0.01, 0.01);
 
             // keep track of applied impulses for post solving
@@ -3685,13 +3721,14 @@ var Constraint = {};
 
     /**
      * A `Number` that specifies the target resting length of the constraint. 
-     * It is calculated automatically in `Constraint.create` from intial positions of the `constraint.bodyA` and `constraint.bodyB`.
+     * It is calculated automatically in `Constraint.create` from initial positions of the `constraint.bodyA` and `constraint.bodyB`.
      *
      * @property length
      * @type number
      */
 
 })();
+
 
 ;   // End src/constraint/Constraint.js
 
@@ -3715,7 +3752,7 @@ var MouseConstraint = {};
     /**
      * Creates a new mouse constraint.
      * All properties have default values, and many are pre-calculated automatically based on other properties.
-     * See the properites section below for detailed information on what you can pass via the `options` object.
+     * See the properties section below for detailed information on what you can pass via the `options` object.
      * @method create
      * @param {engine} engine
      * @param {} options
@@ -3818,7 +3855,7 @@ var MouseConstraint = {};
      * Triggers mouse constraint events
      * @method _triggerEvents
      * @private
-     * @param {mouse} mouse
+     * @param {mouse} mouseConstraint
      */
     var _triggerEvents = function(mouseConstraint) {
         var mouse = mouseConstraint.mouse,
@@ -4159,7 +4196,7 @@ var Common = {};
     /**
      * Description
      * @method now
-     * @return {number} the current timestamp (high-res if avaliable)
+     * @return {number} the current timestamp (high-res if available)
      */
     Common.now = function() {
         // http://stackoverflow.com/questions/221294/how-do-you-get-a-timestamp-in-javascript
@@ -4268,6 +4305,7 @@ var Common = {};
 
 })();
 
+
 ;   // End src/core/Common.js
 
 
@@ -4294,7 +4332,7 @@ var Engine = {};
     /**
      * Creates a new engine. The options parameter is an object that specifies any properties you wish to override the defaults.
      * All properties have default values, and many are pre-calculated automatically based on other properties.
-     * See the properites section below for detailed information on what you can pass via the `options` object.
+     * See the properties section below for detailed information on what you can pass via the `options` object.
      * @method create
      * @param {HTMLElement} element
      * @param {object} [options]
@@ -4324,10 +4362,6 @@ var Engine = {};
                 isFixed: false,
                 frameRequestId: 0
             },
-            render: {
-                element: element,
-                controller: Render
-            },
             broadphase: {
                 controller: Grid
             }
@@ -4335,7 +4369,17 @@ var Engine = {};
         
         var engine = Common.extend(defaults, options);
 
-        engine.render = engine.render.controller.create(engine.render);
+        if (element && !engine.render) {
+            engine.render = {
+                element: element,
+                controller: Render
+            };
+        }
+
+        if (engine.render && engine.render.controller) {
+            engine.render = engine.render.controller.create(engine.render);
+        }
+
         engine.world = World.create(engine.world);
         engine.pairs = Pairs.create();
         engine.broadphase = engine.broadphase.controller.create(engine.broadphase);
@@ -4461,8 +4505,7 @@ var Engine = {};
     /**
      * Renders the world by calling its defined renderer `engine.render.controller`. Triggers `beforeRender` and `afterRender` events.
      * @method render
-     * @param {engine} engineA
-     * @param {engine} engineB
+     * @param {engine} engine
      */
     Engine.render = function(engine) {
         // create an event object
@@ -4772,8 +4815,8 @@ var Engine = {};
 
     /**
      * A `Boolean` that specifies if the `Engine.run` game loop should use a fixed timestep (otherwise it is variable).
-     * If timing is fixed, then the apparant simulation speed will change depending on the frame rate (but behaviour will be deterministic).
-     * If the timing is variable, then the apparant simulation speed will be constant (approximately, but at the cost of determininism).
+     * If timing is fixed, then the apparent simulation speed will change depending on the frame rate (but behaviour will be deterministic).
+     * If the timing is variable, then the apparent simulation speed will be constant (approximately, but at the cost of determininism).
      *
      * @property timing.isFixed
      * @type boolean
@@ -4783,7 +4826,7 @@ var Engine = {};
     /**
      * A `Number` that specifies the time step between updates in milliseconds.
      * If `engine.timing.isFixed` is set to `true`, then `delta` is fixed.
-     * If it is `false`, then `delta` can dynamically change to maintain the correct apparant simulation speed.
+     * If it is `false`, then `delta` can dynamically change to maintain the correct apparent simulation speed.
      *
      * @property timing.delta
      * @type number
@@ -4832,6 +4875,7 @@ var Engine = {};
      */
 
 })();
+
 
 ;   // End src/core/Engine.js
 
@@ -5097,6 +5141,7 @@ var Mouse = {};
      * Sets the offset
      * @method setOffset
      * @param {mouse} mouse
+     * @param {vector} offset
      */
     Mouse.setOffset = function(mouse, offset) {
         mouse.offset.x = offset.x;
@@ -5109,6 +5154,7 @@ var Mouse = {};
      * Sets the scale
      * @method setScale
      * @param {mouse} mouse
+     * @param {vector} scale
      */
     Mouse.setScale = function(mouse, scale) {
         mouse.scale.x = scale.x;
@@ -5170,6 +5216,11 @@ var Mouse = {};
 var Runner = {};
 
 (function() {
+
+    if (typeof window === 'undefined') {
+        // TODO: support Runner on non-browser environments.
+        return;
+    }
 
     var _fps = 60,
         _deltaSampleSize = _fps,
@@ -5383,6 +5434,8 @@ var Sleeping = {};
      * @param {boolean} isSleeping
      */
     Sleeping.set = function(body, isSleeping) {
+        var wasSleeping = body.isSleeping;
+
         if (isSleeping) {
             body.isSleeping = true;
             body.sleepCounter = body.sleepThreshold;
@@ -5397,9 +5450,17 @@ var Sleeping = {};
             body.speed = 0;
             body.angularSpeed = 0;
             body.motion = 0;
+
+            if (!wasSleeping) {
+                Events.trigger(body, 'sleepStart');
+            }
         } else {
             body.isSleeping = false;
             body.sleepCounter = 0;
+
+            if (wasSleeping) {
+                Events.trigger(body, 'sleepEnd');
+            }
         }
     };
 
@@ -7171,7 +7232,7 @@ var Render = {};
     /**
      * Creates a new renderer. The options parameter is an object that specifies any properties you wish to override the defaults.
      * All properties have default values, and many are pre-calculated automatically based on other properties.
-     * See the properites section below for detailed information on what you can pass via the `options` object.
+     * See the properties section below for detailed information on what you can pass via the `options` object.
      * @method create
      * @param {object} [options]
      * @return {render} A new renderer
