@@ -13,6 +13,11 @@ var Runner = {};
 
 (function() {
 
+    if (typeof window === 'undefined') {
+        // TODO: support Runner on non-browser environments.
+        return;
+    }
+
     var _fps = 60,
         _deltaSampleSize = _fps,
         _delta = 1000 / _fps;

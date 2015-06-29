@@ -49,10 +49,6 @@ var Engine = {};
                 isFixed: false,
                 frameRequestId: 0
             },
-            render: {
-                element: element,
-                controller: Render
-            },
             broadphase: {
                 controller: Grid
             }
@@ -60,7 +56,17 @@ var Engine = {};
         
         var engine = Common.extend(defaults, options);
 
-        engine.render = engine.render.controller.create(engine.render);
+        if (element && !engine.render) {
+            engine.render = {
+                element: element,
+                controller: Render
+            };
+        }
+
+        if (engine.render && engine.render.controller) {
+            engine.render = engine.render.controller.create(engine.render);
+        }
+
         engine.world = World.create(engine.world);
         engine.pairs = Pairs.create();
         engine.broadphase = engine.broadphase.controller.create(engine.broadphase);
