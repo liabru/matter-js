@@ -26,7 +26,7 @@ var Svg = {};
         var i, il, total, point, segment, segments, 
             segmentsQueue, lastSegment, 
             lastPoint, segmentIndex, points = [],
-            length = 0, x = 0, y = 0;
+            lx, ly, length = 0, x = 0, y = 0;
 
         sampleLength = sampleLength || 15;
 

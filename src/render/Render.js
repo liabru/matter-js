@@ -387,7 +387,8 @@ var Render = {};
             options = render.options,
             body,
             part,
-            i;
+            i,
+            k;
 
         for (i = 0; i < bodies.length; i++) {
             body = bodies[i];
@@ -684,7 +685,8 @@ var Render = {};
             options = render.options,
             body,
             part,
-            i;
+            i,
+            k;
 
         c.beginPath();
 

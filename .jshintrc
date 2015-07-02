@@ -25,5 +25,18 @@
     "sub"           : false,  // Tolerate all forms of subscript notation besides dot notation e.g. `dict['key']` instead of `dict.key`.
     "trailing"      : false,   // Prohibit trailing whitespaces.
     "white"         : false,  // Check against strict whitespace and indentation rules.
-    "indent"        : 4       // Specify indentation spacing
+    "indent"        : 4,       // Specify indentation spacing
+
+    // variables
+    "undef": true,
+    "-W079": true,            // Silence redefinition errors (they are false positives).
+    "predef": [
+        "Matter", "window", "document", "Element", "MatterTools", "PIXI", 
+        "$", "Image", "navigator", "setTimeout", "decomp", "HTMLElement",
+        "Body", "Composite", "World", "Contact", "Detector", "Grid", 
+        "Pairs", "Pair", "Resolver", "SAT", "Constraint", "MouseConstraint", 
+        "Common", "Engine", "Mouse", "Sleeping", "Bodies", "Composites", 
+        "Axes", "Bounds", "Vector", "Vertices", "Render", "RenderPixi", 
+        "Events", "Query", "Runner", "Svg", "Metrics"
+    ]
 }
