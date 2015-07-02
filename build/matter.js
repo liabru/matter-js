@@ -1,5 +1,5 @@
 /**
-* matter.js edge-master 2015-06-29
+* matter.js edge-master 2015-07-02
 * http://brm.io/matter-js/
 * License: MIT
 */
@@ -2789,6 +2789,7 @@ var Resolver = {};
             normal,
             bodyBtoA,
             contactShare,
+            positionImpulse,
             contactCount = {},
             tempA = Vector._temp[0],
             tempB = Vector._temp[1],
@@ -6337,7 +6338,7 @@ var Svg = {};
         var i, il, total, point, segment, segments, 
             segmentsQueue, lastSegment, 
             lastPoint, segmentIndex, points = [],
-            length = 0, x = 0, y = 0;
+            lx, ly, length = 0, x = 0, y = 0;
 
         sampleLength = sampleLength || 15;
 
@@ -7583,7 +7584,8 @@ var Render = {};
             options = render.options,
             body,
             part,
-            i;
+            i,
+            k;
 
         for (i = 0; i < bodies.length; i++) {
             body = bodies[i];
@@ -7880,7 +7882,8 @@ var Render = {};
             options = render.options,
             body,
             part,
-            i;
+            i,
+            k;
 
         c.beginPath();
 
