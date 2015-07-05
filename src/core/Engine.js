@@ -53,14 +53,16 @@ var Engine = {};
                 controller: Grid
             }
         };
-        
+
         var engine = Common.extend(defaults, options);
 
-        if (element && !engine.render) {
-            engine.render = {
+        if (element || engine.render) {
+            var renderDefaults = {
                 element: element,
                 controller: Render
             };
+            
+            engine.render = Common.extend(renderDefaults, engine.render);
         }
 
         if (engine.render && engine.render.controller) {

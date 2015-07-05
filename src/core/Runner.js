@@ -105,14 +105,20 @@ var Runner = {};
             Events.trigger(engine, 'tick', event);
 
             // if world has been modified, clear the render scene graph
-            if (engine.world.isModified && engine.render.controller.clear)
+            if (engine.world.isModified 
+                && engine.render
+                && engine.render.controller
+                && engine.render.controller.clear) {
                 engine.render.controller.clear(engine.render);
+            }
 
             // update
             Engine.update(engine, delta, correction);
 
             // render
-            Engine.render(engine);
+            if (engine.render) {
+                Engine.render(engine);
+            }
 
             Events.trigger(engine, 'afterTick', event);
         })();
