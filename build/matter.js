@@ -1,5 +1,5 @@
 /**
-* matter.js edge-master 2015-07-02
+* matter.js edge-master 2015-07-05
 * http://brm.io/matter-js/
 * License: MIT
 */
@@ -4367,14 +4367,16 @@ var Engine = {};
                 controller: Grid
             }
         };
-        
+
         var engine = Common.extend(defaults, options);
 
-        if (element && !engine.render) {
-            engine.render = {
+        if (element || engine.render) {
+            var renderDefaults = {
                 element: element,
                 controller: Render
             };
+            
+            engine.render = Common.extend(renderDefaults, engine.render);
         }
 
         if (engine.render && engine.render.controller) {
@@ -5310,14 +5312,20 @@ var Runner = {};
             Events.trigger(engine, 'tick', event);
 
             // if world has been modified, clear the render scene graph
-            if (engine.world.isModified && engine.render.controller.clear)
+            if (engine.world.isModified 
+                && engine.render
+                && engine.render.controller
+                && engine.render.controller.clear) {
                 engine.render.controller.clear(engine.render);
+            }
 
             // update
             Engine.update(engine, delta, correction);
 
             // render
-            Engine.render(engine);
+            if (engine.render) {
+                Engine.render(engine);
+            }
 
             Events.trigger(engine, 'afterTick', event);
         })();
