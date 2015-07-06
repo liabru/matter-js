@@ -38,18 +38,24 @@ var Runner = {};
      * @param {engine} engine
      */
     Runner.run = function(engine) {
+        var runner = Engine.runner(engine);
+        (function callback(time){
+            runner(time);
+            engine.timing.frameRequestId = _requestAnimationFrame(callback);
+        })();
+    };
+    
+    Runner.runner = function(engine) {
         var counterTimestamp = 0,
             frameCounter = 0,
             deltaHistory = [],
             timePrev,
             timeScalePrev = 1;
 
-        (function render(time){
+        return (function(time){
             var timing = engine.timing,
                 delta,
                 correction = 1;
-
-            timing.frameRequestId = _requestAnimationFrame(render);
 
             if (!engine.enabled)
                 return;
@@ -121,7 +127,7 @@ var Runner = {};
             }
 
             Events.trigger(engine, 'afterTick', event);
-        })();
+        });
     };
 
     /**
