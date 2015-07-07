@@ -75,7 +75,7 @@ var Engine = {};
         engine.metrics = engine.metrics || { extended: false };
 
         // @if DEBUG
-        engine.metrics = engine.metrics || Metrics.create();
+        engine.metrics = Metrics.create(engine.metrics);
         // @endif
 
         return engine;

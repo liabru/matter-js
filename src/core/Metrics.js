@@ -14,8 +14,8 @@ var Metrics = {};
      * @private
      * @return {metrics} A new metrics
      */
-    Metrics.create = function() {
-        return {
+    Metrics.create = function(options) {
+        var defaults = {
             extended: false,
             narrowDetections: 0,
             narrowphaseTests: 0,
@@ -31,6 +31,8 @@ var Metrics = {};
             bodies: 0,
             pairs: 0
         };
+
+        return Common.extend(defaults, false, options);
     };
 
     /**
