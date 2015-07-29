@@ -127,6 +127,12 @@ var Render = {};
             constraints = [],
             i;
 
+        var event = {
+            timestamp: engine.timing.timestamp
+        };
+
+        Events.trigger(render, 'beforeRender', event);
+
         // apply background if it has changed
         if (render.currentBackground !== background)
             _applyBackground(render, background);
@@ -224,6 +230,8 @@ var Render = {};
             // revert view transforms
             context.setTransform(options.pixelRatio, 0, 0, options.pixelRatio, 0, 0);
         }
+
+        Events.trigger(render, 'afterRender', event);
     };
 
     /**
@@ -1117,6 +1125,32 @@ var Render = {};
         render.canvas.style.backgroundSize = "contain";
         render.currentBackground = background;
     };
+
+    /*
+    *
+    *  Events Documentation
+    *
+    */
+
+    /**
+    * Fired before rendering
+    *
+    * @event beforeRender
+    * @param {} event An event object
+    * @param {number} event.timestamp The engine.timing.timestamp of the event
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired after rendering
+    *
+    * @event afterRender
+    * @param {} event An event object
+    * @param {number} event.timestamp The engine.timing.timestamp of the event
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
 
     /*
     *
