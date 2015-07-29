@@ -27,6 +27,7 @@
     var Demo = {};
 
     var _engine,
+        _runner,
         _gui,
         _inspector,
         _sceneName,
@@ -57,7 +58,7 @@
         World.add(_engine.world, _mouseConstraint);
 
         // run the engine
-        Engine.run(_engine);
+        _runner = Engine.run(_engine);
 
         // default scene function name
         _sceneName = 'mixed';
@@ -344,7 +345,7 @@
 
         World.add(_engine.world, [ground, pyramid, ground2, pyramid2, rock, elastic]);
 
-        Events.on(_engine, 'tick', function() {
+        Events.on(_engine, 'afterUpdate', function() {
             if (_mouseConstraint.mouse.button === -1 && (rock.position.x > 190 || rock.position.y < 430)) {
                 rock = Bodies.polygon(170, 450, 7, 20, rockOptions);
                 World.add(_engine.world, rock);
@@ -491,7 +492,7 @@
         _world.gravity.y = 0;
 
         _sceneEvents.push(
-            Events.on(_engine, 'tick', function(event) {
+            Events.on(_engine, 'afterUpdate', function(event) {
                 var time = _engine.timing.timestamp;
 
                 Composite.translate(stack, {
@@ -564,7 +565,7 @@
 
         // use the engine tick event to control our view
         _sceneEvents.push(
-            Events.on(_engine, 'beforeTick', function() {
+            Events.on(_runner, 'beforeTick', function() {
                 var world = _engine.world,
                     mouse = _mouseConstraint.mouse,
                     render = _engine.render,
@@ -986,7 +987,7 @@
             counter = 0;
 
         _sceneEvents.push(
-            Events.on(_engine, 'tick', function(event) {
+            Events.on(_engine, 'afterUpdate', function(event) {
                 // tween the timescale for bullet time slow-mo
                 _engine.timing.timeScale += (timeScaleTarget - _engine.timing.timeScale) * 0.05;
 
@@ -1482,7 +1483,7 @@
         World.add(_world, [stack, concave]);
 
         _sceneEvents.push(
-            Events.on(_engine, 'afterRender', function() {
+            Events.on(_engine.render, 'afterRender', function() {
                 var mouse = _mouseConstraint.mouse,
                     context = _engine.render.context,
                     bodies = Composite.allBodies(_engine.world),
@@ -1610,7 +1611,7 @@
 
         // create a Matter.Gui
         if (!_isMobile && Gui) {
-            _gui = Gui.create(_engine);
+            _gui = Gui.create(_engine, _runner);
 
             // need to add mouse constraint back in after gui clear or load is pressed
             Events.on(_gui, 'clear load', function() {
@@ -1626,7 +1627,7 @@
 
         // create a Matter.Inspector
         if (!_isMobile && Inspector && _useInspector) {
-            _inspector = Inspector.create(_engine);
+            _inspector = Inspector.create(_engine, _runner);
 
             Events.on(_inspector, 'import', function() {
                 _mouseConstraint = MouseConstraint.create(_engine);
@@ -1727,6 +1728,16 @@
         if (_world.events) {
             for (i = 0; i < _sceneEvents.length; i++)
                 Events.off(_world, _sceneEvents[i]);
+        }
+
+        if (_runner.events) {
+            for (i = 0; i < _sceneEvents.length; i++)
+                Events.off(_runner, _sceneEvents[i]);
+        }
+
+        if (_engine.render.events) {
+            for (i = 0; i < _sceneEvents.length; i++)
+                Events.off(_engine.render, _sceneEvents[i]);
         }
 
         _sceneEvents = [];
