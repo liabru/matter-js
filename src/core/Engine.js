@@ -1,6 +1,6 @@
 /**
 * The `Matter.Engine` module contains methods for creating and manipulating engines.
-* An engine is a controller that manages updating and rendering the simulation of the world.
+* An engine is a controller that manages updating the simulation of the world.
 * See `Matter.Runner` for an optional game loop utility.
 *
 * See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
@@ -12,9 +12,6 @@
 var Engine = {};
 
 (function() {
-
-    var _fps = 60,
-        _delta = 1000 / _fps;
 
     /**
      * Creates a new engine. The options parameter is an object that specifies any properties you wish to override the defaults.
@@ -32,22 +29,14 @@ var Engine = {};
         element = Common.isElement(element) ? element : null;
 
         var defaults = {
-            enabled: true,
             positionIterations: 6,
             velocityIterations: 4,
             constraintIterations: 2,
             enableSleeping: false,
             events: [],
             timing: {
-                fps: _fps,
                 timestamp: 0,
-                delta: _delta,
-                correction: 1,
-                deltaMin: 1000 / _fps,
-                deltaMax: 1000 / (_fps * 0.5),
-                timeScale: 1,
-                isFixed: false,
-                frameRequestId: 0
+                timeScale: 1
             },
             broadphase: {
                 controller: Grid
@@ -82,7 +71,13 @@ var Engine = {};
     };
 
     /**
-     * Moves the simulation forward in time by `delta` ms. 
+     * Moves the simulation forward in time by `delta` ms.
+     * The `correction` argument is an optional `Number` that specifies the time correction factor to apply to the update.
+     * This can help improve the accuracy of the simulation in cases where `delta` is changing between updates.
+     * The value of `correction` is defined as `delta / lastDelta`, i.e. the percentage change of `delta` over the last step.
+     * Therefore the value is always `1` (no correction) when `delta` constant (or when no correction is desired, which is the default).
+     * See the paper on <a href="http://lonesock.net/article/verlet.html">Time Corrected Verlet</a> for more information.
+     *
      * Triggers `beforeUpdate` and `afterUpdate` events.
      * Triggers `collisionStart`, `collisionActive` and `collisionEnd` events.
      * @method update
@@ -101,11 +96,10 @@ var Engine = {};
 
         // increment timestamp
         timing.timestamp += delta * timing.timeScale;
-        timing.correction = correction;
 
         // create an event object
         var event = {
-            timestamp: engine.timing.timestamp
+            timestamp: timing.timestamp
         };
 
         Events.trigger(engine, 'beforeUpdate', event);
@@ -203,22 +197,6 @@ var Engine = {};
         Events.trigger(engine, 'afterUpdate', event);
 
         return engine;
-    };
-
-    /**
-     * Renders the world by calling its defined renderer `engine.render.controller`. Triggers `beforeRender` and `afterRender` events.
-     * @method render
-     * @param {engine} engine
-     */
-    Engine.render = function(engine) {
-        // create an event object
-        var event = {
-            timestamp: engine.timing.timestamp
-        };
-
-        Events.trigger(engine, 'beforeRender', event);
-        engine.render.controller.world(engine);
-        Events.trigger(engine, 'afterRender', event);
     };
     
     /**
@@ -329,38 +307,12 @@ var Engine = {};
      * @param {engine} engine
      */
 
-    /*
-    *
-    *  Events Documentation
-    *
-    */
-
-    /**
-    * Fired at the start of a tick, before any updates to the engine or timing
-    *
-    * @event beforeTick
-    * @param {} event An event object
-    * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
-    * @param {} event.source The source object of the event
-    * @param {} event.name The name of the event
-    */
-
-    /**
-    * Fired after engine timing updated, but just before engine state updated
-    *
-    * @event tick
-    * @param {} event An event object
-    * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
-    * @param {} event.source The source object of the event
-    * @param {} event.name The name of the event
-    */
-
     /**
     * Fired just before an update
     *
     * @event beforeUpdate
     * @param {} event An event object
-    * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
+    * @param {number} event.timestamp The engine.timing.timestamp of the event
     * @param {} event.source The source object of the event
     * @param {} event.name The name of the event
     */
@@ -370,37 +322,7 @@ var Engine = {};
     *
     * @event afterUpdate
     * @param {} event An event object
-    * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
-    * @param {} event.source The source object of the event
-    * @param {} event.name The name of the event
-    */
-
-    /**
-    * Fired just before rendering
-    *
-    * @event beforeRender
-    * @param {} event An event object
-    * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
-    * @param {} event.source The source object of the event
-    * @param {} event.name The name of the event
-    */
-
-    /**
-    * Fired after rendering
-    *
-    * @event afterRender
-    * @param {} event An event object
-    * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
-    * @param {} event.source The source object of the event
-    * @param {} event.name The name of the event
-    */
-
-    /**
-    * Fired after engine update and after rendering
-    *
-    * @event afterTick
-    * @param {} event An event object
-    * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
+    * @param {number} event.timestamp The engine.timing.timestamp of the event
     * @param {} event.source The source object of the event
     * @param {} event.name The name of the event
     */
@@ -411,7 +333,7 @@ var Engine = {};
     * @event collisionStart
     * @param {} event An event object
     * @param {} event.pairs List of affected pairs
-    * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
+    * @param {number} event.timestamp The engine.timing.timestamp of the event
     * @param {} event.source The source object of the event
     * @param {} event.name The name of the event
     */
@@ -422,7 +344,7 @@ var Engine = {};
     * @event collisionActive
     * @param {} event An event object
     * @param {} event.pairs List of affected pairs
-    * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
+    * @param {number} event.timestamp The engine.timing.timestamp of the event
     * @param {} event.source The source object of the event
     * @param {} event.name The name of the event
     */
@@ -433,7 +355,7 @@ var Engine = {};
     * @event collisionEnd
     * @param {} event An event object
     * @param {} event.pairs List of affected pairs
-    * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
+    * @param {number} event.timestamp The engine.timing.timestamp of the event
     * @param {} event.source The source object of the event
     * @param {} event.name The name of the event
     */
@@ -443,14 +365,6 @@ var Engine = {};
     *  Properties Documentation
     *
     */
-
-    /**
-     * A flag that specifies whether the engine is running or not.
-     *
-     * @property enabled
-     * @type boolean
-     * @default true
-     */
 
     /**
      * An integer `Number` that specifies the number of position iterations to perform each update.
@@ -509,44 +423,11 @@ var Engine = {};
 
     /**
      * A `Number` that specifies the current simulation-time in milliseconds starting from `0`. 
-     * It is incremented on every `Engine.update` by the `timing.delta`. 
+     * It is incremented on every `Engine.update` by the given `delta` argument. 
      *
      * @property timing.timestamp
      * @type number
      * @default 0
-     */
-
-    /**
-     * A `Boolean` that specifies if the `Engine.run` game loop should use a fixed timestep (otherwise it is variable).
-     * If timing is fixed, then the apparent simulation speed will change depending on the frame rate (but behaviour will be deterministic).
-     * If the timing is variable, then the apparent simulation speed will be constant (approximately, but at the cost of determininism).
-     *
-     * @property timing.isFixed
-     * @type boolean
-     * @default false
-     */
-
-    /**
-     * A `Number` that specifies the time step between updates in milliseconds.
-     * If `engine.timing.isFixed` is set to `true`, then `delta` is fixed.
-     * If it is `false`, then `delta` can dynamically change to maintain the correct apparent simulation speed.
-     *
-     * @property timing.delta
-     * @type number
-     * @default 1000 / 60
-     */
-
-    /**
-     * A `Number` that specifies the time correction factor to apply to the current timestep.
-     * It is automatically handled when using `Engine.run`, but is also only optional even if you use your own game loop.
-     * The value is defined as `delta / lastDelta`, i.e. the percentage change of `delta` between steps.
-     * This value is always `1` (no correction) when frame rate is constant or `engine.timing.isFixed` is `true`.
-     * If the framerate and hence `delta` are changing, then correction should be applied to the current update to account for the change.
-     * See the paper on <a href="http://lonesock.net/article/verlet.html">Time Corrected Verlet</a> for more information.
-     *
-     * @property timing.correction
-     * @type number
-     * @default 1
      */
 
     /**

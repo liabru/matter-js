@@ -35,15 +35,26 @@ var Runner = {};
      */
     Runner.create = function(options) {
         var defaults = {
+            fps: 60,
+            correction: 1,
             deltaSampleSize: 60,
             counterTimestamp: 0,
             frameCounter: 0,
             deltaHistory: [],
             timePrev: null,
-            timeScalePrev: 1
+            timeScalePrev: 1,
+            frameRequestId: null,
+            isFixed: false,
+            enabled: true
         };
 
-        return Common.extend(defaults, options);
+        var runner = Common.extend(defaults, options);
+
+        runner.delta = 1000 / runner.fps;
+        runner.deltaMin = 1000 / runner.fps;
+        runner.deltaMax = 1000 / (runner.fps * 0.5);
+
+        return runner;
     };
 
     /**
@@ -55,13 +66,13 @@ var Runner = {};
         // create runner if engine is first argument
         if (typeof runner.positionIterations !== 'undefined') {
             engine = runner;
-            runner = Runner.create(engine);
+            runner = Runner.create();
         }
 
         (function render(time){
-            engine.timing.frameRequestId = _requestAnimationFrame(render);
+            runner.frameRequestId = _requestAnimationFrame(render);
 
-            if (time && engine.enabled) {
+            if (time && runner.enabled) {
                 Runner.tick(runner, engine, time);
             }
         })();
@@ -86,17 +97,18 @@ var Runner = {};
 
         // create an event object
         var event = {
-            timestamp: time
+            timestamp: timing.timestamp
         };
 
-        Events.trigger(engine, 'beforeTick', event);
+        Events.trigger(runner, 'beforeTick', event);
+        Events.trigger(engine, 'beforeTick', event); // @deprecated
 
-        if (timing.isFixed) {
+        if (runner.isFixed) {
             // fixed timestep
-            delta = timing.delta;
+            delta = runner.delta;
         } else {
             // dynamic timestep based on wall clock between calls
-            delta = (time - runner.timePrev) || timing.delta;
+            delta = (time - runner.timePrev) || runner.delta;
             runner.timePrev = time;
 
             // optimistically filter delta over a few frames, to improve stability
@@ -105,14 +117,14 @@ var Runner = {};
             delta = Math.min.apply(null, runner.deltaHistory);
             
             // limit delta
-            delta = delta < timing.deltaMin ? timing.deltaMin : delta;
-            delta = delta > timing.deltaMax ? timing.deltaMax : delta;
+            delta = delta < runner.deltaMin ? runner.deltaMin : delta;
+            delta = delta > runner.deltaMax ? runner.deltaMax : delta;
 
-            // time runner.correction for delta
-            correction = delta / timing.delta;
+            // correction for delta
+            correction = delta / runner.delta;
 
             // update engine timing object
-            timing.delta = delta;
+            runner.delta = delta;
         }
 
         // time correction for time scaling
@@ -127,12 +139,13 @@ var Runner = {};
         // fps counter
         runner.frameCounter += 1;
         if (time - runner.counterTimestamp >= 1000) {
-            timing.fps = runner.frameCounter * ((time - runner.counterTimestamp) / 1000);
+            runner.fps = runner.frameCounter * ((time - runner.counterTimestamp) / 1000);
             runner.counterTimestamp = time;
             runner.frameCounter = 0;
         }
 
-        Events.trigger(engine, 'tick', event);
+        Events.trigger(runner, 'tick', event);
+        Events.trigger(engine, 'tick', event); // @deprecated
 
         // if world has been modified, clear the render scene graph
         if (engine.world.isModified 
@@ -143,24 +156,143 @@ var Runner = {};
         }
 
         // update
+        Events.trigger(runner, 'beforeUpdate', event);
         Engine.update(engine, delta, correction);
+        Events.trigger(runner, 'afterUpdate', event);
 
         // render
         if (engine.render) {
-            Engine.render(engine);
+            Events.trigger(runner, 'beforeRender', event);
+            Events.trigger(engine, 'beforeRender', event); // @deprecated
+
+            engine.render.controller.world(engine);
+
+            Events.trigger(runner, 'afterRender', event);
+            Events.trigger(engine, 'afterRender', event); // @deprecated
         }
 
-        Events.trigger(engine, 'afterTick', event);
+        Events.trigger(runner, 'afterTick', event);
+        Events.trigger(engine, 'afterTick', event); // @deprecated
     };
 
     /**
-     * Ends execution of `Runner.run` on the given `engine`, by canceling the animation frame request event loop.
+     * Ends execution of `Runner.run` on the given `runner`, by canceling the animation frame request event loop.
      * If you wish to only temporarily pause the engine, see `engine.enabled` instead.
      * @method stop
-     * @param {engine} engine
+     * @param {runner} runner
      */
-    Runner.stop = function(engine) {
-        _cancelAnimationFrame(engine.timing.frameRequestId);
+    Runner.stop = function(runner) {
+        _cancelAnimationFrame(runner.frameRequestId);
     };
+
+    /*
+    *
+    *  Events Documentation
+    *
+    */
+
+    /**
+    * Fired at the start of a tick, before any updates to the engine or timing
+    *
+    * @event beforeTick
+    * @param {} event An event object
+    * @param {number} event.timestamp The engine.timing.timestamp of the event
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired after engine timing updated, but just before update
+    *
+    * @event tick
+    * @param {} event An event object
+    * @param {number} event.timestamp The engine.timing.timestamp of the event
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired at the end of a tick, after engine update and after rendering
+    *
+    * @event afterTick
+    * @param {} event An event object
+    * @param {number} event.timestamp The engine.timing.timestamp of the event
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired before update
+    *
+    * @event beforeUpdate
+    * @param {} event An event object
+    * @param {number} event.timestamp The engine.timing.timestamp of the event
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired after update
+    *
+    * @event afterUpdate
+    * @param {} event An event object
+    * @param {number} event.timestamp The engine.timing.timestamp of the event
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired before rendering
+    *
+    * @event beforeRender
+    * @param {} event An event object
+    * @param {number} event.timestamp The engine.timing.timestamp of the event
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired after rendering
+    *
+    * @event afterRender
+    * @param {} event An event object
+    * @param {number} event.timestamp The engine.timing.timestamp of the event
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /*
+    *
+    *  Properties Documentation
+    *
+    */
+
+    /**
+     * A flag that specifies whether the runner is running or not.
+     *
+     * @property enabled
+     * @type boolean
+     * @default true
+     */
+
+    /**
+     * A `Boolean` that specifies if the `Engine.run` game loop should use a fixed timestep (otherwise it is variable).
+     * If timing is fixed, then the apparent simulation speed will change depending on the frame rate (but behaviour will be deterministic).
+     * If the timing is variable, then the apparent simulation speed will be constant (approximately, but at the cost of determininism).
+     *
+     * @property isFixed
+     * @type boolean
+     * @default false
+     */
+
+    /**
+     * A `Number` that specifies the time step between updates in milliseconds.
+     * If `engine.timing.isFixed` is set to `true`, then `delta` is fixed.
+     * If it is `false`, then `delta` can dynamically change to maintain the correct apparent simulation speed.
+     *
+     * @property delta
+     * @type number
+     * @default 1000 / 60
+     */
 
 })();
