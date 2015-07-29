@@ -1022,7 +1022,7 @@ var Render = {};
 
             }
 
-            context.setLineDash([0]);
+            context.setLineDash([]);
             context.translate(-0.5, -0.5);
         }
 
