@@ -57,7 +57,7 @@ module.exports = function(grunt) {
       options: {
         jshintrc: '.jshintrc'
       },
-      all: ['src/**/*.js', 'demo/js/*.js', '!src/module/*']
+      all: ['src/**/*.js', 'demo/js/*.js', 'tests/browser/TestDemo.js', '!src/module/*']
     },
     connect: {
       watch: {
@@ -107,6 +107,16 @@ module.exports = function(grunt) {
         src: 'build/<%= buildName %>.js',
         dest: 'build/<%= buildName %>.js'
       }
+    },
+    shell: {
+      testBrowser: {
+        command: 'phantomjs tests/browser/TestDemo.js',
+        options: {
+          execOptions: {
+            timeout: 1000 * 60
+          }
+        }
+      }
     }
   });
 
@@ -118,9 +128,11 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-contrib-yuidoc');
   grunt.loadNpmTasks('grunt-preprocess');
+  grunt.loadNpmTasks('grunt-shell');
 
   grunt.registerTask('default', ['test', 'build']);
   grunt.registerTask('test', ['jshint']);
+  grunt.registerTask('testBrowser', ['shell:testBrowser']);
   grunt.registerTask('dev', ['build:dev', 'connect:watch', 'watch']);
 
   grunt.registerTask('build', function(mode) {
