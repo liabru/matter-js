@@ -109,8 +109,11 @@ module.exports = function(grunt) {
       }
     },
     shell: {
-      testBrowser: {
-        command: 'phantomjs tests/browser/TestDemo.js',
+      testDemo: {
+        command: function(arg) {
+          arg = arg ? ' --' + arg : '';
+          return 'phantomjs tests/browser/TestDemo.js' + arg;
+        },
         options: {
           execOptions: {
             timeout: 1000 * 60
@@ -131,9 +134,21 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-shell');
 
   grunt.registerTask('default', ['test', 'build']);
-  grunt.registerTask('test', ['jshint']);
-  grunt.registerTask('testBrowser', ['shell:testBrowser']);
+  grunt.registerTask('test', ['jshint', 'testDemo']);
   grunt.registerTask('dev', ['build:dev', 'connect:watch', 'watch']);
+
+  grunt.registerTask('testDemo', function() {
+    var updateAll = grunt.option('updateAll'),
+        diff = grunt.option('diff');
+
+    if (updateAll) {
+      grunt.task.run('shell:testDemo:updateAll');
+    } else if (diff) {
+      grunt.task.run('shell:testDemo:diff');
+    } else {
+      grunt.task.run('shell:testDemo');
+    }
+  });
 
   grunt.registerTask('build', function(mode) {
     var isDev = (mode === 'dev'),

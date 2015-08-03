@@ -53,6 +53,9 @@ var test = function(status) {
         var worldStart = page.evaluate(function(demo) {
             var engine = Matter.Demo._engine;
             Matter.Runner.stop(engine);
+            if (!(demo in Matter.Demo)) {
+                throw '\'' + demo + '\' is not defined in Matter.Demo';
+            }
             Matter.Demo[demo]();
             return engine.world;
         }, demo);
@@ -71,7 +74,7 @@ var test = function(status) {
 
         if (fs.exists(worldStartPath)) {
             var worldStartRef = resurrect.resurrect(fs.read(worldStartPath));
-            var worldStartDiff = compare(worldStart, worldStartRef);
+            var worldStartDiff = compare(worldStartRef, worldStart);
 
             if (worldStartDiff.length !== 0) {
                 if (diff) {
@@ -92,7 +95,7 @@ var test = function(status) {
 
         if (fs.exists(worldEndPath)) {
             var worldEndRef = resurrect.resurrect(fs.read(worldEndPath));
-            var worldEndDiff = compare(worldEnd, worldEndRef);
+            var worldEndDiff = compare(worldEndRef, worldEnd);
 
             if (worldEndDiff.length !== 0) {
                 if (diff) {
@@ -133,9 +136,9 @@ var test = function(status) {
     if (isOk) {
         console.log('ok');
     } else {
-        console.log('changes detected on:');
+        console.log('\nchanges detected on:');
         console.log(changed.join(', '));
-        console.log('review, then --update [name] or --updateAll');
+        console.log('\nreview, then --update [name] or --updateAll');
         console.log('use --diff for diff log');
     }
 
