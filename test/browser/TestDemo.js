@@ -7,8 +7,8 @@ var system = require('system');
 var demo,
     frames = 10,
     testUrl = 'http://localhost:9000/demo/dev.html',
-    refsPath = 'tests/browser/refs',
-    diffsPath = 'tests/browser/diffs';
+    refsPath = 'test/browser/refs',
+    diffsPath = 'test/browser/diffs';
 
 var update = arg('--update'),
     updateAll = typeof arg('--updateAll') !== 'undefined',

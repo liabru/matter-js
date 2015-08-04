@@ -57,7 +57,7 @@ module.exports = function(grunt) {
       options: {
         jshintrc: '.jshintrc'
       },
-      all: ['src/**/*.js', 'demo/js/*.js', 'tests/browser/TestDemo.js', '!src/module/*']
+      all: ['src/**/*.js', 'demo/js/*.js', 'test/browser/TestDemo.js', '!src/module/*']
     },
     connect: {
       watch: {
@@ -117,7 +117,7 @@ module.exports = function(grunt) {
       testDemo: {
         command: function(arg) {
           arg = arg ? ' --' + arg : '';
-          return 'phantomjs tests/browser/TestDemo.js' + arg;
+          return 'phantomjs test/browser/TestDemo.js' + arg;
         },
         options: {
           execOptions: {
