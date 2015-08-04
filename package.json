@@ -34,7 +34,7 @@
   },
   "scripts": {
     "dev": "npm install && grunt dev",
-    "test": "grunt test"
+    "test": "grunt test:all"
   },
   "dependencies": {}
 }
