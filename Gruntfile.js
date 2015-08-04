@@ -66,6 +66,11 @@ module.exports = function(grunt) {
           open: 'http://localhost:9000/demo/dev.html',
           livereload: 9001
         }
+      },
+      serve: {
+        options: {
+          port: 9000
+        }
       }
     },
     watch: {
@@ -134,10 +139,11 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-shell');
 
   grunt.registerTask('default', ['test', 'build']);
-  grunt.registerTask('test', ['jshint', 'testDemo']);
+  grunt.registerTask('test', ['jshint', 'test:demo']);
+  grunt.registerTask('test:all', ['build:dev', 'connect:serve', 'test']);
   grunt.registerTask('dev', ['build:dev', 'connect:watch', 'watch']);
 
-  grunt.registerTask('testDemo', function() {
+  grunt.registerTask('test:demo', function() {
     var updateAll = grunt.option('updateAll'),
         diff = grunt.option('diff');
 
