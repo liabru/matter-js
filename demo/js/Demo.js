@@ -25,6 +25,7 @@
     }
 
     var Demo = {};
+    Matter.Demo = Demo;
 
     var _engine,
         _runner,
@@ -34,7 +35,8 @@
         _mouseConstraint,
         _sceneEvents = [],
         _useInspector = window.location.hash.indexOf('-inspect') !== -1,
-        _isMobile = /(ipad|iphone|ipod|android)/gi.test(navigator.userAgent);
+        _isMobile = /(ipad|iphone|ipod|android)/gi.test(navigator.userAgent),
+        _isAutomatedTest = window._phantom ? true : false;
     
     // initialise the demo
 
@@ -56,6 +58,12 @@
         // add a mouse controlled constraint
         _mouseConstraint = MouseConstraint.create(_engine);
         World.add(_engine.world, _mouseConstraint);
+
+        // engine reference for external use
+        Matter.Demo._engine = _engine;
+
+        // skip runner when performing automated tests
+        if (_isAutomatedTest) return;
 
         // run the engine
         _runner = Engine.run(_engine);
