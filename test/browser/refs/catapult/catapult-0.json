@@ -850,8 +850,8 @@
     "frictionAir": 0.01,
     "frictionStatic": 0.5,
     "id": 11,
-    "inertia": 219306.66666666666,
-    "inverseInertia": 0.000004559824902723735,
+    "inertia": 219306.66667,
+    "inverseInertia": 0,
     "inverseMass": 0.15625,
     "isSleeping": false,
     "isStatic": false,
@@ -1204,7 +1204,7 @@
     "anglePrev": 0,
     "angularSpeed": 0,
     "angularVelocity": 0,
-    "area": 7777.744665999999,
+    "area": 7777.74467,
     "axes": {
       "#": 129
     },
@@ -1218,7 +1218,7 @@
     "constraintImpulse": {
       "#": 147
     },
-    "density": 0.005000000000000001,
+    "density": 0.005,
     "force": {
       "#": 148
     },
@@ -1226,13 +1226,13 @@
     "frictionAir": 0.01,
     "frictionStatic": 0.5,
     "id": 13,
-    "inertia": 192559.86686574563,
-    "inverseInertia": 0.000005193190129785499,
-    "inverseMass": 0.0257143951863436,
+    "inertia": 192559.86687,
+    "inverseInertia": 0.00001,
+    "inverseMass": 0.02571,
     "isSleeping": false,
     "isStatic": false,
     "label": "Circle Body",
-    "mass": 38.88872333,
+    "mass": 38.88872,
     "motion": 0,
     "parent": null,
     "position": {
@@ -1305,52 +1305,52 @@
     }
   ],
   {
-    "x": -0.970952042258738,
-    "y": -0.239274176696078
+    "x": -0.97095,
+    "y": -0.23927
   },
   {
-    "x": -0.8854431390332113,
-    "y": -0.46474772461951164
+    "x": -0.88544,
+    "y": -0.46475
   },
   {
-    "x": -0.748538767034939,
-    "y": -0.6630910301352396
+    "x": -0.74854,
+    "y": -0.66309
   },
   {
-    "x": -0.5680489228149688,
-    "y": -0.8229947881297631
+    "x": -0.56805,
+    "y": -0.82299
   },
   {
-    "x": -0.35459420851145496,
-    "y": -0.9350202924483163
+    "x": -0.35459,
+    "y": -0.93502
   },
   {
-    "x": -0.12054195746334154,
-    "y": -0.992708233314757
+    "x": -0.12054,
+    "y": -0.99271
   },
   {
-    "x": 0.12054195746334154,
-    "y": -0.992708233314757
+    "x": 0.12054,
+    "y": -0.99271
   },
   {
-    "x": 0.35459420851145496,
-    "y": -0.9350202924483163
+    "x": 0.35459,
+    "y": -0.93502
   },
   {
-    "x": 0.5680489228149688,
-    "y": -0.8229947881297631
+    "x": 0.56805,
+    "y": -0.82299
   },
   {
-    "x": 0.748538767034939,
-    "y": -0.6630910301352396
+    "x": 0.74854,
+    "y": -0.66309
   },
   {
-    "x": 0.8854431390332113,
-    "y": -0.46474772461951164
+    "x": 0.88544,
+    "y": -0.46475
   },
   {
-    "x": 0.970952042258738,
-    "y": -0.239274176696078
+    "x": 0.97095,
+    "y": -0.23927
   },
   {
     "x": 1,
@@ -1605,7 +1605,7 @@
     "index": 15,
     "isInternal": false,
     "x": 518.851,
-    "y": 71.59700000000001
+    "y": 71.597
   },
   {
     "body": null,
@@ -1661,7 +1661,7 @@
     "index": 23,
     "isInternal": false,
     "x": 601.149,
-    "y": 71.59700000000001
+    "y": 71.597
   },
   {
     "body": null,
@@ -1761,8 +1761,8 @@
     "frictionStatic": 0.5,
     "id": 5,
     "inertia": 540,
-    "inverseInertia": 0.001851851851851852,
-    "inverseMass": 1.1111111111111112,
+    "inverseInertia": 0.00185,
+    "inverseMass": 1.11111,
     "isSleeping": false,
     "isStatic": false,
     "label": "Rectangle Body",
@@ -1941,8 +1941,8 @@
     "frictionStatic": 0.5,
     "id": 6,
     "inertia": 540,
-    "inverseInertia": 0.001851851851851852,
-    "inverseMass": 1.1111111111111112,
+    "inverseInertia": 0.00185,
+    "inverseMass": 1.11111,
     "isSleeping": false,
     "isStatic": false,
     "label": "Rectangle Body",
@@ -2121,8 +2121,8 @@
     "frictionStatic": 0.5,
     "id": 7,
     "inertia": 540,
-    "inverseInertia": 0.001851851851851852,
-    "inverseMass": 1.1111111111111112,
+    "inverseInertia": 0.00185,
+    "inverseMass": 1.11111,
     "isSleeping": false,
     "isStatic": false,
     "label": "Rectangle Body",
@@ -2301,8 +2301,8 @@
     "frictionStatic": 0.5,
     "id": 8,
     "inertia": 540,
-    "inverseInertia": 0.001851851851851852,
-    "inverseMass": 1.1111111111111112,
+    "inverseInertia": 0.00185,
+    "inverseMass": 1.11111,
     "isSleeping": false,
     "isStatic": false,
     "label": "Rectangle Body",
@@ -2481,8 +2481,8 @@
     "frictionStatic": 0.5,
     "id": 9,
     "inertia": 540,
-    "inverseInertia": 0.001851851851851852,
-    "inverseMass": 1.1111111111111112,
+    "inverseInertia": 0.00185,
+    "inverseMass": 1.11111,
     "isSleeping": false,
     "isStatic": false,
     "label": "Rectangle Body",
@@ -2661,8 +2661,8 @@
     "frictionStatic": 0.5,
     "id": 10,
     "inertia": 540,
-    "inverseInertia": 0.001851851851851852,
-    "inverseMass": 1.1111111111111112,
+    "inverseInertia": 0.00185,
+    "inverseMass": 1.11111,
     "isSleeping": false,
     "isStatic": false,
     "label": "Rectangle Body",
@@ -2858,7 +2858,7 @@
     "bodyA": null,
     "id": 14,
     "label": "Constraint",
-    "length": 60.8276253029822,
+    "length": 60.82763,
     "pointA": {
       "#": 321
     },
@@ -2890,7 +2890,7 @@
     "bodyA": null,
     "id": 15,
     "label": "Constraint",
-    "length": 60.8276253029822,
+    "length": 60.82763,
     "pointA": {
       "#": 325
     },

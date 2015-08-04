@@ -52,7 +52,6 @@ var test = function(status) {
 
         var worldStart = page.evaluate(function(demo) {
             var engine = Matter.Demo._engine;
-            Matter.Runner.stop(engine);
             if (!(demo in Matter.Demo)) {
                 throw '\'' + demo + '\' is not defined in Matter.Demo';
             }
@@ -78,19 +77,19 @@ var test = function(status) {
 
             if (worldStartDiff.length !== 0) {
                 if (diff) {
-                    fs.write(worldStartDiffPath, JSON.stringify(worldStartDiff, null, 2), 'w');
+                    fs.write(worldStartDiffPath, JSON.stringify(worldStartDiff, precisionLimiter, 2), 'w');
                 }
 
                 if (forceUpdate) {
                     hasCreated = true;
-                    fs.write(worldStartPath, resurrect.stringify(worldStart, null, 2), 'w');
+                    fs.write(worldStartPath, resurrect.stringify(worldStart, precisionLimiter, 2), 'w');
                 } else {
                     hasChanged = true; 
                 }
             }
         } else {
             hasCreated = true;
-            fs.write(worldStartPath, resurrect.stringify(worldStart, null, 2), 'w');
+            fs.write(worldStartPath, resurrect.stringify(worldStart, precisionLimiter, 2), 'w');
         }
 
         if (fs.exists(worldEndPath)) {
@@ -99,19 +98,19 @@ var test = function(status) {
 
             if (worldEndDiff.length !== 0) {
                 if (diff) {
-                    fs.write(worldEndDiffPath, JSON.stringify(worldEndDiff, null, 2), 'w');
+                    fs.write(worldEndDiffPath, JSON.stringify(worldEndDiff, precisionLimiter, 2), 'w');
                 }
 
                 if (forceUpdate) {
                     hasCreated = true;
-                    fs.write(worldEndPath, resurrect.stringify(worldEnd, null, 2), 'w');
+                    fs.write(worldEndPath, resurrect.stringify(worldEnd, precisionLimiter, 2), 'w');
                 } else {
                     hasChanged = true;
                 }
             }
         } else {
             hasCreated = true;
-            fs.write(worldEndPath, resurrect.stringify(worldEnd, null, 2), 'w');
+            fs.write(worldEndPath, resurrect.stringify(worldEnd, precisionLimiter, 2), 'w');
         }
 
         if (hasChanged) {
@@ -143,6 +142,14 @@ var test = function(status) {
     }
 
     phantom.exit(!isOk);
+};
+
+var precisionLimiter = function(key, value) {
+    // limit precision of floats
+    if (typeof value === 'number') {
+        return parseFloat(value.toFixed(5));
+    }
+    return value;
 };
 
 function arg(name) {

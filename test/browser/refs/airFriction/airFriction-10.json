@@ -894,8 +894,8 @@
     "frictionStatic": 0.5,
     "id": 4,
     "inertia": 8640,
-    "inverseInertia": 0.00011574074074074075,
-    "inverseMass": 0.2777777777777778,
+    "inverseInertia": 0.00012,
+    "inverseMass": 0.27778,
     "isSleeping": false,
     "isStatic": false,
     "label": "Rectangle Body",
@@ -921,7 +921,7 @@
     "sleepCounter": 0,
     "sleepThreshold": 60,
     "slop": 0.05,
-    "speed": 3.0403235195726515,
+    "speed": 3.04032,
     "timeScale": 1,
     "torque": 0,
     "totalContacts": 0,
@@ -959,11 +959,11 @@
   },
   {
     "x": 230,
-    "y": 148.2723595024786
+    "y": 148.27236
   },
   {
     "x": 170,
-    "y": 88.27235950247865
+    "y": 88.27236
   },
   {
     "category": 1,
@@ -981,7 +981,7 @@
   },
   {
     "x": 200,
-    "y": 118.27235950247865
+    "y": 118.27236
   },
   {
     "x": 0,
@@ -989,7 +989,7 @@
   },
   {
     "x": 200,
-    "y": 115.232035982906
+    "y": 115.23204
   },
   {
     "endCol": 4,
@@ -1013,7 +1013,7 @@
   },
   {
     "x": 0,
-    "y": 3.0403235195726515
+    "y": 3.04032
   },
   [
     {
@@ -1034,28 +1034,28 @@
     "index": 0,
     "isInternal": false,
     "x": 170,
-    "y": 88.27235950247865
+    "y": 88.27236
   },
   {
     "body": null,
     "index": 1,
     "isInternal": false,
     "x": 230,
-    "y": 88.27235950247865
+    "y": 88.27236
   },
   {
     "body": null,
     "index": 2,
     "isInternal": false,
     "x": 230,
-    "y": 148.2723595024786
+    "y": 148.27236
   },
   {
     "body": null,
     "index": 3,
     "isInternal": false,
     "x": 170,
-    "y": 148.2723595024786
+    "y": 148.27236
   },
   {
     "angle": 0,
@@ -1084,8 +1084,8 @@
     "frictionStatic": 0.5,
     "id": 5,
     "inertia": 8640,
-    "inverseInertia": 0.00011574074074074075,
-    "inverseMass": 0.2777777777777778,
+    "inverseInertia": 0.00012,
+    "inverseMass": 0.27778,
     "isSleeping": false,
     "isStatic": false,
     "label": "Rectangle Body",
@@ -1111,7 +1111,7 @@
     "sleepCounter": 0,
     "sleepThreshold": 60,
     "slop": 0.05,
-    "speed": 2.3955550429085495,
+    "speed": 2.39556,
     "timeScale": 1,
     "torque": 0,
     "totalContacts": 0,
@@ -1149,11 +1149,11 @@
   },
   {
     "x": 430,
-    "y": 145.59556529584847
+    "y": 145.59557
   },
   {
     "x": 370,
-    "y": 85.59556529584846
+    "y": 85.59557
   },
   {
     "category": 1,
@@ -1171,7 +1171,7 @@
   },
   {
     "x": 400,
-    "y": 115.59556529584846
+    "y": 115.59557
   },
   {
     "x": 0,
@@ -1179,7 +1179,7 @@
   },
   {
     "x": 400,
-    "y": 113.2000102529399
+    "y": 113.20001
   },
   {
     "endCol": 8,
@@ -1203,7 +1203,7 @@
   },
   {
     "x": 0,
-    "y": 2.3955550429085495
+    "y": 2.39556
   },
   [
     {
@@ -1224,28 +1224,28 @@
     "index": 0,
     "isInternal": false,
     "x": 370,
-    "y": 85.59556529584846
+    "y": 85.59557
   },
   {
     "body": null,
     "index": 1,
     "isInternal": false,
     "x": 430,
-    "y": 85.59556529584846
+    "y": 85.59557
   },
   {
     "body": null,
     "index": 2,
     "isInternal": false,
     "x": 430,
-    "y": 145.59556529584847
+    "y": 145.59557
   },
   {
     "body": null,
     "index": 3,
     "isInternal": false,
     "x": 370,
-    "y": 145.59556529584847
+    "y": 145.59557
   },
   {
     "angle": 0,
@@ -1274,8 +1274,8 @@
     "frictionStatic": 0.5,
     "id": 6,
     "inertia": 8640,
-    "inverseInertia": 0.00011574074074074075,
-    "inverseMass": 0.2777777777777778,
+    "inverseInertia": 0.00012,
+    "inverseMass": 0.27778,
     "isSleeping": false,
     "isStatic": false,
     "label": "Rectangle Body",
@@ -1301,7 +1301,7 @@
     "sleepCounter": 0,
     "sleepThreshold": 60,
     "slop": 0.05,
-    "speed": 1.9060816775277751,
+    "speed": 1.90608,
     "timeScale": 1,
     "torque": 0,
     "totalContacts": 0,
@@ -1339,11 +1339,11 @@
   },
   {
     "x": 630,
-    "y": 143.40082045780542
+    "y": 143.40082
   },
   {
     "x": 570,
-    "y": 83.40082045780544
+    "y": 83.40082
   },
   {
     "category": 1,
@@ -1361,7 +1361,7 @@
   },
   {
     "x": 600,
-    "y": 113.40082045780544
+    "y": 113.40082
   },
   {
     "x": 0,
@@ -1369,7 +1369,7 @@
   },
   {
     "x": 600,
-    "y": 111.49473878027766
+    "y": 111.49474
   },
   {
     "endCol": 13,
@@ -1393,7 +1393,7 @@
   },
   {
     "x": 0,
-    "y": 1.9060816775277751
+    "y": 1.90608
   },
   [
     {
@@ -1414,28 +1414,28 @@
     "index": 0,
     "isInternal": false,
     "x": 570,
-    "y": 83.40082045780544
+    "y": 83.40082
   },
   {
     "body": null,
     "index": 1,
     "isInternal": false,
     "x": 630,
-    "y": 83.40082045780544
+    "y": 83.40082
   },
   {
     "body": null,
     "index": 2,
     "isInternal": false,
     "x": 630,
-    "y": 143.40082045780542
+    "y": 143.40082
   },
   {
     "body": null,
     "index": 3,
     "isInternal": false,
     "x": 570,
-    "y": 143.40082045780542
+    "y": 143.40082
   },
   {
     "max": {
