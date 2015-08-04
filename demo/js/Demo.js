@@ -25,6 +25,7 @@
     }
 
     var Demo = {};
+    Matter.Demo = Demo;
 
     var _engine,
         _gui,
@@ -1607,6 +1608,9 @@
     Demo.initControls = function() {
         var demoSelect = document.getElementById('demo-select'),
             demoReset = document.getElementById('demo-reset');
+
+        // engine reference for external use
+        Matter.Demo._engine = _engine;
 
         // create a Matter.Gui
         if (!_isMobile && Gui) {

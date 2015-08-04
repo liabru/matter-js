@@ -20,6 +20,7 @@
     "rigid body physics"
   ],
   "devDependencies": {
+    "fast-json-patch": "^0.5.4",
     "grunt": "~0.4.2",
     "grunt-contrib-concat": "~0.3.0",
     "grunt-contrib-connect": "~0.6.0",
@@ -28,11 +29,12 @@
     "grunt-contrib-uglify": "~0.2.7",
     "grunt-contrib-watch": "~0.5.3",
     "grunt-contrib-yuidoc": "~0.5.1",
-    "grunt-preprocess": "^4.1.0"
+    "grunt-preprocess": "^4.1.0",
+    "grunt-shell": "^1.1.2"
   },
   "scripts": {
     "dev": "npm install && grunt dev",
-    "test": "grunt test"
+    "test": "grunt test:all"
   },
   "dependencies": {}
 }
