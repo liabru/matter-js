@@ -6,7 +6,7 @@ var system = require('system');
 
 var demo,
     frames = 10,
-    testUrl = 'http://localhost:9000/demo/dev.html',
+    testUrl = 'http://localhost:8000/demo/dev.html',
     refsPath = 'test/browser/refs',
     diffsPath = 'test/browser/diffs';
 
@@ -70,6 +70,9 @@ var test = function(status) {
 
             return engine.world;
         }, demo, frames);
+
+        worldEnd = resurrect.resurrect(resurrect.stringify(worldEnd, precisionLimiter));
+        worldStart = resurrect.resurrect(resurrect.stringify(worldStart, precisionLimiter));
 
         if (fs.exists(worldStartPath)) {
             var worldStartRef = resurrect.resurrect(fs.read(worldStartPath));
@@ -145,7 +148,6 @@ var test = function(status) {
 };
 
 var precisionLimiter = function(key, value) {
-    // limit precision of floats
     if (typeof value === 'number') {
         return parseFloat(value.toFixed(5));
     }

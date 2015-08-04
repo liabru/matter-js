@@ -69,7 +69,7 @@ module.exports = function(grunt) {
       },
       serve: {
         options: {
-          port: 9000
+          port: 8000
         }
       }
     },
@@ -139,8 +139,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-shell');
 
   grunt.registerTask('default', ['test', 'build']);
-  grunt.registerTask('test', ['jshint', 'test:demo']);
-  grunt.registerTask('test:all', ['build:dev', 'connect:serve', 'test']);
+  grunt.registerTask('test', ['build:dev', 'connect:serve', 'jshint', 'test:demo']);
   grunt.registerTask('dev', ['build:dev', 'connect:watch', 'watch']);
 
   grunt.registerTask('test:demo', function() {
