@@ -3,7 +3,7 @@
 * An engine is a controller that manages updating and rendering the simulation of the world.
 * See `Matter.Runner` for an optional game loop utility.
 *
-* See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
+* See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js)
 * and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
 *
 * @class Engine
@@ -61,7 +61,7 @@ var Engine = {};
                 element: element,
                 controller: Render
             };
-            
+
             engine.render = Common.extend(renderDefaults, engine.render);
         }
 
@@ -82,7 +82,7 @@ var Engine = {};
     };
 
     /**
-     * Moves the simulation forward in time by `delta` ms. 
+     * Moves the simulation forward in time by `delta` ms.
      * Triggers `beforeUpdate` and `afterUpdate` events.
      * Triggers `collisionStart`, `collisionActive` and `collisionEnd` events.
      * @method update
@@ -220,7 +220,7 @@ var Engine = {};
         engine.render.controller.world(engine);
         Events.trigger(engine, 'afterRender', event);
     };
-    
+
     /**
      * Merges two engines by keeping the configuration of `engineA` but replacing the world with the one from `engineB`.
      * @method merge
@@ -229,7 +229,7 @@ var Engine = {};
      */
     Engine.merge = function(engineA, engineB) {
         Common.extend(engineA, engineB);
-        
+
         if (engineB.world) {
             engineA.world = engineB.world;
 
@@ -252,7 +252,7 @@ var Engine = {};
      */
     Engine.clear = function(engine) {
         var world = engine.world;
-        
+
         Pairs.clear(engine.pairs);
 
         var broadphase = engine.broadphase;
@@ -294,6 +294,10 @@ var Engine = {};
             if (body.isStatic || body.isSleeping)
                 continue;
 
+            if (gravity.isPoint === true) {
+                gravity = _calculateGravity(gravity, body.position);
+            }
+
             // apply gravity
             body.force.y += body.mass * gravity.y * 0.001;
             body.force.x += body.mass * gravity.x * 0.001;
@@ -301,14 +305,34 @@ var Engine = {};
     };
 
     /**
+     * Caluclates gravity based on point and body position
+     * @method calculateGravity
+     * @private
+     * @param {vector} point
+     * @param {vector} body position
+     * @return {vector} normalized gravity vector
+     */
+    var _calculateGravity = function(point, position) {
+        var x = point.x - position.x;
+        var y = point.y - position.y;
+
+        var length = Math.sqrt( x * x + y * y );
+
+        return {
+            x: x / length,
+            y: y / length
+        };
+    };
+
+    /**
      * Applys `Body.update` to all given `bodies`.
      * @method updateAll
      * @private
      * @param {body[]} bodies
-     * @param {number} deltaTime 
+     * @param {number} deltaTime
      * The amount of time elapsed between updates
      * @param {number} timeScale
-     * @param {number} correction 
+     * @param {number} correction
      * The Verlet correction factor (deltaTime / lastDeltaTime)
      * @param {bounds} worldBounds
      */
@@ -490,7 +514,7 @@ var Engine = {};
      */
 
     /**
-     * An `Object` containing properties regarding the timing systems of the engine. 
+     * An `Object` containing properties regarding the timing systems of the engine.
      *
      * @property timing
      * @type object
@@ -508,8 +532,8 @@ var Engine = {};
      */
 
     /**
-     * A `Number` that specifies the current simulation-time in milliseconds starting from `0`. 
-     * It is incremented on every `Engine.update` by the `timing.delta`. 
+     * A `Number` that specifies the current simulation-time in milliseconds starting from `0`.
+     * It is incremented on every `Engine.update` by the `timing.delta`.
      *
      * @property timing.timestamp
      * @type number
