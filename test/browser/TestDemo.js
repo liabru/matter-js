@@ -14,7 +14,7 @@ var update = arg('--update'),
     updateAll = typeof arg('--updateAll') !== 'undefined',
     diff = arg('--diff');
 
-var resurrect = new Resurrect({ cleanup: true }),
+var resurrect = new Resurrect({ cleanup: true, revive: false }),
     created = [],
     changed = [];
 
@@ -60,12 +60,11 @@ var test = function(status) {
         }, demo);
 
         var worldEnd = page.evaluate(function(demo, frames) {
-            var engine = Matter.Demo._engine;
+            var engine = Matter.Demo._engine,
+                runner = Matter.Runner.create();
 
             for (var j = 0; j <= frames; j += 1) {
-                Matter.Events.trigger(engine, 'tick', { timestamp: engine.timing.timestamp });
-                Matter.Engine.update(engine, engine.timing.delta);
-                Matter.Events.trigger(engine, 'afterTick', { timestamp: engine.timing.timestamp });
+                Matter.Runner.tick(runner, engine, j * runner.delta);
             }
 
             return engine.world;

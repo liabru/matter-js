@@ -573,7 +573,7 @@
 
         // use the engine tick event to control our view
         _sceneEvents.push(
-            Events.on(_runner, 'beforeTick', function() {
+            Events.on(_engine, 'beforeTick', function() {
                 var world = _engine.world,
                     mouse = _mouseConstraint.mouse,
                     render = _engine.render,
@@ -1738,7 +1738,7 @@
                 Events.off(_world, _sceneEvents[i]);
         }
 
-        if (_runner.events) {
+        if (_runner && _runner.events) {
             for (i = 0; i < _sceneEvents.length; i++)
                 Events.off(_runner, _sceneEvents[i]);
         }
