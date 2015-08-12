@@ -50,9 +50,10 @@ var Runner = {};
 
         var runner = Common.extend(defaults, options);
 
-        runner.delta = 1000 / runner.fps;
-        runner.deltaMin = 1000 / runner.fps;
-        runner.deltaMax = 1000 / (runner.fps * 0.5);
+        runner.delta = runner.delta || 1000 / runner.fps;
+        runner.deltaMin = runner.deltaMin || 1000 / runner.fps;
+        runner.deltaMax = runner.deltaMax || 1000 / (runner.fps * 0.5);
+        runner.fps = 1000 / runner.delta;
 
         return runner;
     };
@@ -135,6 +136,7 @@ var Runner = {};
             correction = 0;
 
         runner.timeScalePrev = timing.timeScale;
+        runner.correction = correction;
 
         // fps counter
         runner.frameCounter += 1;
@@ -276,7 +278,7 @@ var Runner = {};
      */
 
     /**
-     * A `Boolean` that specifies if the `Engine.run` game loop should use a fixed timestep (otherwise it is variable).
+     * A `Boolean` that specifies if the runner should use a fixed timestep (otherwise it is variable).
      * If timing is fixed, then the apparent simulation speed will change depending on the frame rate (but behaviour will be deterministic).
      * If the timing is variable, then the apparent simulation speed will be constant (approximately, but at the cost of determininism).
      *
