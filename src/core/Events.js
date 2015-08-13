@@ -1,5 +1,3 @@
-var Common = require('./Common');
-
 /**
 * See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
 * and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
@@ -10,6 +8,8 @@ var Common = require('./Common');
 var Events = {};
 
 module.exports = Events;
+
+var Common = require('./Common');
 
 (function() {
 

@@ -1,5 +1,3 @@
-var Events = require('./Events');
-
 /**
 * _Internal Class_, not generally used outside of the engine's internals.
 *
@@ -9,6 +7,8 @@ var Events = require('./Events');
 var Sleeping = {};
 
 module.exports = Sleeping;
+
+var Events = require('./Events');
 
 (function() {
 

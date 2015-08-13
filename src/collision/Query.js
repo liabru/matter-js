@@ -1,9 +1,3 @@
-var Vector = require('../geometry/Vector');
-var SAT = require('./SAT');
-var Bounds = require('../geometry/Bounds');
-var Bodies = require('../factory/Bodies');
-var Vertices = require('../geometry/Vertices');
-
 /**
 * The `Matter.Query` module contains methods for performing collision queries.
 *
@@ -13,6 +7,12 @@ var Vertices = require('../geometry/Vertices');
 var Query = {};
 
 module.exports = Query;
+
+var Vector = require('../geometry/Vector');
+var SAT = require('./SAT');
+var Bounds = require('../geometry/Bounds');
+var Bodies = require('../factory/Bodies');
+var Vertices = require('../geometry/Vertices');
 
 (function() {
 

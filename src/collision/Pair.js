@@ -1,5 +1,3 @@
-var Contact = require('./Contact');
-
 /**
 * _Internal Class_, not generally used outside of the engine's internals.
 *
@@ -9,6 +7,8 @@ var Contact = require('./Contact');
 var Pair = {};
 
 module.exports = Pair;
+
+var Contact = require('./Contact');
 
 (function() {
     

@@ -1,6 +1,3 @@
-var Vertices = require('../geometry/Vertices');
-var Vector = require('../geometry/Vector');
-
 /**
 * _Internal Class_, not generally used outside of the engine's internals.
 *
@@ -12,6 +9,9 @@ var Vector = require('../geometry/Vector');
 var SAT = {};
 
 module.exports = SAT;
+
+var Vertices = require('../geometry/Vertices');
+var Vector = require('../geometry/Vector');
 
 (function() {
 

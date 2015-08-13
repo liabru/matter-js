@@ -1,9 +1,3 @@
-var Vertices = require('../geometry/Vertices');
-var Common = require('../core/Common');
-var Body = require('../body/Body');
-var Bounds = require('../geometry/Bounds');
-var Vector = require('../geometry/Vector');
-
 /**
 * The `Matter.Bodies` module contains factory methods for creating rigid body models 
 * with commonly used body configurations (such as rectangles, circles and other polygons).
@@ -19,6 +13,12 @@ var Vector = require('../geometry/Vector');
 var Bodies = {};
 
 module.exports = Bodies;
+
+var Vertices = require('../geometry/Vertices');
+var Common = require('../core/Common');
+var Body = require('../body/Body');
+var Bounds = require('../geometry/Bounds');
+var Vector = require('../geometry/Vector');
 
 (function() {
 

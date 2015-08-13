@@ -1,7 +1,3 @@
-var Events = require('../core/Events');
-var Common = require('../core/Common');
-var Body = require('./Body');
-
 /**
 * The `Matter.Composite` module contains methods for creating and manipulating composite bodies.
 * A composite body is a collection of `Matter.Body`, `Matter.Constraint` and other `Matter.Composite`, therefore composites form a tree structure.
@@ -17,6 +13,10 @@ var Body = require('./Body');
 var Composite = {};
 
 module.exports = Composite;
+
+var Events = require('../core/Events');
+var Common = require('../core/Common');
+var Body = require('./Body');
 
 (function() {
 

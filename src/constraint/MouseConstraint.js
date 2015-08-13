@@ -1,13 +1,3 @@
-var Vertices = require('../geometry/Vertices');
-var Sleeping = require('../core/Sleeping');
-var Mouse = require('../core/Mouse');
-var Events = require('../core/Events');
-var Detector = require('../collision/Detector');
-var Constraint = require('./Constraint');
-var Composite = require('../body/Composite');
-var Common = require('../core/Common');
-var Bounds = require('../geometry/Bounds');
-
 /**
 * The `Matter.MouseConstraint` module contains methods for creating mouse constraints.
 * Mouse constraints are used for allowing user interaction, providing the ability to move bodies via the mouse or touch.
@@ -21,6 +11,16 @@ var Bounds = require('../geometry/Bounds');
 var MouseConstraint = {};
 
 module.exports = MouseConstraint;
+
+var Vertices = require('../geometry/Vertices');
+var Sleeping = require('../core/Sleeping');
+var Mouse = require('../core/Mouse');
+var Events = require('../core/Events');
+var Detector = require('../collision/Detector');
+var Constraint = require('./Constraint');
+var Composite = require('../body/Composite');
+var Common = require('../core/Common');
+var Bounds = require('../geometry/Bounds');
 
 (function() {
 

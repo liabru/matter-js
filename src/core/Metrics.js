@@ -1,7 +1,4 @@
 // @if DEBUG
-var Composite = require('../body/Composite');
-var Common = require('./Common');
-
 /**
 * _Internal Class_, not generally used outside of the engine's internals.
 *
@@ -10,6 +7,9 @@ var Common = require('./Common');
 var Metrics = {};
 
 module.exports = Metrics;
+
+var Composite = require('../body/Composite');
+var Common = require('./Common');
 
 (function() {
 

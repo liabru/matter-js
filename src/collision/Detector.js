@@ -1,7 +1,3 @@
-var SAT = require('./SAT');
-var Pair = require('./Pair');
-var Bounds = require('../geometry/Bounds');
-
 /**
 * _Internal Class_, not generally used outside of the engine's internals.
 *
@@ -13,6 +9,10 @@ var Bounds = require('../geometry/Bounds');
 var Detector = {};
 
 module.exports = Detector;
+
+var SAT = require('./SAT');
+var Pair = require('./Pair');
+var Bounds = require('../geometry/Bounds');
 
 (function() {
 

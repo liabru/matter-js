@@ -1,6 +1,3 @@
-var Pair = require('./Pair');
-var Common = require('../core/Common');
-
 /**
 * _Internal Class_, not generally used outside of the engine's internals.
 *
@@ -10,6 +7,9 @@ var Common = require('../core/Common');
 var Pairs = {};
 
 module.exports = Pairs;
+
+var Pair = require('./Pair');
+var Common = require('../core/Common');
 
 (function() {
     

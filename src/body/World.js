@@ -1,7 +1,3 @@
-var Composite = require('./Composite');
-var Constraint = require('../constraint/Constraint');
-var Common = require('../core/Common');
-
 /**
 * The `Matter.World` module contains methods for creating and manipulating the world composite.
 * A `Matter.World` is a `Matter.Composite` body, which is a collection of `Matter.Body`, `Matter.Constraint` and other `Matter.Composite`.
@@ -19,6 +15,10 @@ var Common = require('../core/Common');
 var World = {};
 
 module.exports = World;
+
+var Composite = require('./Composite');
+var Constraint = require('../constraint/Constraint');
+var Common = require('../core/Common');
 
 (function() {
 
