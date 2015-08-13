@@ -1,5 +1,5 @@
 /**
-* matter-tools-dev.min.js 0.5.0-dev 2015-05-24
+* matter-tools-dev.min.js 0.5.0-dev 2015-07-27
 * https://github.com/liabru/matter-tools
 * License: MIT
 */
@@ -10,7 +10,7 @@
   var Gui = {};
   (function() {
     var _isWebkit = "WebkitAppearance" in document.documentElement.style;
-    Gui.create = function(engine, options) {
+    Gui.create = function(engine, runner, options) {
       var _datGuiSupported = window.dat && window.localStorage;
       if (!_datGuiSupported) {
         console.log("Could not create GUI. Check dat.gui library is loaded first.");
@@ -19,6 +19,7 @@
       var datGui = new dat.GUI(options);
       var gui = {
         engine:engine,
+        runner:runner,
         datGui:datGui,
         broadphase:"grid",
         broadphaseCache:{
@@ -98,7 +99,7 @@
       return clone;
     };
     var _initDatGui = function(gui) {
-      var engine = gui.engine, datGui = gui.datGui;
+      var engine = gui.engine, runner = gui.runner, datGui = gui.datGui;
       var funcs = {
         addBody:function() {
           _addBody(gui);
@@ -115,7 +116,7 @@
           Events.trigger(gui, "load");
         },
         inspect:function() {
-          if (!Inspector.instance) gui.inspector = Inspector.create(gui.engine);
+          if (!Inspector.instance) gui.inspector = Inspector.create(gui.engine, gui.runner);
         },
         recordGif:function() {
           if (!gui.isRecording) {
@@ -152,10 +153,10 @@
         }
       };
       var metrics = datGui.addFolder("Metrics");
-      metrics.add(engine.timing, "fps").listen();
+      metrics.add(runner, "fps").listen();
       if (engine.metrics.extended) {
-        metrics.add(engine.timing, "delta").listen();
-        metrics.add(engine.timing, "correction").listen();
+        metrics.add(runner, "delta").listen();
+        metrics.add(runner, "correction").listen();
         metrics.add(engine.metrics, "bodies").listen();
         metrics.add(engine.metrics, "collisions").listen();
         metrics.add(engine.metrics, "pairs").listen();
@@ -201,7 +202,7 @@
       physics.add(engine.timing, "timeScale", 0, 1.2).step(.05).listen();
       physics.add(engine, "velocityIterations", 1, 10).step(1);
       physics.add(engine, "positionIterations", 1, 10).step(1);
-      physics.add(engine, "enabled");
+      physics.add(runner, "enabled");
       physics.open();
       var render = datGui.addFolder("Render");
       render.add(gui, "renderer", [ "canvas", "webgl" ]).onFinishChange(function(value) {
@@ -269,7 +270,7 @@
         return;
       }
       var engine = gui.engine, skipFrame = false;
-      Matter.Events.on(engine, "beforeTick", function(event) {
+      Matter.Events.on(gui.runner, "beforeTick", function(event) {
         if (gui.isRecording && !skipFrame) {
           gui.gif.addFrame(engine.render.context, {
             copy:true,
@@ -283,13 +284,14 @@
   var Inspector = {};
   (function() {
     var _key, _isWebkit = "WebkitAppearance" in document.documentElement.style, $body;
-    Inspector.create = function(engine, options) {
+    Inspector.create = function(engine, runner, options) {
       if (!jQuery || !$.fn.jstree || !window.key) {
         console.log("Could not create inspector. Check keymaster, jQuery, jsTree libraries are loaded first.");
         return;
       }
       var inspector = {
         engine:engine,
+        runner:runner,
         isPaused:false,
         selected:[],
         selectStart:null,
@@ -566,7 +568,7 @@
     };
     var _initEngineEvents = function(inspector) {
       var engine = inspector.engine, mouse = inspector.mouse, mousePosition = _getMousePosition(inspector), controls = inspector.controls;
-      Events.on(engine, "tick", function() {
+      Events.on(inspector.engine, "beforeUpdate", function() {
         mousePosition = _getMousePosition(inspector);
         var mouseDelta = mousePosition.x - inspector.mousePrevPosition.x, keyDelta = _key.isPressed("up") + _key.isPressed("right") - _key.isPressed("down") - _key.isPressed("left"), delta = mouseDelta + keyDelta;
         if (engine.world.isModified) {
@@ -672,7 +674,7 @@
           _updateSelectedMouseDownOffset(inspector);
         }
       });
-      Events.on(engine, "afterRender", function() {
+      Events.on(inspector.engine.render, "afterRender", function() {
         var renderController = engine.render.controller, context = engine.render.context;
         if (renderController.inspector) renderController.inspector(inspector, context);
       });

@@ -17,7 +17,8 @@
     var _engine,
         _sceneName = 'mixed',
         _sceneWidth,
-        _sceneHeight;
+        _sceneHeight,
+        _deviceOrientationEvent;
 
     Demo.init = function() {
         var canvasContainer = document.getElementById('canvas-container'),
@@ -44,10 +45,15 @@
             }, 800);
         });
         
-        window.addEventListener('deviceorientation', Demo.updateGravity, true);
+        window.addEventListener('deviceorientation', function(event) {
+            _deviceOrientationEvent = event;
+            Demo.updateGravity(event);
+        }, true);
+
         window.addEventListener('touchstart', Demo.fullscreen);
+
         window.addEventListener('orientationchange', function() {
-            Demo.updateGravity();
+            Demo.updateGravity(_deviceOrientationEvent);
             Demo.updateScene();
             Demo.fullscreen();
         }, false);
@@ -101,7 +107,7 @@
         Demo[_sceneName]();
     };
     
-    Demo.updateGravity = function () {
+    Demo.updateGravity = function(event) {
         if (!_engine)
             return;
         

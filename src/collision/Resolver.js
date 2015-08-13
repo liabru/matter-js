@@ -58,6 +58,7 @@ module.exports = Resolver;
             normal,
             bodyBtoA,
             contactShare,
+            positionImpulse,
             contactCount = {},
             tempA = Vector._temp[0],
             tempB = Vector._temp[1],

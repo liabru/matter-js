@@ -1,5 +1,5 @@
 /**
-* matter.js edge-master 2015-05-22
+* matter.js edge-master 2015-08-13
 * http://brm.io/matter-js/
 * License: MIT
 */
@@ -64,7 +64,7 @@ var Body = {};
     /**
      * Creates a new rigid body model. The options parameter is an object that specifies any properties you wish to override the defaults.
      * All properties have default values, and many are pre-calculated automatically based on other properties.
-     * See the properites section below for detailed information on what you can pass via the `options` object.
+     * See the properties section below for detailed information on what you can pass via the `options` object.
      * @method create
      * @param {} options
      * @return {body} body
@@ -557,7 +557,7 @@ var Body = {};
             velocityPrevX = body.position.x - body.positionPrev.x,
             velocityPrevY = body.position.y - body.positionPrev.y;
 
-        // update velocity with verlet integration
+        // update velocity with Verlet integration
         body.velocity.x = (velocityPrevX * frictionAir * correction) + (body.force.x / body.mass) * deltaTimeSquared;
         body.velocity.y = (velocityPrevY * frictionAir * correction) + (body.force.y / body.mass) * deltaTimeSquared;
 
@@ -566,7 +566,7 @@ var Body = {};
         body.position.x += body.velocity.x;
         body.position.y += body.velocity.y;
 
-        // update angular velocity with verlet integration
+        // update angular velocity with Verlet integration
         body.angularVelocity = ((body.angle - body.anglePrev) * frictionAir * correction) + (body.torque / body.inertia) * deltaTimeSquared;
         body.anglePrev = body.angle;
         body.angle += body.angularVelocity;
@@ -648,6 +648,32 @@ var Body = {};
 
     /*
     *
+    *  Events Documentation
+    *
+    */
+
+    /**
+    * Fired when a body starts sleeping (where `this` is the body).
+    *
+    * @event sleepStart
+    * @this {body} The body that has started sleeping
+    * @param {} event An event object
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired when a body ends sleeping (where `this` is the body).
+    *
+    * @event sleepEnd
+    * @this {body} The body that has ended sleeping
+    * @param {} event An event object
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /*
+    *
     *  Properties Documentation
     *
     */
@@ -710,7 +736,7 @@ var Body = {};
      *
      *     [{ x: 0, y: 0 }, { x: 25, y: 50 }, { x: 50, y: 0 }]
      *
-     * When passed via `Body.create`, the verticies are translated relative to `body.position` (i.e. world-space, and constantly updated by `Body.update` during simulation).
+     * When passed via `Body.create`, the vertices are translated relative to `body.position` (i.e. world-space, and constantly updated by `Body.update` during simulation).
      * The `Vector` objects are also augmented with additional properties required for efficient collision detection. 
      *
      * Other properties such as `inertia` and `bounds` are automatically calculated from the passed vertices (unless provided via `options`).
@@ -1401,7 +1427,7 @@ var Composite = {};
      * Removes all bodies, constraints and composites from the given composite
      * Optionally clearing its children recursively
      * @method clear
-     * @param {world} world
+     * @param {composite} composite
      * @param {boolean} keepStatic
      * @param {boolean} [deep=false]
      */
@@ -1744,6 +1770,7 @@ var Composite = {};
 
 })();
 
+
 ;   // End src/body/Composite.js
 
 
@@ -1769,7 +1796,7 @@ var World = {};
 
     /**
      * Creates a new world composite. The options parameter is an object that specifies any properties you wish to override the defaults.
-     * See the properites section below for detailed information on what you can pass via the `options` object.
+     * See the properties section below for detailed information on what you can pass via the `options` object.
      * @method create
      * @constructor
      * @param {} options
@@ -1825,6 +1852,7 @@ var World = {};
       */
 
 })();
+
 
 ;   // End src/body/World.js
 
@@ -2328,6 +2356,7 @@ var Pair = {};
      * Description
      * @method create
      * @param {collision} collision
+     * @param {number} timestamp
      * @return {pair} A new pair
      */
     Pair.create = function(collision, timestamp) {
@@ -2363,6 +2392,7 @@ var Pair = {};
      * @method update
      * @param {pair} pair
      * @param {collision} collision
+     * @param {number} timestamp
      */
     Pair.update = function(pair, collision, timestamp) {
         var contacts = pair.contacts,
@@ -2405,6 +2435,7 @@ var Pair = {};
      * @method setActive
      * @param {pair} pair
      * @param {bool} isActive
+     * @param {number} timestamp
      */
     Pair.setActive = function(pair, isActive, timestamp) {
         if (isActive) {
@@ -2472,6 +2503,7 @@ var Pairs = {};
      * @method update
      * @param {object} pairs
      * @param {collision[]} collisions
+     * @param {number} timestamp
      */
     Pairs.update = function(pairs, collisions, timestamp) {
         var pairsList = pairs.list,
@@ -2537,6 +2569,7 @@ var Pairs = {};
      * Description
      * @method removeOld
      * @param {object} pairs
+     * @param {number} timestamp
      */
     Pairs.removeOld = function(pairs, timestamp) {
         var pairsList = pairs.list,
@@ -2574,9 +2607,9 @@ var Pairs = {};
 
     /**
      * Clears the given pairs structure
-     * @method create
-     * @param {object} options
+     * @method clear
      * @param {pairs} pairs
+     * @return {pairs} pairs
      */
     Pairs.clear = function(pairs) {
         pairs.table = {};
@@ -2588,6 +2621,7 @@ var Pairs = {};
     };
 
 })();
+
 
 ;   // End src/collision/Pairs.js
 
@@ -2755,6 +2789,7 @@ var Resolver = {};
             normal,
             bodyBtoA,
             contactShare,
+            positionImpulse,
             contactCount = {},
             tempA = Vector._temp[0],
             tempB = Vector._temp[1],
@@ -2920,6 +2955,7 @@ var Resolver = {};
      * Description
      * @method solveVelocity
      * @param {pair[]} pairs
+     * @param {number} timeScale
      */
     Resolver.solveVelocity = function(pairs, timeScale) {
         var timeScaleSquared = timeScale * timeScale,
@@ -3028,6 +3064,7 @@ var Resolver = {};
     };
 
 })();
+
 
 ;   // End src/collision/Resolver.js
 
@@ -3312,10 +3349,10 @@ var SAT = {};
 * @class Constraint
 */
 
-// TODO: fix instabillity issues with torque
+// TODO: fix instability issues with torque
 // TODO: linked constraints
 // TODO: breakable constraints
-// TODO: collidable constraints
+// TODO: collision constraints
 // TODO: allow constrained bodies to sleep
 // TODO: handle 0 length constraints properly
 // TODO: impulse caching and warming
@@ -3330,7 +3367,7 @@ var Constraint = {};
     /**
      * Creates a new constraint.
      * All properties have default values, and many are pre-calculated automatically based on other properties.
-     * See the properites section below for detailed information on what you can pass via the `options` object.
+     * See the properties section below for detailed information on what you can pass via the `options` object.
      * @method create
      * @param {} options
      * @return {constraint} constraint
@@ -3503,8 +3540,8 @@ var Constraint = {};
 
             Sleeping.set(bodyA, false);
             
-            // clamp to prevent instabillity
-            // TODO: solve this properlly
+            // clamp to prevent instability
+            // TODO: solve this properly
             torque = Common.clamp(torque, -0.01, 0.01);
 
             // keep track of applied impulses for post solving
@@ -3523,8 +3560,8 @@ var Constraint = {};
 
             Sleeping.set(bodyB, false);
             
-            // clamp to prevent instabillity
-            // TODO: solve this properlly
+            // clamp to prevent instability
+            // TODO: solve this properly
             torque = Common.clamp(torque, -0.01, 0.01);
 
             // keep track of applied impulses for post solving
@@ -3685,13 +3722,14 @@ var Constraint = {};
 
     /**
      * A `Number` that specifies the target resting length of the constraint. 
-     * It is calculated automatically in `Constraint.create` from intial positions of the `constraint.bodyA` and `constraint.bodyB`.
+     * It is calculated automatically in `Constraint.create` from initial positions of the `constraint.bodyA` and `constraint.bodyB`.
      *
      * @property length
      * @type number
      */
 
 })();
+
 
 ;   // End src/constraint/Constraint.js
 
@@ -3715,7 +3753,7 @@ var MouseConstraint = {};
     /**
      * Creates a new mouse constraint.
      * All properties have default values, and many are pre-calculated automatically based on other properties.
-     * See the properites section below for detailed information on what you can pass via the `options` object.
+     * See the properties section below for detailed information on what you can pass via the `options` object.
      * @method create
      * @param {engine} engine
      * @param {} options
@@ -3818,7 +3856,7 @@ var MouseConstraint = {};
      * Triggers mouse constraint events
      * @method _triggerEvents
      * @private
-     * @param {mouse} mouse
+     * @param {mouse} mouseConstraint
      */
     var _triggerEvents = function(mouseConstraint) {
         var mouse = mouseConstraint.mouse,
@@ -4159,7 +4197,7 @@ var Common = {};
     /**
      * Description
      * @method now
-     * @return {number} the current timestamp (high-res if avaliable)
+     * @return {number} the current timestamp (high-res if available)
      */
     Common.now = function() {
         // http://stackoverflow.com/questions/221294/how-do-you-get-a-timestamp-in-javascript
@@ -4268,6 +4306,7 @@ var Common = {};
 
 })();
 
+
 ;   // End src/core/Common.js
 
 
@@ -4275,7 +4314,7 @@ var Common = {};
 
 /**
 * The `Matter.Engine` module contains methods for creating and manipulating engines.
-* An engine is a controller that manages updating and rendering the simulation of the world.
+* An engine is a controller that manages updating the simulation of the world.
 * See `Matter.Runner` for an optional game loop utility.
 *
 * See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
@@ -4288,13 +4327,10 @@ var Engine = {};
 
 (function() {
 
-    var _fps = 60,
-        _delta = 1000 / _fps;
-
     /**
      * Creates a new engine. The options parameter is an object that specifies any properties you wish to override the defaults.
      * All properties have default values, and many are pre-calculated automatically based on other properties.
-     * See the properites section below for detailed information on what you can pass via the `options` object.
+     * See the properties section below for detailed information on what you can pass via the `options` object.
      * @method create
      * @param {HTMLElement} element
      * @param {object} [options]
@@ -4307,35 +4343,35 @@ var Engine = {};
         element = Common.isElement(element) ? element : null;
 
         var defaults = {
-            enabled: true,
             positionIterations: 6,
             velocityIterations: 4,
             constraintIterations: 2,
             enableSleeping: false,
             events: [],
             timing: {
-                fps: _fps,
                 timestamp: 0,
-                delta: _delta,
-                correction: 1,
-                deltaMin: 1000 / _fps,
-                deltaMax: 1000 / (_fps * 0.5),
-                timeScale: 1,
-                isFixed: false,
-                frameRequestId: 0
-            },
-            render: {
-                element: element,
-                controller: Render
+                timeScale: 1
             },
             broadphase: {
                 controller: Grid
             }
         };
-        
+
         var engine = Common.extend(defaults, options);
 
-        engine.render = engine.render.controller.create(engine.render);
+        if (element || engine.render) {
+            var renderDefaults = {
+                element: element,
+                controller: Render
+            };
+            
+            engine.render = Common.extend(renderDefaults, engine.render);
+        }
+
+        if (engine.render && engine.render.controller) {
+            engine.render = engine.render.controller.create(engine.render);
+        }
+
         engine.world = World.create(engine.world);
         engine.pairs = Pairs.create();
         engine.broadphase = engine.broadphase.controller.create(engine.broadphase);
@@ -4345,7 +4381,13 @@ var Engine = {};
     };
 
     /**
-     * Moves the simulation forward in time by `delta` ms. 
+     * Moves the simulation forward in time by `delta` ms.
+     * The `correction` argument is an optional `Number` that specifies the time correction factor to apply to the update.
+     * This can help improve the accuracy of the simulation in cases where `delta` is changing between updates.
+     * The value of `correction` is defined as `delta / lastDelta`, i.e. the percentage change of `delta` over the last step.
+     * Therefore the value is always `1` (no correction) when `delta` constant (or when no correction is desired, which is the default).
+     * See the paper on <a href="http://lonesock.net/article/verlet.html">Time Corrected Verlet</a> for more information.
+     *
      * Triggers `beforeUpdate` and `afterUpdate` events.
      * Triggers `collisionStart`, `collisionActive` and `collisionEnd` events.
      * @method update
@@ -4364,11 +4406,10 @@ var Engine = {};
 
         // increment timestamp
         timing.timestamp += delta * timing.timeScale;
-        timing.correction = correction;
 
         // create an event object
         var event = {
-            timestamp: engine.timing.timestamp
+            timestamp: timing.timestamp
         };
 
         Events.trigger(engine, 'beforeUpdate', event);
@@ -4456,23 +4497,6 @@ var Engine = {};
         Events.trigger(engine, 'afterUpdate', event);
 
         return engine;
-    };
-
-    /**
-     * Renders the world by calling its defined renderer `engine.render.controller`. Triggers `beforeRender` and `afterRender` events.
-     * @method render
-     * @param {engine} engineA
-     * @param {engine} engineB
-     */
-    Engine.render = function(engine) {
-        // create an event object
-        var event = {
-            timestamp: engine.timing.timestamp
-        };
-
-        Events.trigger(engine, 'beforeRender', event);
-        engine.render.controller.world(engine);
-        Events.trigger(engine, 'afterRender', event);
     };
     
     /**
@@ -4583,38 +4607,12 @@ var Engine = {};
      * @param {engine} engine
      */
 
-    /*
-    *
-    *  Events Documentation
-    *
-    */
-
-    /**
-    * Fired at the start of a tick, before any updates to the engine or timing
-    *
-    * @event beforeTick
-    * @param {} event An event object
-    * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
-    * @param {} event.source The source object of the event
-    * @param {} event.name The name of the event
-    */
-
-    /**
-    * Fired after engine timing updated, but just before engine state updated
-    *
-    * @event tick
-    * @param {} event An event object
-    * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
-    * @param {} event.source The source object of the event
-    * @param {} event.name The name of the event
-    */
-
     /**
     * Fired just before an update
     *
     * @event beforeUpdate
     * @param {} event An event object
-    * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
+    * @param {number} event.timestamp The engine.timing.timestamp of the event
     * @param {} event.source The source object of the event
     * @param {} event.name The name of the event
     */
@@ -4624,37 +4622,7 @@ var Engine = {};
     *
     * @event afterUpdate
     * @param {} event An event object
-    * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
-    * @param {} event.source The source object of the event
-    * @param {} event.name The name of the event
-    */
-
-    /**
-    * Fired just before rendering
-    *
-    * @event beforeRender
-    * @param {} event An event object
-    * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
-    * @param {} event.source The source object of the event
-    * @param {} event.name The name of the event
-    */
-
-    /**
-    * Fired after rendering
-    *
-    * @event afterRender
-    * @param {} event An event object
-    * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
-    * @param {} event.source The source object of the event
-    * @param {} event.name The name of the event
-    */
-
-    /**
-    * Fired after engine update and after rendering
-    *
-    * @event afterTick
-    * @param {} event An event object
-    * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
+    * @param {number} event.timestamp The engine.timing.timestamp of the event
     * @param {} event.source The source object of the event
     * @param {} event.name The name of the event
     */
@@ -4665,7 +4633,7 @@ var Engine = {};
     * @event collisionStart
     * @param {} event An event object
     * @param {} event.pairs List of affected pairs
-    * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
+    * @param {number} event.timestamp The engine.timing.timestamp of the event
     * @param {} event.source The source object of the event
     * @param {} event.name The name of the event
     */
@@ -4676,7 +4644,7 @@ var Engine = {};
     * @event collisionActive
     * @param {} event An event object
     * @param {} event.pairs List of affected pairs
-    * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
+    * @param {number} event.timestamp The engine.timing.timestamp of the event
     * @param {} event.source The source object of the event
     * @param {} event.name The name of the event
     */
@@ -4687,7 +4655,7 @@ var Engine = {};
     * @event collisionEnd
     * @param {} event An event object
     * @param {} event.pairs List of affected pairs
-    * @param {DOMHighResTimeStamp} event.timestamp The timestamp of the current tick
+    * @param {number} event.timestamp The engine.timing.timestamp of the event
     * @param {} event.source The source object of the event
     * @param {} event.name The name of the event
     */
@@ -4697,14 +4665,6 @@ var Engine = {};
     *  Properties Documentation
     *
     */
-
-    /**
-     * A flag that specifies whether the engine is running or not.
-     *
-     * @property enabled
-     * @type boolean
-     * @default true
-     */
 
     /**
      * An integer `Number` that specifies the number of position iterations to perform each update.
@@ -4763,44 +4723,11 @@ var Engine = {};
 
     /**
      * A `Number` that specifies the current simulation-time in milliseconds starting from `0`. 
-     * It is incremented on every `Engine.update` by the `timing.delta`. 
+     * It is incremented on every `Engine.update` by the given `delta` argument. 
      *
      * @property timing.timestamp
      * @type number
      * @default 0
-     */
-
-    /**
-     * A `Boolean` that specifies if the `Engine.run` game loop should use a fixed timestep (otherwise it is variable).
-     * If timing is fixed, then the apparant simulation speed will change depending on the frame rate (but behaviour will be deterministic).
-     * If the timing is variable, then the apparant simulation speed will be constant (approximately, but at the cost of determininism).
-     *
-     * @property timing.isFixed
-     * @type boolean
-     * @default false
-     */
-
-    /**
-     * A `Number` that specifies the time step between updates in milliseconds.
-     * If `engine.timing.isFixed` is set to `true`, then `delta` is fixed.
-     * If it is `false`, then `delta` can dynamically change to maintain the correct apparant simulation speed.
-     *
-     * @property timing.delta
-     * @type number
-     * @default 1000 / 60
-     */
-
-    /**
-     * A `Number` that specifies the time correction factor to apply to the current timestep.
-     * It is automatically handled when using `Engine.run`, but is also only optional even if you use your own game loop.
-     * The value is defined as `delta / lastDelta`, i.e. the percentage change of `delta` between steps.
-     * This value is always `1` (no correction) when frame rate is constant or `engine.timing.isFixed` is `true`.
-     * If the framerate and hence `delta` are changing, then correction should be applied to the current update to account for the change.
-     * See the paper on <a href="http://lonesock.net/article/verlet.html">Time Corrected Verlet</a> for more information.
-     *
-     * @property timing.correction
-     * @type number
-     * @default 1
      */
 
     /**
@@ -4832,6 +4759,7 @@ var Engine = {};
      */
 
 })();
+
 
 ;   // End src/core/Engine.js
 
@@ -5097,6 +5025,7 @@ var Mouse = {};
      * Sets the offset
      * @method setOffset
      * @param {mouse} mouse
+     * @param {vector} offset
      */
     Mouse.setOffset = function(mouse, offset) {
         mouse.offset.x = offset.x;
@@ -5109,6 +5038,7 @@ var Mouse = {};
      * Sets the scale
      * @method setScale
      * @param {mouse} mouse
+     * @param {vector} scale
      */
     Mouse.setScale = function(mouse, scale) {
         mouse.scale.x = scale.x;
@@ -5159,6 +5089,9 @@ var Mouse = {};
 /**
 * The `Matter.Runner` module is an optional utility which provides a game loop, 
 * that handles updating and rendering a `Matter.Engine` for you within a browser.
+* It is intended for demo and testing purposes, but may be adequate for simple games.
+* If you are using your own game loop instead, then you do not need the `Matter.Runner` module.
+* Instead just call `Engine.update(engine, delta)` in your own loop.
 * Note that the method `Engine.run` is an alias for `Runner.run`.
 *
 * See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
@@ -5171,115 +5104,286 @@ var Runner = {};
 
 (function() {
 
-    var _fps = 60,
-        _deltaSampleSize = _fps,
-        _delta = 1000 / _fps;
+    if (typeof window === 'undefined') {
+        // TODO: support Runner on non-browser environments.
+        return;
+    }
 
     var _requestAnimationFrame = window.requestAnimationFrame || window.webkitRequestAnimationFrame
                                       || window.mozRequestAnimationFrame || window.msRequestAnimationFrame 
-                                      || function(callback){ window.setTimeout(function() { callback(Common.now()); }, _delta); };
+                                      || function(callback){ window.setTimeout(function() { callback(Common.now()); }, 1000 / 60); };
    
     var _cancelAnimationFrame = window.cancelAnimationFrame || window.mozCancelAnimationFrame 
                                       || window.webkitCancelAnimationFrame || window.msCancelAnimationFrame;
 
     /**
-     * Provides a basic game loop that handles updating the engine for you.
-     * Calls `Engine.update` and `Engine.render` on the `requestAnimationFrame` event automatically.
-     * Handles time correction and non-fixed dynamic timing (if enabled). 
-     * Triggers `beforeTick`, `tick` and `afterTick` events.
-     * @method run
-     * @param {engine} engine
+     * Creates a new Runner. The options parameter is an object that specifies any properties you wish to override the defaults.
+     * @method create
+     * @param {} options
      */
-    Runner.run = function(engine) {
-        var counterTimestamp = 0,
-            frameCounter = 0,
-            deltaHistory = [],
-            timePrev,
-            timeScalePrev = 1;
+    Runner.create = function(options) {
+        var defaults = {
+            fps: 60,
+            correction: 1,
+            deltaSampleSize: 60,
+            counterTimestamp: 0,
+            frameCounter: 0,
+            deltaHistory: [],
+            timePrev: null,
+            timeScalePrev: 1,
+            frameRequestId: null,
+            isFixed: false,
+            enabled: true
+        };
 
-        (function render(time){
-            var timing = engine.timing,
-                delta,
-                correction = 1;
+        var runner = Common.extend(defaults, options);
 
-            timing.frameRequestId = _requestAnimationFrame(render);
+        runner.delta = runner.delta || 1000 / runner.fps;
+        runner.deltaMin = runner.deltaMin || 1000 / runner.fps;
+        runner.deltaMax = runner.deltaMax || 1000 / (runner.fps * 0.5);
+        runner.fps = 1000 / runner.delta;
 
-            if (!engine.enabled)
-                return;
-
-            // create an event object
-            var event = {
-                timestamp: time
-            };
-
-            Events.trigger(engine, 'beforeTick', event);
-
-            if (timing.isFixed) {
-                // fixed timestep
-                delta = timing.delta;
-            } else {
-                // dynamic timestep based on wall clock between calls
-                delta = (time - timePrev) || timing.delta;
-                timePrev = time;
-
-                // optimistically filter delta over a few frames, to improve stability
-                deltaHistory.push(delta);
-                deltaHistory = deltaHistory.slice(-_deltaSampleSize);
-                delta = Math.min.apply(null, deltaHistory);
-                
-                // limit delta
-                delta = delta < timing.deltaMin ? timing.deltaMin : delta;
-                delta = delta > timing.deltaMax ? timing.deltaMax : delta;
-
-                // time correction for delta
-                correction = delta / timing.delta;
-
-                // update engine timing object
-                timing.delta = delta;
-            }
-
-            // time correction for time scaling
-            if (timeScalePrev !== 0)
-                correction *= timing.timeScale / timeScalePrev;
-
-            if (timing.timeScale === 0)
-                correction = 0;
-
-            timeScalePrev = timing.timeScale;
-            
-            // fps counter
-            frameCounter += 1;
-            if (time - counterTimestamp >= 1000) {
-                timing.fps = frameCounter * ((time - counterTimestamp) / 1000);
-                counterTimestamp = time;
-                frameCounter = 0;
-            }
-
-            Events.trigger(engine, 'tick', event);
-
-            // if world has been modified, clear the render scene graph
-            if (engine.world.isModified && engine.render.controller.clear)
-                engine.render.controller.clear(engine.render);
-
-            // update
-            Engine.update(engine, delta, correction);
-
-            // render
-            Engine.render(engine);
-
-            Events.trigger(engine, 'afterTick', event);
-        })();
+        return runner;
     };
 
     /**
-     * Ends execution of `Runner.run` on the given `engine`, by canceling the animation frame request event loop.
-     * If you wish to only temporarily pause the engine, see `engine.enabled` instead.
-     * @method stop
+     * Continuously ticks a `Matter.Engine` by calling `Runner.tick` on the `requestAnimationFrame` event.
+     * @method run
      * @param {engine} engine
      */
-    Runner.stop = function(engine) {
-        _cancelAnimationFrame(engine.timing.frameRequestId);
+    Runner.run = function(runner, engine) {
+        // create runner if engine is first argument
+        if (typeof runner.positionIterations !== 'undefined') {
+            engine = runner;
+            runner = Runner.create();
+        }
+
+        (function render(time){
+            runner.frameRequestId = _requestAnimationFrame(render);
+
+            if (time && runner.enabled) {
+                Runner.tick(runner, engine, time);
+            }
+        })();
+
+        return runner;
     };
+
+    /**
+     * A game loop utility that updates the engine and renderer by one step (a 'tick').
+     * Features delta smoothing, time correction and fixed or dynamic timing.
+     * Triggers `beforeTick`, `tick` and `afterTick` events on the engine.
+     * Consider just `Engine.update(engine, delta)` if you're using your own loop.
+     * @method tick
+     * @param {runner} runner
+     * @param {engine} engine
+     * @param {number} time
+     */
+    Runner.tick = function(runner, engine, time) {
+        var timing = engine.timing,
+            correction = 1,
+            delta;
+
+        // create an event object
+        var event = {
+            timestamp: timing.timestamp
+        };
+
+        Events.trigger(runner, 'beforeTick', event);
+        Events.trigger(engine, 'beforeTick', event); // @deprecated
+
+        if (runner.isFixed) {
+            // fixed timestep
+            delta = runner.delta;
+        } else {
+            // dynamic timestep based on wall clock between calls
+            delta = (time - runner.timePrev) || runner.delta;
+            runner.timePrev = time;
+
+            // optimistically filter delta over a few frames, to improve stability
+            runner.deltaHistory.push(delta);
+            runner.deltaHistory = runner.deltaHistory.slice(-runner.deltaSampleSize);
+            delta = Math.min.apply(null, runner.deltaHistory);
+            
+            // limit delta
+            delta = delta < runner.deltaMin ? runner.deltaMin : delta;
+            delta = delta > runner.deltaMax ? runner.deltaMax : delta;
+
+            // correction for delta
+            correction = delta / runner.delta;
+
+            // update engine timing object
+            runner.delta = delta;
+        }
+
+        // time correction for time scaling
+        if (runner.timeScalePrev !== 0)
+            correction *= timing.timeScale / runner.timeScalePrev;
+
+        if (timing.timeScale === 0)
+            correction = 0;
+
+        runner.timeScalePrev = timing.timeScale;
+        runner.correction = correction;
+
+        // fps counter
+        runner.frameCounter += 1;
+        if (time - runner.counterTimestamp >= 1000) {
+            runner.fps = runner.frameCounter * ((time - runner.counterTimestamp) / 1000);
+            runner.counterTimestamp = time;
+            runner.frameCounter = 0;
+        }
+
+        Events.trigger(runner, 'tick', event);
+        Events.trigger(engine, 'tick', event); // @deprecated
+
+        // if world has been modified, clear the render scene graph
+        if (engine.world.isModified 
+            && engine.render
+            && engine.render.controller
+            && engine.render.controller.clear) {
+            engine.render.controller.clear(engine.render);
+        }
+
+        // update
+        Events.trigger(runner, 'beforeUpdate', event);
+        Engine.update(engine, delta, correction);
+        Events.trigger(runner, 'afterUpdate', event);
+
+        // render
+        if (engine.render) {
+            Events.trigger(runner, 'beforeRender', event);
+            Events.trigger(engine, 'beforeRender', event); // @deprecated
+
+            engine.render.controller.world(engine);
+
+            Events.trigger(runner, 'afterRender', event);
+            Events.trigger(engine, 'afterRender', event); // @deprecated
+        }
+
+        Events.trigger(runner, 'afterTick', event);
+        Events.trigger(engine, 'afterTick', event); // @deprecated
+    };
+
+    /**
+     * Ends execution of `Runner.run` on the given `runner`, by canceling the animation frame request event loop.
+     * If you wish to only temporarily pause the engine, see `engine.enabled` instead.
+     * @method stop
+     * @param {runner} runner
+     */
+    Runner.stop = function(runner) {
+        _cancelAnimationFrame(runner.frameRequestId);
+    };
+
+    /*
+    *
+    *  Events Documentation
+    *
+    */
+
+    /**
+    * Fired at the start of a tick, before any updates to the engine or timing
+    *
+    * @event beforeTick
+    * @param {} event An event object
+    * @param {number} event.timestamp The engine.timing.timestamp of the event
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired after engine timing updated, but just before update
+    *
+    * @event tick
+    * @param {} event An event object
+    * @param {number} event.timestamp The engine.timing.timestamp of the event
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired at the end of a tick, after engine update and after rendering
+    *
+    * @event afterTick
+    * @param {} event An event object
+    * @param {number} event.timestamp The engine.timing.timestamp of the event
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired before update
+    *
+    * @event beforeUpdate
+    * @param {} event An event object
+    * @param {number} event.timestamp The engine.timing.timestamp of the event
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired after update
+    *
+    * @event afterUpdate
+    * @param {} event An event object
+    * @param {number} event.timestamp The engine.timing.timestamp of the event
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired before rendering
+    *
+    * @event beforeRender
+    * @param {} event An event object
+    * @param {number} event.timestamp The engine.timing.timestamp of the event
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired after rendering
+    *
+    * @event afterRender
+    * @param {} event An event object
+    * @param {number} event.timestamp The engine.timing.timestamp of the event
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /*
+    *
+    *  Properties Documentation
+    *
+    */
+
+    /**
+     * A flag that specifies whether the runner is running or not.
+     *
+     * @property enabled
+     * @type boolean
+     * @default true
+     */
+
+    /**
+     * A `Boolean` that specifies if the runner should use a fixed timestep (otherwise it is variable).
+     * If timing is fixed, then the apparent simulation speed will change depending on the frame rate (but behaviour will be deterministic).
+     * If the timing is variable, then the apparent simulation speed will be constant (approximately, but at the cost of determininism).
+     *
+     * @property isFixed
+     * @type boolean
+     * @default false
+     */
+
+    /**
+     * A `Number` that specifies the time step between updates in milliseconds.
+     * If `engine.timing.isFixed` is set to `true`, then `delta` is fixed.
+     * If it is `false`, then `delta` can dynamically change to maintain the correct apparent simulation speed.
+     *
+     * @property delta
+     * @type number
+     * @default 1000 / 60
+     */
 
 })();
 
@@ -5383,6 +5487,8 @@ var Sleeping = {};
      * @param {boolean} isSleeping
      */
     Sleeping.set = function(body, isSleeping) {
+        var wasSleeping = body.isSleeping;
+
         if (isSleeping) {
             body.isSleeping = true;
             body.sleepCounter = body.sleepThreshold;
@@ -5397,9 +5503,17 @@ var Sleeping = {};
             body.speed = 0;
             body.angularSpeed = 0;
             body.motion = 0;
+
+            if (!wasSleeping) {
+                Events.trigger(body, 'sleepStart');
+            }
         } else {
             body.isSleeping = false;
             body.sleepCounter = 0;
+
+            if (wasSleeping) {
+                Events.trigger(body, 'sleepEnd');
+            }
         }
     };
 
@@ -6276,7 +6390,7 @@ var Svg = {};
         var i, il, total, point, segment, segments, 
             segmentsQueue, lastSegment, 
             lastPoint, segmentIndex, points = [],
-            length = 0, x = 0, y = 0;
+            lx, ly, length = 0, x = 0, y = 0;
 
         sampleLength = sampleLength || 15;
 
@@ -7171,7 +7285,7 @@ var Render = {};
     /**
      * Creates a new renderer. The options parameter is an object that specifies any properties you wish to override the defaults.
      * All properties have default values, and many are pre-calculated automatically based on other properties.
-     * See the properites section below for detailed information on what you can pass via the `options` object.
+     * See the properties section below for detailed information on what you can pass via the `options` object.
      * @method create
      * @param {object} [options]
      * @return {render} A new renderer
@@ -7281,6 +7395,12 @@ var Render = {};
             constraints = [],
             i;
 
+        var event = {
+            timestamp: engine.timing.timestamp
+        };
+
+        Events.trigger(render, 'beforeRender', event);
+
         // apply background if it has changed
         if (render.currentBackground !== background)
             _applyBackground(render, background);
@@ -7378,6 +7498,8 @@ var Render = {};
             // revert view transforms
             context.setTransform(options.pixelRatio, 0, 0, options.pixelRatio, 0, 0);
         }
+
+        Events.trigger(render, 'afterRender', event);
     };
 
     /**
@@ -7522,7 +7644,8 @@ var Render = {};
             options = render.options,
             body,
             part,
-            i;
+            i,
+            k;
 
         for (i = 0; i < bodies.length; i++) {
             body = bodies[i];
@@ -7819,7 +7942,8 @@ var Render = {};
             options = render.options,
             body,
             part,
-            i;
+            i,
+            k;
 
         c.beginPath();
 
@@ -8155,7 +8279,7 @@ var Render = {};
 
             }
 
-            context.setLineDash([0]);
+            context.setLineDash([]);
             context.translate(-0.5, -0.5);
         }
 
@@ -8250,6 +8374,32 @@ var Render = {};
         render.canvas.style.backgroundSize = "contain";
         render.currentBackground = background;
     };
+
+    /*
+    *
+    *  Events Documentation
+    *
+    */
+
+    /**
+    * Fired before rendering
+    *
+    * @event beforeRender
+    * @param {} event An event object
+    * @param {number} event.timestamp The engine.timing.timestamp of the event
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired after rendering
+    *
+    * @event afterRender
+    * @param {} event An event object
+    * @param {number} event.timestamp The engine.timing.timestamp of the event
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
 
     /*
     *

@@ -1,5 +1,6 @@
 // @if DEBUG
 var Composite = require('../body/Composite');
+var Common = require('./Common');
 
 /**
 * _Internal Class_, not generally used outside of the engine's internals.
@@ -18,8 +19,8 @@ module.exports = Metrics;
      * @private
      * @return {metrics} A new metrics
      */
-    Metrics.create = function() {
-        return {
+    Metrics.create = function(options) {
+        var defaults = {
             extended: false,
             narrowDetections: 0,
             narrowphaseTests: 0,
@@ -35,6 +36,8 @@ module.exports = Metrics;
             bodies: 0,
             pairs: 0
         };
+
+        return Common.extend(defaults, false, options);
     };
 
     /**

@@ -1,6 +1,7 @@
 var Common = require('../core/Common');
 var Composite = require('../body/Composite');
 var Bounds = require('../geometry/Bounds');
+var Events = require('../core/Events');
 var Grid = require('../collision/Grid');
 
 /**
@@ -134,6 +135,12 @@ module.exports = Render;
             constraints = [],
             i;
 
+        var event = {
+            timestamp: engine.timing.timestamp
+        };
+
+        Events.trigger(render, 'beforeRender', event);
+
         // apply background if it has changed
         if (render.currentBackground !== background)
             _applyBackground(render, background);
@@ -231,6 +238,8 @@ module.exports = Render;
             // revert view transforms
             context.setTransform(options.pixelRatio, 0, 0, options.pixelRatio, 0, 0);
         }
+
+        Events.trigger(render, 'afterRender', event);
     };
 
     /**
@@ -394,7 +403,8 @@ module.exports = Render;
             options = render.options,
             body,
             part,
-            i;
+            i,
+            k;
 
         for (i = 0; i < bodies.length; i++) {
             body = bodies[i];
@@ -691,7 +701,8 @@ module.exports = Render;
             options = render.options,
             body,
             part,
-            i;
+            i,
+            k;
 
         c.beginPath();
 
@@ -1027,7 +1038,7 @@ module.exports = Render;
 
             }
 
-            context.setLineDash([0]);
+            context.setLineDash([]);
             context.translate(-0.5, -0.5);
         }
 
@@ -1122,6 +1133,32 @@ module.exports = Render;
         render.canvas.style.backgroundSize = "contain";
         render.currentBackground = background;
     };
+
+    /*
+    *
+    *  Events Documentation
+    *
+    */
+
+    /**
+    * Fired before rendering
+    *
+    * @event beforeRender
+    * @param {} event An event object
+    * @param {number} event.timestamp The engine.timing.timestamp of the event
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired after rendering
+    *
+    * @event afterRender
+    * @param {} event An event object
+    * @param {number} event.timestamp The engine.timing.timestamp of the event
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
 
     /*
     *

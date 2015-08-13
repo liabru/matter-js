@@ -45,7 +45,7 @@ module.exports = function(grunt) {
       options: {
         jshintrc: '.jshintrc'
       },
-      all: ['src/**/*.js', 'demo/js/*.js', '!src/module/*']
+      all: ['src/**/*.js', 'demo/js/*.js', 'test/browser/TestDemo.js', '!src/module/*']
     },
     connect: {
       watch: {
@@ -53,6 +53,11 @@ module.exports = function(grunt) {
           port: 9000,
           open: 'http://localhost:9000/demo/dev.html',
           livereload: 9001
+        }
+      },
+      serve: {
+        options: {
+          port: 8000
         }
       }
     },
@@ -95,6 +100,19 @@ module.exports = function(grunt) {
         src: 'build/<%= buildName %>.js',
         dest: 'build/<%= buildName %>.js'
       }
+    },
+    shell: {
+      testDemo: {
+        command: function(arg) {
+          arg = arg ? ' --' + arg : '';
+          return 'phantomjs test/browser/TestDemo.js' + arg;
+        },
+        options: {
+          execOptions: {
+            timeout: 1000 * 60
+          }
+        }
+      }
     }
   });
 
@@ -106,10 +124,24 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-contrib-yuidoc');
   grunt.loadNpmTasks('grunt-preprocess');
+  grunt.loadNpmTasks('grunt-shell');
 
   grunt.registerTask('default', ['test', 'build']);
-  grunt.registerTask('test', ['jshint']);
+  grunt.registerTask('test', ['build:dev', 'connect:serve', 'jshint', 'test:demo']);
   grunt.registerTask('dev', ['build:dev', 'connect:watch', 'watch']);
+
+  grunt.registerTask('test:demo', function() {
+    var updateAll = grunt.option('updateAll'),
+        diff = grunt.option('diff');
+
+    if (updateAll) {
+      grunt.task.run('shell:testDemo:updateAll');
+    } else if (diff) {
+      grunt.task.run('shell:testDemo:diff');
+    } else {
+      grunt.task.run('shell:testDemo');
+    }
+  });
 
   grunt.registerTask('build', function(mode) {
     var isDev = (mode === 'dev'),
