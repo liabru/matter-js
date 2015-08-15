@@ -1,5 +1,15 @@
 (function() {
 
+    var _isBrowser = typeof window !== 'undefined',
+        Matter = _isBrowser ? window.Matter : require('../../build/matter-dev.js');
+        
+    var Demo = {};
+    Matter.Demo = Demo;
+
+    if (!_isBrowser) {
+        module.exports = Demo;
+    }
+
     // Matter aliases
     var Engine = Matter.Engine,
         World = Matter.World,
@@ -19,13 +29,10 @@
         Svg = Matter.Svg;
 
     // MatterTools aliases
-    if (window.MatterTools) {
+    if (_isBrowser && window.MatterTools) {
         var Gui = MatterTools.Gui,
             Inspector = MatterTools.Inspector;
     }
-
-    var Demo = {};
-    Matter.Demo = Demo;
 
     var _engine,
         _runner,
@@ -34,15 +41,13 @@
         _sceneName,
         _mouseConstraint,
         _sceneEvents = [],
-        _useInspector = window.location.hash.indexOf('-inspect') !== -1,
-        _isMobile = /(ipad|iphone|ipod|android)/gi.test(navigator.userAgent),
-        _isAutomatedTest = window._phantom ? true : false;
+        _useInspector = _isBrowser && window.location.hash.indexOf('-inspect') !== -1,
+        _isMobile = _isBrowser && /(ipad|iphone|ipod|android)/gi.test(navigator.userAgent),
+        _isAutomatedTest = _isBrowser ? false : true;
     
     // initialise the demo
 
     Demo.init = function() {
-        var container = document.getElementById('canvas-container');
-
         // some example engine options
         var options = {
             positionIterations: 6,
@@ -53,11 +58,18 @@
 
         // create a Matter engine
         // NOTE: this is actually Matter.Engine.create(), see the aliases at top of this file
-        _engine = Engine.create(container, options);
+        if (_isBrowser) {
+            var container = document.getElementById('canvas-container');
+            _engine = Engine.create(container, options);
 
-        // add a mouse controlled constraint
-        _mouseConstraint = MouseConstraint.create(_engine);
-        World.add(_engine.world, _mouseConstraint);
+            // add a mouse controlled constraint
+            _mouseConstraint = MouseConstraint.create(_engine);
+            World.add(_engine.world, _mouseConstraint);
+        } else {
+            _engine = Engine.create(options);
+            _engine.render = {};
+            _engine.render.options = {};
+        }
 
         // engine reference for external use
         Matter.Demo._engine = _engine;
@@ -84,10 +96,12 @@
 
     // call init when the page has loaded fully
 
-    if (window.addEventListener) {
-        window.addEventListener('load', Demo.init);
-    } else if (window.attachEvent) {
-        window.attachEvent('load', Demo.init);
+    if (_isBrowser) {
+        if (window.addEventListener) {
+            window.addEventListener('load', Demo.init);
+        } else if (window.attachEvent) {
+            window.attachEvent('load', Demo.init);
+        }
     }
 
     // each demo scene is set up in its own function, see below
@@ -1720,15 +1734,17 @@
         Engine.clear(_engine);
 
         // clear scene graph (if defined in controller)
-        var renderController = _engine.render.controller;
-        if (renderController.clear)
-            renderController.clear(_engine.render);
+        if (_engine.render) {
+            var renderController = _engine.render.controller;
+            if (renderController && renderController.clear)
+                renderController.clear(_engine.render);
+        }
 
         // clear all scene events
         for (var i = 0; i < _sceneEvents.length; i++)
             Events.off(_engine, _sceneEvents[i]);
 
-        if (_mouseConstraint.events) {
+        if (_mouseConstraint && _mouseConstraint.events) {
             for (i = 0; i < _sceneEvents.length; i++)
                 Events.off(_mouseConstraint, _sceneEvents[i]);
         }
@@ -1743,7 +1759,7 @@
                 Events.off(_runner, _sceneEvents[i]);
         }
 
-        if (_engine.render.events) {
+        if (_engine.render && _engine.render.events) {
             for (i = 0; i < _sceneEvents.length; i++)
                 Events.off(_engine.render, _sceneEvents[i]);
         }
@@ -1757,8 +1773,10 @@
         Common._seed = 0;
 
         // reset mouse offset and scale (only required for Demo.views)
-        Mouse.setScale(_mouseConstraint.mouse, { x: 1, y: 1 });
-        Mouse.setOffset(_mouseConstraint.mouse, { x: 0, y: 0 });
+        if (_mouseConstraint) {
+            Mouse.setScale(_mouseConstraint.mouse, { x: 1, y: 1 });
+            Mouse.setOffset(_mouseConstraint.mouse, { x: 0, y: 0 });
+        }
 
         _engine.enableSleeping = false;
         _engine.world.gravity.y = 1;
@@ -1773,26 +1791,30 @@
             Bodies.rectangle(-offset, 300, 50.5, 600.5 + 2 * offset, { isStatic: true })
         ]);
 
-        World.add(_world, _mouseConstraint);
+        if (_mouseConstraint) {
+            World.add(_world, _mouseConstraint);
+        }
         
-        var renderOptions = _engine.render.options;
-        renderOptions.wireframes = true;
-        renderOptions.hasBounds = false;
-        renderOptions.showDebug = false;
-        renderOptions.showBroadphase = false;
-        renderOptions.showBounds = false;
-        renderOptions.showVelocity = false;
-        renderOptions.showCollisions = false;
-        renderOptions.showAxes = false;
-        renderOptions.showPositions = false;
-        renderOptions.showAngleIndicator = true;
-        renderOptions.showIds = false;
-        renderOptions.showShadows = false;
-        renderOptions.showVertexNumbers = false;
-        renderOptions.showConvexHulls = false;
-        renderOptions.showInternalEdges = false;
-        renderOptions.showSeparations = false;
-        renderOptions.background = '#fff';
+        if (_engine.render) {
+            var renderOptions = _engine.render.options;
+            renderOptions.wireframes = true;
+            renderOptions.hasBounds = false;
+            renderOptions.showDebug = false;
+            renderOptions.showBroadphase = false;
+            renderOptions.showBounds = false;
+            renderOptions.showVelocity = false;
+            renderOptions.showCollisions = false;
+            renderOptions.showAxes = false;
+            renderOptions.showPositions = false;
+            renderOptions.showAngleIndicator = true;
+            renderOptions.showIds = false;
+            renderOptions.showShadows = false;
+            renderOptions.showVertexNumbers = false;
+            renderOptions.showConvexHulls = false;
+            renderOptions.showInternalEdges = false;
+            renderOptions.showSeparations = false;
+            renderOptions.background = '#fff';
+        }
 
         if (_isMobile)
             renderOptions.showDebug = true;
