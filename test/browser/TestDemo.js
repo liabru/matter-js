@@ -1,6 +1,6 @@
 var page = require('webpage').create();
 var fs = require('fs');
-var Resurrect = require('./lib/resurrect');
+var Resurrect = require('../lib/resurrect');
 var compare = require('fast-json-patch').compare;
 var system = require('system');
 
@@ -70,11 +70,11 @@ var test = function(status) {
             return engine.world;
         }, demo, frames);
 
-        worldEnd = resurrect.resurrect(resurrect.stringify(worldEnd, precisionLimiter));
-        worldStart = resurrect.resurrect(resurrect.stringify(worldStart, precisionLimiter));
+        worldEnd = JSON.parse(resurrect.stringify(worldEnd, precisionLimiter));
+        worldStart = JSON.parse(resurrect.stringify(worldStart, precisionLimiter));
 
         if (fs.exists(worldStartPath)) {
-            var worldStartRef = resurrect.resurrect(fs.read(worldStartPath));
+            var worldStartRef = JSON.parse(fs.read(worldStartPath));
             var worldStartDiff = compare(worldStartRef, worldStart);
 
             if (worldStartDiff.length !== 0) {
@@ -84,18 +84,18 @@ var test = function(status) {
 
                 if (forceUpdate) {
                     hasCreated = true;
-                    fs.write(worldStartPath, resurrect.stringify(worldStart, precisionLimiter, 2), 'w');
+                    fs.write(worldStartPath, JSON.stringify(worldStart, precisionLimiter, 2), 'w');
                 } else {
                     hasChanged = true; 
                 }
             }
         } else {
             hasCreated = true;
-            fs.write(worldStartPath, resurrect.stringify(worldStart, precisionLimiter, 2), 'w');
+            fs.write(worldStartPath, JSON.stringify(worldStart, precisionLimiter, 2), 'w');
         }
 
         if (fs.exists(worldEndPath)) {
-            var worldEndRef = resurrect.resurrect(fs.read(worldEndPath));
+            var worldEndRef = JSON.parse(fs.read(worldEndPath));
             var worldEndDiff = compare(worldEndRef, worldEnd);
 
             if (worldEndDiff.length !== 0) {
@@ -105,14 +105,14 @@ var test = function(status) {
 
                 if (forceUpdate) {
                     hasCreated = true;
-                    fs.write(worldEndPath, resurrect.stringify(worldEnd, precisionLimiter, 2), 'w');
+                    fs.write(worldEndPath, JSON.stringify(worldEnd, precisionLimiter, 2), 'w');
                 } else {
                     hasChanged = true;
                 }
             }
         } else {
             hasCreated = true;
-            fs.write(worldEndPath, resurrect.stringify(worldEnd, precisionLimiter, 2), 'w');
+            fs.write(worldEndPath, JSON.stringify(worldEnd, precisionLimiter, 2), 'w');
         }
 
         if (hasChanged) {
@@ -167,7 +167,7 @@ page.onError = function(msg, trace) {
 
         if (trace && trace.length) {
             trace.forEach(function(t) {
-                msgStack.push(' -> ' + (t.file || t.sourceURL) + ': ' + t.line + (t.function ? ' (fn: ' + t.function +')' : ''));
+                msgStack.push(' at ' + (t.file || t.sourceURL) + ': ' + t.line + (t.function ? ' (fn: ' + t.function +')' : ''));
             });
         }
 
