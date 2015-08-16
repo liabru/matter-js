@@ -8,6 +8,7 @@
 
     if (!_isBrowser) {
         module.exports = Demo;
+        window = {};
     }
 
     // Matter aliases
@@ -29,7 +30,7 @@
         Svg = Matter.Svg;
 
     // MatterTools aliases
-    if (_isBrowser && window.MatterTools) {
+    if (window.MatterTools) {
         var Gui = MatterTools.Gui,
             Inspector = MatterTools.Inspector;
     }
@@ -43,7 +44,7 @@
         _sceneEvents = [],
         _useInspector = _isBrowser && window.location.hash.indexOf('-inspect') !== -1,
         _isMobile = _isBrowser && /(ipad|iphone|ipod|android)/gi.test(navigator.userAgent),
-        _isAutomatedTest = _isBrowser ? false : true;
+        _isAutomatedTest = !_isBrowser || window._phantom;
     
     // initialise the demo
 
@@ -95,13 +96,11 @@
     };
 
     // call init when the page has loaded fully
-
-    if (_isBrowser) {
-        if (window.addEventListener) {
-            window.addEventListener('load', Demo.init);
-        } else if (window.attachEvent) {
-            window.attachEvent('load', Demo.init);
-        }
+    
+    if (window.addEventListener) {
+        window.addEventListener('load', Demo.init);
+    } else if (window.attachEvent) {
+        window.attachEvent('load', Demo.init);
     }
 
     // each demo scene is set up in its own function, see below
@@ -690,9 +689,6 @@
         var renderOptions = _engine.render.options;
         renderOptions.wireframes = false;
         renderOptions.showAngleIndicator = false;
-
-        if (window.chrome)
-            renderOptions.showShadows = true;
     };
     
     Demo.chains = function() {
@@ -1728,7 +1724,8 @@
     };
     
     Demo.reset = function() {
-        var _world = _engine.world;
+        var _world = _engine.world,
+            i;
         
         World.clear(_world);
         Engine.clear(_engine);
@@ -1741,8 +1738,10 @@
         }
 
         // clear all scene events
-        for (var i = 0; i < _sceneEvents.length; i++)
-            Events.off(_engine, _sceneEvents[i]);
+        if (_engine.events) {
+            for (i = 0; i < _sceneEvents.length; i++)
+                Events.off(_engine, _sceneEvents[i]);
+        }
 
         if (_mouseConstraint && _mouseConstraint.events) {
             for (i = 0; i < _sceneEvents.length; i++)
@@ -1814,10 +1813,11 @@
             renderOptions.showInternalEdges = false;
             renderOptions.showSeparations = false;
             renderOptions.background = '#fff';
-        }
 
-        if (_isMobile)
-            renderOptions.showDebug = true;
+            if (_isMobile) {
+                renderOptions.showDebug = true;
+            }
+        }
     };
 
 })();
