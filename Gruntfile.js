@@ -57,7 +57,7 @@ module.exports = function(grunt) {
       options: {
         jshintrc: '.jshintrc'
       },
-      all: ['src/**/*.js', 'demo/js/*.js', 'test/browser/TestDemo.js', '!src/module/*']
+      all: ['src/**/*.js', 'demo/js/*.js', 'test/browser/TestDemo.js', 'test/node/TestDemo.js', '!src/module/*']
     },
     connect: {
       watch: {
@@ -114,10 +114,21 @@ module.exports = function(grunt) {
       }
     },
     shell: {
-      testDemo: {
+      testDemoBrowser: {
         command: function(arg) {
           arg = arg ? ' --' + arg : '';
           return 'phantomjs test/browser/TestDemo.js' + arg;
+        },
+        options: {
+          execOptions: {
+            timeout: 1000 * 60
+          }
+        }
+      },
+      testDemoNode: {
+        command: function(arg) {
+          arg = arg ? ' --' + arg : '';
+          return 'node test/node/TestDemo.js' + arg;
         },
         options: {
           execOptions: {
@@ -139,7 +150,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-shell');
 
   grunt.registerTask('default', ['test', 'build']);
-  grunt.registerTask('test', ['build:dev', 'connect:serve', 'jshint', 'test:demo']);
+  grunt.registerTask('test', ['build:dev', 'connect:serve', 'jshint', 'test:demo', 'test:demoNode']);
   grunt.registerTask('dev', ['build:dev', 'connect:watch', 'watch']);
 
   grunt.registerTask('test:demo', function() {
@@ -147,11 +158,24 @@ module.exports = function(grunt) {
         diff = grunt.option('diff');
 
     if (updateAll) {
-      grunt.task.run('shell:testDemo:updateAll');
+      grunt.task.run('shell:testDemoBrowser:updateAll');
     } else if (diff) {
-      grunt.task.run('shell:testDemo:diff');
+      grunt.task.run('shell:testDemoBrowser:diff');
     } else {
-      grunt.task.run('shell:testDemo');
+      grunt.task.run('shell:testDemoBrowser');
+    }
+  });
+
+  grunt.registerTask('test:demoNode', function() {
+    var updateAll = grunt.option('updateAll'),
+        diff = grunt.option('diff');
+
+    if (updateAll) {
+      grunt.task.run('shell:testDemoNode:updateAll');
+    } else if (diff) {
+      grunt.task.run('shell:testDemoNode:diff');
+    } else {
+      grunt.task.run('shell:testDemoNode');
     }
   });
 

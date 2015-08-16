@@ -31,8 +31,9 @@
     "undef": true,
     "-W079": true,            // Silence redefinition errors (they are false positives).
     "predef": [
-        "Matter", "window", "document", "Element", "MatterTools", "PIXI", "phantom",
-        "$", "Image", "navigator", "setTimeout", "decomp", "HTMLElement", "require",
+        "Matter", "window", "document", "Element", "MatterTools",
+        "phantom", "process", "HTMLElement", "require", "PIXI",
+        "$", "Image", "navigator", "setTimeout", "decomp", "module",
         "Body", "Composite", "World", "Contact", "Detector", "Grid", 
         "Pairs", "Pair", "Resolver", "SAT", "Constraint", "MouseConstraint", 
         "Common", "Engine", "Mouse", "Sleeping", "Bodies", "Composites", 
