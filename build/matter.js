@@ -1,5 +1,5 @@
 /**
-* matter.js edge-master 2015-08-13
+* matter.js edge-master 2015-08-17
 * http://brm.io/matter-js/
 * License: MIT
 */
@@ -28,18 +28,8 @@
  * THE SOFTWARE.
  */
 
-(function() {
 
-var Matter = {};
-
-// Begin Matter namespace closure
-
-// All Matter modules are included below during build
-// Outro.js then closes at the end of the file
-
-
-// Begin src/body/Body.js
-
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Matter = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 /**
 * The `Matter.Body` module contains methods for creating and manipulating body models.
 * A `Matter.Body` is a rigid body that can be simulated by a `Matter.Engine`.
@@ -52,6 +42,16 @@ var Matter = {};
 */
 
 var Body = {};
+
+module.exports = Body;
+
+var Vertices = require('../geometry/Vertices');
+var Vector = require('../geometry/Vector');
+var Sleeping = require('../core/Sleeping');
+var Render = require('../render/Render');
+var Common = require('../core/Common');
+var Bounds = require('../geometry/Bounds');
+var Axes = require('../geometry/Axes');
 
 (function() {
 
@@ -1111,12 +1111,7 @@ var Body = {};
 
 })();
 
-
-;   // End src/body/Body.js
-
-
-// Begin src/body/Composite.js
-
+},{"../core/Common":14,"../core/Sleeping":20,"../geometry/Axes":23,"../geometry/Bounds":24,"../geometry/Vector":26,"../geometry/Vertices":27,"../render/Render":29}],2:[function(require,module,exports){
 /**
 * The `Matter.Composite` module contains methods for creating and manipulating composite bodies.
 * A composite body is a collection of `Matter.Body`, `Matter.Constraint` and other `Matter.Composite`, therefore composites form a tree structure.
@@ -1130,6 +1125,12 @@ var Body = {};
 */
 
 var Composite = {};
+
+module.exports = Composite;
+
+var Events = require('../core/Events');
+var Common = require('../core/Common');
+var Body = require('./Body');
 
 (function() {
 
@@ -1770,12 +1771,7 @@ var Composite = {};
 
 })();
 
-
-;   // End src/body/Composite.js
-
-
-// Begin src/body/World.js
-
+},{"../core/Common":14,"../core/Events":16,"./Body":1}],3:[function(require,module,exports){
 /**
 * The `Matter.World` module contains methods for creating and manipulating the world composite.
 * A `Matter.World` is a `Matter.Composite` body, which is a collection of `Matter.Body`, `Matter.Constraint` and other `Matter.Composite`.
@@ -1791,6 +1787,12 @@ var Composite = {};
 */
 
 var World = {};
+
+module.exports = World;
+
+var Composite = require('./Composite');
+var Constraint = require('../constraint/Constraint');
+var Common = require('../core/Common');
 
 (function() {
 
@@ -1853,12 +1855,7 @@ var World = {};
 
 })();
 
-
-;   // End src/body/World.js
-
-
-// Begin src/collision/Contact.js
-
+},{"../constraint/Constraint":12,"../core/Common":14,"./Composite":2}],4:[function(require,module,exports){
 /**
 * _Internal Class_, not generally used outside of the engine's internals.
 *
@@ -1866,6 +1863,8 @@ var World = {};
 */
 
 var Contact = {};
+
+module.exports = Contact;
 
 (function() {
 
@@ -1896,12 +1895,7 @@ var Contact = {};
 
 })();
 
-
-;   // End src/collision/Contact.js
-
-
-// Begin src/collision/Detector.js
-
+},{}],5:[function(require,module,exports){
 /**
 * _Internal Class_, not generally used outside of the engine's internals.
 *
@@ -1911,6 +1905,12 @@ var Contact = {};
 // TODO: speculative contacts
 
 var Detector = {};
+
+module.exports = Detector;
+
+var SAT = require('./SAT');
+var Pair = require('./Pair');
+var Bounds = require('../geometry/Bounds');
 
 (function() {
 
@@ -2039,12 +2039,7 @@ var Detector = {};
 
 })();
 
-
-;   // End src/collision/Detector.js
-
-
-// Begin src/collision/Grid.js
-
+},{"../geometry/Bounds":24,"./Pair":7,"./SAT":11}],6:[function(require,module,exports){
 /**
 * See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
 * and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
@@ -2053,6 +2048,12 @@ var Detector = {};
 */
 
 var Grid = {};
+
+module.exports = Grid;
+
+var Pair = require('./Pair');
+var Detector = require('./Detector');
+var Common = require('../core/Common');
 
 (function() {
 
@@ -2336,12 +2337,7 @@ var Grid = {};
     };
     
 })();
-
-;   // End src/collision/Grid.js
-
-
-// Begin src/collision/Pair.js
-
+},{"../core/Common":14,"./Detector":5,"./Pair":7}],7:[function(require,module,exports){
 /**
 * _Internal Class_, not generally used outside of the engine's internals.
 *
@@ -2349,6 +2345,10 @@ var Grid = {};
 */
 
 var Pair = {};
+
+module.exports = Pair;
+
+var Contact = require('./Contact');
 
 (function() {
     
@@ -2464,12 +2464,7 @@ var Pair = {};
 
 })();
 
-
-;   // End src/collision/Pair.js
-
-
-// Begin src/collision/Pairs.js
-
+},{"./Contact":4}],8:[function(require,module,exports){
 /**
 * _Internal Class_, not generally used outside of the engine's internals.
 *
@@ -2477,6 +2472,11 @@ var Pair = {};
 */
 
 var Pairs = {};
+
+module.exports = Pairs;
+
+var Pair = require('./Pair');
+var Common = require('../core/Common');
 
 (function() {
     
@@ -2622,12 +2622,7 @@ var Pairs = {};
 
 })();
 
-
-;   // End src/collision/Pairs.js
-
-
-// Begin src/collision/Query.js
-
+},{"../core/Common":14,"./Pair":7}],9:[function(require,module,exports){
 /**
 * The `Matter.Query` module contains methods for performing collision queries.
 *
@@ -2635,6 +2630,14 @@ var Pairs = {};
 */
 
 var Query = {};
+
+module.exports = Query;
+
+var Vector = require('../geometry/Vector');
+var SAT = require('./SAT');
+var Bounds = require('../geometry/Bounds');
+var Bodies = require('../factory/Bodies');
+var Vertices = require('../geometry/Vertices');
 
 (function() {
 
@@ -2730,12 +2733,7 @@ var Query = {};
     };
 
 })();
-
-;   // End src/collision/Query.js
-
-
-// Begin src/collision/Resolver.js
-
+},{"../factory/Bodies":21,"../geometry/Bounds":24,"../geometry/Vector":26,"../geometry/Vertices":27,"./SAT":11}],10:[function(require,module,exports){
 /**
 * _Internal Class_, not generally used outside of the engine's internals.
 *
@@ -2743,6 +2741,13 @@ var Query = {};
 */
 
 var Resolver = {};
+
+module.exports = Resolver;
+
+var Vertices = require('../geometry/Vertices');
+var Vector = require('../geometry/Vector');
+var Common = require('../core/Common');
+var Bounds = require('../geometry/Bounds');
 
 (function() {
 
@@ -3065,12 +3070,7 @@ var Resolver = {};
 
 })();
 
-
-;   // End src/collision/Resolver.js
-
-
-// Begin src/collision/SAT.js
-
+},{"../core/Common":14,"../geometry/Bounds":24,"../geometry/Vector":26,"../geometry/Vertices":27}],11:[function(require,module,exports){
 /**
 * _Internal Class_, not generally used outside of the engine's internals.
 *
@@ -3080,6 +3080,11 @@ var Resolver = {};
 // TODO: true circles and curves
 
 var SAT = {};
+
+module.exports = SAT;
+
+var Vertices = require('../geometry/Vertices');
+var Vector = require('../geometry/Vector');
 
 (function() {
 
@@ -3332,12 +3337,7 @@ var SAT = {};
 
 })();
 
-
-;   // End src/collision/SAT.js
-
-
-// Begin src/constraint/Constraint.js
-
+},{"../geometry/Vector":26,"../geometry/Vertices":27}],12:[function(require,module,exports){
 /**
 * The `Matter.Constraint` module contains methods for creating and manipulating constraints.
 * Constraints are used for specifying that a fixed distance must be maintained between two bodies (or a body and a fixed world-space position).
@@ -3358,6 +3358,15 @@ var SAT = {};
 // TODO: impulse caching and warming
 
 var Constraint = {};
+
+module.exports = Constraint;
+
+var Vertices = require('../geometry/Vertices');
+var Vector = require('../geometry/Vector');
+var Sleeping = require('../core/Sleeping');
+var Bounds = require('../geometry/Bounds');
+var Axes = require('../geometry/Axes');
+var Common = require('../core/Common');
 
 (function() {
 
@@ -3730,12 +3739,7 @@ var Constraint = {};
 
 })();
 
-
-;   // End src/constraint/Constraint.js
-
-
-// Begin src/constraint/MouseConstraint.js
-
+},{"../core/Common":14,"../core/Sleeping":20,"../geometry/Axes":23,"../geometry/Bounds":24,"../geometry/Vector":26,"../geometry/Vertices":27}],13:[function(require,module,exports){
 /**
 * The `Matter.MouseConstraint` module contains methods for creating mouse constraints.
 * Mouse constraints are used for allowing user interaction, providing the ability to move bodies via the mouse or touch.
@@ -3747,6 +3751,18 @@ var Constraint = {};
 */
 
 var MouseConstraint = {};
+
+module.exports = MouseConstraint;
+
+var Vertices = require('../geometry/Vertices');
+var Sleeping = require('../core/Sleeping');
+var Mouse = require('../core/Mouse');
+var Events = require('../core/Events');
+var Detector = require('../collision/Detector');
+var Constraint = require('./Constraint');
+var Composite = require('../body/Composite');
+var Common = require('../core/Common');
+var Bounds = require('../geometry/Bounds');
 
 (function() {
 
@@ -3981,12 +3997,7 @@ var MouseConstraint = {};
 
 })();
 
-
-;   // End src/constraint/MouseConstraint.js
-
-
-// Begin src/core/Common.js
-
+},{"../body/Composite":2,"../collision/Detector":5,"../core/Common":14,"../core/Events":16,"../core/Mouse":18,"../core/Sleeping":20,"../geometry/Bounds":24,"../geometry/Vertices":27,"./Constraint":12}],14:[function(require,module,exports){
 /**
 * _Internal Class_, not generally used outside of the engine's internals.
 *
@@ -3994,6 +4005,8 @@ var MouseConstraint = {};
 */
 
 var Common = {};
+
+module.exports = Common;
 
 (function() {
 
@@ -4306,12 +4319,7 @@ var Common = {};
 
 })();
 
-
-;   // End src/core/Common.js
-
-
-// Begin src/core/Engine.js
-
+},{}],15:[function(require,module,exports){
 /**
 * The `Matter.Engine` module contains methods for creating and manipulating engines.
 * An engine is a controller that manages updating the simulation of the world.
@@ -4324,6 +4332,21 @@ var Common = {};
 */
 
 var Engine = {};
+
+module.exports = Engine;
+
+var World = require('../body/World');
+var Sleeping = require('./Sleeping');
+var Resolver = require('../collision/Resolver');
+var Render = require('../render/Render');
+var Pairs = require('../collision/Pairs');
+var Metrics = require('./Metrics');
+var Grid = require('../collision/Grid');
+var Events = require('./Events');
+var Composite = require('../body/Composite');
+var Constraint = require('../constraint/Constraint');
+var Common = require('./Common');
+var Body = require('../body/Body');
 
 (function() {
 
@@ -4760,12 +4783,7 @@ var Engine = {};
 
 })();
 
-
-;   // End src/core/Engine.js
-
-
-// Begin src/core/Events.js
-
+},{"../body/Body":1,"../body/Composite":2,"../body/World":3,"../collision/Grid":6,"../collision/Pairs":8,"../collision/Resolver":10,"../constraint/Constraint":12,"../render/Render":29,"./Common":14,"./Events":16,"./Metrics":17,"./Sleeping":20}],16:[function(require,module,exports){
 /**
 * See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
 * and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
@@ -4774,6 +4792,10 @@ var Engine = {};
 */
 
 var Events = {};
+
+module.exports = Events;
+
+var Common = require('./Common');
 
 (function() {
 
@@ -4823,7 +4845,7 @@ var Events = {};
             var callbacks = object.events[names[i]],
                 newCallbacks = [];
 
-            if (callback) {
+            if (callback && callbacks) {
                 for (var j = 0; j < callbacks.length; j++) {
                     if (callbacks[j] !== callback)
                         newCallbacks.push(callbacks[j]);
@@ -4871,17 +4893,8 @@ var Events = {};
     };
 
 })();
-
-;   // End src/core/Events.js
-
-
-// Begin src/core/Metrics.js
-
-;   // End src/core/Metrics.js
-
-
-// Begin src/core/Mouse.js
-
+},{"./Common":14}],17:[function(require,module,exports){
+},{"../body/Composite":2,"./Common":14}],18:[function(require,module,exports){
 /**
 * _Internal Class_, not generally used outside of the engine's internals.
 *
@@ -4889,6 +4902,10 @@ var Events = {};
 */
 
 var Mouse = {};
+
+module.exports = Mouse;
+
+var Common = require('../core/Common');
 
 (function() {
 
@@ -5080,12 +5097,7 @@ var Mouse = {};
 
 })();
 
-
-;   // End src/core/Mouse.js
-
-
-// Begin src/core/Runner.js
-
+},{"../core/Common":14}],19:[function(require,module,exports){
 /**
 * The `Matter.Runner` module is an optional utility which provides a game loop, 
 * that handles updating and rendering a `Matter.Engine` for you within a browser.
@@ -5102,19 +5114,25 @@ var Mouse = {};
 
 var Runner = {};
 
+module.exports = Runner;
+
+var Events = require('./Events');
+var Engine = require('./Engine');
+var Common = require('./Common');
+
 (function() {
 
-    if (typeof window === 'undefined') {
-        // TODO: support Runner on non-browser environments.
-        return;
-    }
+    var _requestAnimationFrame,
+        _cancelAnimationFrame;
 
-    var _requestAnimationFrame = window.requestAnimationFrame || window.webkitRequestAnimationFrame
+    if (typeof window !== 'undefined') {
+        _requestAnimationFrame = window.requestAnimationFrame || window.webkitRequestAnimationFrame
                                       || window.mozRequestAnimationFrame || window.msRequestAnimationFrame 
                                       || function(callback){ window.setTimeout(function() { callback(Common.now()); }, 1000 / 60); };
    
-    var _cancelAnimationFrame = window.cancelAnimationFrame || window.mozCancelAnimationFrame 
+        _cancelAnimationFrame = window.cancelAnimationFrame || window.mozCancelAnimationFrame 
                                       || window.webkitCancelAnimationFrame || window.msCancelAnimationFrame;
+    }
 
     /**
      * Creates a new Runner. The options parameter is an object that specifies any properties you wish to override the defaults.
@@ -5251,7 +5269,7 @@ var Runner = {};
         Events.trigger(runner, 'afterUpdate', event);
 
         // render
-        if (engine.render) {
+        if (engine.render && engine.render.controller) {
             Events.trigger(runner, 'beforeRender', event);
             Events.trigger(engine, 'beforeRender', event); // @deprecated
 
@@ -5387,12 +5405,7 @@ var Runner = {};
 
 })();
 
-
-;   // End src/core/Runner.js
-
-
-// Begin src/core/Sleeping.js
-
+},{"./Common":14,"./Engine":15,"./Events":16}],20:[function(require,module,exports){
 /**
 * _Internal Class_, not generally used outside of the engine's internals.
 *
@@ -5400,6 +5413,10 @@ var Runner = {};
 */
 
 var Sleeping = {};
+
+module.exports = Sleeping;
+
+var Events = require('./Events');
 
 (function() {
 
@@ -5518,12 +5535,7 @@ var Sleeping = {};
     };
 
 })();
-
-;   // End src/core/Sleeping.js
-
-
-// Begin src/factory/Bodies.js
-
+},{"./Events":16}],21:[function(require,module,exports){
 /**
 * The `Matter.Bodies` module contains factory methods for creating rigid body models 
 * with commonly used body configurations (such as rectangles, circles and other polygons).
@@ -5537,6 +5549,14 @@ var Sleeping = {};
 // TODO: true circle bodies
 
 var Bodies = {};
+
+module.exports = Bodies;
+
+var Vertices = require('../geometry/Vertices');
+var Common = require('../core/Common');
+var Body = require('../body/Body');
+var Bounds = require('../geometry/Bounds');
+var Vector = require('../geometry/Vector');
 
 (function() {
 
@@ -5839,12 +5859,7 @@ var Bodies = {};
     };
 
 })();
-
-;   // End src/factory/Bodies.js
-
-
-// Begin src/factory/Composites.js
-
+},{"../body/Body":1,"../core/Common":14,"../geometry/Bounds":24,"../geometry/Vector":26,"../geometry/Vertices":27}],22:[function(require,module,exports){
 /**
 * See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
 * and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
@@ -5853,6 +5868,14 @@ var Bodies = {};
 */
 
 var Composites = {};
+
+module.exports = Composites;
+
+var Composite = require('../body/Composite');
+var Constraint = require('../constraint/Constraint');
+var Common = require('../core/Common');
+var Body = require('../body/Body');
+var Bodies = require('./Bodies');
 
 (function() {
 
@@ -6167,12 +6190,7 @@ var Composites = {};
 
 })();
 
-
-;   // End src/factory/Composites.js
-
-
-// Begin src/geometry/Axes.js
-
+},{"../body/Body":1,"../body/Composite":2,"../constraint/Constraint":12,"../core/Common":14,"./Bodies":21}],23:[function(require,module,exports){
 /**
 * _Internal Class_, not generally used outside of the engine's internals.
 *
@@ -6180,6 +6198,11 @@ var Composites = {};
 */
 
 var Axes = {};
+
+module.exports = Axes;
+
+var Vector = require('../geometry/Vector');
+var Common = require('../core/Common');
 
 (function() {
 
@@ -6232,12 +6255,7 @@ var Axes = {};
     };
 
 })();
-
-;   // End src/geometry/Axes.js
-
-
-// Begin src/geometry/Bounds.js
-
+},{"../core/Common":14,"../geometry/Vector":26}],24:[function(require,module,exports){
 /**
 * _Internal Class_, not generally used outside of the engine's internals.
 *
@@ -6245,6 +6263,8 @@ var Axes = {};
 */
 
 var Bounds = {};
+
+module.exports = Bounds;
 
 (function() {
 
@@ -6356,12 +6376,7 @@ var Bounds = {};
     };
     
 })();
-
-;   // End src/geometry/Bounds.js
-
-
-// Begin src/geometry/Svg.js
-
+},{}],25:[function(require,module,exports){
 /**
 * The `Matter.Svg` module contains methods for converting SVG images into an array of vector points.
 *
@@ -6372,6 +6387,10 @@ var Bounds = {};
 */
 
 var Svg = {};
+
+module.exports = Svg;
+
+var Bounds = require('../geometry/Bounds');
 
 (function() {
 
@@ -6574,12 +6593,7 @@ var Svg = {};
     };
 
 })();
-
-;   // End src/geometry/Svg.js
-
-
-// Begin src/geometry/Vector.js
-
+},{"../geometry/Bounds":24}],26:[function(require,module,exports){
 /**
 * The `Matter.Vector` module contains methods for creating and manipulating vectors.
 * Vectors are the basis of all the geometry related operations in the engine.
@@ -6594,6 +6608,8 @@ var Svg = {};
 // TODO: consider params for reusing vector objects
 
 var Vector = {};
+
+module.exports = Vector;
 
 (function() {
 
@@ -6814,12 +6830,7 @@ var Vector = {};
                     Vector.create(), Vector.create()];
 
 })();
-
-;   // End src/geometry/Vector.js
-
-
-// Begin src/geometry/Vertices.js
-
+},{}],27:[function(require,module,exports){
 /**
 * The `Matter.Vertices` module contains methods for creating and manipulating sets of vertices.
 * A set of vertices is an array of `Matter.Vector` with additional indexing properties inserted by `Vertices.create`.
@@ -6832,6 +6843,11 @@ var Vector = {};
 */
 
 var Vertices = {};
+
+module.exports = Vertices;
+
+var Vector = require('../geometry/Vector');
+var Common = require('../core/Common');
 
 (function() {
 
@@ -7260,12 +7276,54 @@ var Vertices = {};
 
 })();
 
+},{"../core/Common":14,"../geometry/Vector":26}],28:[function(require,module,exports){
+var Matter = module.exports = {};
 
-;   // End src/geometry/Vertices.js
+Matter.Body = require('../body/Body');
+Matter.Composite = require('../body/Composite');
+Matter.World = require('../body/World');
 
+Matter.Contact = require('../collision/Contact');
+Matter.Detector = require('../collision/Detector');
+Matter.Grid = require('../collision/Grid');
+Matter.Pairs = require('../collision/Pairs');
+Matter.Pair = require('../collision/Pair');
+Matter.Query = require('../collision/Query');
+Matter.Resolver = require('../collision/Resolver');
+Matter.SAT = require('../collision/SAT');
 
-// Begin src/render/Render.js
+Matter.Constraint = require('../constraint/Constraint');
+Matter.MouseConstraint = require('../constraint/MouseConstraint');
 
+Matter.Common = require('../core/Common');
+Matter.Engine = require('../core/Engine');
+Matter.Events = require('../core/Events');
+Matter.Mouse = require('../core/Mouse');
+Matter.Runner = require('../core/Runner');
+Matter.Sleeping = require('../core/Sleeping');
+
+Matter.Bodies = require('../factory/Bodies');
+Matter.Composites = require('../factory/Composites');
+
+Matter.Axes = require('../geometry/Axes');
+Matter.Bounds = require('../geometry/Bounds');
+Matter.Svg = require('../geometry/Svg');
+Matter.Vector = require('../geometry/Vector');
+Matter.Vertices = require('../geometry/Vertices');
+
+Matter.Render = require('../render/Render');
+Matter.RenderPixi = require('../render/RenderPixi');
+
+// aliases
+
+Matter.World.add = Matter.Composite.add;
+Matter.World.remove = Matter.Composite.remove;
+Matter.World.addComposite = Matter.Composite.addComposite;
+Matter.World.addBody = Matter.Composite.addBody;
+Matter.World.addConstraint = Matter.Composite.addConstraint;
+Matter.World.clear = Matter.Composite.clear;
+Matter.Engine.run = Matter.Runner.run;
+},{"../body/Body":1,"../body/Composite":2,"../body/World":3,"../collision/Contact":4,"../collision/Detector":5,"../collision/Grid":6,"../collision/Pair":7,"../collision/Pairs":8,"../collision/Query":9,"../collision/Resolver":10,"../collision/SAT":11,"../constraint/Constraint":12,"../constraint/MouseConstraint":13,"../core/Common":14,"../core/Engine":15,"../core/Events":16,"../core/Metrics":17,"../core/Mouse":18,"../core/Runner":19,"../core/Sleeping":20,"../factory/Bodies":21,"../factory/Composites":22,"../geometry/Axes":23,"../geometry/Bounds":24,"../geometry/Svg":25,"../geometry/Vector":26,"../geometry/Vertices":27,"../render/Render":29,"../render/RenderPixi":30}],29:[function(require,module,exports){
 /**
 * The `Matter.Render` module is the default `render.controller` used by a `Matter.Engine`.
 * This renderer is HTML5 canvas based and supports a number of drawing options including sprites and viewports.
@@ -7279,6 +7337,14 @@ var Vertices = {};
 */
 
 var Render = {};
+
+module.exports = Render;
+
+var Common = require('../core/Common');
+var Composite = require('../body/Composite');
+var Bounds = require('../geometry/Bounds');
+var Events = require('../core/Events');
+var Grid = require('../collision/Grid');
 
 (function() {
     
@@ -8487,12 +8553,7 @@ var Render = {};
 
 })();
 
-
-;   // End src/render/Render.js
-
-
-// Begin src/render/RenderPixi.js
-
+},{"../body/Composite":2,"../collision/Grid":6,"../core/Common":14,"../core/Events":16,"../geometry/Bounds":24}],30:[function(require,module,exports){
 /**
 * See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
 * and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
@@ -8501,6 +8562,8 @@ var Render = {};
 */
 
 var RenderPixi = {};
+
+module.exports = RenderPixi;
 
 (function() {
     
@@ -8939,72 +9002,5 @@ var RenderPixi = {};
 
 })();
 
-
-;   // End src/render/RenderPixi.js
-
-
-// aliases
-
-World.add = Composite.add;
-World.remove = Composite.remove;
-World.addComposite = Composite.addComposite;
-World.addBody = Composite.addBody;
-World.addConstraint = Composite.addConstraint;
-World.clear = Composite.clear;
-
-Engine.run = Runner.run;
-
-// exports
-
-Matter.Body = Body;
-Matter.Composite = Composite;
-Matter.World = World;
-Matter.Contact = Contact;
-Matter.Detector = Detector;
-Matter.Grid = Grid;
-Matter.Pairs = Pairs;
-Matter.Pair = Pair;
-Matter.Resolver = Resolver;
-Matter.SAT = SAT;
-Matter.Constraint = Constraint;
-Matter.MouseConstraint = MouseConstraint;
-Matter.Common = Common;
-Matter.Engine = Engine;
-Matter.Mouse = Mouse;
-Matter.Sleeping = Sleeping;
-Matter.Bodies = Bodies;
-Matter.Composites = Composites;
-Matter.Axes = Axes;
-Matter.Bounds = Bounds;
-Matter.Vector = Vector;
-Matter.Vertices = Vertices;
-Matter.Render = Render;
-Matter.RenderPixi = RenderPixi;
-Matter.Events = Events;
-Matter.Query = Query;
-Matter.Runner = Runner;
-Matter.Svg = Svg;
-
-// CommonJS module
-if (typeof exports !== 'undefined') {
-    if (typeof module !== 'undefined' && module.exports) {
-        exports = module.exports = Matter;
-    }
-    exports.Matter = Matter;
-}
-
-// AMD module
-if (typeof define === 'function' && define.amd) {
-    define('Matter', [], function () {
-        return Matter;
-    });
-}
-
-// browser
-if (typeof window === 'object' && typeof window.document === 'object') {
-    window.Matter = Matter;
-}
-
-// End Matter namespace closure
-
-})();
+},{}]},{},[28])(28)
+});
