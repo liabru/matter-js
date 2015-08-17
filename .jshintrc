@@ -30,6 +30,7 @@
     // variables
     "undef": true,
     "-W079": true,            // Silence redefinition errors (they are false positives).
+    "-W020": true,            // Silence readonly error (needed to simplify support for node).
     "predef": [
         "Matter", "window", "document", "Element", "MatterTools",
         "phantom", "process", "HTMLElement", "require", "PIXI",
