@@ -59,7 +59,7 @@ var Common = require('./Common');
             var callbacks = object.events[names[i]],
                 newCallbacks = [];
 
-            if (callback) {
+            if (callback && callbacks) {
                 for (var j = 0; j < callbacks.length; j++) {
                     if (callbacks[j] !== callback)
                         newCallbacks.push(callbacks[j]);

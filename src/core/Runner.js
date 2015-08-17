@@ -22,17 +22,17 @@ var Common = require('./Common');
 
 (function() {
 
-    if (typeof window === 'undefined') {
-        // TODO: support Runner on non-browser environments.
-        return;
-    }
+    var _requestAnimationFrame,
+        _cancelAnimationFrame;
 
-    var _requestAnimationFrame = window.requestAnimationFrame || window.webkitRequestAnimationFrame
+    if (typeof window !== 'undefined') {
+        _requestAnimationFrame = window.requestAnimationFrame || window.webkitRequestAnimationFrame
                                       || window.mozRequestAnimationFrame || window.msRequestAnimationFrame 
                                       || function(callback){ window.setTimeout(function() { callback(Common.now()); }, 1000 / 60); };
    
-    var _cancelAnimationFrame = window.cancelAnimationFrame || window.mozCancelAnimationFrame 
+        _cancelAnimationFrame = window.cancelAnimationFrame || window.mozCancelAnimationFrame 
                                       || window.webkitCancelAnimationFrame || window.msCancelAnimationFrame;
+    }
 
     /**
      * Creates a new Runner. The options parameter is an object that specifies any properties you wish to override the defaults.
@@ -169,7 +169,7 @@ var Common = require('./Common');
         Events.trigger(runner, 'afterUpdate', event);
 
         // render
-        if (engine.render) {
+        if (engine.render && engine.render.controller) {
             Events.trigger(runner, 'beforeRender', event);
             Events.trigger(engine, 'beforeRender', event); // @deprecated
 

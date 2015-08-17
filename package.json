@@ -5,7 +5,7 @@
   "homepage": "http://brm.io/matter-js/",
   "author": "Liam Brummitt <liam@brm.io> (http://brm.io/)",
   "description": "a 2D rigid body physics engine for the web",
-  "main": "build/matter-0.8.0.min.js",
+  "main": "build/matter-dev.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/liabru/matter-js.git"
@@ -20,6 +20,7 @@
     "rigid body physics"
   ],
   "devDependencies": {
+    "cheerio": "^0.19.0",
     "fast-json-patch": "^0.5.4",
     "grunt": "~0.4.2",
     "grunt-browserify": "~3.7.0",
@@ -30,7 +31,9 @@
     "grunt-contrib-watch": "~0.5.3",
     "grunt-contrib-yuidoc": "~0.5.1",
     "grunt-preprocess": "^4.1.0",
-    "grunt-shell": "^1.1.2"
+    "grunt-shell": "^1.1.2",
+    "mkdirp": "^0.5.1",
+    "rimraf": "^2.4.2"
   },
   "scripts": {
     "dev": "npm install && grunt dev",
