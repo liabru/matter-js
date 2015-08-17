@@ -8,7 +8,7 @@ module.exports = function(grunt) {
       options: {
         banner: '/**\n* <%= buildName %>.js <%= buildVersion %> <%= grunt.template.today("yyyy-mm-dd") %>\n* <%= pkg.homepage %>\n* License: <%= pkg.license %>\n*/\n\n',
         browserifyOptions: {
-          standalone: '<%= pkg.name %>'
+          standalone: 'Matter'
         }
       },
       'build/<%= buildName %>.js': ['src/module/main.js']

@@ -22,7 +22,7 @@
  * THE SOFTWARE.
  */
 
-Matter = module.exports = {};
+var Matter = module.exports = {};
 
 Matter.Body = require('../body/Body');
 Matter.Composite = require('../body/Composite');
