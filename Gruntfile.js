@@ -6,7 +6,7 @@ module.exports = function(grunt) {
     docVersion: 'v<%= pkg.version %>',
     browserify: {
       options: {
-        banner: '/**\n* <%= buildName %>.js <%= buildVersion %> <%= grunt.template.today("yyyy-mm-dd") %>\n* <%= pkg.homepage %>\n* License: <%= pkg.license %>\n*/\n\n',
+        banner: '/**\n* <%= buildName %>.js <%= buildVersion %> <%= grunt.template.today("yyyy-mm-dd") %>\n* <%= pkg.homepage %>\n* License: <%= pkg.license %>\n*/\n\n' + grunt.file.read('src/module/license.js') + '\n\n',
         browserifyOptions: {
           standalone: 'Matter'
         }
