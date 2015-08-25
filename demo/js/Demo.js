@@ -150,6 +150,7 @@
 
         // initialise demo selector
         demoSelect.value = demo.sceneName;
+        Demo.setUpdateSourceLink(demo.sceneName);
         
         demoSelect.addEventListener('change', function(e) {
             Demo.reset(demo);
@@ -159,13 +160,21 @@
             var scrollY = window.scrollY;
             window.location.hash = demo.sceneName;
             window.scrollY = scrollY;
+            Demo.setUpdateSourceLink(demo.sceneName);
         });
         
         demoReset.addEventListener('click', function(e) {
             Demo.reset(demo);
             Example[demo.sceneName](demo);
             Gui.update(demo.gui);
+            Demo.setUpdateSourceLink(demo.sceneName);
         });
+    };
+
+    Demo.setUpdateSourceLink = function(sceneName) {
+        var demoViewSource = document.getElementById('demo-view-source'),
+            sourceUrl = 'https://github.com/liabru/matter-js/blob/master/examples';
+        demoViewSource.setAttribute('href', sourceUrl + '/' + sceneName + '.js');
     };
 
     Demo.fullscreen = function(demo) {

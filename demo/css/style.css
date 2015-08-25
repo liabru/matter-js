@@ -29,7 +29,11 @@ h1 {
     padding: 0 5px;
 }
 
-.nav a, .nav a:link, .nav a:visited, .nav a:active, .nav a:hover {
+.nav-links a, 
+.nav-links a:link, 
+.nav-links a:visited, 
+.nav-links a:active, 
+.nav-links a:hover {
     color: #aaa;
     text-decoration: none;
     border-bottom: 1px solid #555;
@@ -109,6 +113,13 @@ canvas:active {
     padding: 20px 40px;
     width: 200px;
     color: #000;
+}
+
+.demo-view-source {
+    display: inline-block;
+    margin: 0 0 0 22px;
+    font-size: 13px;
+    opacity: 0.5;
 }
 
 .dg.a {
