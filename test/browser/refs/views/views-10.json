@@ -15,7 +15,7 @@
     "gravity": {
       "#": 1689
     },
-    "id": 0,
+    "id": 12,
     "isModified": false,
     "label": "World",
     "parent": "",
@@ -14848,7 +14848,7 @@
   {
     "angularStiffness": 1,
     "bodyB": "",
-    "id": 1,
+    "id": 13,
     "label": "Mouse Constraint",
     "length": 0.01,
     "pointA": {
@@ -14862,8 +14862,8 @@
     "type": "constraint"
   },
   {
-    "x": -88,
-    "y": -66
+    "x": 0,
+    "y": 0
   },
   {
     "lineWidth": 3,

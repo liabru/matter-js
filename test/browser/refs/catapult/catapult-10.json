@@ -15,7 +15,7 @@
     "gravity": {
       "#": 341
     },
-    "id": 0,
+    "id": 19,
     "isModified": false,
     "label": "World",
     "parent": "",
@@ -1756,12 +1756,32 @@
     }
   },
   {
-    "x": 1100,
-    "y": 900
+    "x": {
+      "#.": "Number",
+      "#v": [
+        "Infinity"
+      ]
+    },
+    "y": {
+      "#.": "Number",
+      "#v": [
+        "Infinity"
+      ]
+    }
   },
   {
-    "x": -300,
-    "y": -300
+    "x": {
+      "#.": "Number",
+      "#v": [
+        "-Infinity"
+      ]
+    },
+    "y": {
+      "#.": "Number",
+      "#v": [
+        "-Infinity"
+      ]
+    }
   },
   [
     {
@@ -2960,7 +2980,7 @@
   {
     "angularStiffness": 1,
     "bodyB": "",
-    "id": 1,
+    "id": 20,
     "label": "Mouse Constraint",
     "length": 0.01,
     "pointA": {

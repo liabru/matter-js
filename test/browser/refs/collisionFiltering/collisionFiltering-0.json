@@ -12,13 +12,10 @@
     "constraints": {
       "#": 2506
     },
-    "events": {
-      "#": 2510
-    },
     "gravity": {
-      "#": 2512
+      "#": 2511
     },
-    "id": 0,
+    "id": 37,
     "isModified": true,
     "label": "World",
     "parent": "",
@@ -2270,12 +2267,32 @@
     }
   },
   {
-    "x": 1100,
-    "y": 900
+    "x": {
+      "#.": "Number",
+      "#v": [
+        "Infinity"
+      ]
+    },
+    "y": {
+      "#.": "Number",
+      "#v": [
+        "Infinity"
+      ]
+    }
   },
   {
-    "x": -300,
-    "y": -300
+    "x": {
+      "#.": "Number",
+      "#v": [
+        "-Infinity"
+      ]
+    },
+    "y": {
+      "#.": "Number",
+      "#v": [
+        "-Infinity"
+      ]
+    }
   },
   [
     {
@@ -22309,19 +22326,24 @@
   ],
   {
     "angularStiffness": 1,
-    "bodyB": "",
-    "id": 1,
+    "id": 38,
     "label": "Mouse Constraint",
     "length": 0.01,
     "pointA": {
       "#": 2508
     },
-    "pointB": "",
-    "render": {
+    "pointB": {
       "#": 2509
+    },
+    "render": {
+      "#": 2510
     },
     "stiffness": 0.1,
     "type": "constraint"
+  },
+  {
+    "x": 0,
+    "y": 0
   },
   {
     "x": 0,
@@ -22332,12 +22354,6 @@
     "strokeStyle": "#90EE90",
     "visible": true
   },
-  {
-    "afterAdd": {
-      "#": 2511
-    }
-  },
-  [],
   {
     "x": 0,
     "y": 1

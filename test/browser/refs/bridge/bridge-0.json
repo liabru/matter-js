@@ -13,9 +13,9 @@
       "#": 862
     },
     "gravity": {
-      "#": 916
+      "#": 917
     },
-    "id": 0,
+    "id": 105,
     "isModified": true,
     "label": "World",
     "parent": "",
@@ -1220,12 +1220,32 @@
     }
   },
   {
-    "x": 1100,
-    "y": 900
+    "x": {
+      "#.": "Number",
+      "#v": [
+        "Infinity"
+      ]
+    },
+    "y": {
+      "#.": "Number",
+      "#v": [
+        "Infinity"
+      ]
+    }
   },
   {
-    "x": -300,
-    "y": -300
+    "x": {
+      "#.": "Number",
+      "#v": [
+        "-Infinity"
+      ]
+    },
+    "y": {
+      "#.": "Number",
+      "#v": [
+        "-Infinity"
+      ]
+    }
   },
   [
     {
@@ -7600,27 +7620,32 @@
       "#": 863
     },
     {
-      "#": 866
+      "#": 867
     },
     {
-      "#": 891
+      "#": 892
     }
   ],
   {
     "angularStiffness": 1,
-    "bodyB": "",
-    "id": 1,
+    "id": 106,
     "label": "Mouse Constraint",
     "length": 0.01,
     "pointA": {
       "#": 864
     },
-    "pointB": "",
-    "render": {
+    "pointB": {
       "#": 865
+    },
+    "render": {
+      "#": 866
     },
     "stiffness": 0.1,
     "type": "constraint"
+  },
+  {
+    "x": 0,
+    "y": 0
   },
   {
     "x": 0,
@@ -7635,19 +7660,19 @@
     "angleB": 0,
     "angularStiffness": 0,
     "bodyB": {
-      "#": 867
+      "#": 868
     },
     "id": 43,
     "label": "Constraint",
     "length": 14.14214,
     "pointA": {
-      "#": 888
-    },
-    "pointB": {
       "#": 889
     },
-    "render": {
+    "pointB": {
       "#": 890
+    },
+    "render": {
+      "#": 891
     },
     "stiffness": 1,
     "type": "constraint"
@@ -7659,20 +7684,20 @@
     "angularVelocity": 0,
     "area": 1000,
     "axes": {
-      "#": 868
+      "#": 869
     },
     "bounds": {
-      "#": 871
+      "#": 872
     },
     "collisionFilter": {
-      "#": 874
+      "#": 875
     },
     "constraintImpulse": {
-      "#": 875
+      "#": 876
     },
     "density": 0.001,
     "force": {
-      "#": 876
+      "#": 877
     },
     "friction": 0.1,
     "frictionAir": 0.01,
@@ -7688,16 +7713,16 @@
     "motion": 0,
     "parent": null,
     "position": {
-      "#": 877
-    },
-    "positionImpulse": {
       "#": 878
     },
-    "positionPrev": {
+    "positionImpulse": {
       "#": 879
     },
-    "render": {
+    "positionPrev": {
       "#": 880
+    },
+    "render": {
+      "#": 881
     },
     "restitution": 0,
     "sleepCounter": 0,
@@ -7709,18 +7734,18 @@
     "totalContacts": 0,
     "type": "body",
     "velocity": {
-      "#": 882
+      "#": 883
     },
     "vertices": {
-      "#": 883
+      "#": 884
     }
   },
   [
     {
-      "#": 869
+      "#": 870
     },
     {
-      "#": 870
+      "#": 871
     }
   ],
   {
@@ -7733,10 +7758,10 @@
   },
   {
     "max": {
-      "#": 872
+      "#": 873
     },
     "min": {
-      "#": 873
+      "#": 874
     }
   },
   {
@@ -7777,7 +7802,7 @@
     "fillStyle": "#4ECDC4",
     "lineWidth": 1.5,
     "sprite": {
-      "#": 881
+      "#": 882
     },
     "strokeStyle": "#1b9a91",
     "visible": true
@@ -7792,9 +7817,6 @@
   },
   [
     {
-      "#": 884
-    },
-    {
       "#": 885
     },
     {
@@ -7802,6 +7824,9 @@
     },
     {
       "#": 887
+    },
+    {
+      "#": 888
     }
   ],
   {
@@ -7849,19 +7874,19 @@
     "angleB": 0,
     "angularStiffness": 0,
     "bodyB": {
-      "#": 892
+      "#": 893
     },
     "id": 44,
     "label": "Constraint",
     "length": 22.36068,
     "pointA": {
-      "#": 913
-    },
-    "pointB": {
       "#": 914
     },
-    "render": {
+    "pointB": {
       "#": 915
+    },
+    "render": {
+      "#": 916
     },
     "stiffness": 1,
     "type": "constraint"
@@ -7873,20 +7898,20 @@
     "angularVelocity": 0,
     "area": 1000,
     "axes": {
-      "#": 893
+      "#": 894
     },
     "bounds": {
-      "#": 896
+      "#": 897
     },
     "collisionFilter": {
-      "#": 899
+      "#": 900
     },
     "constraintImpulse": {
-      "#": 900
+      "#": 901
     },
     "density": 0.001,
     "force": {
-      "#": 901
+      "#": 902
     },
     "friction": 0.1,
     "frictionAir": 0.01,
@@ -7902,16 +7927,16 @@
     "motion": 0,
     "parent": null,
     "position": {
-      "#": 902
-    },
-    "positionImpulse": {
       "#": 903
     },
-    "positionPrev": {
+    "positionImpulse": {
       "#": 904
     },
-    "render": {
+    "positionPrev": {
       "#": 905
+    },
+    "render": {
+      "#": 906
     },
     "restitution": 0,
     "sleepCounter": 0,
@@ -7923,18 +7948,18 @@
     "totalContacts": 0,
     "type": "body",
     "velocity": {
-      "#": 907
+      "#": 908
     },
     "vertices": {
-      "#": 908
+      "#": 909
     }
   },
   [
     {
-      "#": 894
+      "#": 895
     },
     {
-      "#": 895
+      "#": 896
     }
   ],
   {
@@ -7947,10 +7972,10 @@
   },
   {
     "max": {
-      "#": 897
+      "#": 898
     },
     "min": {
-      "#": 898
+      "#": 899
     }
   },
   {
@@ -7991,7 +8016,7 @@
     "fillStyle": "#C44D58",
     "lineWidth": 1.5,
     "sprite": {
-      "#": 906
+      "#": 907
     },
     "strokeStyle": "#911a25",
     "visible": true
@@ -8006,9 +8031,6 @@
   },
   [
     {
-      "#": 909
-    },
-    {
       "#": 910
     },
     {
@@ -8016,6 +8038,9 @@
     },
     {
       "#": 912
+    },
+    {
+      "#": 913
     }
   ],
   {

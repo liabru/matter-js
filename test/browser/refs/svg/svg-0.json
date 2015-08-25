@@ -13,9 +13,9 @@
       "#": 90
     },
     "gravity": {
-      "#": 94
+      "#": 95
     },
-    "id": 0,
+    "id": 41,
     "isModified": true,
     "label": "World",
     "parent": "",
@@ -859,19 +859,24 @@
   ],
   {
     "angularStiffness": 1,
-    "bodyB": "",
-    "id": 1,
+    "id": 42,
     "label": "Mouse Constraint",
     "length": 0.01,
     "pointA": {
       "#": 92
     },
-    "pointB": "",
-    "render": {
+    "pointB": {
       "#": 93
+    },
+    "render": {
+      "#": 94
     },
     "stiffness": 0.1,
     "type": "constraint"
+  },
+  {
+    "x": 0,
+    "y": 0
   },
   {
     "x": 0,

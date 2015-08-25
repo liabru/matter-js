@@ -13,9 +13,9 @@
       "#": 1198
     },
     "gravity": {
-      "#": 1206
+      "#": 1207
     },
-    "id": 0,
+    "id": 30,
     "isModified": true,
     "label": "World",
     "parent": "",
@@ -10512,24 +10512,29 @@
       "#": 1199
     },
     {
-      "#": 1202
+      "#": 1203
     }
   ],
   {
     "angularStiffness": 1,
-    "bodyB": "",
-    "id": 1,
+    "id": 31,
     "label": "Mouse Constraint",
     "length": 0.01,
     "pointA": {
       "#": 1200
     },
-    "pointB": "",
-    "render": {
+    "pointB": {
       "#": 1201
+    },
+    "render": {
+      "#": 1202
     },
     "stiffness": 0.1,
     "type": "constraint"
+  },
+  {
+    "x": 0,
+    "y": 0
   },
   {
     "x": 0,
@@ -10548,13 +10553,13 @@
     "label": "Constraint",
     "length": 360.55513,
     "pointA": {
-      "#": 1203
-    },
-    "pointB": {
       "#": 1204
     },
-    "render": {
+    "pointB": {
       "#": 1205
+    },
+    "render": {
+      "#": 1206
     },
     "stiffness": 1,
     "type": "constraint"
