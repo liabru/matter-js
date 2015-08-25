@@ -2,14 +2,10 @@
 
     // Matter aliases
     var Engine = Matter.Engine,
-        Gui = Matter.Gui,
         World = Matter.World,
         Bodies = Matter.Bodies,
-        Body = Matter.Body,
-        Composite = Matter.Composite,
         Composites = Matter.Composites,
         Common = Matter.Common,
-        Constraint = Matter.Constraint,
         MouseConstraint = Matter.MouseConstraint;
 
     var Demo = {};

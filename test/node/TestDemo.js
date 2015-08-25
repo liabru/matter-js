@@ -7,6 +7,7 @@ var path = require('path');
 var $ = require('cheerio');
 var Matter = require('../../build/matter-dev.js');
 Matter.Demo = require('../../demo/js/Demo.js');
+Matter.Example = require('../../demo/js/Examples.js');
 
 var demo,
     frames = 10,
@@ -46,11 +47,12 @@ var test = function(status) {
         var engine = Matter.Demo._engine,
             runner = Matter.Runner.create();
 
-        if (!(demo in Matter.Demo)) {
-            throw '\'' + demo + '\' is not defined in Matter.Demo';
+        if (!(demo in Matter.Example)) {
+            throw '\'' + demo + '\' is not defined in Matter.Example';
         }
 
-        Matter.Demo[demo]();
+        Matter.Demo.reset();
+        Matter.Example[demo](Matter.Demo.create());
 
         var worldStart = JSON.parse(resurrect.stringify(engine.world, precisionLimiter));
 

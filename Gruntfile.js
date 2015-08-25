@@ -38,6 +38,12 @@ module.exports = function(grunt) {
         dest: 'build/<%= buildName %>.js'
       }
     },
+    concat: {
+      examples: {
+        src: 'examples/**/*.js',
+        dest: 'demo/js/Examples.js'
+      }
+    },
     copy: {
       demo: {
           src: 'build/<%= buildName %>.js',
@@ -48,7 +54,7 @@ module.exports = function(grunt) {
       options: {
         jshintrc: '.jshintrc'
       },
-      all: ['src/**/*.js', 'demo/js/*.js', 'test/browser/TestDemo.js', 'test/node/TestDemo.js', '!src/module/*']
+      all: ['src/**/*.js', 'demo/js/*.js', 'examples/*.js', 'test/browser/TestDemo.js', 'test/node/TestDemo.js', '!src/module/*', '!demo/js/Examples.js']
     },
     connect: {
       watch: {
@@ -76,6 +82,10 @@ module.exports = function(grunt) {
       },
       demo: {
         files: ['build/matter.js', 'demo/js/**/*.html', 'demo/js/**/*.js', 'demo/css/**/*.css']
+      },
+      examples: {
+        files: ['examples/**/*.js'],
+        tasks: ['concat:examples']
       }
     },
     yuidoc: {
@@ -131,6 +141,7 @@ module.exports = function(grunt) {
   });
 
   grunt.loadNpmTasks('grunt-browserify');
+  grunt.loadNpmTasks('grunt-contrib-concat');
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-contrib-connect');
   grunt.loadNpmTasks('grunt-contrib-watch');
@@ -140,7 +151,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-preprocess');
   grunt.loadNpmTasks('grunt-shell');
 
-  grunt.registerTask('default', ['test', 'build']);
+  grunt.registerTask('default', ['concat:examples', 'test', 'build']);
   grunt.registerTask('test', ['build:dev', 'connect:serve', 'jshint', 'test:demo', 'test:demoNode']);
   grunt.registerTask('dev', ['build:dev', 'connect:watch', 'watch']);
 

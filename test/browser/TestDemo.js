@@ -52,10 +52,11 @@ var test = function(status) {
 
         var worldStart = page.evaluate(function(demo) {
             var engine = Matter.Demo._engine;
-            if (!(demo in Matter.Demo)) {
+            if (!(demo in Matter.Example)) {
                 throw '\'' + demo + '\' is not defined in Matter.Demo';
             }
-            Matter.Demo[demo]();
+            Matter.Demo.reset();
+            Matter.Example[demo](Matter.Demo.create());
             return engine.world;
         }, demo);
 
