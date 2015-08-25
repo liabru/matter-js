@@ -44,15 +44,15 @@ var test = function() {
 
         Matter.Demo.init();
 
-        var engine = Matter.Demo._engine,
+        var engine = Matter.Demo._demo.engine,
             runner = Matter.Runner.create();
 
         if (!(demo in Matter.Example)) {
             throw '\'' + demo + '\' is not defined in Matter.Example';
         }
 
-        Matter.Demo.reset();
-        Matter.Example[demo](Matter.Demo.create());
+        Matter.Demo.reset(Matter.Demo._demo);
+        Matter.Example[demo](Matter.Demo._demo);
 
         var worldStart = JSON.parse(resurrect.stringify(engine.world, precisionLimiter));
 

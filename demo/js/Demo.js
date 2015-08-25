@@ -1,7 +1,11 @@
 (function() {
 
     var _isBrowser = typeof window !== 'undefined' && window.location,
-        Matter = _isBrowser ? window.Matter : require('../../build/matter-dev.js');
+        _useInspector = _isBrowser && window.location.hash.indexOf('-inspect') !== -1,
+        _isMobile = _isBrowser && /(ipad|iphone|ipod|android)/gi.test(navigator.userAgent),
+        _isAutomatedTest = !_isBrowser || window._phantom;
+
+    var Matter = _isBrowser ? window.Matter : require('../../build/matter-dev.js');
 
     var Demo = {};
     Matter.Demo = Demo;
@@ -27,30 +31,18 @@
             Inspector = MatterTools.Inspector;
     }
 
-    var _engine,
-        _runner,
-        _gui,
-        _inspector,
-        _sceneName,
-        _mouseConstraint,
-        _sceneEvents = [],
-        _useInspector = _isBrowser && window.location.hash.indexOf('-inspect') !== -1,
-        _isMobile = _isBrowser && /(ipad|iphone|ipod|android)/gi.test(navigator.userAgent),
-        _isAutomatedTest = !_isBrowser || window._phantom;
-    
     // initialise the demo
 
     Demo.create = function() {
         return {
-            engine: _engine,
-            runner: _runner,
-            mouseConstraint: _mouseConstraint,
-            sceneEvents: _sceneEvents,
-            isMobile: _isMobile
+            isMobile: _isMobile,
+            sceneEvents: []
         };
     };
 
     Demo.init = function() {
+        var demo = Demo.create();
+
         // some example engine options
         var options = {
             positionIterations: 6,
@@ -63,39 +55,39 @@
         // NOTE: this is actually Matter.Engine.create(), see the aliases at top of this file
         if (_isBrowser) {
             var container = document.getElementById('canvas-container');
-            _engine = Engine.create(container, options);
+            demo.engine = Engine.create(container, options);
 
             // add a mouse controlled constraint
-            _mouseConstraint = MouseConstraint.create(_engine);
-            World.add(_engine.world, _mouseConstraint);
+            demo.mouseConstraint = MouseConstraint.create(demo.engine);
+            World.add(demo.engine.world, demo.mouseConstraint);
         } else {
-            _engine = Engine.create(options);
-            _engine.render = {};
-            _engine.render.options = {};
+            demo.engine = Engine.create(options);
+            demo.engine.render = {};
+            demo.engine.render.options = {};
         }
 
-        // engine reference for external use
-        Matter.Demo._engine = _engine;
+        // demo instance reference for external use
+        Matter.Demo._demo = demo;
 
         // skip runner when performing automated tests
         if (_isAutomatedTest) return;
 
         // run the engine
-        _runner = Engine.run(_engine);
+        demo.runner = Engine.run(demo.engine);
 
         // default scene function name
-        _sceneName = 'mixed';
+        demo.sceneName = 'mixed';
         
         // get the scene function name from hash
         if (window.location.hash.length !== 0) 
-            _sceneName = window.location.hash.replace('#', '').replace('-inspect', '');
+            demo.sceneName = window.location.hash.replace('#', '').replace('-inspect', '');
 
         // set up a scene with bodies
-        Demo.reset();
-        Example[_sceneName](Demo.create());
+        Demo.reset(demo);
+        Example[demo.sceneName](demo);
 
         // set up demo interface (see end of this file)
-        Demo.initControls();
+        Demo.initControls(demo);
     };
 
     // call init when the page has loaded fully
@@ -108,46 +100,46 @@
 
     // the functions for the demo interface and controls below
 
-    Demo.initControls = function() {
+    Demo.initControls = function(demo) {
         var demoSelect = document.getElementById('demo-select'),
             demoReset = document.getElementById('demo-reset');
 
         // create a Matter.Gui
         if (!_isMobile && Gui) {
-            _gui = Gui.create(_engine, _runner);
+            demo.gui = Gui.create(demo.engine, demo.runner);
 
             // need to add mouse constraint back in after gui clear or load is pressed
-            Events.on(_gui, 'clear load', function() {
-                _mouseConstraint = MouseConstraint.create(_engine);
-                World.add(_engine.world, _mouseConstraint);
+            Events.on(demo.gui, 'clear load', function() {
+                demo.mouseConstraint = MouseConstraint.create(demo.engine);
+                World.add(demo.engine.world, demo.mouseConstraint);
             });
 
             // need to rebind mouse on render change
-            Events.on(_gui, 'setRenderer', function() {
-                Mouse.setElement(_mouseConstraint.mouse, _engine.render.canvas);
+            Events.on(demo.gui, 'setRenderer', function() {
+                Mouse.setElement(demo.mouseConstraint.mouse, demo.engine.render.canvas);
             });
         }
 
         // create a Matter.Inspector
         if (!_isMobile && Inspector && _useInspector) {
-            _inspector = Inspector.create(_engine, _runner);
+            demo.inspector = Inspector.create(demo.engine, demo.runner);
 
-            Events.on(_inspector, 'import', function() {
-                _mouseConstraint = MouseConstraint.create(_engine);
-                World.add(_engine.world, _mouseConstraint);
+            Events.on(demo.inspector, 'import', function() {
+                demo.mouseConstraint = MouseConstraint.create(demo.engine);
+                World.add(demo.engine.world, demo.mouseConstraint);
             });
 
-            Events.on(_inspector, 'play', function() {
-                _mouseConstraint = MouseConstraint.create(_engine);
-                World.add(_engine.world, _mouseConstraint);
+            Events.on(demo.inspector, 'play', function() {
+                demo.mouseConstraint = MouseConstraint.create(demo.engine);
+                World.add(demo.engine.world, demo.mouseConstraint);
             });
 
-            Events.on(_inspector, 'selectStart', function() {
-                _mouseConstraint.constraint.render.visible = false;
+            Events.on(demo.inspector, 'selectStart', function() {
+                demo.mouseConstraint.constraint.render.visible = false;
             });
 
-            Events.on(_inspector, 'selectEnd', function() {
-                _mouseConstraint.constraint.render.visible = true;
+            Events.on(demo.inspector, 'selectEnd', function() {
+                demo.mouseConstraint.constraint.render.visible = true;
             });
         }
 
@@ -156,7 +148,7 @@
             var body = document.body;
 
             body.className += ' is-mobile';
-            _engine.render.canvas.addEventListener('touchstart', Demo.fullscreen);
+            demo.engine.render.canvas.addEventListener('touchstart', Demo.fullscreen);
 
             var fullscreenChange = function() {
                 var fullscreenEnabled = document.fullscreenEnabled || document.mozFullScreenEnabled || document.webkitFullscreenEnabled;
@@ -177,27 +169,27 @@
         }
 
         // initialise demo selector
-        demoSelect.value = _sceneName;
+        demoSelect.value = demo.sceneName;
         
         demoSelect.addEventListener('change', function(e) {
-            Demo.reset();
-            Example[_sceneName = e.target.value](Demo.create());
-            Gui.update(_gui);
+            Demo.reset(demo);
+            Example[demo.sceneName = e.target.value](demo);
+            Gui.update(demo.gui);
             
             var scrollY = window.scrollY;
-            window.location.hash = _sceneName;
+            window.location.hash = demo.sceneName;
             window.scrollY = scrollY;
         });
         
         demoReset.addEventListener('click', function(e) {
-            Demo.reset();
-            Example[_sceneName](Demo.create());
-            Gui.update(_gui);
+            Demo.reset(demo);
+            Example[demo.sceneName](demo);
+            Gui.update(demo.gui);
         });
     };
 
-    Demo.fullscreen = function(){
-        var _fullscreenElement = _engine.render.canvas;
+    Demo.fullscreen = function(demo) {
+        var _fullscreenElement = demo.engine.render.canvas;
         
         if (!document.fullscreenElement && !document.mozFullScreenElement && !document.webkitFullscreenElement) {
             if (_fullscreenElement.requestFullscreen) {
@@ -210,47 +202,47 @@
         }
     };
     
-    Demo.reset = function() {
-        var _world = _engine.world,
+    Demo.reset = function(demo) {
+        var world = demo.engine.world,
             i;
         
-        World.clear(_world);
-        Engine.clear(_engine);
+        World.clear(world);
+        Engine.clear(demo.engine);
 
         // clear scene graph (if defined in controller)
-        if (_engine.render) {
-            var renderController = _engine.render.controller;
+        if (demo.engine.render) {
+            var renderController = demo.engine.render.controller;
             if (renderController && renderController.clear)
-                renderController.clear(_engine.render);
+                renderController.clear(demo.engine.render);
         }
 
         // clear all scene events
-        if (_engine.events) {
-            for (i = 0; i < _sceneEvents.length; i++)
-                Events.off(_engine, _sceneEvents[i]);
+        if (demo.engine.events) {
+            for (i = 0; i < demo.sceneEvents.length; i++)
+                Events.off(demo.engine, demo.sceneEvents[i]);
         }
 
-        if (_mouseConstraint && _mouseConstraint.events) {
-            for (i = 0; i < _sceneEvents.length; i++)
-                Events.off(_mouseConstraint, _sceneEvents[i]);
+        if (demo.mouseConstraint && demo.mouseConstraint.events) {
+            for (i = 0; i < demo.sceneEvents.length; i++)
+                Events.off(demo.mouseConstraint, demo.sceneEvents[i]);
         }
 
-        if (_world.events) {
-            for (i = 0; i < _sceneEvents.length; i++)
-                Events.off(_world, _sceneEvents[i]);
+        if (world.events) {
+            for (i = 0; i < demo.sceneEvents.length; i++)
+                Events.off(world, demo.sceneEvents[i]);
         }
 
-        if (_runner && _runner.events) {
-            for (i = 0; i < _sceneEvents.length; i++)
-                Events.off(_runner, _sceneEvents[i]);
+        if (demo.runner && demo.runner.events) {
+            for (i = 0; i < demo.sceneEvents.length; i++)
+                Events.off(demo.runner, demo.sceneEvents[i]);
         }
 
-        if (_engine.render && _engine.render.events) {
-            for (i = 0; i < _sceneEvents.length; i++)
-                Events.off(_engine.render, _sceneEvents[i]);
+        if (demo.engine.render && demo.engine.render.events) {
+            for (i = 0; i < demo.sceneEvents.length; i++)
+                Events.off(demo.engine.render, demo.sceneEvents[i]);
         }
 
-        _sceneEvents = [];
+        demo.sceneEvents = [];
 
         // reset id pool
         Common._nextId = 0;
@@ -259,30 +251,30 @@
         Common._seed = 0;
 
         // reset mouse offset and scale (only required for Demo.views)
-        if (_mouseConstraint) {
-            Mouse.setScale(_mouseConstraint.mouse, { x: 1, y: 1 });
-            Mouse.setOffset(_mouseConstraint.mouse, { x: 0, y: 0 });
+        if (demo.mouseConstraint) {
+            Mouse.setScale(demo.mouseConstraint.mouse, { x: 1, y: 1 });
+            Mouse.setOffset(demo.mouseConstraint.mouse, { x: 0, y: 0 });
         }
 
-        _engine.enableSleeping = false;
-        _engine.world.gravity.y = 1;
-        _engine.world.gravity.x = 0;
-        _engine.timing.timeScale = 1;
+        demo.engine.enableSleeping = false;
+        demo.engine.world.gravity.y = 1;
+        demo.engine.world.gravity.x = 0;
+        demo.engine.timing.timeScale = 1;
 
         var offset = 5;
-        World.add(_world, [
+        World.add(world, [
             Bodies.rectangle(400, -offset, 800.5 + 2 * offset, 50.5, { isStatic: true }),
             Bodies.rectangle(400, 600 + offset, 800.5 + 2 * offset, 50.5, { isStatic: true }),
             Bodies.rectangle(800 + offset, 300, 50.5, 600.5 + 2 * offset, { isStatic: true }),
             Bodies.rectangle(-offset, 300, 50.5, 600.5 + 2 * offset, { isStatic: true })
         ]);
 
-        if (_mouseConstraint) {
-            World.add(_world, _mouseConstraint);
+        if (demo.mouseConstraint) {
+            World.add(world, demo.mouseConstraint);
         }
         
-        if (_engine.render) {
-            var renderOptions = _engine.render.options;
+        if (demo.engine.render) {
+            var renderOptions = demo.engine.render.options;
             renderOptions.wireframes = true;
             renderOptions.hasBounds = false;
             renderOptions.showDebug = false;

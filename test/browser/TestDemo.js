@@ -51,17 +51,17 @@ var test = function(status) {
             worldEndDiffPath = diffsPath + '/' + demo + '/' + demo + '-' + frames + '.json';
 
         var worldStart = page.evaluate(function(demo) {
-            var engine = Matter.Demo._engine;
+            var engine = Matter.Demo._demo.engine;
             if (!(demo in Matter.Example)) {
                 throw '\'' + demo + '\' is not defined in Matter.Demo';
             }
-            Matter.Demo.reset();
-            Matter.Example[demo](Matter.Demo.create());
+            Matter.Demo.reset(Matter.Demo._demo);
+            Matter.Example[demo](Matter.Demo._demo);
             return engine.world;
         }, demo);
 
         var worldEnd = page.evaluate(function(demo, frames) {
-            var engine = Matter.Demo._engine,
+            var engine = Matter.Demo._demo.engine,
                 runner = Matter.Runner.create();
 
             for (var j = 0; j <= frames; j += 1) {
