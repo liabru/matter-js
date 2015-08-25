@@ -152,7 +152,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-shell');
 
   grunt.registerTask('default', ['concat:examples', 'test', 'build']);
-  grunt.registerTask('test', ['build:dev', 'connect:serve', 'jshint', 'test:demo', 'test:demoNode']);
+  grunt.registerTask('test', ['concat:examples', 'build:dev', 'connect:serve', 'jshint', 'test:demo', 'test:demoNode']);
   grunt.registerTask('dev', ['concat:examples', 'build:dev', 'connect:watch', 'watch']);
 
   grunt.registerTask('test:demo', function() {
