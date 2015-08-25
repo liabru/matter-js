@@ -51,18 +51,30 @@ var test = function(status) {
             worldEndDiffPath = diffsPath + '/' + demo + '/' + demo + '-' + frames + '.json';
 
         var worldStart = page.evaluate(function(demo) {
-            var engine = Matter.Demo._demo.engine;
             if (!(demo in Matter.Example)) {
                 throw '\'' + demo + '\' is not defined in Matter.Demo';
             }
-            Matter.Demo.reset(Matter.Demo._demo);
-            Matter.Example[demo](Matter.Demo._demo);
+
+            var _demo = Matter.Demo.create(),
+                engine = Matter.Example.engine(_demo),
+                runner = Matter.Runner.create();
+
+            Matter.Demo._demo = _demo;
+            _demo.engine = engine;
+            _demo.engine.render = {};
+            _demo.engine.render.options = {};
+            _demo.runner = runner;
+            _demo.mouseConstraint = Matter.MouseConstraint.create(engine);
+
+            Matter.Demo.reset(_demo);
+            Matter.Example[demo](_demo);
+
             return engine.world;
         }, demo);
 
         var worldEnd = page.evaluate(function(demo, frames) {
             var engine = Matter.Demo._demo.engine,
-                runner = Matter.Runner.create();
+                runner = Matter.Demo._demo.runner;
 
             for (var j = 0; j <= frames; j += 1) {
                 Matter.Runner.tick(runner, engine, j * runner.delta);

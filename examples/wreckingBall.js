@@ -25,12 +25,6 @@
             pointA: { x: 300, y: 100 },
             bodyB: ball
         }));
-        
-        if (!demo.isMobile) {
-            var renderOptions = engine.render.options;
-            renderOptions.showCollisions = true;
-            renderOptions.showVelocity = true;
-        }
     };
 
 })();

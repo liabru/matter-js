@@ -6,8 +6,8 @@ var compare = require('fast-json-patch').compare;
 var path = require('path');
 var $ = require('cheerio');
 var Matter = require('../../build/matter-dev.js');
-Matter.Demo = require('../../demo/js/Demo.js');
 Matter.Example = require('../../demo/js/Examples.js');
+Matter.Demo = require('../../demo/js/Demo.js');
 
 var demo,
     frames = 10,
@@ -42,17 +42,21 @@ var test = function() {
             worldStartDiffPath = diffsPath + '/' + demo + '/' + demo + '-0.json',
             worldEndDiffPath = diffsPath + '/' + demo + '/' + demo + '-' + frames + '.json';
 
-        Matter.Demo.init();
-
-        var engine = Matter.Demo._demo.engine,
+        var _demo = Matter.Demo.create(),
+            engine = Matter.Example.engine(_demo),
             runner = Matter.Runner.create();
+
+        _demo.engine = engine;
+        _demo.engine.render = {};
+        _demo.engine.render.options = {};
+        _demo.runner = runner;
 
         if (!(demo in Matter.Example)) {
             throw '\'' + demo + '\' is not defined in Matter.Example';
         }
 
-        Matter.Demo.reset(Matter.Demo._demo);
-        Matter.Example[demo](Matter.Demo._demo);
+        Matter.Demo.reset(_demo);
+        Matter.Example[demo](_demo);
 
         var worldStart = JSON.parse(resurrect.stringify(engine.world, precisionLimiter));
 

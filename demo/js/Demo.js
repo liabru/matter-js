@@ -31,53 +31,31 @@
             Inspector = MatterTools.Inspector;
     }
 
-    // initialise the demo
-
-    Demo.create = function() {
-        return {
-            isMobile: _isMobile,
+    Demo.create = function(options) {
+        var defaults = {
+            sceneName: 'mixed',
             sceneEvents: []
         };
+
+        return Common.extend(defaults, options);
     };
 
     Demo.init = function() {
         var demo = Demo.create();
 
-        // some example engine options
-        var options = {
-            positionIterations: 6,
-            velocityIterations: 4,
-            enableSleeping: false,
-            metrics: { extended: true }
-        };
+        // get container element for the canvas
+        demo.container = document.getElementById('canvas-container');
 
-        // create a Matter engine
-        // NOTE: this is actually Matter.Engine.create(), see the aliases at top of this file
-        if (_isBrowser) {
-            var container = document.getElementById('canvas-container');
-            demo.engine = Engine.create(container, options);
-
-            // add a mouse controlled constraint
-            demo.mouseConstraint = MouseConstraint.create(demo.engine);
-            World.add(demo.engine.world, demo.mouseConstraint);
-        } else {
-            demo.engine = Engine.create(options);
-            demo.engine.render = {};
-            demo.engine.render.options = {};
-        }
-
-        // demo instance reference for external use
-        Matter.Demo._demo = demo;
-
-        // skip runner when performing automated tests
-        if (_isAutomatedTest) return;
+        // create an example engine (see /examples/engine.js)
+        demo.engine = Example.engine(demo);
 
         // run the engine
         demo.runner = Engine.run(demo.engine);
 
-        // default scene function name
-        demo.sceneName = 'mixed';
-        
+        // add a mouse controlled constraint
+        demo.mouseConstraint = MouseConstraint.create(demo.engine);
+        World.add(demo.engine.world, demo.mouseConstraint);
+
         // get the scene function name from hash
         if (window.location.hash.length !== 0) 
             demo.sceneName = window.location.hash.replace('#', '').replace('-inspect', '');
@@ -88,18 +66,20 @@
 
         // set up demo interface (see end of this file)
         Demo.initControls(demo);
+
+        return demo;
     };
 
     // call init when the page has loaded fully
-    
-    if (window.addEventListener) {
-        window.addEventListener('load', Demo.init);
-    } else if (window.attachEvent) {
-        window.attachEvent('load', Demo.init);
+    if (!_isAutomatedTest) {
+        if (window.addEventListener) {
+            window.addEventListener('load', Demo.init);
+        } else if (window.attachEvent) {
+            window.attachEvent('load', Demo.init);
+        }
     }
 
     // the functions for the demo interface and controls below
-
     Demo.initControls = function(demo) {
         var demoSelect = document.getElementById('demo-select'),
             demoReset = document.getElementById('demo-reset');
