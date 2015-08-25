@@ -6,7 +6,7 @@ var system = require('system');
 
 var demo,
     frames = 10,
-    testUrl = 'http://localhost:8000/demo/dev.html',
+    testUrl = 'http://localhost:8000/demo/index.html',
     refsPath = 'test/browser/refs',
     diffsPath = 'test/browser/diffs';
 

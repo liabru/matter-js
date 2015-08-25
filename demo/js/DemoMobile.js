@@ -36,7 +36,11 @@
             Demo.fullscreen();
 
             setTimeout(function() {
-                Engine.run(_engine);
+                var runner = Engine.run(_engine);
+
+                // pass through runner as timing for debug rendering
+                _engine.metrics.timing = runner;
+
                 Demo.updateScene();
             }, 800);
         });

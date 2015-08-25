@@ -60,7 +60,7 @@ module.exports = function(grunt) {
       watch: {
         options: {
           port: 9000,
-          open: 'http://localhost:9000/demo/dev.html',
+          open: 'http://localhost:9000/demo',
           livereload: 9001
         }
       },

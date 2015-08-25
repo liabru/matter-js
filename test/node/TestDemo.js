@@ -164,7 +164,7 @@ var getDemoNames = function() {
             'events', 'collisionFiltering', 'sleeping'
         ];
 
-    $('#demo-select option', fs.readFileSync('demo/dev.html').toString())
+    $('#demo-select option', fs.readFileSync('demo/index.html').toString())
         .each(function() { 
             var name = $(this).val();
             if (skip.indexOf(name) === -1) {

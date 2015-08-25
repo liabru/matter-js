@@ -253,30 +253,31 @@ var Grid = require('../collision/Grid');
         var c = context,
             world = engine.world,
             render = engine.render,
+            metrics = engine.metrics,
             options = render.options,
             bodies = Composite.allBodies(world),
             space = "    ";
 
         if (engine.timing.timestamp - (render.debugTimestamp || 0) >= 500) {
             var text = "";
-            text += "fps: " + Math.round(engine.timing.fps) + space;
+            text += "fps: " + Math.round(metrics.timing.fps) + space;
 
             // @if DEBUG
-            if (engine.metrics.extended) {
-                text += "delta: " + engine.timing.delta.toFixed(3) + space;
-                text += "correction: " + engine.timing.correction.toFixed(3) + space;
+            if (metrics.extended) {
+                text += "delta: " + metrics.timing.delta.toFixed(3) + space;
+                text += "correction: " + metrics.timing.correction.toFixed(3) + space;
                 text += "bodies: " + bodies.length + space;
 
                 if (engine.broadphase.controller === Grid)
-                    text += "buckets: " + engine.metrics.buckets + space;
+                    text += "buckets: " + metrics.buckets + space;
 
                 text += "\n";
 
-                text += "collisions: " + engine.metrics.collisions + space;
+                text += "collisions: " + metrics.collisions + space;
                 text += "pairs: " + engine.pairs.list.length + space;
-                text += "broad: " + engine.metrics.broadEff + space;
-                text += "mid: " + engine.metrics.midEff + space;
-                text += "narrow: " + engine.metrics.narrowEff + space;
+                text += "broad: " + metrics.broadEff + space;
+                text += "mid: " + metrics.midEff + space;
+                text += "narrow: " + metrics.narrowEff + space;
             }
             // @endif            
 

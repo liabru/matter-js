@@ -1,3 +1,11 @@
+/**
+* The Matter.js demo page controller and example runner.
+*
+* NOTE: For the actual example code, refer to the source files in `/examples/`.
+*
+* @class Demo
+*/
+
 (function() {
 
     var _isBrowser = typeof window !== 'undefined' && window.location,
@@ -66,6 +74,9 @@
 
         // set up demo interface (see end of this file)
         Demo.initControls(demo);
+
+        // pass through runner as timing for debug rendering
+        demo.engine.metrics.timing = demo.runner;
 
         return demo;
     };

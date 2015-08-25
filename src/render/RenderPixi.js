@@ -9,6 +9,9 @@ var RenderPixi = {};
 
 module.exports = RenderPixi;
 
+var Composite = require('../body/Composite');
+var Common = require('../core/Common');
+
 (function() {
     
     /**
