@@ -27,7 +27,7 @@
                 } 
             });
 
-        var pyramid = Composites.pyramid(500, 300, 9, 10, 0, 0, function(x, y, column, row) {
+        var pyramid = Composites.pyramid(500, 300, 9, 10, 0, 0, function(x, y, column) {
             var texture = column % 2 === 0 ? './img/block.png' : './img/block-2.png';
             return Bodies.rectangle(x, y, 25, 40, { render: { sprite: { texture: texture } } });
         });
@@ -40,7 +40,7 @@
             } 
         });
 
-        var pyramid2 = Composites.pyramid(550, 0, 5, 10, 0, 0, function(x, y, column, row) {
+        var pyramid2 = Composites.pyramid(550, 0, 5, 10, 0, 0, function(x, y, column) {
             var texture = column % 2 === 0 ? './img/block.png' : './img/block-2.png';
             return Bodies.rectangle(x, y, 25, 40, { render: { sprite: { texture: texture } } });
         });

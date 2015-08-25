@@ -2,12 +2,12 @@
 
     var World = Matter.World,
         Bodies = Matter.Bodies,
-        Composites = Matter.Composites;
+        Composites = Matter.Composites,
+        Common = Matter.Common;
 
     Example.sprites = function(demo) {
         var engine = demo.engine,
             world = engine.world,
-            mouseConstraint = demo.mouseConstraint,
             offset = 10,
             options = { 
                 isStatic: true,
@@ -26,7 +26,7 @@
             Bodies.rectangle(-offset, 300, 50.5, 600.5 + 2 * offset, options)
         ]);
 
-        var stack = Composites.stack(20, 20, 10, 4, 0, 0, function(x, y, column, row) {
+        var stack = Composites.stack(20, 20, 10, 4, 0, 0, function(x, y) {
             if (Common.random() > 0.35) {
                 return Bodies.rectangle(x, y, 64, 64, {
                     render: {

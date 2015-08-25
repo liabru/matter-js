@@ -9,7 +9,7 @@
         var engine = demo.engine,
             world = engine.world;
         
-        var stack = Composites.stack(50, 50, 12, 3, 0, 0, function(x, y, column, row) {
+        var stack = Composites.stack(50, 50, 12, 3, 0, 0, function(x, y) {
             switch (Math.round(Common.random(0, 1))) {
 
             case 0:

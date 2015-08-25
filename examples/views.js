@@ -1,21 +1,13 @@
 (function() {
 
-    var Engine = Matter.Engine,
-        World = Matter.World,
+    var World = Matter.World,
         Bodies = Matter.Bodies,
-        Body = Matter.Body,
-        Composite = Matter.Composite,
         Composites = Matter.Composites,
         Common = Matter.Common,
-        Constraint = Matter.Constraint,
         Events = Matter.Events,
         Bounds = Matter.Bounds,
         Vector = Matter.Vector,
-        Vertices = Matter.Vertices,
-        MouseConstraint = Matter.MouseConstraint,
-        Mouse = Matter.Mouse,
-        Query = Matter.Query,
-        Svg = Matter.Svg;
+        Mouse = Matter.Mouse;
 
     Example.views = function(demo) {
         var engine = demo.engine,
@@ -23,7 +15,7 @@
             sceneEvents = demo.sceneEvents,
             mouseConstraint = demo.mouseConstraint;
 
-        var stack = Composites.stack(20, 20, 15, 4, 0, 0, function(x, y, column, row) {
+        var stack = Composites.stack(20, 20, 15, 4, 0, 0, function(x, y) {
             switch (Math.round(Common.random(0, 1))) {
 
             case 0:

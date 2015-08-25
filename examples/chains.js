@@ -12,7 +12,7 @@
             world = engine.world,
             group = Body.nextGroup(true);
          
-        var ropeA = Composites.stack(200, 100, 5, 2, 10, 10, function(x, y, column, row) {
+        var ropeA = Composites.stack(200, 100, 5, 2, 10, 10, function(x, y) {
             return Bodies.rectangle(x, y, 50, 20, { collisionFilter: { group: group } });
         });
         
@@ -28,7 +28,7 @@
         
         group = Body.nextGroup(true);
         
-        var ropeB = Composites.stack(500, 100, 5, 2, 10, 10, function(x, y, column, row) {
+        var ropeB = Composites.stack(500, 100, 5, 2, 10, 10, function(x, y) {
             return Bodies.circle(x, y, 20, { collisionFilter: { group: group } });
         });
         

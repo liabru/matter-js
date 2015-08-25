@@ -9,10 +9,9 @@
     Example.compositeManipulation = function(demo) {
         var engine = demo.engine,
             world = engine.world,
-            mouseConstraint = demo.mouseConstraint,
             sceneEvents = demo.sceneEvents;
 
-        var stack = Composites.stack(200, 200, 4, 4, 0, 0, function(x, y, column, row) {
+        var stack = Composites.stack(200, 200, 4, 4, 0, 0, function(x, y) {
             return Bodies.rectangle(x, y, 40, 40);
         });
 

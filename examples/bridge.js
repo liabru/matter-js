@@ -12,13 +12,13 @@
             world = engine.world,
             group = Body.nextGroup(true);
         
-        var bridge = Composites.stack(150, 300, 9, 1, 10, 10, function(x, y, column, row) {
+        var bridge = Composites.stack(150, 300, 9, 1, 10, 10, function(x, y) {
             return Bodies.rectangle(x, y, 50, 20, { collisionFilter: { group: group } });
         });
         
         Composites.chain(bridge, 0.5, 0, -0.5, 0, { stiffness: 0.9 });
         
-        var stack = Composites.stack(200, 40, 6, 3, 0, 0, function(x, y, column, row) {
+        var stack = Composites.stack(200, 40, 6, 3, 0, 0, function(x, y) {
             return Bodies.polygon(x, y, Math.round(Common.random(1, 8)), Common.random(20, 40));
         });
 

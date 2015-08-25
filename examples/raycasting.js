@@ -1,14 +1,12 @@
 (function() {
 
-    var Engine = Matter.Engine,
-        World = Matter.World,
+    var World = Matter.World,
         Bodies = Matter.Bodies,
         Composite = Matter.Composite,
         Composites = Matter.Composites,
         Common = Matter.Common,
         Events = Matter.Events,
         Vertices = Matter.Vertices,
-        Mouse = Matter.Mouse,
         Query = Matter.Query;
 
     Example.raycasting = function(demo) {
@@ -17,7 +15,7 @@
             sceneEvents = demo.sceneEvents,
             mouseConstraint = demo.mouseConstraint;
         
-        var stack = Composites.stack(20, 20, 15, 4, 0, 0, function(x, y, column, row) {
+        var stack = Composites.stack(20, 20, 15, 4, 0, 0, function(x, y) {
             switch (Math.round(Common.random(0, 1))) {
 
             case 0:

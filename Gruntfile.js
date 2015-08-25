@@ -153,7 +153,7 @@ module.exports = function(grunt) {
 
   grunt.registerTask('default', ['concat:examples', 'test', 'build']);
   grunt.registerTask('test', ['build:dev', 'connect:serve', 'jshint', 'test:demo', 'test:demoNode']);
-  grunt.registerTask('dev', ['build:dev', 'connect:watch', 'watch']);
+  grunt.registerTask('dev', ['concat:examples', 'build:dev', 'connect:watch', 'watch']);
 
   grunt.registerTask('test:demo', function() {
     var updateAll = grunt.option('updateAll'),

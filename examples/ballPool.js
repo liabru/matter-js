@@ -9,7 +9,7 @@
         var engine = demo.engine,
             world = engine.world;
 
-        var stack = Composites.stack(100, 50, 10, 15, 10, 10, function(x, y, column, row) {
+        var stack = Composites.stack(100, 50, 10, 15, 10, 10, function(x, y) {
             return Bodies.circle(x, y, Common.random(15, 30), { restitution: 0.6, friction: 0.1 });
         });
         

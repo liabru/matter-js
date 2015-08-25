@@ -1,8 +1,7 @@
 (function() {
 
     var World = Matter.World,
-        Bodies = Matter.Bodies,
-        Common = Matter.Common;
+        Bodies = Matter.Bodies;
 
     Example.restitution = function(demo) {
         var engine = demo.engine,

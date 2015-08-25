@@ -9,7 +9,7 @@
         var engine = demo.engine,
             world = engine.world;
 
-        var stack = Composites.stack(20, 20, 15, 4, 0, 0, function(x, y, column, row) {
+        var stack = Composites.stack(20, 20, 15, 4, 0, 0, function(x, y) {
             var sides = Math.round(Common.random(1, 8));
 
             // triangles can be a little unstable, so avoid until fixed

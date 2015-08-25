@@ -15,7 +15,7 @@
             size = 50,
             counter = -1;
 
-        var stack = Composites.stack(350, 470 - 6 * size, 1, 6, 0, 0, function(x, y, column, row) {
+        var stack = Composites.stack(350, 470 - 6 * size, 1, 6, 0, 0, function(x, y) {
             return Bodies.rectangle(x, y, size * 2, size, {
                 slop: 0.5,
                 friction: 1,

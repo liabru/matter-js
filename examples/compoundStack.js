@@ -10,7 +10,7 @@
                     world = engine.world;
         var size = 50;
 
-        var stack = Composites.stack(100, 220, 12, 6, 0, 0, function(x, y, column, row) {
+        var stack = Composites.stack(100, 220, 12, 6, 0, 0, function(x, y) {
             var partA = Bodies.rectangle(x, y, size, size / 5),
                 partB = Bodies.rectangle(x, y, size / 5, size, { render: partA.render });
 

@@ -14,10 +14,12 @@
     // Matter aliases
     var Example = Matter.Example,
         Engine = Matter.Engine,
-        World = Matter.World
+        World = Matter.World,
         Common = Matter.Common,
         Bodies = Matter.Bodies,
-        Events = Matter.Events;
+        Events = Matter.Events,
+        Mouse = Matter.Mouse,
+        MouseConstraint = Matter.MouseConstraint;
 
     // MatterTools aliases
     if (window.MatterTools) {

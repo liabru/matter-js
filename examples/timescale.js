@@ -1,21 +1,12 @@
 (function() {
 
-    var Engine = Matter.Engine,
-        World = Matter.World,
+    var World = Matter.World,
         Bodies = Matter.Bodies,
         Body = Matter.Body,
         Composite = Matter.Composite,
         Composites = Matter.Composites,
         Common = Matter.Common,
-        Constraint = Matter.Constraint,
-        Events = Matter.Events,
-        Bounds = Matter.Bounds,
-        Vector = Matter.Vector,
-        Vertices = Matter.Vertices,
-        MouseConstraint = Matter.MouseConstraint,
-        Mouse = Matter.Mouse,
-        Query = Matter.Query,
-        Svg = Matter.Svg;
+        Events = Matter.Events;
 
     Example.timescale = function(demo) {
         var engine = demo.engine,
@@ -75,12 +66,12 @@
         };
         
         // add some small bouncy circles... remember Swordfish?
-        World.add(world, Composites.stack(20, 100, 15, 3, 20, 40, function(x, y, column, row) {
+        World.add(world, Composites.stack(20, 100, 15, 3, 20, 40, function(x, y) {
             return Bodies.circle(x, y, Common.random(10, 20), bodyOptions);
         }));
 
         // add some larger random bouncy objects
-        World.add(world, Composites.stack(50, 50, 8, 3, 0, 0, function(x, y, column, row) {
+        World.add(world, Composites.stack(50, 50, 8, 3, 0, 0, function(x, y) {
             switch (Math.round(Common.random(0, 1))) {
 
             case 0:

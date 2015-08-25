@@ -22,7 +22,7 @@ var resurrect = new Resurrect({ cleanup: true, revive: false }),
     created = [],
     changed = [];
 
-var test = function(status) {
+var test = function() {
     var demos = getDemoNames();
 
     removeDir(diffsPath);

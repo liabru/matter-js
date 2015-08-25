@@ -1,15 +1,9 @@
 (function() {
 
-    var Engine = Matter.Engine,
-        World = Matter.World,
+    var World = Matter.World,
         Bodies = Matter.Bodies,
-        Body = Matter.Body,
-        Composite = Matter.Composite,
         Composites = Matter.Composites,
         Common = Matter.Common,
-        Constraint = Matter.Constraint,
-        Events = Matter.Events,
-        Bounds = Matter.Bounds,
         Vertices = Matter.Vertices;
 
     Example.concave = function(demo) {
@@ -21,7 +15,7 @@
             star = Vertices.fromPath('50 0 63 38 100 38 69 59 82 100 50 75 18 100 31 59 0 38 37 38'),
             horseShoe = Vertices.fromPath('35 7 19 17 14 38 14 58 25 79 45 85 65 84 65 66 46 67 34 59 30 44 33 29 45 23 66 23 66 7 53 7');
 
-        var stack = Composites.stack(50, 50, 6, 4, 10, 10, function(x, y, column, row) {
+        var stack = Composites.stack(50, 50, 6, 4, 10, 10, function(x, y) {
             var color = Common.choose(['#556270', '#4ECDC4', '#C7F464', '#FF6B6B', '#C44D58']);
             return Bodies.fromVertices(x, y, Common.choose([arrow, chevron, star, horseShoe]), {
                 render: {

@@ -1,19 +1,9 @@
 (function() {
 
-    var Engine = Matter.Engine,
-        World = Matter.World,
+    var World = Matter.World,
         Bodies = Matter.Bodies,
-        Body = Matter.Body,
-        Composite = Matter.Composite,
         Composites = Matter.Composites,
         Common = Matter.Common,
-        Constraint = Matter.Constraint,
-        Events = Matter.Events,
-        Bounds = Matter.Bounds,
-        Vector = Matter.Vector,
-        Vertices = Matter.Vertices,
-        MouseConstraint = Matter.MouseConstraint,
-        Mouse = Matter.Mouse,
         Query = Matter.Query,
         Svg = Matter.Svg;
 
@@ -49,7 +39,7 @@
                 restitution: 0.6
             };
             
-            World.add(world, Composites.stack(80, 100, 20, 20, 10, 10, function(x, y, column, row) {
+            World.add(world, Composites.stack(80, 100, 20, 20, 10, 10, function(x, y) {
                 if (Query.point([terrain], { x: x, y: y }).length === 0) {
                     return Bodies.polygon(x, y, 5, 12, bodyOptions);
                 }

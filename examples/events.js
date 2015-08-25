@@ -129,7 +129,7 @@
 
         // scene code
 
-        var stack = Composites.stack(50, 100, 8, 4, 50, 50, function(x, y, column, row) {
+        var stack = Composites.stack(50, 100, 8, 4, 50, 50, function(x, y) {
             return Bodies.circle(x, y, 15, { restitution: 1, render: { strokeStyle: '#777' } });
         });
         

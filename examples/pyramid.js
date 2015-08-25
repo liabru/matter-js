@@ -8,7 +8,7 @@
         var engine = demo.engine,
             world = engine.world;
 
-        var stack = Composites.pyramid(100, 258, 15, 10, 0, 0, function(x, y, column, row) {
+        var stack = Composites.pyramid(100, 258, 15, 10, 0, 0, function(x, y) {
             return Bodies.rectangle(x, y, 40, 40);
         });
         

@@ -8,7 +8,7 @@
         var engine = demo.engine,
             world = engine.world;
         
-        var stack = Composites.stack(100, 120, 25, 18, 0, 0, function(x, y, column, row) {
+        var stack = Composites.stack(100, 120, 25, 18, 0, 0, function(x, y) {
             return Bodies.rectangle(x, y, 25, 25);
         });
         
