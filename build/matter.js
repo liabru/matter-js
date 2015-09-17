@@ -1,5 +1,5 @@
 /**
-* matter.js edge-master 2015-08-17
+* matter.js edge-master 2015-09-17
 * http://brm.io/matter-js/
 * License: MIT
 */
@@ -7579,13 +7579,14 @@ var Grid = require('../collision/Grid');
         var c = context,
             world = engine.world,
             render = engine.render,
+            metrics = engine.metrics,
             options = render.options,
             bodies = Composite.allBodies(world),
             space = "    ";
 
         if (engine.timing.timestamp - (render.debugTimestamp || 0) >= 500) {
             var text = "";
-            text += "fps: " + Math.round(engine.timing.fps) + space;
+            text += "fps: " + Math.round(metrics.timing.fps) + space;
 
             render.debugString = text;
             render.debugTimestamp = engine.timing.timestamp;
@@ -8565,6 +8566,9 @@ var RenderPixi = {};
 
 module.exports = RenderPixi;
 
+var Composite = require('../body/Composite');
+var Common = require('../core/Common');
+
 (function() {
     
     /**
@@ -9002,5 +9006,5 @@ module.exports = RenderPixi;
 
 })();
 
-},{}]},{},[28])(28)
+},{"../body/Composite":2,"../core/Common":14}]},{},[28])(28)
 });
