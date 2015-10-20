@@ -53,6 +53,7 @@ var Axes = require('../geometry/Axes');
             angularSpeed: 0,
             velocity: { x: 0, y: 0 },
             angularVelocity: 0,
+            isPermeable: false,
             isStatic: false,
             isSleeping: false,
             motion: 0,
