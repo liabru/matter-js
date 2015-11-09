@@ -64,6 +64,10 @@ var Grid = require('../collision/Grid');
 
         var render = Common.extend(defaults, options);
 
+        if(render.canvas) {
+            render.canvas.width = render.options.width || render.canvas.width;
+            render.canvas.height = render.options.height || render.canvas.height;
+        }
         render.canvas = render.canvas || _createCanvas(render.options.width, render.options.height);
         render.context = render.canvas.getContext('2d');
         render.textures = {};
