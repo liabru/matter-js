@@ -372,7 +372,7 @@ var Common = require('../core/Common');
      */
 
     /**
-     * A `Vector` that specifies the offset of the constraint from center of the `constraint.bodyA` if defined, otherwise a world-space position.
+     * A `Vector` that specifies the offset of the constraint from center of the `constraint.bodyB` if defined, otherwise a world-space position.
      *
      * @property pointB
      * @type vector
