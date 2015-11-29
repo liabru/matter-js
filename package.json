@@ -49,7 +49,7 @@
     "yuidocjs": "^0.9.0"
   },
   "scripts": {
-    "test": "gulp && gulp test"
+    "test": "build:dev && build:examples && gulp test"
   },
   "dependencies": {}
 }
