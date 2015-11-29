@@ -166,7 +166,7 @@ var serve = function(isTest) {
                 enable: !isTest,
                 filter: function(filename) {
                     return filename.match(/build|demo/);
-                },
+                }
             },
             middleware: livereload(),
             open: isTest ? false : 'http://localhost:8000/demo/index.html',
