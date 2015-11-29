@@ -192,8 +192,11 @@ var build = function(options) {
                     file.contents = res;
                     next(null, file);
                 });
-        }))
-        .pipe(preprocess({ context: { DEBUG: false } }));
+        }));
+
+    if (options.version !== 'dev') {
+        compiled.pipe(preprocess({ context: { DEBUG: false } }));
+    }
 
     var build = compiled.pipe(clone())
         .pipe(header(banner + '\n' + license + '\n\n', { context: options }))
