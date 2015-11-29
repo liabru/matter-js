@@ -6,7 +6,7 @@ To build you must first install [node.js](http://nodejs.org/) and [grunt](http:/
 
 This will install the required build dependencies, then run
 
-	grunt dev
+	gulp dev
 
 which is a task that builds the `matter-dev.js` file, spawns a `connect` and `watch` server, then opens `demo/dev.html` in your browser. Any changes you make to the source will automatically rebuild `matter-dev.js` and reload your browser for quick and easy testing.
 

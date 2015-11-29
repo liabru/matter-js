@@ -7,8 +7,8 @@
 
     Example.compoundStack = function(demo) {
         var engine = demo.engine,
-                    world = engine.world;
-        var size = 50;
+            world = engine.world,
+            size = 50;
 
         var stack = Composites.stack(100, 220, 12, 6, 0, 0, function(x, y) {
             var partA = Bodies.rectangle(x, y, size, size / 5),

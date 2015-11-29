@@ -1,0 +1,69 @@
+{
+    "rules": {
+        "no-console": 0,
+        "no-unused-vars": 0,
+        "indent": [
+            2,
+            4
+        ],
+        "semi": [
+            2,
+            "always"
+        ]
+    },
+    "env": {
+        "node": true,
+        "browser": true,
+        "jquery": true,
+        "amd": true
+    },
+    "globals": {
+        "Matter": false,
+        "window": true,
+        "document": false,
+        "Element": false,
+        "MatterTools": false,
+        "phantom": false,
+        "process": false,
+        "HTMLElement": false,
+        "require": false,
+        "PIXI": false,
+        "$": false,
+        "Example": false,
+        "Image": false,
+        "navigator": false,
+        "setTimeout": false,
+        "decomp": false,
+        "module": false,
+        "Body": false,
+        "Composite": false,
+        "World": false,
+        "Contact": false,
+        "Detector": false,
+        "Grid": false,
+        "Pairs": false,
+        "Pair": false,
+        "Resolver": false,
+        "SAT": false,
+        "Constraint": false,
+        "MouseConstraint": false,
+        "Common": false,
+        "Engine": false,
+        "Mouse": false,
+        "Sleeping": false,
+        "Bodies": false,
+        "Composites": false,
+        "Axes": false,
+        "Bounds": false,
+        "Vector": false,
+        "Vertices": false,
+        "Render": false,
+        "RenderPixi": false,
+        "Events": false,
+        "Query": false,
+        "Runner": false,
+        "Svg": false,
+        "Metrics": false
+    },
+    "extends": "eslint:recommended"
+}
