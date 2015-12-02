@@ -19,6 +19,7 @@ var Composite = require('../body/Composite');
 var Bounds = require('../geometry/Bounds');
 var Events = require('../core/Events');
 var Grid = require('../collision/Grid');
+var Vector = require('../geometry/Vector');
 
 (function() {
     
