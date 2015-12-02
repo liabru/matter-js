@@ -257,6 +257,10 @@ var Common = require('../core/Common');
             var body = bodies[i],
                 impulse = body.constraintImpulse;
 
+            if (impulse.x === 0 && impulse.y === 0 && impulse.angle === 0) {
+                continue;
+            }
+
             // update geometry and reset
             for (var j = 0; j < body.parts.length; j++) {
                 var part = body.parts[j];
@@ -276,7 +280,7 @@ var Common = require('../core/Common');
                     }
                 }
 
-                Bounds.update(part.bounds, part.vertices);
+                Bounds.update(part.bounds, part.vertices, body.velocity);
             }
 
             impulse.angle = 0;
