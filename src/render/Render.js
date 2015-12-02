@@ -35,6 +35,7 @@ var Grid = require('../collision/Grid');
             controller: Render,
             element: null,
             canvas: null,
+            mouse: null,
             options: {
                 width: 800,
                 height: 600,
@@ -58,7 +59,8 @@ var Grid = require('../collision/Grid');
                 showShadows: false,
                 showVertexNumbers: false,
                 showConvexHulls: false,
-                showInternalEdges: false
+                showInternalEdges: false,
+                showMousePosition: false
             }
         };
 
@@ -225,6 +227,9 @@ var Grid = require('../collision/Grid');
 
         if (options.showVertexNumbers)
             Render.vertexNumbers(engine, bodies, context);
+
+        if (options.showMousePosition)
+            Render.mousePosition(engine, render.mouse, context);
 
         Render.constraints(constraints, context);
 
@@ -590,6 +595,20 @@ var Grid = require('../collision/Grid');
                 }
             }
         }
+    };
+
+    /**
+     * Renders mouse position.
+     * @private
+     * @method mousePosition
+     * @param {engine} engine
+     * @param {mouse} mouse
+     * @param {RenderingContext} context
+     */
+    Render.mousePosition = function(engine, mouse, context) {
+        var c = context;
+        c.fillStyle = 'rgba(255,255,255,0.8)';
+        c.fillText(mouse.position.x + '  ' + mouse.position.y, mouse.position.x + 5, mouse.position.y - 5);
     };
 
     /**

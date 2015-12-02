@@ -64,6 +64,9 @@
         demo.mouseConstraint = MouseConstraint.create(demo.engine);
         World.add(demo.engine.world, demo.mouseConstraint);
 
+        // pass mouse to renderer to enable showMousePosition
+        demo.engine.render.mouse = demo.mouseConstraint.mouse;
+
         // get the scene function name from hash
         if (window.location.hash.length !== 0) 
             demo.sceneName = window.location.hash.replace('#', '').replace('-inspect', '');
