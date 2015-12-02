@@ -214,7 +214,7 @@ var build = function(options) {
 
 var shell = function(command, callback) {
     var args = process.argv.slice(3).join(' '),
-        proc = exec(command + args, function(err) {
+        proc = exec(command + ' ' + args, function(err) {
             callback(err);
         });
 
