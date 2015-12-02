@@ -1,4 +1,5 @@
 var Matter = module.exports = {};
+Matter.version = 'master';
 
 Matter.Body = require('../body/Body');
 Matter.Composite = require('../body/Composite');
