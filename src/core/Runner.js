@@ -193,6 +193,16 @@ var Common = require('./Common');
         _cancelAnimationFrame(runner.frameRequestId);
     };
 
+    /**
+     * Alias for `Runner.run`.
+     * @method start
+     * @param {runner} runner
+     * @param {engine} engine
+     */
+    Runner.start = function(runner, engine) {
+        Runner.run(runner, engine);
+    };
+
     /*
     *
     *  Events Documentation

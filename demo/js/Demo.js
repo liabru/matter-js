@@ -31,7 +31,8 @@
         Bodies = Matter.Bodies,
         Events = Matter.Events,
         Mouse = Matter.Mouse,
-        MouseConstraint = Matter.MouseConstraint;
+        MouseConstraint = Matter.MouseConstraint,
+        Runner = Matter.Runner;
 
     // MatterTools aliases
     if (window.MatterTools) {
@@ -41,6 +42,7 @@
 
     Demo.create = function(options) {
         var defaults = {
+            isManual: false,
             sceneName: 'mixed',
             sceneEvents: []
         };
@@ -73,7 +75,7 @@
 
         // set up a scene with bodies
         Demo.reset(demo);
-        Example[demo.sceneName](demo);
+        Demo.setScene(demo, demo.sceneName);
 
         // set up demo interface (see end of this file)
         Demo.initControls(demo);
@@ -92,6 +94,10 @@
             window.attachEvent('load', Demo.init);
         }
     }
+
+    Demo.setScene = function(demo, sceneName) {
+        Example[sceneName](demo);
+    };
 
     // the functions for the demo interface and controls below
     Demo.initControls = function(demo) {
@@ -162,13 +168,30 @@
             document.addEventListener('fullscreenchange', fullscreenChange);
         }
 
+        // keyboard controls
+        document.onkeypress = function(keys) {
+            // shift + a = toggle manual
+            if (keys.shiftKey && keys.keyCode === 65) {
+                Demo.setManualControl(demo, !demo.isManual);
+            }
+
+            // shift + q = step
+            if (keys.shiftKey && keys.keyCode === 81) {
+                if (!demo.isManual) {
+                    Demo.setManualControl(demo, true);
+                }
+
+                Runner.tick(demo.runner, demo.engine);
+            }
+        };
+
         // initialise demo selector
         demoSelect.value = demo.sceneName;
         Demo.setUpdateSourceLink(demo.sceneName);
         
         demoSelect.addEventListener('change', function(e) {
             Demo.reset(demo);
-            Example[demo.sceneName = e.target.value](demo);
+            Demo.setScene(demo,demo.sceneName = e.target.value);
             Gui.update(demo.gui);
             
             var scrollY = window.scrollY;
@@ -179,7 +202,7 @@
         
         demoReset.addEventListener('click', function(e) {
             Demo.reset(demo);
-            Example[demo.sceneName](demo);
+            Demo.setScene(demo, demo.sceneName);
             Gui.update(demo.gui);
             Demo.setUpdateSourceLink(demo.sceneName);
         });
@@ -189,6 +212,30 @@
         var demoViewSource = document.getElementById('demo-view-source'),
             sourceUrl = 'https://github.com/liabru/matter-js/blob/master/examples';
         demoViewSource.setAttribute('href', sourceUrl + '/' + sceneName + '.js');
+    };
+
+    Demo.setManualControl = function(demo, isManual) {
+        var engine = demo.engine,
+            world = engine.world,
+            runner = demo.runner;
+
+        demo.isManual = isManual;
+
+        if (demo.isManual) {
+            Runner.stop(runner);
+
+            // continue rendering but not updating
+            (function render(time){
+                runner.frameRequestId = window.requestAnimationFrame(render);
+                Events.trigger(engine, 'beforeUpdate');
+                Events.trigger(engine, 'tick');
+                engine.render.controller.world(engine);
+                Events.trigger(engine, 'afterUpdate');
+            })();
+        } else {
+            Runner.stop(runner);
+            Runner.start(runner, engine);
+        }
     };
 
     Demo.fullscreen = function(demo) {
