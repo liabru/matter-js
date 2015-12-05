@@ -1,5 +1,5 @@
 /**
-* matter-tools-dev.min.js 0.5.0-dev 2015-07-27
+* matter-tools-dev.min.js 0.5.0-dev 2015-12-05
 * https://github.com/liabru/matter-tools
 * License: MIT
 */
@@ -195,10 +195,6 @@
       gravity.open();
       var physics = datGui.addFolder("Engine");
       physics.add(engine, "enableSleeping");
-      physics.add(gui, "broadphase", [ "grid", "bruteForce" ]).onFinishChange(function(value) {
-        engine.broadphase = gui.broadphaseCache[value];
-        Composite.setModified(engine.world, true, false, false);
-      });
       physics.add(engine.timing, "timeScale", 0, 1.2).step(.05).listen();
       physics.add(engine, "velocityIterations", 1, 10).step(1);
       physics.add(engine, "positionIterations", 1, 10).step(1);
