@@ -26,7 +26,7 @@ var extend = require('util')._extend;
 var exec = require('child_process').exec;
 var server;
 
-gulp.task('default', ['build:dev']);
+gulp.task('default', ['build:dev', 'build:examples']);
 
 gulp.task('dev', function(callback) {
     sequence('build:dev', 'build:examples', 'watch', 'serve', callback);
