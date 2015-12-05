@@ -67,10 +67,11 @@ var Vector = require('../geometry/Vector');
 
         var render = Common.extend(defaults, options);
 
-        if(render.canvas) {
+        if (render.canvas) {
             render.canvas.width = render.options.width || render.canvas.width;
             render.canvas.height = render.options.height || render.canvas.height;
         }
+
         render.canvas = render.canvas || _createCanvas(render.options.width, render.options.height);
         render.context = render.canvas.getContext('2d');
         render.textures = {};
@@ -81,8 +82,8 @@ var Vector = require('../geometry/Vector');
                 y: 0
             }, 
             max: { 
-                x: render.options.width,
-                y: render.options.height
+                x: render.canvas.width,
+                y: render.canvas.height
             }
         };
 
