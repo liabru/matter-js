@@ -74,12 +74,19 @@ var Vector = require('../geometry/Vector');
         
         var x1 = width * slope,
             x2 = x1 + roof,
-            x3 = x2 + x1;
+            x3 = x2 + x1,
+            verticesPath;
+
+        if (slope < 0.5) {
+            verticesPath = 'L 0 0 L ' + x1 + ' ' + (-height) + ' L ' + x2 + ' ' + (-height) + ' L ' + x3 + ' 0';
+        } else {
+            verticesPath = 'L 0 0 L ' + x2 + ' ' + (-height) + ' L ' + x3 + ' 0';
+        }
 
         var trapezoid = { 
             label: 'Trapezoid Body',
             position: { x: x, y: y },
-            vertices: Vertices.fromPath('L 0 0 L ' + x1 + ' ' + (-height) + ' L ' + x2 + ' ' + (-height) + ' L ' + x3 + ' 0')
+            vertices: Vertices.fromPath(verticesPath)
         };
 
         if (options.chamfer) {
