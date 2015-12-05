@@ -266,12 +266,18 @@ var Vector = require('../geometry/Vector');
 
         if (engine.timing.timestamp - (render.debugTimestamp || 0) >= 500) {
             var text = "";
-            text += "fps: " + Math.round(metrics.timing.fps) + space;
+
+            if (metrics.timing) {
+                text += "fps: " + Math.round(metrics.timing.fps) + space;
+            }
 
             // @if DEBUG
             if (metrics.extended) {
-                text += "delta: " + metrics.timing.delta.toFixed(3) + space;
-                text += "correction: " + metrics.timing.correction.toFixed(3) + space;
+                if (metrics.timing) {
+                    text += "delta: " + metrics.timing.delta.toFixed(3) + space;
+                    text += "correction: " + metrics.timing.correction.toFixed(3) + space;
+                }
+
                 text += "bodies: " + bodies.length + space;
 
                 if (engine.broadphase.controller === Grid)
