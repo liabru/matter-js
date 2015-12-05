@@ -28,10 +28,12 @@ var server;
 
 gulp.task('default', ['build:dev']);
 
-gulp.task('dev', ['watch', 'serve']);
+gulp.task('dev', function(callback) {
+    sequence('build:dev', 'build:examples', 'watch', 'serve', callback);
+});
 
 gulp.task('release', function(callback) {
-    sequence('build:dev', 'test', 'build:release', 'bump', 'doc', 'changelog', 'tag', callback);
+    sequence('build:dev', 'build:examples', 'test', 'build:release', 'bump', 'doc', 'changelog', 'tag', callback);
 });
 
 gulp.task('build:dev', function() {
