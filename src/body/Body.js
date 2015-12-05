@@ -75,7 +75,9 @@ var Axes = require('../geometry/Axes');
                 visible: true,
                 sprite: {
                     xScale: 1,
-                    yScale: 1
+                    yScale: 1,
+                    xOffset: 0,
+                    yOffset: 0
                 },
                 lineWidth: 1.5
             }
@@ -151,6 +153,8 @@ var Axes = require('../geometry/Axes');
             defaultStrokeStyle = Common.shadeColor(defaultFillStyle, -20);
         body.render.fillStyle = body.render.fillStyle || defaultFillStyle;
         body.render.strokeStyle = body.render.strokeStyle || defaultStrokeStyle;
+        body.render.sprite.xOffset += -(body.bounds.min.x - body.position.x) / (body.bounds.max.x - body.bounds.min.x);
+        body.render.sprite.yOffset += -(body.bounds.min.y - body.position.y) / (body.bounds.max.y - body.bounds.min.y);
     };
 
     /**
@@ -1024,6 +1028,22 @@ var Axes = require('../geometry/Axes');
      * @type number
      * @default 1
      */
+
+     /**
+      * A `Number` that defines the offset in the x-axis for the sprite (normalised by texture width).
+      *
+      * @property render.sprite.xOffset
+      * @type number
+      * @default 0
+      */
+
+     /**
+      * A `Number` that defines the offset in the y-axis for the sprite (normalised by texture height).
+      *
+      * @property render.sprite.yOffset
+      * @type number
+      * @default 0
+      */
 
     /**
      * A `Number` that defines the line width to use when rendering the body outline (if a sprite is not defined).

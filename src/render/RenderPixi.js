@@ -360,8 +360,8 @@ var Common = require('../core/Common');
             texture = _getTexture(render, texturePath),
             sprite = new PIXI.Sprite(texture);
 
-        sprite.anchor.x = 0.5;
-        sprite.anchor.y = 0.5;
+        sprite.anchor.x = body.render.sprite.xOffset;
+        sprite.anchor.y = body.render.sprite.yOffset;
 
         return sprite;
     };
