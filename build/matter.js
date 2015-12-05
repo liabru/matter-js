@@ -1,7 +1,7 @@
 /**
-* matter.js edge-master 2015-09-17
+* matter-js master by @liabru 2015-12-05
 * http://brm.io/matter-js/
-* License: MIT
+* License MIT
 */
 
 /**
@@ -27,7 +27,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Matter = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 /**
@@ -1936,6 +1935,7 @@ var Bounds = require('../geometry/Bounds');
             if (!Detector.canCollide(bodyA.collisionFilter, bodyB.collisionFilter))
                 continue;
 
+
             // mid phase
             if (Bounds.overlaps(bodyA.bounds, bodyB.bounds)) {
                 for (var j = bodyA.parts.length > 1 ? 1 : 0; j < bodyA.parts.length; j++) {
@@ -1958,6 +1958,7 @@ var Bounds = require('../geometry/Bounds');
 
                             // narrow phase
                             var collision = SAT.collides(partA, partB, previousCollision);
+
 
                             if (collision.collided) {
                                 collisions.push(collision);
@@ -1982,6 +1983,7 @@ var Bounds = require('../geometry/Bounds');
         var collisions = [],
             pairsTable = engine.pairs.table;
 
+
         for (var i = 0; i < bodies.length; i++) {
             for (var j = i + 1; j < bodies.length; j++) {
                 var bodyA = bodies[i], 
@@ -1994,6 +1996,7 @@ var Bounds = require('../geometry/Bounds');
                 
                 if (!Detector.canCollide(bodyA.collisionFilter, bodyB.collisionFilter))
                     continue;
+
 
                 // mid phase
                 if (Bounds.overlaps(bodyA.bounds, bodyB.bounds)) {
@@ -2011,6 +2014,7 @@ var Bounds = require('../geometry/Bounds');
 
                     // narrow phase
                     var collision = SAT.collides(bodyA, bodyB, previousCollision);
+
 
                     if (collision.collided) {
                         collisions.push(collision);
@@ -2093,6 +2097,7 @@ var Common = require('../core/Common');
             bucketId,
             gridChanged = false;
 
+
         for (i = 0; i < bodies.length; i++) {
             var body = bodies[i];
 
@@ -2108,6 +2113,7 @@ var Common = require('../core/Common');
 
             // if the body has changed grid region
             if (!body.region || newRegion.id !== body.region.id || forceUpdate) {
+
 
                 if (!body.region || forceUpdate)
                     body.region = newRegion;
@@ -3597,6 +3603,10 @@ var Common = require('../core/Common');
             var body = bodies[i],
                 impulse = body.constraintImpulse;
 
+            if (impulse.x === 0 && impulse.y === 0 && impulse.angle === 0) {
+                continue;
+            }
+
             // update geometry and reset
             for (var j = 0; j < body.parts.length; j++) {
                 var part = body.parts[j];
@@ -3616,7 +3626,7 @@ var Common = require('../core/Common');
                     }
                 }
 
-                Bounds.update(part.bounds, part.vertices);
+                Bounds.update(part.bounds, part.vertices, body.velocity);
             }
 
             impulse.angle = 0;
@@ -4400,6 +4410,7 @@ var Body = require('../body/Body');
         engine.broadphase = engine.broadphase.controller.create(engine.broadphase);
         engine.metrics = engine.metrics || { extended: false };
 
+
         return engine;
     };
 
@@ -4440,6 +4451,7 @@ var Body = require('../body/Body');
         // get lists of all bodies and constraints, no matter what composites they are in
         var allBodies = Composite.allBodies(world),
             allConstraints = Composite.allConstraints(world);
+
 
         // if sleeping enabled, call the sleeping controller
         if (engine.enableSleeping)
@@ -4509,6 +4521,7 @@ var Body = require('../body/Body');
 
         if (pairs.collisionEnd.length > 0)
             Events.trigger(engine, 'collisionEnd', { pairs: pairs.collisionEnd });
+
 
         // clear force buffers
         _bodiesClearForces(allBodies);
@@ -5291,6 +5304,16 @@ var Common = require('./Common');
      */
     Runner.stop = function(runner) {
         _cancelAnimationFrame(runner.frameRequestId);
+    };
+
+    /**
+     * Alias for `Runner.run`.
+     * @method start
+     * @param {runner} runner
+     * @param {engine} engine
+     */
+    Runner.start = function(runner, engine) {
+        Runner.run(runner, engine);
     };
 
     /*
@@ -7278,6 +7301,7 @@ var Common = require('../core/Common');
 
 },{"../core/Common":14,"../geometry/Vector":26}],28:[function(require,module,exports){
 var Matter = module.exports = {};
+Matter.version = 'master';
 
 Matter.Body = require('../body/Body');
 Matter.Composite = require('../body/Composite');
@@ -7302,6 +7326,7 @@ Matter.Mouse = require('../core/Mouse');
 Matter.Runner = require('../core/Runner');
 Matter.Sleeping = require('../core/Sleeping');
 
+
 Matter.Bodies = require('../factory/Bodies');
 Matter.Composites = require('../factory/Composites');
 
@@ -7323,6 +7348,7 @@ Matter.World.addBody = Matter.Composite.addBody;
 Matter.World.addConstraint = Matter.Composite.addConstraint;
 Matter.World.clear = Matter.Composite.clear;
 Matter.Engine.run = Matter.Runner.run;
+
 },{"../body/Body":1,"../body/Composite":2,"../body/World":3,"../collision/Contact":4,"../collision/Detector":5,"../collision/Grid":6,"../collision/Pair":7,"../collision/Pairs":8,"../collision/Query":9,"../collision/Resolver":10,"../collision/SAT":11,"../constraint/Constraint":12,"../constraint/MouseConstraint":13,"../core/Common":14,"../core/Engine":15,"../core/Events":16,"../core/Metrics":17,"../core/Mouse":18,"../core/Runner":19,"../core/Sleeping":20,"../factory/Bodies":21,"../factory/Composites":22,"../geometry/Axes":23,"../geometry/Bounds":24,"../geometry/Svg":25,"../geometry/Vector":26,"../geometry/Vertices":27,"../render/Render":29,"../render/RenderPixi":30}],29:[function(require,module,exports){
 /**
 * The `Matter.Render` module is the default `render.controller` used by a `Matter.Engine`.
@@ -7345,6 +7371,7 @@ var Composite = require('../body/Composite');
 var Bounds = require('../geometry/Bounds');
 var Events = require('../core/Events');
 var Grid = require('../collision/Grid');
+var Vector = require('../geometry/Vector');
 
 (function() {
     
@@ -7361,6 +7388,7 @@ var Grid = require('../collision/Grid');
             controller: Render,
             element: null,
             canvas: null,
+            mouse: null,
             options: {
                 width: 800,
                 height: 600,
@@ -7384,7 +7412,8 @@ var Grid = require('../collision/Grid');
                 showShadows: false,
                 showVertexNumbers: false,
                 showConvexHulls: false,
-                showInternalEdges: false
+                showInternalEdges: false,
+                showMousePosition: false
             }
         };
 
@@ -7552,6 +7581,9 @@ var Grid = require('../collision/Grid');
         if (options.showVertexNumbers)
             Render.vertexNumbers(engine, bodies, context);
 
+        if (options.showMousePosition)
+            Render.mousePosition(engine, render.mouse, context);
+
         Render.constraints(constraints, context);
 
         if (options.showBroadphase && engine.broadphase.controller === Grid)
@@ -7586,7 +7618,11 @@ var Grid = require('../collision/Grid');
 
         if (engine.timing.timestamp - (render.debugTimestamp || 0) >= 500) {
             var text = "";
-            text += "fps: " + Math.round(metrics.timing.fps) + space;
+
+            if (metrics.timing) {
+                text += "fps: " + Math.round(metrics.timing.fps) + space;
+            }
+
 
             render.debugString = text;
             render.debugTimestamp = engine.timing.timestamp;
@@ -7897,6 +7933,20 @@ var Grid = require('../collision/Grid');
                 }
             }
         }
+    };
+
+    /**
+     * Renders mouse position.
+     * @private
+     * @method mousePosition
+     * @param {engine} engine
+     * @param {mouse} mouse
+     * @param {RenderingContext} context
+     */
+    Render.mousePosition = function(engine, mouse, context) {
+        var c = context;
+        c.fillStyle = 'rgba(255,255,255,0.8)';
+        c.fillText(mouse.position.x + '  ' + mouse.position.y, mouse.position.x + 5, mouse.position.y - 5);
     };
 
     /**
@@ -8554,7 +8604,7 @@ var Grid = require('../collision/Grid');
 
 })();
 
-},{"../body/Composite":2,"../collision/Grid":6,"../core/Common":14,"../core/Events":16,"../geometry/Bounds":24}],30:[function(require,module,exports){
+},{"../body/Composite":2,"../collision/Grid":6,"../core/Common":14,"../core/Events":16,"../geometry/Bounds":24,"../geometry/Vector":26}],30:[function(require,module,exports){
 /**
 * See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
 * and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
