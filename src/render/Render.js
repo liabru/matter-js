@@ -266,9 +266,9 @@ var Vector = require('../geometry/Vector');
 
         if (engine.timing.timestamp - (render.debugTimestamp || 0) >= 500) {
             var text = "";
-            text += "fps: " + Math.round(metrics.timing.fps) + space;
 
             // @if DEBUG
+            text += "fps: " + Math.round(metrics.timing.fps) + space;
             if (metrics.extended) {
                 text += "delta: " + metrics.timing.delta.toFixed(3) + space;
                 text += "correction: " + metrics.timing.correction.toFixed(3) + space;
