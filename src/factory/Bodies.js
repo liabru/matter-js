@@ -214,10 +214,6 @@ var Vector = require('../geometry/Vector');
         removeCollinear = typeof removeCollinear !== 'undefined' ? removeCollinear : 0.01;
         minimumArea = typeof minimumArea !== 'undefined' ? minimumArea : 10;
 
-        if (!window.decomp) {
-            Common.log('Bodies.fromVertices: poly-decomp.js required. Could not decompose vertices. Fallback to convex hull.', 'warn');
-        }
-
         // ensure vertexSets is an array of arrays
         if (!Common.isArray(vertexSets[0])) {
             vertexSets = [vertexSets];
@@ -232,6 +228,7 @@ var Vector = require('../geometry/Vector');
                     vertices = Vertices.clockwiseSort(vertices);
                 } else {
                     // fallback to convex hull when decomposition is not possible
+                    Common.log('Bodies.fromVertices: poly-decomp.js required. Could not decompose vertices. Fallback to convex hull.', 'warn');
                     vertices = Vertices.hull(vertices);
                 }
 
