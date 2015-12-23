@@ -4,7 +4,7 @@
 
 [brm.io/matter-js](http://brm.io/matter-js)
 
-[Features](#features) - [Install](#install) - [Usage](#usage) -  [Docs](http://brm.io/matter-js-docs/) - [Implementation](#implementation) - [References](#references) - [License](#license)
+[Demos](#demos) - [Gallery](#gallery) - [Features](#features) - [Install](#install) - [Usage](#usage) - [Examples](#examples) -  [Docs](#documentation) - [References](#references) - [License](#license)
 
 [![Build Status](https://travis-ci.org/liabru/matter-js.png?branch=master)](https://travis-ci.org/liabru/matter-js)
 
@@ -64,6 +64,20 @@
   </tr>
 </table>
 
+### Gallery
+
+Some great projects using matter.js physics are
+
+- [Les métamorphoses de Mr. Kalia](http://www.lab212.org/projects/les-metamorphoses-de-mr-kalia) by Lab212 for Google
+- [Pablo The Flamingo](http://pablotheflamingo.com/) by Nathan Gordon et al
+- [#GIFMYLIVE](http://bonhommeparis.com/en/projects/arte-gifmylive) by Bonnehomme for Arte
+- [Adobe Analytics Live Stream](http://adobefirehose.mediarain.com/) by Rain for Adobe
+- [Blood Sweat & Tools Interactive](http://bloodsweatandtools.discovery.ca/gamebench/) by Jam3 for Discovery
+- [Hype](http://tumult.com/hype/pro/) by Tumult
+- [Trophy Smasher](http://grindselect.com/trophy/game) by Kyle Stetz for Grind Select
+- [Pelada](https://gabrielmfadt.wordpress.com/tag/matter-js/) by Gabriel Gianordoli
+- [Powermate and Physics](https://vine.co/v/OjXaEzivvJe) by Jaume Sanchez Elias
+
 ### Features
 
 - Rigid bodies
@@ -105,12 +119,13 @@ You can also install using the package managers [Bower](http://bower.io/search/?
 
 ### Usage
 
-See the [Getting started](https://github.com/liabru/matter-js/wiki/Getting-started) wiki page for a minimal usage example.
+Visit the [Getting started](https://github.com/liabru/matter-js/wiki/Getting-started) wiki page for a minimal usage example.  
+Also see the [Rendering](https://github.com/liabru/matter-js/wiki/Rendering) wiki page, which also shows how to use your own game loop.
 
-Matter.js includes a sample renderer, but this is optional and it's easy to use your own.  
-See the [Rendering](https://github.com/liabru/matter-js/wiki/Rendering) wiki page for information, including on how to use your own custom game loop.
+### Examples
 
-Check out the [demo page](http://brm.io/matter-js-demo-master/) for more examples and then refer to [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) to see how they work. Some of the demos are also available on [codepen](http://codepen.io/collection/Fuagy/), where you can easily experiment with them.
+See the [examples](https://github.com/liabru/matter-js/tree/master/examples) directory which contains the source for all [demos](#demos).  
+There are even more examples on [codepen](http://codepen.io/collection/Fuagy/).
 
 ### Documentation
 
@@ -137,7 +152,7 @@ If you'd like to contribute but not sure what to work on, feel free to message m
 
 To see what's new or changed in the latest version, see the [changelog](https://github.com/liabru/matter-js/blob/master/CHANGELOG.md).
 
-### Implementation
+### References
 
 The engine uses the following techniques:
 
@@ -157,9 +172,7 @@ The engine uses the following techniques:
 -   A basic sleeping strategy
 - HTML5 Canvas / WebGL renderer
 
-### References
-
-See my post on [Game physics for beginners](http://brm.io/game-physics-for-beginners/).
+For more information see my post on [Game physics for beginners](http://brm.io/game-physics-for-beginners/).
 
 ### License
 
