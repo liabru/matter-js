@@ -76,6 +76,7 @@ Some great projects using matter.js physics are
 - [Hype](http://tumult.com/hype/pro/) by Tumult
 - [Trophy Smasher](http://grindselect.com/trophy/game) by Kyle Stetz for Grind Select
 - [Pelada](https://gabrielmfadt.wordpress.com/tag/matter-js/) by Gabriel Gianordoli
+- [Labyrinth Game](https://vine.co/v/OjYTwi1gdB1) by Jaume Sanchez Elias
 - [Powermate and Physics](https://vine.co/v/OjXaEzivvJe) by Jaume Sanchez Elias
 
 ### Features
