@@ -284,6 +284,7 @@ var Body = require('../body/Body');
         if (gravity.x === 0 && gravity.y === 0) {
             return;
         }
+        
         for (var i = 0; i < bodies.length; i++) {
             var body = bodies[i];
 
