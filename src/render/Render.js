@@ -434,6 +434,9 @@ var Vector = require('../geometry/Vector');
             for (k = body.parts.length > 1 ? 1 : 0; k < body.parts.length; k++) {
                 part = body.parts[k];
 
+                if (!part.render.visible)
+                    continue;
+
                 if (part.render.sprite && part.render.sprite.texture && !options.wireframes) {
                     // part sprite
                     var sprite = part.render.sprite,

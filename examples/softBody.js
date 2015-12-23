@@ -15,7 +15,7 @@
 
         World.add(world, [
             Composites.softBody(250, 100, 5, 5, 0, 0, true, 18, particleOptions),
-            Composites.softBody(250, 300, 8, 3, 0, 0, true, 15, particleOptions),
+            Composites.softBody(400, 300, 8, 3, 0, 0, true, 15, particleOptions),
             Composites.softBody(250, 400, 4, 4, 0, 0, true, 15, particleOptions)
         ]);
 
