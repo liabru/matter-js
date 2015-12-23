@@ -210,7 +210,9 @@
   },
   {
     "xScale": 1,
-    "yScale": 1
+    "yScale": 1,
+    "xOffset": 0.5,
+    "yOffset": 0.5
   },
   {
     "min": {
@@ -423,7 +425,9 @@
   },
   {
     "xScale": 1,
-    "yScale": 1
+    "yScale": 1,
+    "xOffset": 0.5,
+    "yOffset": 0.5
   },
   {
     "min": {
@@ -636,7 +640,9 @@
   },
   {
     "xScale": 1,
-    "yScale": 1
+    "yScale": 1,
+    "xOffset": 0.5,
+    "yOffset": 0.5
   },
   {
     "min": {
@@ -849,7 +855,9 @@
   },
   {
     "xScale": 1,
-    "yScale": 1
+    "yScale": 1,
+    "xOffset": 0.5,
+    "yOffset": 0.5
   },
   {
     "min": {
@@ -974,12 +982,17 @@
     "collisionFilter": {
       "#": 128
     },
-    "slop": 0.01,
+    "slop": 1,
     "timeScale": 1,
     "render": {
       "#": 129
     },
-    "inertia": 99999,
+    "inertia": {
+      "#.": "Number",
+      "#v": [
+        "Infinity"
+      ]
+    },
     "circleRadius": 30,
     "bounds": {
       "#": 131
@@ -994,7 +1007,7 @@
     "area": 2799.98416,
     "mass": 2.79998,
     "inverseMass": 0.35714,
-    "inverseInertia": 0.00001,
+    "inverseInertia": 0,
     "parent": {
       "#": 94
     },
@@ -1356,7 +1369,9 @@
   },
   {
     "xScale": 1,
-    "yScale": 1
+    "yScale": 1,
+    "xOffset": 0.5,
+    "yOffset": 0.5
   },
   {
     "min": {
@@ -1514,12 +1529,17 @@
     "collisionFilter": {
       "#": 183
     },
-    "slop": 0.01,
+    "slop": 1,
     "timeScale": 1,
     "render": {
       "#": 184
     },
-    "inertia": 99999,
+    "inertia": {
+      "#.": "Number",
+      "#v": [
+        "Infinity"
+      ]
+    },
     "circleRadius": 30,
     "bounds": {
       "#": 186
@@ -1534,7 +1554,7 @@
     "area": 2799.98416,
     "mass": 2.79998,
     "inverseMass": 0.35714,
-    "inverseInertia": 0.00001,
+    "inverseInertia": 0,
     "parent": {
       "#": 149
     },
@@ -1896,7 +1916,9 @@
   },
   {
     "xScale": 1,
-    "yScale": 1
+    "yScale": 1,
+    "xOffset": 0.5,
+    "yOffset": 0.5
   },
   {
     "min": {
@@ -2054,12 +2076,17 @@
     "collisionFilter": {
       "#": 238
     },
-    "slop": 0.01,
+    "slop": 1,
     "timeScale": 1,
     "render": {
       "#": 239
     },
-    "inertia": 99999,
+    "inertia": {
+      "#.": "Number",
+      "#v": [
+        "Infinity"
+      ]
+    },
     "circleRadius": 30,
     "bounds": {
       "#": 241
@@ -2074,7 +2101,7 @@
     "area": 2799.98416,
     "mass": 2.79998,
     "inverseMass": 0.35714,
-    "inverseInertia": 0.00001,
+    "inverseInertia": 0,
     "parent": {
       "#": 204
     },
@@ -2436,7 +2463,9 @@
   },
   {
     "xScale": 1,
-    "yScale": 1
+    "yScale": 1,
+    "xOffset": 0.5,
+    "yOffset": 0.5
   },
   {
     "min": {
@@ -2594,12 +2623,17 @@
     "collisionFilter": {
       "#": 293
     },
-    "slop": 0.01,
+    "slop": 1,
     "timeScale": 1,
     "render": {
       "#": 294
     },
-    "inertia": 99999,
+    "inertia": {
+      "#.": "Number",
+      "#v": [
+        "Infinity"
+      ]
+    },
     "circleRadius": 30,
     "bounds": {
       "#": 296
@@ -2614,7 +2648,7 @@
     "area": 2799.98416,
     "mass": 2.79998,
     "inverseMass": 0.35714,
-    "inverseInertia": 0.00001,
+    "inverseInertia": 0,
     "parent": {
       "#": 259
     },
@@ -2976,7 +3010,9 @@
   },
   {
     "xScale": 1,
-    "yScale": 1
+    "yScale": 1,
+    "xOffset": 0.5,
+    "yOffset": 0.5
   },
   {
     "min": {
@@ -3134,12 +3170,17 @@
     "collisionFilter": {
       "#": 348
     },
-    "slop": 0.01,
+    "slop": 1,
     "timeScale": 1,
     "render": {
       "#": 349
     },
-    "inertia": 99999,
+    "inertia": {
+      "#.": "Number",
+      "#v": [
+        "Infinity"
+      ]
+    },
     "circleRadius": 30,
     "bounds": {
       "#": 351
@@ -3154,7 +3195,7 @@
     "area": 2799.98416,
     "mass": 2.79998,
     "inverseMass": 0.35714,
-    "inverseInertia": 0.00001,
+    "inverseInertia": 0,
     "parent": {
       "#": 314
     },
@@ -3516,7 +3557,9 @@
   },
   {
     "xScale": 1,
-    "yScale": 1
+    "yScale": 1,
+    "xOffset": 0.5,
+    "yOffset": 0.5
   },
   {
     "min": {
@@ -3918,12 +3961,17 @@
     "collisionFilter": {
       "#": 421
     },
-    "slop": 0.01,
+    "slop": 1,
     "timeScale": 1,
     "render": {
       "#": 422
     },
-    "inertia": 99999,
+    "inertia": {
+      "#.": "Number",
+      "#v": [
+        "Infinity"
+      ]
+    },
     "circleRadius": 20,
     "bounds": {
       "#": 424
@@ -3938,7 +3986,7 @@
     "area": 1236.07554,
     "mass": 1.23608,
     "inverseMass": 0.80901,
-    "inverseInertia": 0.00001,
+    "inverseInertia": 0,
     "parent": {
       "#": 393
     },
@@ -4228,7 +4276,9 @@
   },
   {
     "xScale": 1,
-    "yScale": 1
+    "yScale": 1,
+    "xOffset": 0.5,
+    "yOffset": 0.5
   },
   {
     "min": {
@@ -4365,12 +4415,17 @@
     "collisionFilter": {
       "#": 467
     },
-    "slop": 0.01,
+    "slop": 1,
     "timeScale": 1,
     "render": {
       "#": 468
     },
-    "inertia": 99999,
+    "inertia": {
+      "#.": "Number",
+      "#v": [
+        "Infinity"
+      ]
+    },
     "circleRadius": 20,
     "bounds": {
       "#": 470
@@ -4385,7 +4440,7 @@
     "area": 1236.07554,
     "mass": 1.23608,
     "inverseMass": 0.80901,
-    "inverseInertia": 0.00001,
+    "inverseInertia": 0,
     "parent": {
       "#": 439
     },
@@ -4675,7 +4730,9 @@
   },
   {
     "xScale": 1,
-    "yScale": 1
+    "yScale": 1,
+    "xOffset": 0.5,
+    "yOffset": 0.5
   },
   {
     "min": {
@@ -4812,12 +4869,17 @@
     "collisionFilter": {
       "#": 513
     },
-    "slop": 0.01,
+    "slop": 1,
     "timeScale": 1,
     "render": {
       "#": 514
     },
-    "inertia": 99999,
+    "inertia": {
+      "#.": "Number",
+      "#v": [
+        "Infinity"
+      ]
+    },
     "circleRadius": 20,
     "bounds": {
       "#": 516
@@ -4832,7 +4894,7 @@
     "area": 1236.07554,
     "mass": 1.23608,
     "inverseMass": 0.80901,
-    "inverseInertia": 0.00001,
+    "inverseInertia": 0,
     "parent": {
       "#": 485
     },
@@ -5122,7 +5184,9 @@
   },
   {
     "xScale": 1,
-    "yScale": 1
+    "yScale": 1,
+    "xOffset": 0.5,
+    "yOffset": 0.5
   },
   {
     "min": {
@@ -5259,12 +5323,17 @@
     "collisionFilter": {
       "#": 559
     },
-    "slop": 0.01,
+    "slop": 1,
     "timeScale": 1,
     "render": {
       "#": 560
     },
-    "inertia": 99999,
+    "inertia": {
+      "#.": "Number",
+      "#v": [
+        "Infinity"
+      ]
+    },
     "circleRadius": 20,
     "bounds": {
       "#": 562
@@ -5279,7 +5348,7 @@
     "area": 1236.07554,
     "mass": 1.23608,
     "inverseMass": 0.80901,
-    "inverseInertia": 0.00001,
+    "inverseInertia": 0,
     "parent": {
       "#": 531
     },
@@ -5569,7 +5638,9 @@
   },
   {
     "xScale": 1,
-    "yScale": 1
+    "yScale": 1,
+    "xOffset": 0.5,
+    "yOffset": 0.5
   },
   {
     "min": {
@@ -5706,12 +5777,17 @@
     "collisionFilter": {
       "#": 605
     },
-    "slop": 0.01,
+    "slop": 1,
     "timeScale": 1,
     "render": {
       "#": 606
     },
-    "inertia": 99999,
+    "inertia": {
+      "#.": "Number",
+      "#v": [
+        "Infinity"
+      ]
+    },
     "circleRadius": 20,
     "bounds": {
       "#": 608
@@ -5726,7 +5802,7 @@
     "area": 1236.07554,
     "mass": 1.23608,
     "inverseMass": 0.80901,
-    "inverseInertia": 0.00001,
+    "inverseInertia": 0,
     "parent": {
       "#": 577
     },
@@ -6016,7 +6092,9 @@
   },
   {
     "xScale": 1,
-    "yScale": 1
+    "yScale": 1,
+    "xOffset": 0.5,
+    "yOffset": 0.5
   },
   {
     "min": {
@@ -6153,12 +6231,17 @@
     "collisionFilter": {
       "#": 651
     },
-    "slop": 0.01,
+    "slop": 1,
     "timeScale": 1,
     "render": {
       "#": 652
     },
-    "inertia": 99999,
+    "inertia": {
+      "#.": "Number",
+      "#v": [
+        "Infinity"
+      ]
+    },
     "circleRadius": 20,
     "bounds": {
       "#": 654
@@ -6173,7 +6256,7 @@
     "area": 1236.07554,
     "mass": 1.23608,
     "inverseMass": 0.80901,
-    "inverseInertia": 0.00001,
+    "inverseInertia": 0,
     "parent": {
       "#": 623
     },
@@ -6463,7 +6546,9 @@
   },
   {
     "xScale": 1,
-    "yScale": 1
+    "yScale": 1,
+    "xOffset": 0.5,
+    "yOffset": 0.5
   },
   {
     "min": {
@@ -6600,12 +6685,17 @@
     "collisionFilter": {
       "#": 697
     },
-    "slop": 0.01,
+    "slop": 1,
     "timeScale": 1,
     "render": {
       "#": 698
     },
-    "inertia": 99999,
+    "inertia": {
+      "#.": "Number",
+      "#v": [
+        "Infinity"
+      ]
+    },
     "circleRadius": 20,
     "bounds": {
       "#": 700
@@ -6620,7 +6710,7 @@
     "area": 1236.07554,
     "mass": 1.23608,
     "inverseMass": 0.80901,
-    "inverseInertia": 0.00001,
+    "inverseInertia": 0,
     "parent": {
       "#": 669
     },
@@ -6910,7 +7000,9 @@
   },
   {
     "xScale": 1,
-    "yScale": 1
+    "yScale": 1,
+    "xOffset": 0.5,
+    "yOffset": 0.5
   },
   {
     "min": {

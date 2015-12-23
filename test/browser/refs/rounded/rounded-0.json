@@ -205,7 +205,9 @@
     "visible": true
   },
   {
+    "xOffset": 0.5,
     "xScale": 1,
+    "yOffset": 0.5,
     "yScale": 1
   },
   {
@@ -400,7 +402,9 @@
     "visible": true
   },
   {
+    "xOffset": 0.5,
     "xScale": 1,
+    "yOffset": 0.5,
     "yScale": 1
   },
   {
@@ -595,7 +599,9 @@
     "visible": true
   },
   {
+    "xOffset": 0.5,
     "xScale": 1,
+    "yOffset": 0.5,
     "yScale": 1
   },
   {
@@ -790,7 +796,9 @@
     "visible": true
   },
   {
+    "xOffset": 0.5,
     "xScale": 1,
+    "yOffset": 0.5,
     "yScale": 1
   },
   {
@@ -1026,7 +1034,9 @@
     "visible": true
   },
   {
+    "xOffset": 0.5,
     "xScale": 1,
+    "yOffset": 0.5,
     "yScale": 1
   },
   {
@@ -1422,7 +1432,9 @@
     "visible": true
   },
   {
+    "xOffset": 0.56429,
     "xScale": 1,
+    "yOffset": 0.56423,
     "yScale": 1
   },
   {
@@ -1805,7 +1817,9 @@
     "visible": true
   },
   {
+    "xOffset": 0.54199,
     "xScale": 1,
+    "yOffset": 0.54205,
     "yScale": 1
   },
   {
@@ -2279,7 +2293,9 @@
     "visible": true
   },
   {
+    "xOffset": 0.5,
     "xScale": 1,
+    "yOffset": 0.5,
     "yScale": 1
   },
   {
@@ -2769,7 +2785,9 @@
     "visible": true
   },
   {
+    "xOffset": 0.50044,
     "xScale": 1,
+    "yOffset": 0.51518,
     "yScale": 1
   },
   {
@@ -3183,7 +3201,9 @@
     "visible": true
   },
   {
+    "xOffset": 0.5,
     "xScale": 1,
+    "yOffset": 0.5,
     "yScale": 1
   },
   {
@@ -3964,7 +3984,9 @@
     "visible": true
   },
   {
+    "xOffset": 0.54822,
     "xScale": 1,
+    "yOffset": 0.50019,
     "yScale": 1
   },
   {
@@ -4417,7 +4439,9 @@
     "visible": true
   },
   {
+    "xOffset": 0.62592,
     "xScale": 1,
+    "yOffset": 0.49963,
     "yScale": 1
   },
   {

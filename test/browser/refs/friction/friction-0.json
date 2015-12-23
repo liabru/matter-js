@@ -199,7 +199,9 @@
     "visible": true
   },
   {
+    "xOffset": 0.5,
     "xScale": 1,
+    "yOffset": 0.5,
     "yScale": 1
   },
   {
@@ -394,7 +396,9 @@
     "visible": true
   },
   {
+    "xOffset": 0.5,
     "xScale": 1,
+    "yOffset": 0.5,
     "yScale": 1
   },
   {
@@ -589,7 +593,9 @@
     "visible": true
   },
   {
+    "xOffset": 0.5,
     "xScale": 1,
+    "yOffset": 0.5,
     "yScale": 1
   },
   {
@@ -784,7 +790,9 @@
     "visible": true
   },
   {
+    "xOffset": 0.5,
     "xScale": 1,
+    "yOffset": 0.5,
     "yScale": 1
   },
   {
@@ -979,7 +987,9 @@
     "visible": true
   },
   {
+    "xOffset": 0.5,
     "xScale": 1,
+    "yOffset": 0.5,
     "yScale": 1
   },
   {
@@ -1159,7 +1169,9 @@
     "visible": true
   },
   {
+    "xOffset": 0.5,
     "xScale": 1,
+    "yOffset": 0.5,
     "yScale": 1
   },
   {
@@ -1354,7 +1366,9 @@
     "visible": true
   },
   {
+    "xOffset": 0.5,
     "xScale": 1,
+    "yOffset": 0.5,
     "yScale": 1
   },
   {
@@ -1534,7 +1548,9 @@
     "visible": true
   },
   {
+    "xOffset": 0.5,
     "xScale": 1,
+    "yOffset": 0.5,
     "yScale": 1
   },
   {
@@ -1729,7 +1745,9 @@
     "visible": true
   },
   {
+    "xOffset": 0.5,
     "xScale": 1,
+    "yOffset": 0.5,
     "yScale": 1
   },
   {
@@ -1909,7 +1927,9 @@
     "visible": true
   },
   {
+    "xOffset": 0.5,
     "xScale": 1,
+    "yOffset": 0.5,
     "yScale": 1
   },
   {

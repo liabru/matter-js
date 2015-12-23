@@ -181,7 +181,9 @@
     "visible": true
   },
   {
+    "xOffset": 0.5,
     "xScale": 1,
+    "yOffset": 0.5,
     "yScale": 1
   },
   {
@@ -376,7 +378,9 @@
     "visible": true
   },
   {
+    "xOffset": 0.5,
     "xScale": 1,
+    "yOffset": 0.5,
     "yScale": 1
   },
   {
@@ -571,7 +575,9 @@
     "visible": true
   },
   {
+    "xOffset": 0.5,
     "xScale": 1,
+    "yOffset": 0.5,
     "yScale": 1
   },
   {
@@ -766,7 +772,9 @@
     "visible": true
   },
   {
+    "xOffset": 0.5,
     "xScale": 1,
+    "yOffset": 0.5,
     "yScale": 1
   },
   {
@@ -919,8 +927,13 @@
     "frictionAir": 0.0001,
     "frictionStatic": 0.5,
     "id": 5,
-    "inertia": 99999,
-    "inverseInertia": 0.00001,
+    "inertia": {
+      "#.": "Number",
+      "#v": [
+        "Infinity"
+      ]
+    },
+    "inverseInertia": 0,
     "inverseMass": 0.35714,
     "isSleeping": false,
     "isStatic": false,
@@ -943,7 +956,7 @@
     "restitution": 1,
     "sleepCounter": 0,
     "sleepThreshold": 60,
-    "slop": 0.01,
+    "slop": 1,
     "speed": 0,
     "timeScale": 1,
     "torque": 0,
@@ -1101,7 +1114,9 @@
     "visible": true
   },
   {
+    "xOffset": 0.5,
     "xScale": 1,
+    "yOffset": 0.5,
     "yScale": 1
   },
   {
@@ -1397,8 +1412,13 @@
     "frictionAir": 0.0001,
     "frictionStatic": 0.5,
     "id": 7,
-    "inertia": 99999,
-    "inverseInertia": 0.00001,
+    "inertia": {
+      "#.": "Number",
+      "#v": [
+        "Infinity"
+      ]
+    },
+    "inverseInertia": 0,
     "inverseMass": 0.35714,
     "isSleeping": false,
     "isStatic": false,
@@ -1421,7 +1441,7 @@
     "restitution": 1,
     "sleepCounter": 0,
     "sleepThreshold": 60,
-    "slop": 0.01,
+    "slop": 1,
     "speed": 0,
     "timeScale": 1,
     "torque": 0,
@@ -1579,7 +1599,9 @@
     "visible": true
   },
   {
+    "xOffset": 0.5,
     "xScale": 1,
+    "yOffset": 0.5,
     "yScale": 1
   },
   {
@@ -1875,8 +1897,13 @@
     "frictionAir": 0.0001,
     "frictionStatic": 0.5,
     "id": 9,
-    "inertia": 99999,
-    "inverseInertia": 0.00001,
+    "inertia": {
+      "#.": "Number",
+      "#v": [
+        "Infinity"
+      ]
+    },
+    "inverseInertia": 0,
     "inverseMass": 0.35714,
     "isSleeping": false,
     "isStatic": false,
@@ -1899,7 +1926,7 @@
     "restitution": 1,
     "sleepCounter": 0,
     "sleepThreshold": 60,
-    "slop": 0.01,
+    "slop": 1,
     "speed": 0,
     "timeScale": 1,
     "torque": 0,
@@ -2057,7 +2084,9 @@
     "visible": true
   },
   {
+    "xOffset": 0.5,
     "xScale": 1,
+    "yOffset": 0.5,
     "yScale": 1
   },
   {
@@ -2353,8 +2382,13 @@
     "frictionAir": 0.0001,
     "frictionStatic": 0.5,
     "id": 11,
-    "inertia": 99999,
-    "inverseInertia": 0.00001,
+    "inertia": {
+      "#.": "Number",
+      "#v": [
+        "Infinity"
+      ]
+    },
+    "inverseInertia": 0,
     "inverseMass": 0.35714,
     "isSleeping": false,
     "isStatic": false,
@@ -2377,7 +2411,7 @@
     "restitution": 1,
     "sleepCounter": 0,
     "sleepThreshold": 60,
-    "slop": 0.01,
+    "slop": 1,
     "speed": 0,
     "timeScale": 1,
     "torque": 0,
@@ -2535,7 +2569,9 @@
     "visible": true
   },
   {
+    "xOffset": 0.5,
     "xScale": 1,
+    "yOffset": 0.5,
     "yScale": 1
   },
   {
@@ -2831,8 +2867,13 @@
     "frictionAir": 0.0001,
     "frictionStatic": 0.5,
     "id": 13,
-    "inertia": 99999,
-    "inverseInertia": 0.00001,
+    "inertia": {
+      "#.": "Number",
+      "#v": [
+        "Infinity"
+      ]
+    },
+    "inverseInertia": 0,
     "inverseMass": 0.35714,
     "isSleeping": false,
     "isStatic": false,
@@ -2855,7 +2896,7 @@
     "restitution": 1,
     "sleepCounter": 0,
     "sleepThreshold": 60,
-    "slop": 0.01,
+    "slop": 1,
     "speed": 0,
     "timeScale": 1,
     "torque": 0,
@@ -3013,7 +3054,9 @@
     "visible": true
   },
   {
+    "xOffset": 0.5,
     "xScale": 1,
+    "yOffset": 0.5,
     "yScale": 1
   },
   {
@@ -3526,8 +3569,13 @@
     "frictionAir": 0.0001,
     "frictionStatic": 0.5,
     "id": 16,
-    "inertia": 99999,
-    "inverseInertia": 0.00001,
+    "inertia": {
+      "#.": "Number",
+      "#v": [
+        "Infinity"
+      ]
+    },
+    "inverseInertia": 0,
     "inverseMass": 0.80901,
     "isSleeping": false,
     "isStatic": false,
@@ -3550,7 +3598,7 @@
     "restitution": 1,
     "sleepCounter": 0,
     "sleepThreshold": 60,
-    "slop": 0.01,
+    "slop": 1,
     "speed": 0,
     "timeScale": 1,
     "torque": 0,
@@ -3687,7 +3735,9 @@
     "visible": true
   },
   {
+    "xOffset": 0.5,
     "xScale": 1,
+    "yOffset": 0.5,
     "yScale": 1
   },
   {
@@ -3923,8 +3973,13 @@
     "frictionAir": 0.0001,
     "frictionStatic": 0.5,
     "id": 18,
-    "inertia": 99999,
-    "inverseInertia": 0.00001,
+    "inertia": {
+      "#.": "Number",
+      "#v": [
+        "Infinity"
+      ]
+    },
+    "inverseInertia": 0,
     "inverseMass": 0.80901,
     "isSleeping": false,
     "isStatic": false,
@@ -3947,7 +4002,7 @@
     "restitution": 1,
     "sleepCounter": 0,
     "sleepThreshold": 60,
-    "slop": 0.01,
+    "slop": 1,
     "speed": 0,
     "timeScale": 1,
     "torque": 0,
@@ -4084,7 +4139,9 @@
     "visible": true
   },
   {
+    "xOffset": 0.5,
     "xScale": 1,
+    "yOffset": 0.5,
     "yScale": 1
   },
   {
@@ -4320,8 +4377,13 @@
     "frictionAir": 0.0001,
     "frictionStatic": 0.5,
     "id": 20,
-    "inertia": 99999,
-    "inverseInertia": 0.00001,
+    "inertia": {
+      "#.": "Number",
+      "#v": [
+        "Infinity"
+      ]
+    },
+    "inverseInertia": 0,
     "inverseMass": 0.80901,
     "isSleeping": false,
     "isStatic": false,
@@ -4344,7 +4406,7 @@
     "restitution": 1,
     "sleepCounter": 0,
     "sleepThreshold": 60,
-    "slop": 0.01,
+    "slop": 1,
     "speed": 0,
     "timeScale": 1,
     "torque": 0,
@@ -4481,7 +4543,9 @@
     "visible": true
   },
   {
+    "xOffset": 0.5,
     "xScale": 1,
+    "yOffset": 0.5,
     "yScale": 1
   },
   {
@@ -4717,8 +4781,13 @@
     "frictionAir": 0.0001,
     "frictionStatic": 0.5,
     "id": 22,
-    "inertia": 99999,
-    "inverseInertia": 0.00001,
+    "inertia": {
+      "#.": "Number",
+      "#v": [
+        "Infinity"
+      ]
+    },
+    "inverseInertia": 0,
     "inverseMass": 0.80901,
     "isSleeping": false,
     "isStatic": false,
@@ -4741,7 +4810,7 @@
     "restitution": 1,
     "sleepCounter": 0,
     "sleepThreshold": 60,
-    "slop": 0.01,
+    "slop": 1,
     "speed": 0,
     "timeScale": 1,
     "torque": 0,
@@ -4878,7 +4947,9 @@
     "visible": true
   },
   {
+    "xOffset": 0.5,
     "xScale": 1,
+    "yOffset": 0.5,
     "yScale": 1
   },
   {
@@ -5114,8 +5185,13 @@
     "frictionAir": 0.0001,
     "frictionStatic": 0.5,
     "id": 24,
-    "inertia": 99999,
-    "inverseInertia": 0.00001,
+    "inertia": {
+      "#.": "Number",
+      "#v": [
+        "Infinity"
+      ]
+    },
+    "inverseInertia": 0,
     "inverseMass": 0.80901,
     "isSleeping": false,
     "isStatic": false,
@@ -5138,7 +5214,7 @@
     "restitution": 1,
     "sleepCounter": 0,
     "sleepThreshold": 60,
-    "slop": 0.01,
+    "slop": 1,
     "speed": 0,
     "timeScale": 1,
     "torque": 0,
@@ -5275,7 +5351,9 @@
     "visible": true
   },
   {
+    "xOffset": 0.5,
     "xScale": 1,
+    "yOffset": 0.5,
     "yScale": 1
   },
   {
@@ -5511,8 +5589,13 @@
     "frictionAir": 0.0001,
     "frictionStatic": 0.5,
     "id": 26,
-    "inertia": 99999,
-    "inverseInertia": 0.00001,
+    "inertia": {
+      "#.": "Number",
+      "#v": [
+        "Infinity"
+      ]
+    },
+    "inverseInertia": 0,
     "inverseMass": 0.80901,
     "isSleeping": false,
     "isStatic": false,
@@ -5535,7 +5618,7 @@
     "restitution": 1,
     "sleepCounter": 0,
     "sleepThreshold": 60,
-    "slop": 0.01,
+    "slop": 1,
     "speed": 0,
     "timeScale": 1,
     "torque": 0,
@@ -5672,7 +5755,9 @@
     "visible": true
   },
   {
+    "xOffset": 0.5,
     "xScale": 1,
+    "yOffset": 0.5,
     "yScale": 1
   },
   {
@@ -5908,8 +5993,13 @@
     "frictionAir": 0.0001,
     "frictionStatic": 0.5,
     "id": 28,
-    "inertia": 99999,
-    "inverseInertia": 0.00001,
+    "inertia": {
+      "#.": "Number",
+      "#v": [
+        "Infinity"
+      ]
+    },
+    "inverseInertia": 0,
     "inverseMass": 0.80901,
     "isSleeping": false,
     "isStatic": false,
@@ -5932,7 +6022,7 @@
     "restitution": 1,
     "sleepCounter": 0,
     "sleepThreshold": 60,
-    "slop": 0.01,
+    "slop": 1,
     "speed": 0,
     "timeScale": 1,
     "torque": 0,
@@ -6069,7 +6159,9 @@
     "visible": true
   },
   {
+    "xOffset": 0.5,
     "xScale": 1,
+    "yOffset": 0.5,
     "yScale": 1
   },
   {

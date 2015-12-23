@@ -191,7 +191,9 @@
     "visible": true
   },
   {
+    "xOffset": 0.5,
     "xScale": 1,
+    "yOffset": 0.5,
     "yScale": 1
   },
   {
@@ -396,7 +398,9 @@
     "visible": true
   },
   {
+    "xOffset": 0.5,
     "xScale": 1,
+    "yOffset": 0.5,
     "yScale": 1
   },
   {
@@ -601,7 +605,9 @@
     "visible": true
   },
   {
+    "xOffset": 0.5,
     "xScale": 1,
+    "yOffset": 0.5,
     "yScale": 1
   },
   {
@@ -806,7 +812,9 @@
     "visible": true
   },
   {
+    "xOffset": 0.5,
     "xScale": 1,
+    "yOffset": 0.5,
     "yScale": 1
   },
   {
@@ -959,8 +967,13 @@
     "frictionAir": 0.0001,
     "frictionStatic": 0.5,
     "id": 5,
-    "inertia": 99999,
-    "inverseInertia": 0.00001,
+    "inertia": {
+      "#.": "Number",
+      "#v": [
+        "Infinity"
+      ]
+    },
+    "inverseInertia": 0,
     "inverseMass": 0.35714,
     "isSleeping": false,
     "isStatic": false,
@@ -986,7 +999,7 @@
     "restitution": 1,
     "sleepCounter": 0,
     "sleepThreshold": 60,
-    "slop": 0.01,
+    "slop": 1,
     "speed": 2.64075,
     "timeScale": 1,
     "torque": 0,
@@ -1151,7 +1164,9 @@
     "visible": true
   },
   {
+    "xOffset": 0.5,
     "xScale": 1,
+    "yOffset": 0.5,
     "yScale": 1
   },
   {
@@ -1447,8 +1462,13 @@
     "frictionAir": 0.0001,
     "frictionStatic": 0.5,
     "id": 7,
-    "inertia": 99999,
-    "inverseInertia": 0.00001,
+    "inertia": {
+      "#.": "Number",
+      "#v": [
+        "Infinity"
+      ]
+    },
+    "inverseInertia": 0,
     "inverseMass": 0.35714,
     "isSleeping": false,
     "isStatic": false,
@@ -1474,8 +1494,8 @@
     "restitution": 1,
     "sleepCounter": 0,
     "sleepThreshold": 60,
-    "slop": 0.01,
-    "speed": 0.33531,
+    "slop": 1,
+    "speed": 0.32985,
     "timeScale": 1,
     "torque": 0,
     "totalContacts": 0,
@@ -1589,12 +1609,12 @@
     }
   },
   {
-    "x": 361.69346,
-    "y": 330.13679
+    "x": 364.47827,
+    "y": 330.18915
   },
   {
-    "x": 302.06003,
-    "y": 270.05924
+    "x": 304.884,
+    "y": 270.11292
   },
   {
     "category": 1,
@@ -1611,16 +1631,16 @@
     "y": 0
   },
   {
-    "x": 331.84103,
-    "y": 300.05924
+    "x": 334.665,
+    "y": 300.11292
   },
   {
     "x": 0,
     "y": 0
   },
   {
-    "x": 331.76636,
-    "y": 300.1074
+    "x": 334.63129,
+    "y": 300.16283
   },
   {
     "endCol": 7,
@@ -1639,12 +1659,14 @@
     "visible": true
   },
   {
+    "xOffset": 0.5,
     "xScale": 1,
+    "yOffset": 0.5,
     "yScale": 1
   },
   {
-    "x": 0.07143,
-    "y": 0.07754
+    "x": -0.03372,
+    "y": -0.04991
   },
   [
     {
@@ -1730,183 +1752,183 @@
     "body": null,
     "index": 0,
     "isInternal": false,
-    "x": 361.62203,
-    "y": 303.67524
+    "x": 364.446,
+    "y": 303.72892
   },
   {
     "body": null,
     "index": 1,
     "isInternal": false,
-    "x": 359.89103,
-    "y": 310.69724
+    "x": 362.715,
+    "y": 310.75092
   },
   {
     "body": null,
     "index": 2,
     "isInternal": false,
-    "x": 356.53103,
-    "y": 317.10124
+    "x": 359.355,
+    "y": 317.15492
   },
   {
     "body": null,
     "index": 3,
     "isInternal": false,
-    "x": 351.73503,
-    "y": 322.51424
+    "x": 354.559,
+    "y": 322.56792
   },
   {
     "body": null,
     "index": 4,
     "isInternal": false,
-    "x": 345.78303,
-    "y": 326.62324
+    "x": 348.607,
+    "y": 326.67692
   },
   {
     "body": null,
     "index": 5,
     "isInternal": false,
-    "x": 339.02003,
-    "y": 329.18724
+    "x": 341.844,
+    "y": 329.24092
   },
   {
     "body": null,
     "index": 6,
     "isInternal": false,
-    "x": 331.84103,
-    "y": 330.05924
+    "x": 334.665,
+    "y": 330.11292
   },
   {
     "body": null,
     "index": 7,
     "isInternal": false,
-    "x": 324.66203,
-    "y": 329.18724
+    "x": 327.486,
+    "y": 329.24092
   },
   {
     "body": null,
     "index": 8,
     "isInternal": false,
-    "x": 317.89903,
-    "y": 326.62324
+    "x": 320.723,
+    "y": 326.67692
   },
   {
     "body": null,
     "index": 9,
     "isInternal": false,
-    "x": 311.94703,
-    "y": 322.51424
+    "x": 314.771,
+    "y": 322.56792
   },
   {
     "body": null,
     "index": 10,
     "isInternal": false,
-    "x": 307.15103,
-    "y": 317.10124
+    "x": 309.975,
+    "y": 317.15492
   },
   {
     "body": null,
     "index": 11,
     "isInternal": false,
-    "x": 303.79103,
-    "y": 310.69724
+    "x": 306.615,
+    "y": 310.75092
   },
   {
     "body": null,
     "index": 12,
     "isInternal": false,
-    "x": 302.06003,
-    "y": 303.67524
+    "x": 304.884,
+    "y": 303.72892
   },
   {
     "body": null,
     "index": 13,
     "isInternal": false,
-    "x": 302.06003,
-    "y": 296.44324
+    "x": 304.884,
+    "y": 296.49692
   },
   {
     "body": null,
     "index": 14,
     "isInternal": false,
-    "x": 303.79103,
-    "y": 289.42124
+    "x": 306.615,
+    "y": 289.47492
   },
   {
     "body": null,
     "index": 15,
     "isInternal": false,
-    "x": 307.15103,
-    "y": 283.01724
+    "x": 309.975,
+    "y": 283.07092
   },
   {
     "body": null,
     "index": 16,
     "isInternal": false,
-    "x": 311.94703,
-    "y": 277.60424
+    "x": 314.771,
+    "y": 277.65792
   },
   {
     "body": null,
     "index": 17,
     "isInternal": false,
-    "x": 317.89903,
-    "y": 273.49524
+    "x": 320.723,
+    "y": 273.54892
   },
   {
     "body": null,
     "index": 18,
     "isInternal": false,
-    "x": 324.66203,
-    "y": 270.93124
+    "x": 327.486,
+    "y": 270.98492
   },
   {
     "body": null,
     "index": 19,
     "isInternal": false,
-    "x": 331.84103,
-    "y": 270.05924
+    "x": 334.665,
+    "y": 270.11292
   },
   {
     "body": null,
     "index": 20,
     "isInternal": false,
-    "x": 339.02003,
-    "y": 270.93124
+    "x": 341.844,
+    "y": 270.98492
   },
   {
     "body": null,
     "index": 21,
     "isInternal": false,
-    "x": 345.78303,
-    "y": 273.49524
+    "x": 348.607,
+    "y": 273.54892
   },
   {
     "body": null,
     "index": 22,
     "isInternal": false,
-    "x": 351.73503,
-    "y": 277.60424
+    "x": 354.559,
+    "y": 277.65792
   },
   {
     "body": null,
     "index": 23,
     "isInternal": false,
-    "x": 356.53103,
-    "y": 283.01724
+    "x": 359.355,
+    "y": 283.07092
   },
   {
     "body": null,
     "index": 24,
     "isInternal": false,
-    "x": 359.89103,
-    "y": 289.42124
+    "x": 362.715,
+    "y": 289.47492
   },
   {
     "body": null,
     "index": 25,
     "isInternal": false,
-    "x": 361.62203,
-    "y": 296.44324
+    "x": 364.446,
+    "y": 296.49692
   },
   {
     "angle": 0,
@@ -1935,8 +1957,13 @@
     "frictionAir": 0.0001,
     "frictionStatic": 0.5,
     "id": 9,
-    "inertia": 99999,
-    "inverseInertia": 0.00001,
+    "inertia": {
+      "#.": "Number",
+      "#v": [
+        "Infinity"
+      ]
+    },
+    "inverseInertia": 0,
     "inverseMass": 0.35714,
     "isSleeping": false,
     "isStatic": false,
@@ -1962,8 +1989,8 @@
     "restitution": 1,
     "sleepCounter": 0,
     "sleepThreshold": 60,
-    "slop": 0.01,
-    "speed": 0.32934,
+    "slop": 1,
+    "speed": 0.32888,
     "timeScale": 1,
     "torque": 0,
     "totalContacts": 0,
@@ -2077,12 +2104,12 @@
     }
   },
   {
-    "x": 422.28754,
-    "y": 330.19684
+    "x": 423.01464,
+    "y": 330.20102
   },
   {
-    "x": 362.70451,
-    "y": 270.1205
+    "x": 363.442,
+    "y": 270.12479
   },
   {
     "category": 1,
@@ -2099,16 +2126,16 @@
     "y": 0
   },
   {
-    "x": 392.48551,
-    "y": 300.1205
+    "x": 393.223,
+    "y": 300.12479
   },
   {
     "x": 0,
     "y": 0
   },
   {
-    "x": 392.46352,
-    "y": 300.17039
+    "x": 393.21188,
+    "y": 300.17482
   },
   {
     "endCol": 8,
@@ -2127,12 +2154,14 @@
     "visible": true
   },
   {
+    "xOffset": 0.5,
     "xScale": 1,
+    "yOffset": 0.5,
     "yScale": 1
   },
   {
-    "x": 0.02103,
-    "y": 0.07634
+    "x": -0.03372,
+    "y": -0.05003
   },
   [
     {
@@ -2218,183 +2247,183 @@
     "body": null,
     "index": 0,
     "isInternal": false,
-    "x": 422.26651,
-    "y": 303.7365
+    "x": 423.004,
+    "y": 303.74079
   },
   {
     "body": null,
     "index": 1,
     "isInternal": false,
-    "x": 420.53551,
-    "y": 310.7585
+    "x": 421.273,
+    "y": 310.76279
   },
   {
     "body": null,
     "index": 2,
     "isInternal": false,
-    "x": 417.17551,
-    "y": 317.1625
+    "x": 417.913,
+    "y": 317.16679
   },
   {
     "body": null,
     "index": 3,
     "isInternal": false,
-    "x": 412.37951,
-    "y": 322.5755
+    "x": 413.117,
+    "y": 322.57979
   },
   {
     "body": null,
     "index": 4,
     "isInternal": false,
-    "x": 406.42751,
-    "y": 326.6845
+    "x": 407.165,
+    "y": 326.68879
   },
   {
     "body": null,
     "index": 5,
     "isInternal": false,
-    "x": 399.66451,
-    "y": 329.2485
+    "x": 400.402,
+    "y": 329.25279
   },
   {
     "body": null,
     "index": 6,
     "isInternal": false,
-    "x": 392.48551,
-    "y": 330.1205
+    "x": 393.223,
+    "y": 330.12479
   },
   {
     "body": null,
     "index": 7,
     "isInternal": false,
-    "x": 385.30651,
-    "y": 329.2485
+    "x": 386.044,
+    "y": 329.25279
   },
   {
     "body": null,
     "index": 8,
     "isInternal": false,
-    "x": 378.54351,
-    "y": 326.6845
+    "x": 379.281,
+    "y": 326.68879
   },
   {
     "body": null,
     "index": 9,
     "isInternal": false,
-    "x": 372.59151,
-    "y": 322.5755
+    "x": 373.329,
+    "y": 322.57979
   },
   {
     "body": null,
     "index": 10,
     "isInternal": false,
-    "x": 367.79551,
-    "y": 317.1625
+    "x": 368.533,
+    "y": 317.16679
   },
   {
     "body": null,
     "index": 11,
     "isInternal": false,
-    "x": 364.43551,
-    "y": 310.7585
+    "x": 365.173,
+    "y": 310.76279
   },
   {
     "body": null,
     "index": 12,
     "isInternal": false,
-    "x": 362.70451,
-    "y": 303.7365
+    "x": 363.442,
+    "y": 303.74079
   },
   {
     "body": null,
     "index": 13,
     "isInternal": false,
-    "x": 362.70451,
-    "y": 296.5045
+    "x": 363.442,
+    "y": 296.50879
   },
   {
     "body": null,
     "index": 14,
     "isInternal": false,
-    "x": 364.43551,
-    "y": 289.4825
+    "x": 365.173,
+    "y": 289.48679
   },
   {
     "body": null,
     "index": 15,
     "isInternal": false,
-    "x": 367.79551,
-    "y": 283.0785
+    "x": 368.533,
+    "y": 283.08279
   },
   {
     "body": null,
     "index": 16,
     "isInternal": false,
-    "x": 372.59151,
-    "y": 277.6655
+    "x": 373.329,
+    "y": 277.66979
   },
   {
     "body": null,
     "index": 17,
     "isInternal": false,
-    "x": 378.54351,
-    "y": 273.5565
+    "x": 379.281,
+    "y": 273.56079
   },
   {
     "body": null,
     "index": 18,
     "isInternal": false,
-    "x": 385.30651,
-    "y": 270.9925
+    "x": 386.044,
+    "y": 270.99679
   },
   {
     "body": null,
     "index": 19,
     "isInternal": false,
-    "x": 392.48551,
-    "y": 270.1205
+    "x": 393.223,
+    "y": 270.12479
   },
   {
     "body": null,
     "index": 20,
     "isInternal": false,
-    "x": 399.66451,
-    "y": 270.9925
+    "x": 400.402,
+    "y": 270.99679
   },
   {
     "body": null,
     "index": 21,
     "isInternal": false,
-    "x": 406.42751,
-    "y": 273.5565
+    "x": 407.165,
+    "y": 273.56079
   },
   {
     "body": null,
     "index": 22,
     "isInternal": false,
-    "x": 412.37951,
-    "y": 277.6655
+    "x": 413.117,
+    "y": 277.66979
   },
   {
     "body": null,
     "index": 23,
     "isInternal": false,
-    "x": 417.17551,
-    "y": 283.0785
+    "x": 417.913,
+    "y": 283.08279
   },
   {
     "body": null,
     "index": 24,
     "isInternal": false,
-    "x": 420.53551,
-    "y": 289.4825
+    "x": 421.273,
+    "y": 289.48679
   },
   {
     "body": null,
     "index": 25,
     "isInternal": false,
-    "x": 422.26651,
-    "y": 296.5045
+    "x": 423.004,
+    "y": 296.50879
   },
   {
     "angle": 0,
@@ -2423,8 +2452,13 @@
     "frictionAir": 0.0001,
     "frictionStatic": 0.5,
     "id": 11,
-    "inertia": 99999,
-    "inverseInertia": 0.00001,
+    "inertia": {
+      "#.": "Number",
+      "#v": [
+        "Infinity"
+      ]
+    },
+    "inverseInertia": 0,
     "inverseMass": 0.35714,
     "isSleeping": false,
     "isStatic": false,
@@ -2450,8 +2484,8 @@
     "restitution": 1,
     "sleepCounter": 0,
     "sleepThreshold": 60,
-    "slop": 0.01,
-    "speed": 0.32934,
+    "slop": 1,
+    "speed": 0.32888,
     "timeScale": 1,
     "torque": 0,
     "totalContacts": 0,
@@ -2565,12 +2599,12 @@
     }
   },
   {
-    "x": 482.29549,
-    "y": 330.19684
+    "x": 481.558,
+    "y": 330.20102
   },
   {
-    "x": 422.71246,
-    "y": 270.1205
+    "x": 421.98536,
+    "y": 270.12479
   },
   {
     "category": 1,
@@ -2587,16 +2621,16 @@
     "y": 0
   },
   {
-    "x": 452.51449,
-    "y": 300.1205
+    "x": 451.777,
+    "y": 300.12479
   },
   {
     "x": 0,
     "y": 0
   },
   {
-    "x": 452.53648,
-    "y": 300.17039
+    "x": 451.78812,
+    "y": 300.17482
   },
   {
     "endCol": 10,
@@ -2615,12 +2649,14 @@
     "visible": true
   },
   {
+    "xOffset": 0.5,
     "xScale": 1,
+    "yOffset": 0.5,
     "yScale": 1
   },
   {
-    "x": -0.02103,
-    "y": 0.07634
+    "x": -0.03372,
+    "y": -0.05003
   },
   [
     {
@@ -2706,183 +2742,183 @@
     "body": null,
     "index": 0,
     "isInternal": false,
-    "x": 482.29549,
-    "y": 303.7365
+    "x": 481.558,
+    "y": 303.74079
   },
   {
     "body": null,
     "index": 1,
     "isInternal": false,
-    "x": 480.56449,
-    "y": 310.7585
+    "x": 479.827,
+    "y": 310.76279
   },
   {
     "body": null,
     "index": 2,
     "isInternal": false,
-    "x": 477.20449,
-    "y": 317.1625
+    "x": 476.467,
+    "y": 317.16679
   },
   {
     "body": null,
     "index": 3,
     "isInternal": false,
-    "x": 472.40849,
-    "y": 322.5755
+    "x": 471.671,
+    "y": 322.57979
   },
   {
     "body": null,
     "index": 4,
     "isInternal": false,
-    "x": 466.45649,
-    "y": 326.6845
+    "x": 465.719,
+    "y": 326.68879
   },
   {
     "body": null,
     "index": 5,
     "isInternal": false,
-    "x": 459.69349,
-    "y": 329.2485
+    "x": 458.956,
+    "y": 329.25279
   },
   {
     "body": null,
     "index": 6,
     "isInternal": false,
-    "x": 452.51449,
-    "y": 330.1205
+    "x": 451.777,
+    "y": 330.12479
   },
   {
     "body": null,
     "index": 7,
     "isInternal": false,
-    "x": 445.33549,
-    "y": 329.2485
+    "x": 444.598,
+    "y": 329.25279
   },
   {
     "body": null,
     "index": 8,
     "isInternal": false,
-    "x": 438.57249,
-    "y": 326.6845
+    "x": 437.835,
+    "y": 326.68879
   },
   {
     "body": null,
     "index": 9,
     "isInternal": false,
-    "x": 432.62049,
-    "y": 322.5755
+    "x": 431.883,
+    "y": 322.57979
   },
   {
     "body": null,
     "index": 10,
     "isInternal": false,
-    "x": 427.82449,
-    "y": 317.1625
+    "x": 427.087,
+    "y": 317.16679
   },
   {
     "body": null,
     "index": 11,
     "isInternal": false,
-    "x": 424.46449,
-    "y": 310.7585
+    "x": 423.727,
+    "y": 310.76279
   },
   {
     "body": null,
     "index": 12,
     "isInternal": false,
-    "x": 422.73349,
-    "y": 303.7365
+    "x": 421.996,
+    "y": 303.74079
   },
   {
     "body": null,
     "index": 13,
     "isInternal": false,
-    "x": 422.73349,
-    "y": 296.5045
+    "x": 421.996,
+    "y": 296.50879
   },
   {
     "body": null,
     "index": 14,
     "isInternal": false,
-    "x": 424.46449,
-    "y": 289.4825
+    "x": 423.727,
+    "y": 289.48679
   },
   {
     "body": null,
     "index": 15,
     "isInternal": false,
-    "x": 427.82449,
-    "y": 283.0785
+    "x": 427.087,
+    "y": 283.08279
   },
   {
     "body": null,
     "index": 16,
     "isInternal": false,
-    "x": 432.62049,
-    "y": 277.6655
+    "x": 431.883,
+    "y": 277.66979
   },
   {
     "body": null,
     "index": 17,
     "isInternal": false,
-    "x": 438.57249,
-    "y": 273.5565
+    "x": 437.835,
+    "y": 273.56079
   },
   {
     "body": null,
     "index": 18,
     "isInternal": false,
-    "x": 445.33549,
-    "y": 270.9925
+    "x": 444.598,
+    "y": 270.99679
   },
   {
     "body": null,
     "index": 19,
     "isInternal": false,
-    "x": 452.51449,
-    "y": 270.1205
+    "x": 451.777,
+    "y": 270.12479
   },
   {
     "body": null,
     "index": 20,
     "isInternal": false,
-    "x": 459.69349,
-    "y": 270.9925
+    "x": 458.956,
+    "y": 270.99679
   },
   {
     "body": null,
     "index": 21,
     "isInternal": false,
-    "x": 466.45649,
-    "y": 273.5565
+    "x": 465.719,
+    "y": 273.56079
   },
   {
     "body": null,
     "index": 22,
     "isInternal": false,
-    "x": 472.40849,
-    "y": 277.6655
+    "x": 471.671,
+    "y": 277.66979
   },
   {
     "body": null,
     "index": 23,
     "isInternal": false,
-    "x": 477.20449,
-    "y": 283.0785
+    "x": 476.467,
+    "y": 283.08279
   },
   {
     "body": null,
     "index": 24,
     "isInternal": false,
-    "x": 480.56449,
-    "y": 289.4825
+    "x": 479.827,
+    "y": 289.48679
   },
   {
     "body": null,
     "index": 25,
     "isInternal": false,
-    "x": 482.29549,
-    "y": 296.5045
+    "x": 481.558,
+    "y": 296.50879
   },
   {
     "angle": 0,
@@ -2911,8 +2947,13 @@
     "frictionAir": 0.0001,
     "frictionStatic": 0.5,
     "id": 13,
-    "inertia": 99999,
-    "inverseInertia": 0.00001,
+    "inertia": {
+      "#.": "Number",
+      "#v": [
+        "Infinity"
+      ]
+    },
+    "inverseInertia": 0,
     "inverseMass": 0.35714,
     "isSleeping": false,
     "isStatic": false,
@@ -2938,8 +2979,8 @@
     "restitution": 1,
     "sleepCounter": 0,
     "sleepThreshold": 60,
-    "slop": 0.01,
-    "speed": 0.33531,
+    "slop": 1,
+    "speed": 0.32985,
     "timeScale": 1,
     "torque": 0,
     "totalContacts": 0,
@@ -3053,12 +3094,12 @@
     }
   },
   {
-    "x": 542.93997,
-    "y": 330.13679
+    "x": 540.116,
+    "y": 330.18915
   },
   {
-    "x": 483.30654,
-    "y": 270.05924
+    "x": 480.52173,
+    "y": 270.11292
   },
   {
     "category": 1,
@@ -3075,16 +3116,16 @@
     "y": 0
   },
   {
-    "x": 513.15897,
-    "y": 300.05924
+    "x": 510.335,
+    "y": 300.11292
   },
   {
     "x": 0,
     "y": 0
   },
   {
-    "x": 513.23364,
-    "y": 300.1074
+    "x": 510.36871,
+    "y": 300.16283
   },
   {
     "endCol": 11,
@@ -3103,12 +3144,14 @@
     "visible": true
   },
   {
+    "xOffset": 0.5,
     "xScale": 1,
+    "yOffset": 0.5,
     "yScale": 1
   },
   {
-    "x": -0.07143,
-    "y": 0.07754
+    "x": -0.01113,
+    "y": -0.04991
   },
   [
     {
@@ -3194,183 +3237,183 @@
     "body": null,
     "index": 0,
     "isInternal": false,
-    "x": 542.93997,
-    "y": 303.67524
+    "x": 540.116,
+    "y": 303.72892
   },
   {
     "body": null,
     "index": 1,
     "isInternal": false,
-    "x": 541.20897,
-    "y": 310.69724
+    "x": 538.385,
+    "y": 310.75092
   },
   {
     "body": null,
     "index": 2,
     "isInternal": false,
-    "x": 537.84897,
-    "y": 317.10124
+    "x": 535.025,
+    "y": 317.15492
   },
   {
     "body": null,
     "index": 3,
     "isInternal": false,
-    "x": 533.05297,
-    "y": 322.51424
+    "x": 530.229,
+    "y": 322.56792
   },
   {
     "body": null,
     "index": 4,
     "isInternal": false,
-    "x": 527.10097,
-    "y": 326.62324
+    "x": 524.277,
+    "y": 326.67692
   },
   {
     "body": null,
     "index": 5,
     "isInternal": false,
-    "x": 520.33797,
-    "y": 329.18724
+    "x": 517.514,
+    "y": 329.24092
   },
   {
     "body": null,
     "index": 6,
     "isInternal": false,
-    "x": 513.15897,
-    "y": 330.05924
+    "x": 510.335,
+    "y": 330.11292
   },
   {
     "body": null,
     "index": 7,
     "isInternal": false,
-    "x": 505.97997,
-    "y": 329.18724
+    "x": 503.156,
+    "y": 329.24092
   },
   {
     "body": null,
     "index": 8,
     "isInternal": false,
-    "x": 499.21697,
-    "y": 326.62324
+    "x": 496.393,
+    "y": 326.67692
   },
   {
     "body": null,
     "index": 9,
     "isInternal": false,
-    "x": 493.26497,
-    "y": 322.51424
+    "x": 490.441,
+    "y": 322.56792
   },
   {
     "body": null,
     "index": 10,
     "isInternal": false,
-    "x": 488.46897,
-    "y": 317.10124
+    "x": 485.645,
+    "y": 317.15492
   },
   {
     "body": null,
     "index": 11,
     "isInternal": false,
-    "x": 485.10897,
-    "y": 310.69724
+    "x": 482.285,
+    "y": 310.75092
   },
   {
     "body": null,
     "index": 12,
     "isInternal": false,
-    "x": 483.37797,
-    "y": 303.67524
+    "x": 480.554,
+    "y": 303.72892
   },
   {
     "body": null,
     "index": 13,
     "isInternal": false,
-    "x": 483.37797,
-    "y": 296.44324
+    "x": 480.554,
+    "y": 296.49692
   },
   {
     "body": null,
     "index": 14,
     "isInternal": false,
-    "x": 485.10897,
-    "y": 289.42124
+    "x": 482.285,
+    "y": 289.47492
   },
   {
     "body": null,
     "index": 15,
     "isInternal": false,
-    "x": 488.46897,
-    "y": 283.01724
+    "x": 485.645,
+    "y": 283.07092
   },
   {
     "body": null,
     "index": 16,
     "isInternal": false,
-    "x": 493.26497,
-    "y": 277.60424
+    "x": 490.441,
+    "y": 277.65792
   },
   {
     "body": null,
     "index": 17,
     "isInternal": false,
-    "x": 499.21697,
-    "y": 273.49524
+    "x": 496.393,
+    "y": 273.54892
   },
   {
     "body": null,
     "index": 18,
     "isInternal": false,
-    "x": 505.97997,
-    "y": 270.93124
+    "x": 503.156,
+    "y": 270.98492
   },
   {
     "body": null,
     "index": 19,
     "isInternal": false,
-    "x": 513.15897,
-    "y": 270.05924
+    "x": 510.335,
+    "y": 270.11292
   },
   {
     "body": null,
     "index": 20,
     "isInternal": false,
-    "x": 520.33797,
-    "y": 270.93124
+    "x": 517.514,
+    "y": 270.98492
   },
   {
     "body": null,
     "index": 21,
     "isInternal": false,
-    "x": 527.10097,
-    "y": 273.49524
+    "x": 524.277,
+    "y": 273.54892
   },
   {
     "body": null,
     "index": 22,
     "isInternal": false,
-    "x": 533.05297,
-    "y": 277.60424
+    "x": 530.229,
+    "y": 277.65792
   },
   {
     "body": null,
     "index": 23,
     "isInternal": false,
-    "x": 537.84897,
-    "y": 283.01724
+    "x": 535.025,
+    "y": 283.07092
   },
   {
     "body": null,
     "index": 24,
     "isInternal": false,
-    "x": 541.20897,
-    "y": 289.42124
+    "x": 538.385,
+    "y": 289.47492
   },
   {
     "body": null,
     "index": 25,
     "isInternal": false,
-    "x": 542.93997,
-    "y": 296.44324
+    "x": 540.116,
+    "y": 296.49692
   },
   [],
   [
@@ -3616,8 +3659,13 @@
     "frictionAir": 0.0001,
     "frictionStatic": 0.5,
     "id": 16,
-    "inertia": 99999,
-    "inverseInertia": 0.00001,
+    "inertia": {
+      "#.": "Number",
+      "#v": [
+        "Infinity"
+      ]
+    },
+    "inverseInertia": 0,
     "inverseMass": 0.80901,
     "isSleeping": false,
     "isStatic": false,
@@ -3643,7 +3691,7 @@
     "restitution": 1,
     "sleepCounter": 0,
     "sleepThreshold": 60,
-    "slop": 0.01,
+    "slop": 1,
     "speed": 2.91237,
     "timeScale": 1,
     "torque": 0,
@@ -3787,7 +3835,9 @@
     "visible": true
   },
   {
+    "xOffset": 0.5,
     "xScale": 1,
+    "yOffset": 0.5,
     "yScale": 1
   },
   {
@@ -4023,8 +4073,13 @@
     "frictionAir": 0.0001,
     "frictionStatic": 0.5,
     "id": 18,
-    "inertia": 99999,
-    "inverseInertia": 0.00001,
+    "inertia": {
+      "#.": "Number",
+      "#v": [
+        "Infinity"
+      ]
+    },
+    "inverseInertia": 0,
     "inverseMass": 0.80901,
     "isSleeping": false,
     "isStatic": false,
@@ -4050,8 +4105,8 @@
     "restitution": 1,
     "sleepCounter": 0,
     "sleepThreshold": 60,
-    "slop": 0.01,
-    "speed": 0.27743,
+    "slop": 1,
+    "speed": 0.27746,
     "timeScale": 1,
     "torque": 0,
     "totalContacts": 0,
@@ -4108,7 +4163,7 @@
     "y": -0.809
   },
   {
-    "x": -0.30907,
+    "x": -0.30908,
     "y": -0.95104
   },
   {
@@ -4129,7 +4184,7 @@
   },
   {
     "x": 0.95104,
-    "y": -0.30907
+    "y": -0.30908
   },
   {
     "x": 1,
@@ -4144,12 +4199,12 @@
     }
   },
   {
-    "x": 333.97267,
-    "y": 539.88793
+    "x": 336.47738,
+    "y": 539.93316
   },
   {
-    "x": 294.4623,
-    "y": 500.28748
+    "x": 296.96869,
+    "y": 500.33268
   },
   {
     "category": 1,
@@ -4166,21 +4221,21 @@
     "y": 0
   },
   {
-    "x": 314.2163,
-    "y": 520.04149
+    "x": 316.72338,
+    "y": 520.08668
   },
   {
-    "x": 0,
+    "x": -0.0003,
     "y": 0
   },
   {
-    "x": 314.21687,
-    "y": 520.04153
+    "x": 316.73054,
+    "y": 520.08668
   },
   {
-    "endCol": 6,
+    "endCol": 7,
     "endRow": 11,
-    "id": "6,6,10,11",
+    "id": "6,7,10,11",
     "startCol": 6,
     "startRow": 10
   },
@@ -4194,12 +4249,14 @@
     "visible": true
   },
   {
+    "xOffset": 0.5,
     "xScale": 1,
+    "yOffset": 0.5,
     "yScale": 1
   },
   {
-    "x": 0.00486,
-    "y": -0.00004
+    "x": 0.00015,
+    "y": 0
   },
   [
     {
@@ -4267,141 +4324,141 @@
     "body": null,
     "index": 0,
     "isInternal": false,
-    "x": 333.9703,
-    "y": 523.1705
+    "x": 336.47738,
+    "y": 523.21568
   },
   {
     "body": null,
     "index": 1,
     "isInternal": false,
-    "x": 332.03629,
-    "y": 529.12149
+    "x": 334.54338,
+    "y": 529.16668
   },
   {
     "body": null,
     "index": 2,
     "isInternal": false,
-    "x": 328.35829,
-    "y": 534.18349
+    "x": 330.86538,
+    "y": 534.22868
   },
   {
     "body": null,
     "index": 3,
     "isInternal": false,
-    "x": 323.29629,
-    "y": 537.86149
+    "x": 325.80338,
+    "y": 537.90668
   },
   {
     "body": null,
     "index": 4,
     "isInternal": false,
-    "x": 317.34529,
-    "y": 539.79549
+    "x": 319.85238,
+    "y": 539.84068
   },
   {
     "body": null,
     "index": 5,
     "isInternal": false,
-    "x": 311.08729,
-    "y": 539.79548
+    "x": 313.59438,
+    "y": 539.84068
   },
   {
     "body": null,
     "index": 6,
     "isInternal": false,
-    "x": 305.13629,
-    "y": 537.86148
+    "x": 307.64338,
+    "y": 537.90668
   },
   {
     "body": null,
     "index": 7,
     "isInternal": false,
-    "x": 300.07429,
-    "y": 534.18348
+    "x": 302.58138,
+    "y": 534.22868
   },
   {
     "body": null,
     "index": 8,
     "isInternal": false,
-    "x": 296.39629,
-    "y": 529.12148
+    "x": 298.90338,
+    "y": 529.16668
   },
   {
     "body": null,
     "index": 9,
     "isInternal": false,
-    "x": 294.4623,
-    "y": 523.17047
+    "x": 296.96938,
+    "y": 523.21568
   },
   {
     "body": null,
     "index": 10,
     "isInternal": false,
-    "x": 294.4623,
-    "y": 516.91247
+    "x": 296.96938,
+    "y": 516.95768
   },
   {
     "body": null,
     "index": 11,
     "isInternal": false,
-    "x": 296.3963,
-    "y": 510.96148
+    "x": 298.90338,
+    "y": 511.00668
   },
   {
     "body": null,
     "index": 12,
     "isInternal": false,
-    "x": 300.07431,
-    "y": 505.89948
+    "x": 302.58138,
+    "y": 505.94468
   },
   {
     "body": null,
     "index": 13,
     "isInternal": false,
-    "x": 305.13631,
-    "y": 502.22148
+    "x": 307.64338,
+    "y": 502.26668
   },
   {
     "body": null,
     "index": 14,
     "isInternal": false,
-    "x": 311.08731,
-    "y": 500.28748
+    "x": 313.59438,
+    "y": 500.33268
   },
   {
     "body": null,
     "index": 15,
     "isInternal": false,
-    "x": 317.34531,
-    "y": 500.28749
+    "x": 319.85238,
+    "y": 500.33268
   },
   {
     "body": null,
     "index": 16,
     "isInternal": false,
-    "x": 323.29631,
-    "y": 502.22149
+    "x": 325.80338,
+    "y": 502.26668
   },
   {
     "body": null,
     "index": 17,
     "isInternal": false,
-    "x": 328.35831,
-    "y": 505.89949
+    "x": 330.86538,
+    "y": 505.94468
   },
   {
     "body": null,
     "index": 18,
     "isInternal": false,
-    "x": 332.0363,
-    "y": 510.96149
+    "x": 334.54338,
+    "y": 511.00668
   },
   {
     "body": null,
     "index": 19,
     "isInternal": false,
-    "x": 333.9703,
-    "y": 516.9125
+    "x": 336.47738,
+    "y": 516.95768
   },
   {
     "angle": 0,
@@ -4430,8 +4487,13 @@
     "frictionAir": 0.0001,
     "frictionStatic": 0.5,
     "id": 20,
-    "inertia": 99999,
-    "inverseInertia": 0.00001,
+    "inertia": {
+      "#.": "Number",
+      "#v": [
+        "Infinity"
+      ]
+    },
+    "inverseInertia": 0,
     "inverseMass": 0.80901,
     "isSleeping": false,
     "isStatic": false,
@@ -4457,8 +4519,8 @@
     "restitution": 1,
     "sleepCounter": 0,
     "sleepThreshold": 60,
-    "slop": 0.01,
-    "speed": 0.27753,
+    "slop": 1,
+    "speed": 0.27751,
     "timeScale": 1,
     "torque": 0,
     "totalContacts": 0,
@@ -4504,7 +4566,7 @@
   ],
   {
     "x": -0.95104,
-    "y": -0.30907
+    "y": -0.30908
   },
   {
     "x": -0.809,
@@ -4523,7 +4585,7 @@
     "y": -1
   },
   {
-    "x": 0.30907,
+    "x": 0.30908,
     "y": -0.95104
   },
   {
@@ -4551,12 +4613,12 @@
     }
   },
   {
-    "x": 373.47106,
-    "y": 539.92045
+    "x": 374.98517,
+    "y": 539.9369
   },
   {
-    "x": 333.95967,
-    "y": 500.31989
+    "x": 335.47714,
+    "y": 500.3364
   },
   {
     "category": 1,
@@ -4573,16 +4635,16 @@
     "y": 0
   },
   {
-    "x": 353.71367,
-    "y": 520.07389
+    "x": 355.23117,
+    "y": 520.0904
   },
   {
-    "x": 0,
+    "x": -0.00053,
     "y": 0
   },
   {
-    "x": 353.71717,
-    "y": 520.07383
+    "x": 355.22479,
+    "y": 520.09041
   },
   {
     "endCol": 7,
@@ -4601,12 +4663,14 @@
     "visible": true
   },
   {
+    "xOffset": 0.5,
     "xScale": 1,
+    "yOffset": 0.5,
     "yScale": 1
   },
   {
-    "x": 0.00486,
-    "y": 0.00007
+    "x": 0.00015,
+    "y": 0
   },
   [
     {
@@ -4674,141 +4738,141 @@
     "body": null,
     "index": 0,
     "isInternal": false,
-    "x": 373.46767,
-    "y": 523.20289
+    "x": 374.98517,
+    "y": 523.2194
   },
   {
     "body": null,
     "index": 1,
     "isInternal": false,
-    "x": 371.53368,
-    "y": 529.15389
+    "x": 373.05117,
+    "y": 529.1704
   },
   {
     "body": null,
     "index": 2,
     "isInternal": false,
-    "x": 367.85568,
-    "y": 534.21589
+    "x": 369.37317,
+    "y": 534.2324
   },
   {
     "body": null,
     "index": 3,
     "isInternal": false,
-    "x": 362.79368,
-    "y": 537.89389
+    "x": 364.31117,
+    "y": 537.9104
   },
   {
     "body": null,
     "index": 4,
     "isInternal": false,
-    "x": 356.84268,
-    "y": 539.82789
+    "x": 358.36017,
+    "y": 539.8444
   },
   {
     "body": null,
     "index": 5,
     "isInternal": false,
-    "x": 350.58468,
-    "y": 539.8279
+    "x": 352.10217,
+    "y": 539.8444
   },
   {
     "body": null,
     "index": 6,
     "isInternal": false,
-    "x": 344.63368,
-    "y": 537.8939
+    "x": 346.15117,
+    "y": 537.9104
   },
   {
     "body": null,
     "index": 7,
     "isInternal": false,
-    "x": 339.57168,
-    "y": 534.2159
+    "x": 341.08917,
+    "y": 534.2324
   },
   {
     "body": null,
     "index": 8,
     "isInternal": false,
-    "x": 335.89368,
-    "y": 529.1539
+    "x": 337.41117,
+    "y": 529.1704
   },
   {
     "body": null,
     "index": 9,
     "isInternal": false,
-    "x": 333.95967,
-    "y": 523.2029
+    "x": 335.47717,
+    "y": 523.2194
   },
   {
     "body": null,
     "index": 10,
     "isInternal": false,
-    "x": 333.95967,
-    "y": 516.9449
+    "x": 335.47717,
+    "y": 516.9614
   },
   {
     "body": null,
     "index": 11,
     "isInternal": false,
-    "x": 335.89367,
-    "y": 510.9939
+    "x": 337.41117,
+    "y": 511.0104
   },
   {
     "body": null,
     "index": 12,
     "isInternal": false,
-    "x": 339.57167,
-    "y": 505.9319
+    "x": 341.08917,
+    "y": 505.9484
   },
   {
     "body": null,
     "index": 13,
     "isInternal": false,
-    "x": 344.63367,
-    "y": 502.2539
+    "x": 346.15117,
+    "y": 502.2704
   },
   {
     "body": null,
     "index": 14,
     "isInternal": false,
-    "x": 350.58467,
-    "y": 500.3199
+    "x": 352.10217,
+    "y": 500.3364
   },
   {
     "body": null,
     "index": 15,
     "isInternal": false,
-    "x": 356.84267,
-    "y": 500.31989
+    "x": 358.36017,
+    "y": 500.3364
   },
   {
     "body": null,
     "index": 16,
     "isInternal": false,
-    "x": 362.79367,
-    "y": 502.25389
+    "x": 364.31117,
+    "y": 502.2704
   },
   {
     "body": null,
     "index": 17,
     "isInternal": false,
-    "x": 367.85567,
-    "y": 505.93189
+    "x": 369.37317,
+    "y": 505.9484
   },
   {
     "body": null,
     "index": 18,
     "isInternal": false,
-    "x": 371.53367,
-    "y": 510.99389
+    "x": 373.05117,
+    "y": 511.0104
   },
   {
     "body": null,
     "index": 19,
     "isInternal": false,
-    "x": 373.46767,
-    "y": 516.94489
+    "x": 374.98517,
+    "y": 516.9614
   },
   {
     "angle": 0,
@@ -4837,8 +4901,13 @@
     "frictionAir": 0.0001,
     "frictionStatic": 0.5,
     "id": 22,
-    "inertia": 99999,
-    "inverseInertia": 0.00001,
+    "inertia": {
+      "#.": "Number",
+      "#v": [
+        "Infinity"
+      ]
+    },
+    "inverseInertia": 0,
     "inverseMass": 0.80901,
     "isSleeping": false,
     "isStatic": false,
@@ -4864,8 +4933,8 @@
     "restitution": 1,
     "sleepCounter": 0,
     "sleepThreshold": 60,
-    "slop": 0.01,
-    "speed": 0.27759,
+    "slop": 1,
+    "speed": 0.27751,
     "timeScale": 1,
     "torque": 0,
     "totalContacts": 0,
@@ -4958,12 +5027,12 @@
     }
   },
   {
-    "x": 412.96389,
-    "y": 539.9368
+    "x": 413.49257,
+    "y": 539.93876
   },
   {
-    "x": 373.45479,
-    "y": 500.3363
+    "x": 373.98454,
+    "y": 500.33826
   },
   {
     "category": 1,
@@ -4980,16 +5049,16 @@
     "y": 0
   },
   {
-    "x": 393.20989,
-    "y": 520.0903
+    "x": 393.73854,
+    "y": 520.09226
   },
   {
     "x": 0,
     "y": 0
   },
   {
-    "x": 393.20697,
-    "y": 520.09034
+    "x": 393.73912,
+    "y": 520.09226
   },
   {
     "endCol": 8,
@@ -5008,12 +5077,14 @@
     "visible": true
   },
   {
+    "xOffset": 0.5,
     "xScale": 1,
+    "yOffset": 0.5,
     "yScale": 1
   },
   {
-    "x": 0.00486,
-    "y": -0.00004
+    "x": 0.00015,
+    "y": 0
   },
   [
     {
@@ -5081,141 +5152,141 @@
     "body": null,
     "index": 0,
     "isInternal": false,
-    "x": 412.96389,
-    "y": 523.2193
+    "x": 413.49254,
+    "y": 523.22126
   },
   {
     "body": null,
     "index": 1,
     "isInternal": false,
-    "x": 411.02989,
-    "y": 529.1703
+    "x": 411.55854,
+    "y": 529.17226
   },
   {
     "body": null,
     "index": 2,
     "isInternal": false,
-    "x": 407.35189,
-    "y": 534.2323
+    "x": 407.88054,
+    "y": 534.23426
   },
   {
     "body": null,
     "index": 3,
     "isInternal": false,
-    "x": 402.28989,
-    "y": 537.9103
+    "x": 402.81854,
+    "y": 537.91226
   },
   {
     "body": null,
     "index": 4,
     "isInternal": false,
-    "x": 396.33889,
-    "y": 539.8443
+    "x": 396.86754,
+    "y": 539.84626
   },
   {
     "body": null,
     "index": 5,
     "isInternal": false,
-    "x": 390.08089,
-    "y": 539.8443
+    "x": 390.60954,
+    "y": 539.84626
   },
   {
     "body": null,
     "index": 6,
     "isInternal": false,
-    "x": 384.12989,
-    "y": 537.9103
+    "x": 384.65854,
+    "y": 537.91226
   },
   {
     "body": null,
     "index": 7,
     "isInternal": false,
-    "x": 379.06789,
-    "y": 534.2323
+    "x": 379.59654,
+    "y": 534.23426
   },
   {
     "body": null,
     "index": 8,
     "isInternal": false,
-    "x": 375.38989,
-    "y": 529.1703
+    "x": 375.91854,
+    "y": 529.17226
   },
   {
     "body": null,
     "index": 9,
     "isInternal": false,
-    "x": 373.45589,
-    "y": 523.2193
+    "x": 373.98454,
+    "y": 523.22126
   },
   {
     "body": null,
     "index": 10,
     "isInternal": false,
-    "x": 373.45589,
-    "y": 516.9613
+    "x": 373.98454,
+    "y": 516.96326
   },
   {
     "body": null,
     "index": 11,
     "isInternal": false,
-    "x": 375.38989,
-    "y": 511.0103
+    "x": 375.91854,
+    "y": 511.01226
   },
   {
     "body": null,
     "index": 12,
     "isInternal": false,
-    "x": 379.06789,
-    "y": 505.9483
+    "x": 379.59654,
+    "y": 505.95026
   },
   {
     "body": null,
     "index": 13,
     "isInternal": false,
-    "x": 384.12989,
-    "y": 502.2703
+    "x": 384.65854,
+    "y": 502.27226
   },
   {
     "body": null,
     "index": 14,
     "isInternal": false,
-    "x": 390.08089,
-    "y": 500.3363
+    "x": 390.60954,
+    "y": 500.33826
   },
   {
     "body": null,
     "index": 15,
     "isInternal": false,
-    "x": 396.33889,
-    "y": 500.3363
+    "x": 396.86754,
+    "y": 500.33826
   },
   {
     "body": null,
     "index": 16,
     "isInternal": false,
-    "x": 402.28989,
-    "y": 502.2703
+    "x": 402.81854,
+    "y": 502.27226
   },
   {
     "body": null,
     "index": 17,
     "isInternal": false,
-    "x": 407.35189,
-    "y": 505.9483
+    "x": 407.88054,
+    "y": 505.95026
   },
   {
     "body": null,
     "index": 18,
     "isInternal": false,
-    "x": 411.02989,
-    "y": 511.0103
+    "x": 411.55854,
+    "y": 511.01226
   },
   {
     "body": null,
     "index": 19,
     "isInternal": false,
-    "x": 412.96389,
-    "y": 516.9613
+    "x": 413.49254,
+    "y": 516.96326
   },
   {
     "angle": 0,
@@ -5244,8 +5315,13 @@
     "frictionAir": 0.0001,
     "frictionStatic": 0.5,
     "id": 24,
-    "inertia": 99999,
-    "inverseInertia": 0.00001,
+    "inertia": {
+      "#.": "Number",
+      "#v": [
+        "Infinity"
+      ]
+    },
+    "inverseInertia": 0,
     "inverseMass": 0.80901,
     "isSleeping": false,
     "isStatic": false,
@@ -5271,8 +5347,8 @@
     "restitution": 1,
     "sleepCounter": 0,
     "sleepThreshold": 60,
-    "slop": 0.01,
-    "speed": 0.27757,
+    "slop": 1,
+    "speed": 0.27752,
     "timeScale": 1,
     "torque": 0,
     "totalContacts": 0,
@@ -5365,12 +5441,12 @@
     }
   },
   {
-    "x": 452.46436,
-    "y": 539.9372
+    "x": 452.00203,
+    "y": 539.93879
   },
   {
-    "x": 412.95133,
-    "y": 500.33671
+    "x": 412.49162,
+    "y": 500.33829
   },
   {
     "category": 1,
@@ -5387,16 +5463,16 @@
     "y": 0
   },
   {
-    "x": 432.70533,
-    "y": 520.09071
+    "x": 432.24562,
+    "y": 520.09229
   },
   {
     "x": 0,
     "y": 0
   },
   {
-    "x": 432.71054,
-    "y": 520.09073
+    "x": 432.24514,
+    "y": 520.09229
   },
   {
     "endCol": 9,
@@ -5415,12 +5491,14 @@
     "visible": true
   },
   {
+    "xOffset": 0.5,
     "xScale": 1,
+    "yOffset": 0.5,
     "yScale": 1
   },
   {
-    "x": 0.00486,
-    "y": -0.00002
+    "x": 0.00015,
+    "y": 0
   },
   [
     {
@@ -5488,141 +5566,141 @@
     "body": null,
     "index": 0,
     "isInternal": false,
-    "x": 452.45933,
-    "y": 523.21971
+    "x": 451.99962,
+    "y": 523.22129
   },
   {
     "body": null,
     "index": 1,
     "isInternal": false,
-    "x": 450.52533,
-    "y": 529.17071
+    "x": 450.06562,
+    "y": 529.17229
   },
   {
     "body": null,
     "index": 2,
     "isInternal": false,
-    "x": 446.84733,
-    "y": 534.23271
+    "x": 446.38762,
+    "y": 534.23429
   },
   {
     "body": null,
     "index": 3,
     "isInternal": false,
-    "x": 441.78533,
-    "y": 537.91071
+    "x": 441.32562,
+    "y": 537.91229
   },
   {
     "body": null,
     "index": 4,
     "isInternal": false,
-    "x": 435.83433,
-    "y": 539.84471
+    "x": 435.37462,
+    "y": 539.84629
   },
   {
     "body": null,
     "index": 5,
     "isInternal": false,
-    "x": 429.57633,
-    "y": 539.84471
+    "x": 429.11662,
+    "y": 539.84629
   },
   {
     "body": null,
     "index": 6,
     "isInternal": false,
-    "x": 423.62533,
-    "y": 537.91071
+    "x": 423.16562,
+    "y": 537.91229
   },
   {
     "body": null,
     "index": 7,
     "isInternal": false,
-    "x": 418.56333,
-    "y": 534.23271
+    "x": 418.10362,
+    "y": 534.23429
   },
   {
     "body": null,
     "index": 8,
     "isInternal": false,
-    "x": 414.88533,
-    "y": 529.17071
+    "x": 414.42562,
+    "y": 529.17229
   },
   {
     "body": null,
     "index": 9,
     "isInternal": false,
-    "x": 412.95133,
-    "y": 523.21971
+    "x": 412.49162,
+    "y": 523.22129
   },
   {
     "body": null,
     "index": 10,
     "isInternal": false,
-    "x": 412.95133,
-    "y": 516.96171
+    "x": 412.49162,
+    "y": 516.96329
   },
   {
     "body": null,
     "index": 11,
     "isInternal": false,
-    "x": 414.88533,
-    "y": 511.01071
+    "x": 414.42562,
+    "y": 511.01229
   },
   {
     "body": null,
     "index": 12,
     "isInternal": false,
-    "x": 418.56333,
-    "y": 505.94871
+    "x": 418.10362,
+    "y": 505.95029
   },
   {
     "body": null,
     "index": 13,
     "isInternal": false,
-    "x": 423.62533,
-    "y": 502.27071
+    "x": 423.16562,
+    "y": 502.27229
   },
   {
     "body": null,
     "index": 14,
     "isInternal": false,
-    "x": 429.57633,
-    "y": 500.33671
+    "x": 429.11662,
+    "y": 500.33829
   },
   {
     "body": null,
     "index": 15,
     "isInternal": false,
-    "x": 435.83433,
-    "y": 500.33671
+    "x": 435.37462,
+    "y": 500.33829
   },
   {
     "body": null,
     "index": 16,
     "isInternal": false,
-    "x": 441.78533,
-    "y": 502.27071
+    "x": 441.32562,
+    "y": 502.27229
   },
   {
     "body": null,
     "index": 17,
     "isInternal": false,
-    "x": 446.84733,
-    "y": 505.94871
+    "x": 446.38762,
+    "y": 505.95029
   },
   {
     "body": null,
     "index": 18,
     "isInternal": false,
-    "x": 450.52533,
-    "y": 511.01071
+    "x": 450.06562,
+    "y": 511.01229
   },
   {
     "body": null,
     "index": 19,
     "isInternal": false,
-    "x": 452.45933,
-    "y": 516.96171
+    "x": 451.99962,
+    "y": 516.96329
   },
   {
     "angle": 0,
@@ -5651,8 +5729,13 @@
     "frictionAir": 0.0001,
     "frictionStatic": 0.5,
     "id": 26,
-    "inertia": 99999,
-    "inverseInertia": 0.00001,
+    "inertia": {
+      "#.": "Number",
+      "#v": [
+        "Infinity"
+      ]
+    },
+    "inverseInertia": 0,
     "inverseMass": 0.80901,
     "isSleeping": false,
     "isStatic": false,
@@ -5678,8 +5761,8 @@
     "restitution": 1,
     "sleepCounter": 0,
     "sleepThreshold": 60,
-    "slop": 0.01,
-    "speed": 0.27755,
+    "slop": 1,
+    "speed": 0.27751,
     "timeScale": 1,
     "torque": 0,
     "totalContacts": 0,
@@ -5772,12 +5855,12 @@
     }
   },
   {
-    "x": 491.95689,
-    "y": 539.92172
+    "x": 490.50675,
+    "y": 539.937
   },
   {
-    "x": 452.44689,
-    "y": 500.32124
+    "x": 450.99544,
+    "y": 500.33649
   },
   {
     "category": 1,
@@ -5794,16 +5877,16 @@
     "y": 0
   },
   {
-    "x": 472.20089,
-    "y": 520.07524
+    "x": 470.75275,
+    "y": 520.09049
   },
   {
-    "x": 0.00016,
+    "x": 0,
     "y": 0
   },
   {
-    "x": 472.196,
-    "y": 520.07528
+    "x": 470.75261,
+    "y": 520.09048
   },
   {
     "endCol": 10,
@@ -5822,12 +5905,14 @@
     "visible": true
   },
   {
+    "xOffset": 0.5,
     "xScale": 1,
+    "yOffset": 0.5,
     "yScale": 1
   },
   {
-    "x": 0.00486,
-    "y": -0.00004
+    "x": 0.00015,
+    "y": 0.00001
   },
   [
     {
@@ -5895,141 +5980,141 @@
     "body": null,
     "index": 0,
     "isInternal": false,
-    "x": 491.95489,
-    "y": 523.20424
+    "x": 490.50675,
+    "y": 523.21949
   },
   {
     "body": null,
     "index": 1,
     "isInternal": false,
-    "x": 490.02089,
-    "y": 529.15524
+    "x": 488.57275,
+    "y": 529.17049
   },
   {
     "body": null,
     "index": 2,
     "isInternal": false,
-    "x": 486.34289,
-    "y": 534.21724
+    "x": 484.89475,
+    "y": 534.23249
   },
   {
     "body": null,
     "index": 3,
     "isInternal": false,
-    "x": 481.28089,
-    "y": 537.89524
+    "x": 479.83275,
+    "y": 537.91049
   },
   {
     "body": null,
     "index": 4,
     "isInternal": false,
-    "x": 475.32989,
-    "y": 539.82924
+    "x": 473.88175,
+    "y": 539.84449
   },
   {
     "body": null,
     "index": 5,
     "isInternal": false,
-    "x": 469.07189,
-    "y": 539.82924
+    "x": 467.62375,
+    "y": 539.84449
   },
   {
     "body": null,
     "index": 6,
     "isInternal": false,
-    "x": 463.12089,
-    "y": 537.89524
+    "x": 461.67275,
+    "y": 537.91049
   },
   {
     "body": null,
     "index": 7,
     "isInternal": false,
-    "x": 458.05889,
-    "y": 534.21724
+    "x": 456.61075,
+    "y": 534.23249
   },
   {
     "body": null,
     "index": 8,
     "isInternal": false,
-    "x": 454.38089,
-    "y": 529.15524
+    "x": 452.93275,
+    "y": 529.17049
   },
   {
     "body": null,
     "index": 9,
     "isInternal": false,
-    "x": 452.44689,
-    "y": 523.20424
+    "x": 450.99875,
+    "y": 523.21949
   },
   {
     "body": null,
     "index": 10,
     "isInternal": false,
-    "x": 452.44689,
-    "y": 516.94624
+    "x": 450.99875,
+    "y": 516.96149
   },
   {
     "body": null,
     "index": 11,
     "isInternal": false,
-    "x": 454.38089,
-    "y": 510.99524
+    "x": 452.93275,
+    "y": 511.01049
   },
   {
     "body": null,
     "index": 12,
     "isInternal": false,
-    "x": 458.05889,
-    "y": 505.93324
+    "x": 456.61075,
+    "y": 505.94849
   },
   {
     "body": null,
     "index": 13,
     "isInternal": false,
-    "x": 463.12089,
-    "y": 502.25524
+    "x": 461.67275,
+    "y": 502.27049
   },
   {
     "body": null,
     "index": 14,
     "isInternal": false,
-    "x": 469.07189,
-    "y": 500.32124
+    "x": 467.62375,
+    "y": 500.33649
   },
   {
     "body": null,
     "index": 15,
     "isInternal": false,
-    "x": 475.32989,
-    "y": 500.32124
+    "x": 473.88175,
+    "y": 500.33649
   },
   {
     "body": null,
     "index": 16,
     "isInternal": false,
-    "x": 481.28089,
-    "y": 502.25524
+    "x": 479.83275,
+    "y": 502.27049
   },
   {
     "body": null,
     "index": 17,
     "isInternal": false,
-    "x": 486.34289,
-    "y": 505.93324
+    "x": 484.89475,
+    "y": 505.94849
   },
   {
     "body": null,
     "index": 18,
     "isInternal": false,
-    "x": 490.02089,
-    "y": 510.99524
+    "x": 488.57275,
+    "y": 511.01049
   },
   {
     "body": null,
     "index": 19,
     "isInternal": false,
-    "x": 491.95489,
-    "y": 516.94624
+    "x": 490.50675,
+    "y": 516.96149
   },
   {
     "angle": 0,
@@ -6058,8 +6143,13 @@
     "frictionAir": 0.0001,
     "frictionStatic": 0.5,
     "id": 28,
-    "inertia": 99999,
-    "inverseInertia": 0.00001,
+    "inertia": {
+      "#.": "Number",
+      "#v": [
+        "Infinity"
+      ]
+    },
+    "inverseInertia": 0,
     "inverseMass": 0.80901,
     "isSleeping": false,
     "isStatic": false,
@@ -6085,8 +6175,8 @@
     "restitution": 1,
     "sleepCounter": 0,
     "sleepThreshold": 60,
-    "slop": 0.01,
-    "speed": 0.27764,
+    "slop": 1,
+    "speed": 0.27752,
     "timeScale": 1,
     "torque": 0,
     "totalContacts": 0,
@@ -6179,12 +6269,12 @@
     }
   },
   {
-    "x": 531.45186,
-    "y": 539.89064
+    "x": 529.01659,
+    "y": 539.93331
   },
   {
-    "x": 491.93539,
-    "y": 500.29006
+    "x": 489.5064,
+    "y": 500.33283
   },
   {
     "category": 1,
@@ -6201,16 +6291,16 @@
     "y": 0
   },
   {
-    "x": 511.69786,
-    "y": 520.04406
+    "x": 509.2604,
+    "y": 520.08683
   },
   {
     "x": 0,
     "y": 0
   },
   {
-    "x": 511.693,
-    "y": 520.04399
+    "x": 509.25904,
+    "y": 520.08685
   },
   {
     "endCol": 11,
@@ -6229,12 +6319,14 @@
     "visible": true
   },
   {
+    "xOffset": 0.5,
     "xScale": 1,
+    "yOffset": 0.5,
     "yScale": 1
   },
   {
-    "x": 0.00489,
-    "y": 0.00006
+    "x": 0.00136,
+    "y": -0.00002
   },
   [
     {
@@ -6302,141 +6394,141 @@
     "body": null,
     "index": 0,
     "isInternal": false,
-    "x": 531.45186,
-    "y": 523.17306
+    "x": 529.0144,
+    "y": 523.21583
   },
   {
     "body": null,
     "index": 1,
     "isInternal": false,
-    "x": 529.51786,
-    "y": 529.12406
+    "x": 527.0804,
+    "y": 529.16683
   },
   {
     "body": null,
     "index": 2,
     "isInternal": false,
-    "x": 525.83986,
-    "y": 534.18606
+    "x": 523.4024,
+    "y": 534.22883
   },
   {
     "body": null,
     "index": 3,
     "isInternal": false,
-    "x": 520.77786,
-    "y": 537.86406
+    "x": 518.3404,
+    "y": 537.90683
   },
   {
     "body": null,
     "index": 4,
     "isInternal": false,
-    "x": 514.82686,
-    "y": 539.79806
+    "x": 512.3894,
+    "y": 539.84083
   },
   {
     "body": null,
     "index": 5,
     "isInternal": false,
-    "x": 508.56886,
-    "y": 539.79806
+    "x": 506.1314,
+    "y": 539.84083
   },
   {
     "body": null,
     "index": 6,
     "isInternal": false,
-    "x": 502.61786,
-    "y": 537.86406
+    "x": 500.1804,
+    "y": 537.90683
   },
   {
     "body": null,
     "index": 7,
     "isInternal": false,
-    "x": 497.55586,
-    "y": 534.18606
+    "x": 495.1184,
+    "y": 534.22883
   },
   {
     "body": null,
     "index": 8,
     "isInternal": false,
-    "x": 493.87786,
-    "y": 529.12406
+    "x": 491.4404,
+    "y": 529.16683
   },
   {
     "body": null,
     "index": 9,
     "isInternal": false,
-    "x": 491.94386,
-    "y": 523.17306
+    "x": 489.5064,
+    "y": 523.21583
   },
   {
     "body": null,
     "index": 10,
     "isInternal": false,
-    "x": 491.94386,
-    "y": 516.91506
+    "x": 489.5064,
+    "y": 516.95783
   },
   {
     "body": null,
     "index": 11,
     "isInternal": false,
-    "x": 493.87786,
-    "y": 510.96406
+    "x": 491.4404,
+    "y": 511.00683
   },
   {
     "body": null,
     "index": 12,
     "isInternal": false,
-    "x": 497.55586,
-    "y": 505.90206
+    "x": 495.1184,
+    "y": 505.94483
   },
   {
     "body": null,
     "index": 13,
     "isInternal": false,
-    "x": 502.61786,
-    "y": 502.22406
+    "x": 500.1804,
+    "y": 502.26683
   },
   {
     "body": null,
     "index": 14,
     "isInternal": false,
-    "x": 508.56886,
-    "y": 500.29006
+    "x": 506.1314,
+    "y": 500.33283
   },
   {
     "body": null,
     "index": 15,
     "isInternal": false,
-    "x": 514.82686,
-    "y": 500.29006
+    "x": 512.3894,
+    "y": 500.33283
   },
   {
     "body": null,
     "index": 16,
     "isInternal": false,
-    "x": 520.77786,
-    "y": 502.22406
+    "x": 518.3404,
+    "y": 502.26683
   },
   {
     "body": null,
     "index": 17,
     "isInternal": false,
-    "x": 525.83986,
-    "y": 505.90206
+    "x": 523.4024,
+    "y": 505.94483
   },
   {
     "body": null,
     "index": 18,
     "isInternal": false,
-    "x": 529.51786,
-    "y": 510.96406
+    "x": 527.0804,
+    "y": 511.00683
   },
   {
     "body": null,
     "index": 19,
     "isInternal": false,
-    "x": 531.45186,
-    "y": 516.91506
+    "x": 529.0144,
+    "y": 516.95783
   },
   [],
   [
