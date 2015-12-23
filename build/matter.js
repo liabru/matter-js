@@ -1,5 +1,5 @@
 /**
-* matter-js master by @liabru 2015-12-05
+* matter-js master by @liabru 2015-12-23
 * http://brm.io/matter-js/
 * License MIT
 */
@@ -106,7 +106,9 @@ var Axes = require('../geometry/Axes');
                 visible: true,
                 sprite: {
                     xScale: 1,
-                    yScale: 1
+                    yScale: 1,
+                    xOffset: 0,
+                    yOffset: 0
                 },
                 lineWidth: 1.5
             }
@@ -182,6 +184,8 @@ var Axes = require('../geometry/Axes');
             defaultStrokeStyle = Common.shadeColor(defaultFillStyle, -20);
         body.render.fillStyle = body.render.fillStyle || defaultFillStyle;
         body.render.strokeStyle = body.render.strokeStyle || defaultStrokeStyle;
+        body.render.sprite.xOffset += -(body.bounds.min.x - body.position.x) / (body.bounds.max.x - body.bounds.min.x);
+        body.render.sprite.yOffset += -(body.bounds.min.y - body.position.y) / (body.bounds.max.y - body.bounds.min.y);
     };
 
     /**
@@ -1055,6 +1059,22 @@ var Axes = require('../geometry/Axes');
      * @type number
      * @default 1
      */
+
+     /**
+      * A `Number` that defines the offset in the x-axis for the sprite (normalised by texture width).
+      *
+      * @property render.sprite.xOffset
+      * @type number
+      * @default 0
+      */
+
+     /**
+      * A `Number` that defines the offset in the y-axis for the sprite (normalised by texture height).
+      *
+      * @property render.sprite.yOffset
+      * @type number
+      * @default 0
+      */
 
     /**
      * A `Number` that defines the line width to use when rendering the body outline (if a sprite is not defined).
@@ -1973,60 +1993,6 @@ var Bounds = require('../geometry/Bounds');
     };
 
     /**
-     * Description
-     * @method bruteForce
-     * @param {body[]} bodies
-     * @param {engine} engine
-     * @return {array} collisions
-     */
-    Detector.bruteForce = function(bodies, engine) {
-        var collisions = [],
-            pairsTable = engine.pairs.table;
-
-
-        for (var i = 0; i < bodies.length; i++) {
-            for (var j = i + 1; j < bodies.length; j++) {
-                var bodyA = bodies[i], 
-                    bodyB = bodies[j];
-
-                // NOTE: could share a function for the below, but may drop performance?
-
-                if ((bodyA.isStatic || bodyA.isSleeping) && (bodyB.isStatic || bodyB.isSleeping))
-                    continue;
-                
-                if (!Detector.canCollide(bodyA.collisionFilter, bodyB.collisionFilter))
-                    continue;
-
-
-                // mid phase
-                if (Bounds.overlaps(bodyA.bounds, bodyB.bounds)) {
-
-                    // find a previous collision we could reuse
-                    var pairId = Pair.id(bodyA, bodyB),
-                        pair = pairsTable[pairId],
-                        previousCollision;
-
-                    if (pair && pair.isActive) {
-                        previousCollision = pair.collision;
-                    } else {
-                        previousCollision = null;
-                    }
-
-                    // narrow phase
-                    var collision = SAT.collides(bodyA, bodyB, previousCollision);
-
-
-                    if (collision.collided) {
-                        collisions.push(collision);
-                    }
-                }
-            }
-        }
-
-        return collisions;
-    };
-
-    /**
      * Returns `true` if both supplied collision filters will allow a collision to occur.
      * See `body.collisionFilter` for more information.
      * @method canCollide
@@ -2758,6 +2724,7 @@ var Bounds = require('../geometry/Bounds');
 (function() {
 
     Resolver._restingThresh = 4;
+    Resolver._restingThreshTangent = 6;
     Resolver._positionDampen = 0.9;
     Resolver._positionWarming = 0.8;
     Resolver._frictionNormalMultiplier = 5;
@@ -3023,37 +2990,45 @@ var Bounds = require('../geometry/Bounds');
                     maxFriction = Infinity;
 
                 if (tangentSpeed > pair.friction * pair.frictionStatic * normalForce * timeScaleSquared) {
-                    tangentImpulse = pair.friction * tangentVelocityDirection * timeScaleSquared;
                     maxFriction = tangentSpeed;
+                    tangentImpulse = Common.clamp(
+                        pair.friction * tangentVelocityDirection * timeScaleSquared,
+                        -maxFriction, maxFriction
+                    );
                 }
 
                 // modify impulses accounting for mass, inertia and offset
                 var oAcN = Vector.cross(offsetA, normal),
                     oBcN = Vector.cross(offsetB, normal),
-                    denom = bodyA.inverseMass + bodyB.inverseMass + bodyA.inverseInertia * oAcN * oAcN  + bodyB.inverseInertia * oBcN * oBcN;
+                    share = contactShare / (bodyA.inverseMass + bodyB.inverseMass + bodyA.inverseInertia * oAcN * oAcN  + bodyB.inverseInertia * oBcN * oBcN);
 
-                normalImpulse *= contactShare / denom;
-                tangentImpulse *= contactShare / (1 + denom);
+                normalImpulse *= share;
+                tangentImpulse *= share;
 
                 // handle high velocity and resting collisions separately
                 if (normalVelocity < 0 && normalVelocity * normalVelocity > Resolver._restingThresh * timeScaleSquared) {
-                    // high velocity so clear cached contact impulse
+                    // high normal velocity so clear cached contact normal impulse
                     contact.normalImpulse = 0;
-                    contact.tangentImpulse = 0;
                 } else {
                     // solve resting collision constraints using Erin Catto's method (GDC08)
-
-                    // impulse constraint, tends to 0
+                    // impulse constraint tends to 0
                     var contactNormalImpulse = contact.normalImpulse;
                     contact.normalImpulse = Math.min(contact.normalImpulse + normalImpulse, 0);
                     normalImpulse = contact.normalImpulse - contactNormalImpulse;
-                    
-                    // tangent impulse, tends to -maxFriction or maxFriction
+                }
+
+                // handle high velocity and resting collisions separately
+                if (tangentVelocity * tangentVelocity > Resolver._restingThreshTangent * timeScaleSquared) {
+                    // high tangent velocity so clear cached contact tangent impulse
+                    contact.tangentImpulse = 0;
+                } else {
+                    // solve resting collision constraints using Erin Catto's method (GDC08)
+                    // tangent impulse tends to -tangentSpeed or +tangentSpeed
                     var contactTangentImpulse = contact.tangentImpulse;
                     contact.tangentImpulse = Common.clamp(contact.tangentImpulse + tangentImpulse, -maxFriction, maxFriction);
                     tangentImpulse = contact.tangentImpulse - contactTangentImpulse;
                 }
-                
+
                 // total impulse from contact
                 impulse.x = (normal.x * normalImpulse) + (tangent.x * tangentImpulse);
                 impulse.y = (normal.y * normalImpulse) + (tangent.y * tangentImpulse);
@@ -5635,12 +5610,19 @@ var Vector = require('../geometry/Vector');
         
         var x1 = width * slope,
             x2 = x1 + roof,
-            x3 = x2 + x1;
+            x3 = x2 + x1,
+            verticesPath;
+
+        if (slope < 0.5) {
+            verticesPath = 'L 0 0 L ' + x1 + ' ' + (-height) + ' L ' + x2 + ' ' + (-height) + ' L ' + x3 + ' 0';
+        } else {
+            verticesPath = 'L 0 0 L ' + x2 + ' ' + (-height) + ' L ' + x3 + ' 0';
+        }
 
         var trapezoid = { 
             label: 'Trapezoid Body',
             position: { x: x, y: y },
-            vertices: Vertices.fromPath('L 0 0 L ' + x1 + ' ' + (-height) + ' L ' + x2 + ' ' + (-height) + ' L ' + x3 + ' 0')
+            vertices: Vertices.fromPath(verticesPath)
         };
 
         if (options.chamfer) {
@@ -6098,7 +6080,7 @@ var Bodies = require('./Bodies');
         for (var i = 0; i < number; i++) {
             var separation = 1.9,
                 circle = Bodies.circle(xx + i * (size * separation), yy + length, size, 
-                            { inertia: 99999, restitution: 1, friction: 0, frictionAir: 0.0001, slop: 0.01 }),
+                            { inertia: Infinity, restitution: 1, friction: 0, frictionAir: 0.0001, slop: 1 }),
                 constraint = Constraint.create({ pointA: { x: xx + i * (size * separation), y: yy }, bodyB: circle });
 
             Composite.addBody(newtonsCradle, circle);
@@ -7419,6 +7401,11 @@ var Vector = require('../geometry/Vector');
 
         var render = Common.extend(defaults, options);
 
+        if (render.canvas) {
+            render.canvas.width = render.options.width || render.canvas.width;
+            render.canvas.height = render.options.height || render.canvas.height;
+        }
+
         render.canvas = render.canvas || _createCanvas(render.options.width, render.options.height);
         render.context = render.canvas.getContext('2d');
         render.textures = {};
@@ -7429,8 +7416,8 @@ var Vector = require('../geometry/Vector');
                 y: 0
             }, 
             max: { 
-                x: render.options.width,
-                y: render.options.height
+                x: render.canvas.width,
+                y: render.canvas.height
             }
         };
 
@@ -7760,6 +7747,9 @@ var Vector = require('../geometry/Vector');
             for (k = body.parts.length > 1 ? 1 : 0; k < body.parts.length; k++) {
                 part = body.parts[k];
 
+                if (!part.render.visible)
+                    continue;
+
                 if (part.render.sprite && part.render.sprite.texture && !options.wireframes) {
                     // part sprite
                     var sprite = part.render.sprite,
@@ -7771,8 +7761,13 @@ var Vector = require('../geometry/Vector');
                     c.translate(part.position.x, part.position.y); 
                     c.rotate(part.angle);
 
-                    c.drawImage(texture, texture.width * -0.5 * sprite.xScale, texture.height * -0.5 * sprite.yScale, 
-                                texture.width * sprite.xScale, texture.height * sprite.yScale);
+                    c.drawImage(
+                        texture,
+                        texture.width * -sprite.xOffset * sprite.xScale, 
+                        texture.height * -sprite.yOffset * sprite.yScale, 
+                        texture.width * sprite.xScale, 
+                        texture.height * sprite.yScale
+                    );
 
                     // revert translation, hopefully faster than save / restore
                     c.rotate(-part.angle);
@@ -8967,8 +8962,8 @@ var Common = require('../core/Common');
             texture = _getTexture(render, texturePath),
             sprite = new PIXI.Sprite(texture);
 
-        sprite.anchor.x = 0.5;
-        sprite.anchor.y = 0.5;
+        sprite.anchor.x = body.render.sprite.xOffset;
+        sprite.anchor.y = body.render.sprite.yOffset;
 
         return sprite;
     };
