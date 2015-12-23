@@ -16,6 +16,7 @@ var Bounds = require('../geometry/Bounds');
 (function() {
 
     Resolver._restingThresh = 4;
+    Resolver._restingThreshTangent = 6;
     Resolver._positionDampen = 0.9;
     Resolver._positionWarming = 0.8;
     Resolver._frictionNormalMultiplier = 5;
@@ -281,37 +282,45 @@ var Bounds = require('../geometry/Bounds');
                     maxFriction = Infinity;
 
                 if (tangentSpeed > pair.friction * pair.frictionStatic * normalForce * timeScaleSquared) {
-                    tangentImpulse = pair.friction * tangentVelocityDirection * timeScaleSquared;
                     maxFriction = tangentSpeed;
+                    tangentImpulse = Common.clamp(
+                        pair.friction * tangentVelocityDirection * timeScaleSquared,
+                        -maxFriction, maxFriction
+                    );
                 }
 
                 // modify impulses accounting for mass, inertia and offset
                 var oAcN = Vector.cross(offsetA, normal),
                     oBcN = Vector.cross(offsetB, normal),
-                    denom = bodyA.inverseMass + bodyB.inverseMass + bodyA.inverseInertia * oAcN * oAcN  + bodyB.inverseInertia * oBcN * oBcN;
+                    share = contactShare / (bodyA.inverseMass + bodyB.inverseMass + bodyA.inverseInertia * oAcN * oAcN  + bodyB.inverseInertia * oBcN * oBcN);
 
-                normalImpulse *= contactShare / denom;
-                tangentImpulse *= contactShare / (1 + denom);
+                normalImpulse *= share;
+                tangentImpulse *= share;
 
                 // handle high velocity and resting collisions separately
                 if (normalVelocity < 0 && normalVelocity * normalVelocity > Resolver._restingThresh * timeScaleSquared) {
-                    // high velocity so clear cached contact impulse
+                    // high normal velocity so clear cached contact normal impulse
                     contact.normalImpulse = 0;
-                    contact.tangentImpulse = 0;
                 } else {
                     // solve resting collision constraints using Erin Catto's method (GDC08)
-
-                    // impulse constraint, tends to 0
+                    // impulse constraint tends to 0
                     var contactNormalImpulse = contact.normalImpulse;
                     contact.normalImpulse = Math.min(contact.normalImpulse + normalImpulse, 0);
                     normalImpulse = contact.normalImpulse - contactNormalImpulse;
-                    
-                    // tangent impulse, tends to -maxFriction or maxFriction
+                }
+
+                // handle high velocity and resting collisions separately
+                if (tangentVelocity * tangentVelocity > Resolver._restingThreshTangent * timeScaleSquared) {
+                    // high tangent velocity so clear cached contact tangent impulse
+                    contact.tangentImpulse = 0;
+                } else {
+                    // solve resting collision constraints using Erin Catto's method (GDC08)
+                    // tangent impulse tends to -tangentSpeed or +tangentSpeed
                     var contactTangentImpulse = contact.tangentImpulse;
                     contact.tangentImpulse = Common.clamp(contact.tangentImpulse + tangentImpulse, -maxFriction, maxFriction);
                     tangentImpulse = contact.tangentImpulse - contactTangentImpulse;
                 }
-                
+
                 // total impulse from contact
                 impulse.x = (normal.x * normalImpulse) + (tangent.x * tangentImpulse);
                 impulse.y = (normal.y * normalImpulse) + (tangent.y * tangentImpulse);
