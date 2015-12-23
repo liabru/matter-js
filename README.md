@@ -66,7 +66,7 @@
 
 ### Gallery
 
-Some great projects using matter.js physics are
+See how others are using matter.js physics
 
 - [Les métamorphoses de Mr. Kalia](http://www.lab212.org/projects/les-metamorphoses-de-mr-kalia) by Lab212 for Google
 - [Pablo The Flamingo](http://pablotheflamingo.com/) by Nathan Gordon et al
