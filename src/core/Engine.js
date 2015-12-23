@@ -281,6 +281,9 @@ var Body = require('../body/Body');
      * @param {vector} gravity
      */
     var _bodiesApplyGravity = function(bodies, gravity) {
+        if (gravity.x === 0 && gravity.y === 0) {
+            return;
+        }
         for (var i = 0; i < bodies.length; i++) {
             var body = bodies[i];
 
