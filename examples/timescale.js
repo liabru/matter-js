@@ -20,9 +20,9 @@
                 var body = bodies[i];
 
                 if (!body.isStatic && body.position.y >= 500) {
-                    var forceMagnitude = 0.04 * body.mass;
+                    var forceMagnitude = 0.05 * body.mass;
 
-                    Body.applyForce(body, { x: 0, y: 0 }, { 
+                    Body.applyForce(body, body.position, {
                         x: (forceMagnitude + Common.random() * forceMagnitude) * Common.choose([1, -1]), 
                         y: -forceMagnitude + Common.random() * -forceMagnitude
                     });
