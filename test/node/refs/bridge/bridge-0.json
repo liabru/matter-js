@@ -1514,7 +1514,7 @@
   {
     "category": 1,
     "mask": 4294967295,
-    "group": -3
+    "group": -1
   },
   {
     "visible": true,
@@ -1751,7 +1751,7 @@
   {
     "category": 1,
     "mask": 4294967295,
-    "group": -3
+    "group": -1
   },
   {
     "visible": true,
@@ -2015,7 +2015,7 @@
   {
     "category": 1,
     "mask": 4294967295,
-    "group": -3
+    "group": -1
   },
   {
     "visible": true,
@@ -2215,7 +2215,7 @@
   {
     "category": 1,
     "mask": 4294967295,
-    "group": -3
+    "group": -1
   },
   {
     "visible": true,
@@ -2415,7 +2415,7 @@
   {
     "category": 1,
     "mask": 4294967295,
-    "group": -3
+    "group": -1
   },
   {
     "visible": true,
@@ -2615,7 +2615,7 @@
   {
     "category": 1,
     "mask": 4294967295,
-    "group": -3
+    "group": -1
   },
   {
     "visible": true,
@@ -2815,7 +2815,7 @@
   {
     "category": 1,
     "mask": 4294967295,
-    "group": -3
+    "group": -1
   },
   {
     "visible": true,
@@ -3015,7 +3015,7 @@
   {
     "category": 1,
     "mask": 4294967295,
-    "group": -3
+    "group": -1
   },
   {
     "visible": true,
@@ -3215,7 +3215,7 @@
   {
     "category": 1,
     "mask": 4294967295,
-    "group": -3
+    "group": -1
   },
   {
     "visible": true,
