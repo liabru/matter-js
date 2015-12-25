@@ -24,7 +24,8 @@
     }
 
     // Matter aliases
-    var Example = Matter.Example,
+    var Body = Matter.Body,
+        Example = Matter.Example,
         Engine = Matter.Engine,
         World = Matter.World,
         Common = Matter.Common,
@@ -295,6 +296,9 @@
         demo.sceneEvents = [];
 
         // reset id pool
+        Body._nextCollidingGroupId = 1;
+        Body._nextNonCollidingGroupId = -1;
+        Body._nextCategory = 0x0001;
         Common._nextId = 0;
 
         // reset random seed

@@ -24,10 +24,9 @@ var Axes = require('../geometry/Axes');
 (function() {
 
     Body._inertiaScale = 4;
-
-    var _nextCollidingGroupId = 1,
-        _nextNonCollidingGroupId = -1,
-        _nextCategory = 0x0001;
+    Body._nextCollidingGroupId = 1;
+    Body._nextNonCollidingGroupId = -1;
+    Body._nextCategory = 0x0001;
 
     /**
      * Creates a new rigid body model. The options parameter is an object that specifies any properties you wish to override the defaults.
@@ -100,9 +99,9 @@ var Axes = require('../geometry/Axes');
      */
     Body.nextGroup = function(isNonColliding) {
         if (isNonColliding)
-            return _nextNonCollidingGroupId--;
+            return Body._nextNonCollidingGroupId--;
 
-        return _nextCollidingGroupId++;
+        return Body._nextCollidingGroupId++;
     };
 
     /**
@@ -112,8 +111,8 @@ var Axes = require('../geometry/Axes');
      * @return {Number} Unique category bitfield
      */
     Body.nextCategory = function() {
-        _nextCategory = _nextCategory << 1;
-        return _nextCategory;
+        Body._nextCategory = Body._nextCategory << 1;
+        return Body._nextCategory;
     };
 
     /**
