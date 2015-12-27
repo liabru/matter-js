@@ -14,7 +14,7 @@ var Common = require('./Common');
 (function() {
 
     /**
-     * Description
+     * Creates a new metrics.
      * @method create
      * @private
      * @return {metrics} A new metrics
@@ -41,7 +41,7 @@ var Common = require('./Common');
     };
 
     /**
-     * Description
+     * Resets metrics.
      * @method reset
      * @private
      * @param {metrics} metrics
@@ -65,7 +65,7 @@ var Common = require('./Common');
     };
 
     /**
-     * Description
+     * Updates metrics.
      * @method update
      * @private
      * @param {metrics} metrics

@@ -1,5 +1,5 @@
 /**
-* _Internal Class_, not generally used outside of the engine's internals.
+* The `Matter.Resolver` module contains methods for resolving collision pairs.
 *
 * @class Resolver
 */
@@ -22,7 +22,7 @@ var Bounds = require('../geometry/Bounds');
     Resolver._frictionNormalMultiplier = 5;
 
     /**
-     * Description
+     * Prepare pairs for position solving.
      * @method preSolvePosition
      * @param {pair[]} pairs
      */
@@ -45,7 +45,7 @@ var Bounds = require('../geometry/Bounds');
     };
 
     /**
-     * Description
+     * Find a solution for pair positions.
      * @method solvePosition
      * @param {pair[]} pairs
      * @param {number} timeScale
@@ -116,7 +116,7 @@ var Bounds = require('../geometry/Bounds');
     };
 
     /**
-     * Description
+     * Apply position resolution.
      * @method postSolvePosition
      * @param {body[]} bodies
      */
@@ -155,7 +155,7 @@ var Bounds = require('../geometry/Bounds');
     };
 
     /**
-     * Description
+     * Prepare pairs for velocity solving.
      * @method preSolveVelocity
      * @param {pair[]} pairs
      */
@@ -222,7 +222,7 @@ var Bounds = require('../geometry/Bounds');
     };
 
     /**
-     * Description
+     * Find a solution for pair velocities.
      * @method solveVelocity
      * @param {pair[]} pairs
      * @param {number} timeScale

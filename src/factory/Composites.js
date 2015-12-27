@@ -1,6 +1,8 @@
 /**
-* See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
-* and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
+* The `Matter.Composites` module contains factory methods for creating composite bodies
+* with commonly used configurations (such as stacks and chains).
+*
+* See the included usage [examples](https://github.com/liabru/matter-js/tree/master/examples).
 *
 * @class Composites
 */
@@ -18,7 +20,8 @@ var Bodies = require('./Bodies');
 (function() {
 
     /**
-     * Description
+     * Create a new composite containing bodies created in the callback in a grid arrangement.
+     * This function uses the body's bounds to prevent overlaps.
      * @method stack
      * @param {number} xx
      * @param {number} yy
@@ -70,7 +73,7 @@ var Bodies = require('./Bodies');
     };
     
     /**
-     * Description
+     * Chains all bodies in the given composite together using constraints.
      * @method chain
      * @param {composite} composite
      * @param {number} xOffsetA
@@ -109,7 +112,7 @@ var Bodies = require('./Bodies');
     };
 
     /**
-     * Connects bodies in the composite with constraints in a grid pattern, with optional cross braces
+     * Connects bodies in the composite with constraints in a grid pattern, with optional cross braces.
      * @method mesh
      * @param {composite} composite
      * @param {number} columns
@@ -158,7 +161,8 @@ var Bodies = require('./Bodies');
     };
     
     /**
-     * Description
+     * Create a new composite containing bodies created in the callback in a pyramid arrangement.
+     * This function uses the body's bounds to prevent overlaps.
      * @method pyramid
      * @param {number} xx
      * @param {number} yy
@@ -198,7 +202,7 @@ var Bodies = require('./Bodies');
     };
 
     /**
-     * Description
+     * Creates a composite with a Newton's Cradle setup of bodies and constraints.
      * @method newtonsCradle
      * @param {number} xx
      * @param {number} yy
@@ -224,7 +228,7 @@ var Bodies = require('./Bodies');
     };
     
     /**
-     * Description
+     * Creates a composite with simple car setup of bodies and constraints.
      * @method car
      * @param {number} xx
      * @param {number} yy
@@ -297,7 +301,7 @@ var Bodies = require('./Bodies');
     };
 
     /**
-     * Creates a simple soft body like object
+     * Creates a simple soft body like object.
      * @method softBody
      * @param {number} xx
      * @param {number} yy

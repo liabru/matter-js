@@ -1,5 +1,5 @@
 /**
-* _Internal Class_, not generally used outside of the engine's internals.
+* The `Matter.Pair` module contains methods for creating and manipulating collision pairs.
 *
 * @class Pair
 */
@@ -13,7 +13,7 @@ var Contact = require('./Contact');
 (function() {
     
     /**
-     * Description
+     * Creates a pair.
      * @method create
      * @param {collision} collision
      * @param {number} timestamp
@@ -48,7 +48,7 @@ var Contact = require('./Contact');
     };
 
     /**
-     * Description
+     * Updates a pair given a collision.
      * @method update
      * @param {pair} pair
      * @param {collision} collision
@@ -91,7 +91,7 @@ var Contact = require('./Contact');
     };
     
     /**
-     * Description
+     * Set a pair as active or inactive.
      * @method setActive
      * @param {pair} pair
      * @param {bool} isActive
@@ -108,7 +108,7 @@ var Contact = require('./Contact');
     };
 
     /**
-     * Description
+     * Get the id for the given pair.
      * @method id
      * @param {body} bodyA
      * @param {body} bodyB

@@ -3,8 +3,7 @@
 * Constraints are used for specifying that a fixed distance must be maintained between two bodies (or a body and a fixed world-space position).
 * The stiffness of constraints can be modified to create springs or elastic.
 *
-* See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
-* and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
+* See the included usage [examples](https://github.com/liabru/matter-js/tree/master/examples).
 *
 * @class Constraint
 */
@@ -79,7 +78,7 @@ var Common = require('../core/Common');
     };
 
     /**
-     * Description
+     * Solves all constraints in a list of collisions.
      * @private
      * @method solveAll
      * @param {constraint[]} constraints
@@ -92,7 +91,7 @@ var Common = require('../core/Common');
     };
 
     /**
-     * Description
+     * Solves a distance constraint with Gauss-Siedel method.
      * @private
      * @method solve
      * @param {constraint} constraint
@@ -247,7 +246,7 @@ var Common = require('../core/Common');
     };
 
     /**
-     * Performs body updates required after solving constraints
+     * Performs body updates required after solving constraints.
      * @private
      * @method postSolveAll
      * @param {body[]} bodies

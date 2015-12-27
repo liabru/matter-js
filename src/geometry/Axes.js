@@ -1,5 +1,5 @@
 /**
-* _Internal Class_, not generally used outside of the engine's internals.
+* The `Matter.Axes` module contains methods for creating and manipulating sets of axes.
 *
 * @class Axes
 */
@@ -14,7 +14,7 @@ var Common = require('../core/Common');
 (function() {
 
     /**
-     * Description
+     * Creates a new set of axes from the given vertices.
      * @method fromVertices
      * @param {vertices} vertices
      * @return {axes} A new axes from the given vertices
@@ -40,7 +40,7 @@ var Common = require('../core/Common');
     };
 
     /**
-     * Description
+     * Rotates a set of axes by the given angle.
      * @method rotate
      * @param {axes} axes
      * @param {number} angle

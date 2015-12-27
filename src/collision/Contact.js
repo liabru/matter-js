@@ -1,5 +1,5 @@
 /**
-* _Internal Class_, not generally used outside of the engine's internals.
+* The `Matter.Contact` module contains methods for creating and manipulating collision contacts.
 *
 * @class Contact
 */
@@ -11,7 +11,7 @@ module.exports = Contact;
 (function() {
 
     /**
-     * Description
+     * Creates a new contact.
      * @method create
      * @param {vertex} vertex
      * @return {contact} A new contact
@@ -26,7 +26,7 @@ module.exports = Contact;
     };
     
     /**
-     * Description
+     * Generates a contact id.
      * @method id
      * @param {vertex} vertex
      * @return {string} Unique contactID

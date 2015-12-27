@@ -3,8 +3,7 @@
 * Vectors are the basis of all the geometry related operations in the engine.
 * A `Matter.Vector` object is of the form `{ x: 0, y: 0 }`.
 *
-* See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
-* and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
+* See the included usage [examples](https://github.com/liabru/matter-js/tree/master/examples).
 *
 * @class Vector
 */

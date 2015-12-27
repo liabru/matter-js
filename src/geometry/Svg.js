@@ -1,8 +1,7 @@
 /**
 * The `Matter.Svg` module contains methods for converting SVG images into an array of vector points.
 *
-* See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
-* and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
+* See the included usage [examples](https://github.com/liabru/matter-js/tree/master/examples).
 *
 * @class Svg
 */

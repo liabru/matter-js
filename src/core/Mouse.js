@@ -1,5 +1,5 @@
 /**
-* _Internal Class_, not generally used outside of the engine's internals.
+* The `Matter.Mouse` module contains methods for creating and manipulating mouse inputs.
 *
 * @class Mouse
 */
@@ -13,7 +13,7 @@ var Common = require('../core/Common');
 (function() {
 
     /**
-     * Description
+     * Creates a mouse input.
      * @method create
      * @param {HTMLElement} element
      * @return {mouse} A new mouse
@@ -108,7 +108,7 @@ var Common = require('../core/Common');
     };
 
     /**
-     * Sets the element the mouse is bound to (and relative to)
+     * Sets the element the mouse is bound to (and relative to).
      * @method setElement
      * @param {mouse} mouse
      * @param {HTMLElement} element
@@ -120,8 +120,8 @@ var Common = require('../core/Common');
         element.addEventListener('mousedown', mouse.mousedown);
         element.addEventListener('mouseup', mouse.mouseup);
         
-        element.addEventListener("mousewheel", mouse.mousewheel);
-        element.addEventListener("DOMMouseScroll", mouse.mousewheel);
+        element.addEventListener('mousewheel', mouse.mousewheel);
+        element.addEventListener('DOMMouseScroll', mouse.mousewheel);
 
         element.addEventListener('touchmove', mouse.mousemove);
         element.addEventListener('touchstart', mouse.mousedown);
@@ -129,7 +129,7 @@ var Common = require('../core/Common');
     };
 
     /**
-     * Clears all captured source events
+     * Clears all captured source events.
      * @method clearSourceEvents
      * @param {mouse} mouse
      */
@@ -142,7 +142,7 @@ var Common = require('../core/Common');
     };
 
     /**
-     * Sets the offset
+     * Sets the mouse position offset.
      * @method setOffset
      * @param {mouse} mouse
      * @param {vector} offset
@@ -155,7 +155,7 @@ var Common = require('../core/Common');
     };
 
     /**
-     * Sets the scale
+     * Sets the mouse position scale.
      * @method setScale
      * @param {mouse} mouse
      * @param {vector} scale
@@ -168,7 +168,7 @@ var Common = require('../core/Common');
     };
     
     /**
-     * Description
+     * Gets the mouse position relative to an element given a screen pixel ratio.
      * @method _getRelativeMousePosition
      * @private
      * @param {} event

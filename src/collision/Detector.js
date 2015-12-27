@@ -1,5 +1,5 @@
 /**
-* _Internal Class_, not generally used outside of the engine's internals.
+* The `Matter.Detector` module contains methods for detecting collisions given a set of pairs.
 *
 * @class Detector
 */
@@ -17,7 +17,7 @@ var Bounds = require('../geometry/Bounds');
 (function() {
 
     /**
-     * Description
+     * Finds all collisions given a list of pairs.
      * @method collisions
      * @param {pair[]} broadphasePairs
      * @param {engine} engine

@@ -1,6 +1,7 @@
 /**
-* See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
-* and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
+* The `Matter.Events` module contains methods to fire and listen to events on other objects.
+*
+* See the included usage [examples](https://github.com/liabru/matter-js/tree/master/examples).
 *
 * @class Events
 */

@@ -2,8 +2,7 @@
 * The `Matter.Bodies` module contains factory methods for creating rigid body models 
 * with commonly used body configurations (such as rectangles, circles and other polygons).
 *
-* See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
-* and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
+* See the included usage [examples](https://github.com/liabru/matter-js/tree/master/examples).
 *
 * @class Bodies
 */

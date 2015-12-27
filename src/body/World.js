@@ -5,8 +5,7 @@
 * It is important to use the functions in the `Matter.Composite` module to modify the world composite, rather than directly modifying its properties.
 * There are also a few methods here that alias those in `Matter.Composite` for easier readability.
 *
-* See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
-* and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
+* See the included usage [examples](https://github.com/liabru/matter-js/tree/master/examples).
 *
 * @class World
 * @extends Composite
