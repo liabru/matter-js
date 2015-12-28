@@ -53,7 +53,7 @@ var Axes = require('../geometry/Axes');
             angularSpeed: 0,
             velocity: { x: 0, y: 0 },
             angularVelocity: 0,
-            isPermeable: false,
+            isSensor: false,
             isStatic: false,
             isSleeping: false,
             motion: 0,
@@ -789,9 +789,9 @@ var Axes = require('../geometry/Axes');
      */
 
     /**
-     * A flag that indicates whether a body is considered permeable. A permeable body triggers collision events, but doesn't react with colliding body physically.
+     * A flag that indicates whether a body is a sensor. Sensor triggers collision events, but doesn't react with colliding body physically.
      *
-     * @property isPermeable
+     * @property isSensor
      * @type boolean
      * @default false
      */

@@ -58,6 +58,7 @@
         <li><a href="http://brm.io/matter-js-demo-master#beachBalls">Beach Balls</a></li>
         <li><a href="http://brm.io/matter-js-demo-master#stress">Stress 1</a></li>
         <li><a href="http://brm.io/matter-js-demo-master#stress2">Stress 2</a></li>
+        <li><a href="http://brm.io/matter-js-demo#sensors">Sensors</a></li>
       </ul>
       <br>
     </td>
@@ -95,6 +96,7 @@ See how others are using matter.js physics
 - Constraints
 - Gravity
 - Sleeping and static bodies
+- Sensors
 - Rounded corners (chamfering)
 - Views (translate, zoom)
 - Collision queries (raycasting, region tests)

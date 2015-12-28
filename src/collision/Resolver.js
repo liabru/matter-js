@@ -70,16 +70,13 @@ var Bounds = require('../geometry/Bounds');
         for (i = 0; i < pairs.length; i++) {
             pair = pairs[i];
             
-            if (!pair.isActive)
+            if (!pair.isActive || pair.isSensor)
                 continue;
 
             collision = pair.collision;
             bodyA = collision.parentA;
             bodyB = collision.parentB;
             normal = collision.normal;
-            
-            if (bodyA.isPermeable || bodyB.isPermeable)
-                continue;
 
             // get current separation between body edges involved in collision
             bodyBtoA = Vector.sub(Vector.add(bodyB.positionImpulse, bodyB.position, tempA), 
@@ -92,7 +89,7 @@ var Bounds = require('../geometry/Bounds');
         for (i = 0; i < pairs.length; i++) {
             pair = pairs[i];
 
-            if (!pair.isActive || pair.separation < 0)
+            if (!pair.isActive || pair.isSensor || pair.separation < 0)
                 continue;
             
             collision = pair.collision;
@@ -100,9 +97,6 @@ var Bounds = require('../geometry/Bounds');
             bodyB = collision.parentB;
             normal = collision.normal;
             positionImpulse = (pair.separation - pair.slop) * timeScale;
-        
-            if (bodyA.isPermeable || bodyB.isPermeable)
-                continue;
 
             if (bodyA.isStatic || bodyB.isStatic)
                 positionImpulse *= 2;
@@ -186,7 +180,7 @@ var Bounds = require('../geometry/Bounds');
         for (i = 0; i < pairs.length; i++) {
             pair = pairs[i];
             
-            if (!pair.isActive)
+            if (!pair.isActive || pair.isSensor)
                 continue;
             
             contacts = pair.activeContacts;
@@ -195,9 +189,6 @@ var Bounds = require('../geometry/Bounds');
             bodyB = collision.parentB;
             normal = collision.normal;
             tangent = collision.tangent;
-            
-            if (bodyA.isPermeable || bodyB.isPermeable)
-                continue;
 
             // resolve each contact
             for (j = 0; j < contacts.length; j++) {
@@ -248,7 +239,7 @@ var Bounds = require('../geometry/Bounds');
         for (var i = 0; i < pairs.length; i++) {
             var pair = pairs[i];
             
-            if (!pair.isActive)
+            if (!pair.isActive || pair.isSensor)
                 continue;
             
             var collision = pair.collision,
@@ -258,9 +249,6 @@ var Bounds = require('../geometry/Bounds');
                 tangent = collision.tangent,
                 contacts = pair.activeContacts,
                 contactShare = 1 / contacts.length;
-
-            if (bodyA.isPermeable || bodyB.isPermeable)
-                continue;
 
             // update body velocities
             bodyA.velocity.x = bodyA.position.x - bodyA.positionPrev.x;

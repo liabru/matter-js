@@ -5,7 +5,7 @@
         Common = Matter.Common,
         Events = Matter.Events;
 
-    Example.permeableObjects = function(demo) {
+    Example.sensors = function(demo) {
         var engine = demo.engine,
             world = engine.world,
             sceneEvents = demo.sceneEvents;
@@ -14,7 +14,7 @@
             greenColor = '#C7F464';
 
         var collider = Bodies.rectangle(400, 300, 500, 50, {
-            isPermeable: true,
+            isSensor: true,
             isStatic: true,
             render: {
                 strokeStyle: redColor,
