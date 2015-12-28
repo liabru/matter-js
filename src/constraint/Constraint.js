@@ -206,12 +206,6 @@ var Common = require('../core/Common');
         if (bodyA && !bodyA.isStatic) {
             torque = Vector.cross(offsetA, normalVelocity) * bodyA.inverseInertia * (1 - constraint.angularStiffness);
 
-            Sleeping.set(bodyA, false);
-            
-            // clamp to prevent instability
-            // TODO: solve this properly
-            torque = Common.clamp(torque, -0.01, 0.01);
-
             // keep track of applied impulses for post solving
             bodyA.constraintImpulse.x -= force.x;
             bodyA.constraintImpulse.y -= force.y;
@@ -225,12 +219,6 @@ var Common = require('../core/Common');
 
         if (bodyB && !bodyB.isStatic) {
             torque = Vector.cross(offsetB, normalVelocity) * bodyB.inverseInertia * (1 - constraint.angularStiffness);
-
-            Sleeping.set(bodyB, false);
-            
-            // clamp to prevent instability
-            // TODO: solve this properly
-            torque = Common.clamp(torque, -0.01, 0.01);
 
             // keep track of applied impulses for post solving
             bodyB.constraintImpulse.x += force.x;
@@ -259,6 +247,8 @@ var Common = require('../core/Common');
             if (impulse.x === 0 && impulse.y === 0 && impulse.angle === 0) {
                 continue;
             }
+
+            Sleeping.set(body, false);
 
             // update geometry and reset
             for (var j = 0; j < body.parts.length; j++) {
