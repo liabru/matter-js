@@ -259,10 +259,7 @@ var Bodies = require('./Bodies');
             collisionFilter: {
                 group: group
             },
-            restitution: 0.5, 
-            friction: 0.9,
-            frictionStatic: 10,
-            slop: 0.5,
+            friction: 0.8,
             density: 0.01
         });
                     
@@ -270,10 +267,7 @@ var Bodies = require('./Bodies');
             collisionFilter: {
                 group: group
             },
-            restitution: 0.5, 
-            friction: 0.9,
-            frictionStatic: 10,
-            slop: 0.5,
+            friction: 0.8,
             density: 0.01
         });
                     
@@ -281,14 +275,14 @@ var Bodies = require('./Bodies');
             bodyA: body,
             pointA: { x: wheelAOffset, y: wheelYOffset },
             bodyB: wheelA,
-            stiffness: 0.5
+            stiffness: 0.2
         });
                         
         var axelB = Constraint.create({
             bodyA: body,
             pointA: { x: wheelBOffset, y: wheelYOffset },
             bodyB: wheelB,
-            stiffness: 0.5
+            stiffness: 0.2
         });
         
         Composite.addBody(car, body);
