@@ -280,7 +280,9 @@ var Body = require('../body/Body');
      * @param {vector} gravity
      */
     var _bodiesApplyGravity = function(bodies, gravity) {
-        if (gravity.x === 0 && gravity.y === 0) {
+        var gravityScale = typeof gravity.scale !== 'undefined' ? gravity.scale : 0.001;
+
+        if ((gravity.x === 0 && gravity.y === 0) || gravityScale === 0) {
             return;
         }
         
@@ -291,8 +293,8 @@ var Body = require('../body/Body');
                 continue;
 
             // apply gravity
-            body.force.y += body.mass * gravity.y * 0.001;
-            body.force.x += body.mass * gravity.x * 0.001;
+            body.force.y += body.mass * gravity.y * gravityScale;
+            body.force.x += body.mass * gravity.x * gravityScale;
         }
     };
 

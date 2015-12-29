@@ -34,7 +34,11 @@ var Common = require('../core/Common');
 
         var defaults = {
             label: 'World',
-            gravity: { x: 0, y: 1 },
+            gravity: {
+                x: 0,
+                y: 1,
+                scale: 0.001
+            },
             bounds: { 
                 min: { x: -Infinity, y: -Infinity }, 
                 max: { x: Infinity, y: Infinity } 
@@ -44,18 +48,55 @@ var Common = require('../core/Common');
         return Common.extend(composite, defaults, options);
     };
 
+    /*
+    *
+    *  Properties Documentation
+    *
+    */
+
+    /**
+     * The gravity to apply on the world.
+     *
+     * @property gravity
+     * @type object
+     */
+
+    /**
+     * The gravity x component.
+     *
+     * @property gravity.x
+     * @type object
+     * @default 0
+     */
+
+    /**
+     * The gravity y component.
+     *
+     * @property gravity.y
+     * @type object
+     * @default 1
+     */
+
+    /**
+     * The gravity scale factor.
+     *
+     * @property gravity.scale
+     * @type object
+     * @default 0.001
+     */
+
     // World is a Composite body
     // see src/module/Outro.js for these aliases:
     
     /**
-     * An alias for Composite.clear since World is also a Composite
+     * An alias for Composite.clear
      * @method clear
      * @param {world} world
      * @param {boolean} keepStatic
      */
 
     /**
-     * An alias for Composite.add since World is also a Composite
+     * An alias for Composite.add
      * @method addComposite
      * @param {world} world
      * @param {composite} composite
@@ -63,7 +104,7 @@ var Common = require('../core/Common');
      */
     
      /**
-      * An alias for Composite.addBody since World is also a Composite
+      * An alias for Composite.addBody
       * @method addBody
       * @param {world} world
       * @param {body} body
@@ -71,7 +112,7 @@ var Common = require('../core/Common');
       */
 
      /**
-      * An alias for Composite.addConstraint since World is also a Composite
+      * An alias for Composite.addConstraint
       * @method addConstraint
       * @param {world} world
       * @param {constraint} constraint
