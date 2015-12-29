@@ -1917,9 +1917,9 @@
     "force": {
       "#": 222
     },
-    "friction": 0.9,
+    "friction": 0.8,
     "frictionAir": 0.01,
-    "frictionStatic": 10,
+    "frictionStatic": 0.5,
     "id": 6,
     "inertia": 32746.59604,
     "inverseInertia": 0.00003,
@@ -1942,10 +1942,10 @@
     "render": {
       "#": 226
     },
-    "restitution": 0.5,
+    "restitution": 0,
     "sleepCounter": 0,
     "sleepThreshold": 60,
-    "slop": 0.5,
+    "slop": 0.05,
     "speed": 0,
     "timeScale": 1,
     "torque": 0,
@@ -2397,9 +2397,9 @@
     "force": {
       "#": 276
     },
-    "friction": 0.9,
+    "friction": 0.8,
     "frictionAir": 0.01,
-    "frictionStatic": 10,
+    "frictionStatic": 0.5,
     "id": 7,
     "inertia": 32746.59604,
     "inverseInertia": 0.00003,
@@ -2422,10 +2422,10 @@
     "render": {
       "#": 280
     },
-    "restitution": 0.5,
+    "restitution": 0,
     "sleepCounter": 0,
     "sleepThreshold": 60,
-    "slop": 0.5,
+    "slop": 0.05,
     "speed": 0,
     "timeScale": 1,
     "torque": 0,
@@ -2881,7 +2881,7 @@
     "render": {
       "#": 315
     },
-    "stiffness": 0.5,
+    "stiffness": 0.2,
     "type": "constraint"
   },
   {
@@ -2915,7 +2915,7 @@
     "render": {
       "#": 319
     },
-    "stiffness": 0.5,
+    "stiffness": 0.2,
     "type": "constraint"
   },
   {
@@ -3381,9 +3381,9 @@
     "force": {
       "#": 388
     },
-    "friction": 0.9,
+    "friction": 0.8,
     "frictionAir": 0.01,
-    "frictionStatic": 10,
+    "frictionStatic": 0.5,
     "id": 12,
     "inertia": 20374.22107,
     "inverseInertia": 0.00005,
@@ -3406,10 +3406,10 @@
     "render": {
       "#": 392
     },
-    "restitution": 0.5,
+    "restitution": 0,
     "sleepCounter": 0,
     "sleepThreshold": 60,
-    "slop": 0.5,
+    "slop": 0.05,
     "speed": 0,
     "timeScale": 1,
     "torque": 0,
@@ -3834,9 +3834,9 @@
     "force": {
       "#": 439
     },
-    "friction": 0.9,
+    "friction": 0.8,
     "frictionAir": 0.01,
-    "frictionStatic": 10,
+    "frictionStatic": 0.5,
     "id": 13,
     "inertia": 20374.22107,
     "inverseInertia": 0.00005,
@@ -3859,10 +3859,10 @@
     "render": {
       "#": 443
     },
-    "restitution": 0.5,
+    "restitution": 0,
     "sleepCounter": 0,
     "sleepThreshold": 60,
-    "slop": 0.5,
+    "slop": 0.05,
     "speed": 0,
     "timeScale": 1,
     "torque": 0,
@@ -4291,7 +4291,7 @@
     "render": {
       "#": 476
     },
-    "stiffness": 0.5,
+    "stiffness": 0.2,
     "type": "constraint"
   },
   {
@@ -4325,7 +4325,7 @@
     "render": {
       "#": 480
     },
-    "stiffness": 0.5,
+    "stiffness": 0.2,
     "type": "constraint"
   },
   {
@@ -4377,6 +4377,7 @@
     "visible": true
   },
   {
+    "scale": 0.001,
     "x": 0,
     "y": 1
   }
