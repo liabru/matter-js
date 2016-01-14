@@ -53,6 +53,7 @@
 
     Demo.init = function() {
         var demo = Demo.create();
+        Matter.Demo._demo = demo;
 
         // get container element for the canvas
         demo.container = document.getElementById('canvas-container');
@@ -193,7 +194,10 @@
         demoSelect.addEventListener('change', function(e) {
             Demo.reset(demo);
             Demo.setScene(demo,demo.sceneName = e.target.value);
-            Gui.update(demo.gui);
+
+            if (demo.gui) {
+                Gui.update(demo.gui);
+            }
             
             var scrollY = window.scrollY;
             window.location.hash = demo.sceneName;
@@ -204,7 +208,11 @@
         demoReset.addEventListener('click', function(e) {
             Demo.reset(demo);
             Demo.setScene(demo, demo.sceneName);
-            Gui.update(demo.gui);
+
+            if (demo.gui) {
+                Gui.update(demo.gui);
+            }
+
             Demo.setUpdateSourceLink(demo.sceneName);
         });
     };
