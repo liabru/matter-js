@@ -6,6 +6,7 @@ var eslint = require('gulp-eslint');
 var bump = require('gulp-bump');
 var changelog = require('gulp-conventional-changelog');
 var tag = require('gulp-tag-version');
+var release = require('gulp-github-release');
 var sequence = require('run-sequence');
 var gutil = require('gulp-util');
 var replace = require('gulp-replace');
@@ -24,6 +25,7 @@ var fs = require('fs');
 var watchify = require('watchify');
 var extend = require('util')._extend;
 var exec = require('child_process').exec;
+var buildDirectory = 'build';
 var server;
 
 gulp.task('default', ['build:dev', 'build:examples']);
@@ -34,6 +36,32 @@ gulp.task('dev', function(callback) {
 
 gulp.task('release', function(callback) {
     sequence('build:dev', 'build:examples', 'test', 'build:release', 'bump', 'doc', 'changelog', 'tag', callback);
+});
+
+gulp.task('release:push', function(callback) {
+    sequence('release:push:git', 'release:push:github', 'release:push:npm', callback);
+});
+
+gulp.task('release:push:github', function(callback) {
+    return gulp.src([
+        'CHANGELOG.md',
+        'LICENSE', 
+        buildDirectory + '/matter-' + pkg.version + '.min.js', 
+        buildDirectory + '/matter-' + pkg.version + '.js'
+    ]).pipe(release({
+        owner: 'liabru',
+        repo: pkg.name,
+        tag: pkg.version,
+        name: 'Matter.js ' + pkg.version
+    }));
+});
+
+gulp.task('release:push:git', function(callback) {
+    shell('git push', callback);
+});
+
+gulp.task('release:push:npm', function(callback) {
+    shell('npm publish', callback);
 });
 
 gulp.task('build:dev', function() {
@@ -139,7 +167,7 @@ gulp.task('doc', function(callback) {
         outdir: 'doc/build',
         linkNatives: true,
         project: {
-            name: pkg.name + '.js Physics Engine API Documentation for ' + pkg.version,
+            name: pkg.name + ' ' + pkg.version + ' Physics Engine API Docs',
             description: pkg.description,
             version: pkg.version,
             url: pkg.homepage
