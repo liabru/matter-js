@@ -14,50 +14,50 @@
   <tr>
     <td>
       <ul>
-        <li><a href="http://brm.io/matter-js-demo-master#mixed">Mixed Shapes</a></li>
-        <li><a href="http://brm.io/matter-js-demo-master#mixedSolid">Solid Shapes</a></li>
-        <li><a href="http://brm.io/matter-js-demo-master#svg">Concave SVG Paths</a></li>
-        <li><a href="http://brm.io/matter-js-demo-master#terrain">Concave Terrain</a></li>
-        <li><a href="http://brm.io/matter-js-demo-master#concave">Concave Bodies</a></li>
-        <li><a href="http://brm.io/matter-js-demo-master#compound">Compound Bodies</a></li>
-        <li><a href="http://brm.io/matter-js-demo-master#newtonsCradle">Newton's Cradle</a></li>
-        <li><a href="http://brm.io/matter-js-demo-master#wreckingBall">Wrecking Ball</a></li>
-        <li><a href="http://brm.io/matter-js-demo-master#slingshot">Slingshot Game</a></li>
-        <li><a href="http://brm.io/matter-js-demo-master#rounded">Rounded Corners</a></li>
-        <li><a href="http://brm.io/matter-js-demo-master#views">Views</a></li>
-        <li><a href="http://brm.io/matter-js-demo-master#timescale">Time Scaling</a></li>
-        <li><a href="http://brm.io/matter-js-demo-master#manipulation">Body Manipulation</a></li>
-        <li><a href="http://brm.io/matter-js-demo-master#compositeManipulation">Composite Manipulation</a></li>
-        <li><a href="http://brm.io/matter-js-demo-master#raycasting">Raycasting</a></li>
-        <li><a href="http://brm.io/matter-js-demo-master#sprites">Sprites</a></li>
-        <li><a href="http://brm.io/matter-js-demo-master#pyramid">Pyramid</a></li>
-        <li><a href="http://brm.io/matter-js-demo-master#car">Car</a></li>
-        <li><a href="http://brm.io/matter-js-demo-master#catapult">Catapult</a></li>
-        <li><a href="http://brm.io/matter-js-demo-master#gravity">Reverse Gravity</a></li>
+        <li><a href="http://brm.io/matter-js/demo#mixed">Mixed Shapes</a></li>
+        <li><a href="http://brm.io/matter-js/demo#mixedSolid">Solid Shapes</a></li>
+        <li><a href="http://brm.io/matter-js/demo#svg">Concave SVG Paths</a></li>
+        <li><a href="http://brm.io/matter-js/demo#terrain">Concave Terrain</a></li>
+        <li><a href="http://brm.io/matter-js/demo#concave">Concave Bodies</a></li>
+        <li><a href="http://brm.io/matter-js/demo#compound">Compound Bodies</a></li>
+        <li><a href="http://brm.io/matter-js/demo#newtonsCradle">Newton's Cradle</a></li>
+        <li><a href="http://brm.io/matter-js/demo#wreckingBall">Wrecking Ball</a></li>
+        <li><a href="http://brm.io/matter-js/demo#slingshot">Slingshot Game</a></li>
+        <li><a href="http://brm.io/matter-js/demo#rounded">Rounded Corners</a></li>
+        <li><a href="http://brm.io/matter-js/demo#views">Views</a></li>
+        <li><a href="http://brm.io/matter-js/demo#timescale">Time Scaling</a></li>
+        <li><a href="http://brm.io/matter-js/demo#manipulation">Body Manipulation</a></li>
+        <li><a href="http://brm.io/matter-js/demo#compositeManipulation">Composite Manipulation</a></li>
+        <li><a href="http://brm.io/matter-js/demo#raycasting">Raycasting</a></li>
+        <li><a href="http://brm.io/matter-js/demo#sprites">Sprites</a></li>
+        <li><a href="http://brm.io/matter-js/demo#pyramid">Pyramid</a></li>
+        <li><a href="http://brm.io/matter-js/demo#car">Car</a></li>
+        <li><a href="http://brm.io/matter-js/demo#catapult">Catapult</a></li>
+        <li><a href="http://brm.io/matter-js/demo#gravity">Reverse Gravity</a></li>
       </ul>
     </td>
     <td>
       <ul>
-        <li><a href="http://brm.io/matter-js-demo-master#bridge">Bridge</a></li>
-        <li><a href="http://brm.io/matter-js-demo-master#avalanche">Avalanche</a></li>
-        <li><a href="http://brm.io/matter-js-demo-master#softBody">Basic Soft Bodies</a></li>
-        <li><a href="http://brm.io/matter-js-demo-master#cloth">Cloth</a></li>
-        <li><a href="http://brm.io/matter-js-demo-master#events">Events</a></li>
-        <li><a href="http://brm.io/matter-js-demo-master#collisionFiltering">Collision Filtering</a></li>
-        <li><a href="http://brm.io/matter-js-demo-master#chains">Chains</a></li>
-        <li><a href="http://brm.io/matter-js-demo-master#ballPool">Ball Pool</a></li>
-        <li><a href="http://brm.io/matter-js-demo-master#stack">Stack</a></li>
-        <li><a href="http://brm.io/matter-js-demo-master#circleStack">Circle Stack</a></li>
-        <li><a href="http://brm.io/matter-js-demo-master#compoundStack">Compound Stack</a></li>
-        <li><a href="http://brm.io/matter-js-demo-master#restitution">Restitution</a></li>
-        <li><a href="http://brm.io/matter-js-demo-master#friction">Friction</a></li>
-        <li><a href="http://brm.io/matter-js-demo-master#airFriction">Air Friction</a></li>
-        <li><a href="http://brm.io/matter-js-demo-master#staticFriction">Static Friction</a></li>
-        <li><a href="http://brm.io/matter-js-demo-master#sleeping">Sleeping</a></li>
-        <li><a href="http://brm.io/matter-js-demo-master#broadphase">Grid Broadphase</a></li>
-        <li><a href="http://brm.io/matter-js-demo-master#beachBalls">Beach Balls</a></li>
-        <li><a href="http://brm.io/matter-js-demo-master#stress">Stress 1</a></li>
-        <li><a href="http://brm.io/matter-js-demo-master#stress2">Stress 2</a></li>
+        <li><a href="http://brm.io/matter-js/demo#bridge">Bridge</a></li>
+        <li><a href="http://brm.io/matter-js/demo#avalanche">Avalanche</a></li>
+        <li><a href="http://brm.io/matter-js/demo#softBody">Basic Soft Bodies</a></li>
+        <li><a href="http://brm.io/matter-js/demo#cloth">Cloth</a></li>
+        <li><a href="http://brm.io/matter-js/demo#events">Events</a></li>
+        <li><a href="http://brm.io/matter-js/demo#collisionFiltering">Collision Filtering</a></li>
+        <li><a href="http://brm.io/matter-js/demo#chains">Chains</a></li>
+        <li><a href="http://brm.io/matter-js/demo#ballPool">Ball Pool</a></li>
+        <li><a href="http://brm.io/matter-js/demo#stack">Stack</a></li>
+        <li><a href="http://brm.io/matter-js/demo#circleStack">Circle Stack</a></li>
+        <li><a href="http://brm.io/matter-js/demo#compoundStack">Compound Stack</a></li>
+        <li><a href="http://brm.io/matter-js/demo#restitution">Restitution</a></li>
+        <li><a href="http://brm.io/matter-js/demo#friction">Friction</a></li>
+        <li><a href="http://brm.io/matter-js/demo#airFriction">Air Friction</a></li>
+        <li><a href="http://brm.io/matter-js/demo#staticFriction">Static Friction</a></li>
+        <li><a href="http://brm.io/matter-js/demo#sleeping">Sleeping</a></li>
+        <li><a href="http://brm.io/matter-js/demo#broadphase">Grid Broadphase</a></li>
+        <li><a href="http://brm.io/matter-js/demo#beachBalls">Beach Balls</a></li>
+        <li><a href="http://brm.io/matter-js/demo#stress">Stress 1</a></li>
+        <li><a href="http://brm.io/matter-js/demo#stress2">Stress 2</a></li>
       </ul>
       <br>
     </td>
@@ -130,8 +130,7 @@ There are even more examples on [codepen](http://codepen.io/collection/Fuagy/).
 
 ### Documentation
 
-Edge build documentation is at [Matter.js API Docs (master)](http://brm.io/matter-js-docs-master/)  
-Stable release documentation is at [Matter.js API Docs (v0.8.0)](http://brm.io/matter-js-docs/)
+See the [API Documentation](http://brm.io/matter-js/docs) and the [wiki](https://github.com/liabru/matter-js/wiki)
 
 ### Building and Contributing
 

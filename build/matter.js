@@ -1,5 +1,5 @@
 /**
-* matter-js master by @liabru 2015-12-23
+* matter-js 0.9.0 by @liabru 2016-01-16
 * http://brm.io/matter-js/
 * License MIT
 */
@@ -34,8 +34,7 @@
 * A `Matter.Body` is a rigid body that can be simulated by a `Matter.Engine`.
 * Factories for commonly used body configurations (such as rectangles, circles and other polygons) can be found in the module `Matter.Bodies`.
 *
-* See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
-* and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
+* See the included usage [examples](https://github.com/liabru/matter-js/tree/master/examples).
 
 * @class Body
 */
@@ -55,10 +54,9 @@ var Axes = require('../geometry/Axes');
 (function() {
 
     Body._inertiaScale = 4;
-
-    var _nextCollidingGroupId = 1,
-        _nextNonCollidingGroupId = -1,
-        _nextCategory = 0x0001;
+    Body._nextCollidingGroupId = 1;
+    Body._nextNonCollidingGroupId = -1;
+    Body._nextCategory = 0x0001;
 
     /**
      * Creates a new rigid body model. The options parameter is an object that specifies any properties you wish to override the defaults.
@@ -131,9 +129,9 @@ var Axes = require('../geometry/Axes');
      */
     Body.nextGroup = function(isNonColliding) {
         if (isNonColliding)
-            return _nextNonCollidingGroupId--;
+            return Body._nextNonCollidingGroupId--;
 
-        return _nextCollidingGroupId++;
+        return Body._nextCollidingGroupId++;
     };
 
     /**
@@ -143,8 +141,8 @@ var Axes = require('../geometry/Axes');
      * @return {Number} Unique category bitfield
      */
     Body.nextCategory = function() {
-        _nextCategory = _nextCategory << 1;
-        return _nextCategory;
+        Body._nextCategory = Body._nextCategory << 1;
+        return Body._nextCategory;
     };
 
     /**
@@ -1137,8 +1135,7 @@ var Axes = require('../geometry/Axes');
 * It is important to use the functions in this module to modify composites, rather than directly modifying their properties.
 * Note that the `Matter.World` object is also a type of `Matter.Composite` and as such all composite methods here can also operate on a `Matter.World`.
 *
-* See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
-* and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
+* See the included usage [examples](https://github.com/liabru/matter-js/tree/master/examples).
 *
 * @class Composite
 */
@@ -1285,7 +1282,7 @@ var Body = require('./Body');
     };
 
     /**
-     * Adds a composite to the given composite
+     * Adds a composite to the given composite.
      * @private
      * @method addComposite
      * @param {composite} compositeA
@@ -1300,7 +1297,7 @@ var Body = require('./Body');
     };
 
     /**
-     * Removes a composite from the given composite, and optionally searching its children recursively
+     * Removes a composite from the given composite, and optionally searching its children recursively.
      * @private
      * @method removeComposite
      * @param {composite} compositeA
@@ -1325,7 +1322,7 @@ var Body = require('./Body');
     };
 
     /**
-     * Removes a composite from the given composite
+     * Removes a composite from the given composite.
      * @private
      * @method removeCompositeAt
      * @param {composite} composite
@@ -1339,7 +1336,7 @@ var Body = require('./Body');
     };
 
     /**
-     * Adds a body to the given composite
+     * Adds a body to the given composite.
      * @private
      * @method addBody
      * @param {composite} composite
@@ -1353,7 +1350,7 @@ var Body = require('./Body');
     };
 
     /**
-     * Removes a body from the given composite, and optionally searching its children recursively
+     * Removes a body from the given composite, and optionally searching its children recursively.
      * @private
      * @method removeBody
      * @param {composite} composite
@@ -1378,7 +1375,7 @@ var Body = require('./Body');
     };
 
     /**
-     * Removes a body from the given composite
+     * Removes a body from the given composite.
      * @private
      * @method removeBodyAt
      * @param {composite} composite
@@ -1392,7 +1389,7 @@ var Body = require('./Body');
     };
 
     /**
-     * Adds a constraint to the given composite
+     * Adds a constraint to the given composite.
      * @private
      * @method addConstraint
      * @param {composite} composite
@@ -1406,7 +1403,7 @@ var Body = require('./Body');
     };
 
     /**
-     * Removes a constraint from the given composite, and optionally searching its children recursively
+     * Removes a constraint from the given composite, and optionally searching its children recursively.
      * @private
      * @method removeConstraint
      * @param {composite} composite
@@ -1430,7 +1427,7 @@ var Body = require('./Body');
     };
 
     /**
-     * Removes a body from the given composite
+     * Removes a body from the given composite.
      * @private
      * @method removeConstraintAt
      * @param {composite} composite
@@ -1444,8 +1441,8 @@ var Body = require('./Body');
     };
 
     /**
-     * Removes all bodies, constraints and composites from the given composite
-     * Optionally clearing its children recursively
+     * Removes all bodies, constraints and composites from the given composite.
+     * Optionally clearing its children recursively.
      * @method clear
      * @param {composite} composite
      * @param {boolean} keepStatic
@@ -1472,7 +1469,7 @@ var Body = require('./Body');
     };
 
     /**
-     * Returns all bodies in the given composite, including all bodies in its children, recursively
+     * Returns all bodies in the given composite, including all bodies in its children, recursively.
      * @method allBodies
      * @param {composite} composite
      * @return {body[]} All the bodies
@@ -1487,7 +1484,7 @@ var Body = require('./Body');
     };
 
     /**
-     * Returns all constraints in the given composite, including all constraints in its children, recursively
+     * Returns all constraints in the given composite, including all constraints in its children, recursively.
      * @method allConstraints
      * @param {composite} composite
      * @return {constraint[]} All the constraints
@@ -1502,7 +1499,7 @@ var Body = require('./Body');
     };
 
     /**
-     * Returns all composites in the given composite, including all composites in its children, recursively
+     * Returns all composites in the given composite, including all composites in its children, recursively.
      * @method allComposites
      * @param {composite} composite
      * @return {composite[]} All the composites
@@ -1517,7 +1514,7 @@ var Body = require('./Body');
     };
 
     /**
-     * Searches the composite recursively for an object matching the type and id supplied, null if not found
+     * Searches the composite recursively for an object matching the type and id supplied, null if not found.
      * @method get
      * @param {composite} composite
      * @param {number} id
@@ -1551,7 +1548,7 @@ var Body = require('./Body');
     };
 
     /**
-     * Moves the given object(s) from compositeA to compositeB (equal to a remove followed by an add)
+     * Moves the given object(s) from compositeA to compositeB (equal to a remove followed by an add).
      * @method move
      * @param {compositeA} compositeA
      * @param {object[]} objects
@@ -1565,7 +1562,7 @@ var Body = require('./Body');
     };
 
     /**
-     * Assigns new ids for all objects in the composite, recursively
+     * Assigns new ids for all objects in the composite, recursively.
      * @method rebase
      * @param {composite} composite
      * @return {composite} Returns composite
@@ -1798,8 +1795,7 @@ var Body = require('./Body');
 * It is important to use the functions in the `Matter.Composite` module to modify the world composite, rather than directly modifying its properties.
 * There are also a few methods here that alias those in `Matter.Composite` for easier readability.
 *
-* See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
-* and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
+* See the included usage [examples](https://github.com/liabru/matter-js/tree/master/examples).
 *
 * @class World
 * @extends Composite
@@ -1828,7 +1824,11 @@ var Common = require('../core/Common');
 
         var defaults = {
             label: 'World',
-            gravity: { x: 0, y: 1 },
+            gravity: {
+                x: 0,
+                y: 1,
+                scale: 0.001
+            },
             bounds: { 
                 min: { x: -Infinity, y: -Infinity }, 
                 max: { x: Infinity, y: Infinity } 
@@ -1838,18 +1838,55 @@ var Common = require('../core/Common');
         return Common.extend(composite, defaults, options);
     };
 
+    /*
+    *
+    *  Properties Documentation
+    *
+    */
+
+    /**
+     * The gravity to apply on the world.
+     *
+     * @property gravity
+     * @type object
+     */
+
+    /**
+     * The gravity x component.
+     *
+     * @property gravity.x
+     * @type object
+     * @default 0
+     */
+
+    /**
+     * The gravity y component.
+     *
+     * @property gravity.y
+     * @type object
+     * @default 1
+     */
+
+    /**
+     * The gravity scale factor.
+     *
+     * @property gravity.scale
+     * @type object
+     * @default 0.001
+     */
+
     // World is a Composite body
     // see src/module/Outro.js for these aliases:
     
     /**
-     * An alias for Composite.clear since World is also a Composite
+     * An alias for Composite.clear
      * @method clear
      * @param {world} world
      * @param {boolean} keepStatic
      */
 
     /**
-     * An alias for Composite.add since World is also a Composite
+     * An alias for Composite.add
      * @method addComposite
      * @param {world} world
      * @param {composite} composite
@@ -1857,7 +1894,7 @@ var Common = require('../core/Common');
      */
     
      /**
-      * An alias for Composite.addBody since World is also a Composite
+      * An alias for Composite.addBody
       * @method addBody
       * @param {world} world
       * @param {body} body
@@ -1865,7 +1902,7 @@ var Common = require('../core/Common');
       */
 
      /**
-      * An alias for Composite.addConstraint since World is also a Composite
+      * An alias for Composite.addConstraint
       * @method addConstraint
       * @param {world} world
       * @param {constraint} constraint
@@ -1876,7 +1913,7 @@ var Common = require('../core/Common');
 
 },{"../constraint/Constraint":12,"../core/Common":14,"./Composite":2}],4:[function(require,module,exports){
 /**
-* _Internal Class_, not generally used outside of the engine's internals.
+* The `Matter.Contact` module contains methods for creating and manipulating collision contacts.
 *
 * @class Contact
 */
@@ -1888,7 +1925,7 @@ module.exports = Contact;
 (function() {
 
     /**
-     * Description
+     * Creates a new contact.
      * @method create
      * @param {vertex} vertex
      * @return {contact} A new contact
@@ -1903,7 +1940,7 @@ module.exports = Contact;
     };
     
     /**
-     * Description
+     * Generates a contact id.
      * @method id
      * @param {vertex} vertex
      * @return {string} Unique contactID
@@ -1916,7 +1953,7 @@ module.exports = Contact;
 
 },{}],5:[function(require,module,exports){
 /**
-* _Internal Class_, not generally used outside of the engine's internals.
+* The `Matter.Detector` module contains methods for detecting collisions given a set of pairs.
 *
 * @class Detector
 */
@@ -1934,7 +1971,7 @@ var Bounds = require('../geometry/Bounds');
 (function() {
 
     /**
-     * Description
+     * Finds all collisions given a list of pairs.
      * @method collisions
      * @param {pair[]} broadphasePairs
      * @param {engine} engine
@@ -2011,8 +2048,7 @@ var Bounds = require('../geometry/Bounds');
 
 },{"../geometry/Bounds":24,"./Pair":7,"./SAT":11}],6:[function(require,module,exports){
 /**
-* See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
-* and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
+* The `Matter.Grid` module contains methods for creating and manipulating collision broadphase grid structures.
 *
 * @class Grid
 */
@@ -2028,7 +2064,7 @@ var Common = require('../core/Common');
 (function() {
 
     /**
-     * Description
+     * Creates a new grid.
      * @method create
      * @param {} options
      * @return {grid} A new grid
@@ -2048,7 +2084,7 @@ var Common = require('../core/Common');
     };
 
     /**
-     * Description
+     * Updates the grid.
      * @method update
      * @param {grid} grid
      * @param {body[]} bodies
@@ -2130,7 +2166,7 @@ var Common = require('../core/Common');
     };
 
     /**
-     * Description
+     * Clears the grid.
      * @method clear
      * @param {grid} grid
      */
@@ -2141,12 +2177,12 @@ var Common = require('../core/Common');
     };
 
     /**
-     * Description
+     * Finds the union of two regions.
      * @method _regionUnion
      * @private
      * @param {} regionA
      * @param {} regionB
-     * @return CallExpression
+     * @return {} region
      */
     var _regionUnion = function(regionA, regionB) {
         var startCol = Math.min(regionA.startCol, regionB.startCol),
@@ -2158,12 +2194,12 @@ var Common = require('../core/Common');
     };
 
     /**
-     * Description
+     * Gets the region a given body falls in for a given grid.
      * @method _getRegion
      * @private
      * @param {} grid
      * @param {} body
-     * @return CallExpression
+     * @return {} region
      */
     var _getRegion = function(grid, body) {
         var bounds = body.bounds,
@@ -2176,14 +2212,14 @@ var Common = require('../core/Common');
     };
 
     /**
-     * Description
+     * Creates a region.
      * @method _createRegion
      * @private
      * @param {} startCol
      * @param {} endCol
      * @param {} startRow
      * @param {} endRow
-     * @return ObjectExpression
+     * @return {} region
      */
     var _createRegion = function(startCol, endCol, startRow, endRow) {
         return { 
@@ -2196,24 +2232,24 @@ var Common = require('../core/Common');
     };
 
     /**
-     * Description
+     * Gets the bucket id at the given position.
      * @method _getBucketId
      * @private
      * @param {} column
      * @param {} row
-     * @return BinaryExpression
+     * @return {string} bucket id
      */
     var _getBucketId = function(column, row) {
         return column + ',' + row;
     };
 
     /**
-     * Description
+     * Creates a bucket.
      * @method _createBucket
      * @private
      * @param {} buckets
      * @param {} bucketId
-     * @return bucket
+     * @return {} bucket
      */
     var _createBucket = function(buckets, bucketId) {
         var bucket = buckets[bucketId] = [];
@@ -2221,7 +2257,7 @@ var Common = require('../core/Common');
     };
 
     /**
-     * Description
+     * Adds a body to a bucket.
      * @method _bucketAddBody
      * @private
      * @param {} grid
@@ -2253,7 +2289,7 @@ var Common = require('../core/Common');
     };
 
     /**
-     * Description
+     * Removes a body from a bucket.
      * @method _bucketRemoveBody
      * @private
      * @param {} grid
@@ -2278,11 +2314,11 @@ var Common = require('../core/Common');
     };
 
     /**
-     * Description
+     * Generates a list of the active pairs in the grid.
      * @method _createActivePairsList
      * @private
      * @param {} grid
-     * @return pairs
+     * @return [] pairs
      */
     var _createActivePairsList = function(grid) {
         var pairKeys,
@@ -2309,9 +2345,10 @@ var Common = require('../core/Common');
     };
     
 })();
+
 },{"../core/Common":14,"./Detector":5,"./Pair":7}],7:[function(require,module,exports){
 /**
-* _Internal Class_, not generally used outside of the engine's internals.
+* The `Matter.Pair` module contains methods for creating and manipulating collision pairs.
 *
 * @class Pair
 */
@@ -2325,7 +2362,7 @@ var Contact = require('./Contact');
 (function() {
     
     /**
-     * Description
+     * Creates a pair.
      * @method create
      * @param {collision} collision
      * @param {number} timestamp
@@ -2360,7 +2397,7 @@ var Contact = require('./Contact');
     };
 
     /**
-     * Description
+     * Updates a pair given a collision.
      * @method update
      * @param {pair} pair
      * @param {collision} collision
@@ -2403,7 +2440,7 @@ var Contact = require('./Contact');
     };
     
     /**
-     * Description
+     * Set a pair as active or inactive.
      * @method setActive
      * @param {pair} pair
      * @param {bool} isActive
@@ -2420,7 +2457,7 @@ var Contact = require('./Contact');
     };
 
     /**
-     * Description
+     * Get the id for the given pair.
      * @method id
      * @param {body} bodyA
      * @param {body} bodyB
@@ -2438,7 +2475,7 @@ var Contact = require('./Contact');
 
 },{"./Contact":4}],8:[function(require,module,exports){
 /**
-* _Internal Class_, not generally used outside of the engine's internals.
+* The `Matter.Pairs` module contains methods for creating and manipulating collision pair sets.
 *
 * @class Pairs
 */
@@ -2455,7 +2492,7 @@ var Common = require('../core/Common');
     var _pairMaxIdleLife = 1000;
 
     /**
-     * Creates a new pairs structure
+     * Creates a new pairs structure.
      * @method create
      * @param {object} options
      * @return {pairs} A new pairs structure
@@ -2471,7 +2508,7 @@ var Common = require('../core/Common');
     };
 
     /**
-     * Description
+     * Updates pairs given a list of collisions.
      * @method update
      * @param {object} pairs
      * @param {collision[]} collisions
@@ -2538,7 +2575,7 @@ var Common = require('../core/Common');
     };
     
     /**
-     * Description
+     * Finds and removes pairs that have been inactive for a set amount of time.
      * @method removeOld
      * @param {object} pairs
      * @param {number} timestamp
@@ -2578,7 +2615,7 @@ var Common = require('../core/Common');
     };
 
     /**
-     * Clears the given pairs structure
+     * Clears the given pairs structure.
      * @method clear
      * @param {pairs} pairs
      * @return {pairs} pairs
@@ -2597,6 +2634,8 @@ var Common = require('../core/Common');
 },{"../core/Common":14,"./Pair":7}],9:[function(require,module,exports){
 /**
 * The `Matter.Query` module contains methods for performing collision queries.
+*
+* See the included usage [examples](https://github.com/liabru/matter-js/tree/master/examples).
 *
 * @class Query
 */
@@ -2705,9 +2744,10 @@ var Vertices = require('../geometry/Vertices');
     };
 
 })();
+
 },{"../factory/Bodies":21,"../geometry/Bounds":24,"../geometry/Vector":26,"../geometry/Vertices":27,"./SAT":11}],10:[function(require,module,exports){
 /**
-* _Internal Class_, not generally used outside of the engine's internals.
+* The `Matter.Resolver` module contains methods for resolving collision pairs.
 *
 * @class Resolver
 */
@@ -2730,7 +2770,7 @@ var Bounds = require('../geometry/Bounds');
     Resolver._frictionNormalMultiplier = 5;
 
     /**
-     * Description
+     * Prepare pairs for position solving.
      * @method preSolvePosition
      * @param {pair[]} pairs
      */
@@ -2753,7 +2793,7 @@ var Bounds = require('../geometry/Bounds');
     };
 
     /**
-     * Description
+     * Find a solution for pair positions.
      * @method solvePosition
      * @param {pair[]} pairs
      * @param {number} timeScale
@@ -2824,7 +2864,7 @@ var Bounds = require('../geometry/Bounds');
     };
 
     /**
-     * Description
+     * Apply position resolution.
      * @method postSolvePosition
      * @param {body[]} bodies
      */
@@ -2863,7 +2903,7 @@ var Bounds = require('../geometry/Bounds');
     };
 
     /**
-     * Description
+     * Prepare pairs for velocity solving.
      * @method preSolveVelocity
      * @param {pair[]} pairs
      */
@@ -2930,7 +2970,7 @@ var Bounds = require('../geometry/Bounds');
     };
 
     /**
-     * Description
+     * Find a solution for pair velocities.
      * @method solveVelocity
      * @param {pair[]} pairs
      * @param {number} timeScale
@@ -3053,7 +3093,7 @@ var Bounds = require('../geometry/Bounds');
 
 },{"../core/Common":14,"../geometry/Bounds":24,"../geometry/Vector":26,"../geometry/Vertices":27}],11:[function(require,module,exports){
 /**
-* _Internal Class_, not generally used outside of the engine's internals.
+* The `Matter.SAT` module contains methods for detecting collisions using the Separating Axis Theorem.
 *
 * @class SAT
 */
@@ -3070,7 +3110,7 @@ var Vector = require('../geometry/Vector');
 (function() {
 
     /**
-     * Description
+     * Detect collision between two bodies using the Separating Axis Theorem.
      * @method collides
      * @param {body} bodyA
      * @param {body} bodyB
@@ -3200,7 +3240,7 @@ var Vector = require('../geometry/Vector');
     };
 
     /**
-     * Description
+     * Find the overlap between two sets of vertices.
      * @method _overlapAxes
      * @private
      * @param {} verticesA
@@ -3239,7 +3279,7 @@ var Vector = require('../geometry/Vector');
     };
 
     /**
-     * Description
+     * Projects vertices on an axis and returns an interval.
      * @method _projectToAxis
      * @private
      * @param {} projection
@@ -3265,13 +3305,13 @@ var Vector = require('../geometry/Vector');
     };
     
     /**
-     * Description
+     * Finds supporting vertices given two bodies along a given direction using hill-climbing.
      * @method _findSupports
      * @private
      * @param {} bodyA
      * @param {} bodyB
      * @param {} normal
-     * @return ArrayExpression
+     * @return [vector]
      */
     var _findSupports = function(bodyA, bodyB, normal) {
         var nearestDistance = Number.MAX_VALUE,
@@ -3324,8 +3364,7 @@ var Vector = require('../geometry/Vector');
 * Constraints are used for specifying that a fixed distance must be maintained between two bodies (or a body and a fixed world-space position).
 * The stiffness of constraints can be modified to create springs or elastic.
 *
-* See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
-* and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
+* See the included usage [examples](https://github.com/liabru/matter-js/tree/master/examples).
 *
 * @class Constraint
 */
@@ -3400,7 +3439,7 @@ var Common = require('../core/Common');
     };
 
     /**
-     * Description
+     * Solves all constraints in a list of collisions.
      * @private
      * @method solveAll
      * @param {constraint[]} constraints
@@ -3413,7 +3452,7 @@ var Common = require('../core/Common');
     };
 
     /**
-     * Description
+     * Solves a distance constraint with Gauss-Siedel method.
      * @private
      * @method solve
      * @param {constraint} constraint
@@ -3528,12 +3567,6 @@ var Common = require('../core/Common');
         if (bodyA && !bodyA.isStatic) {
             torque = Vector.cross(offsetA, normalVelocity) * bodyA.inverseInertia * (1 - constraint.angularStiffness);
 
-            Sleeping.set(bodyA, false);
-            
-            // clamp to prevent instability
-            // TODO: solve this properly
-            torque = Common.clamp(torque, -0.01, 0.01);
-
             // keep track of applied impulses for post solving
             bodyA.constraintImpulse.x -= force.x;
             bodyA.constraintImpulse.y -= force.y;
@@ -3547,12 +3580,6 @@ var Common = require('../core/Common');
 
         if (bodyB && !bodyB.isStatic) {
             torque = Vector.cross(offsetB, normalVelocity) * bodyB.inverseInertia * (1 - constraint.angularStiffness);
-
-            Sleeping.set(bodyB, false);
-            
-            // clamp to prevent instability
-            // TODO: solve this properly
-            torque = Common.clamp(torque, -0.01, 0.01);
 
             // keep track of applied impulses for post solving
             bodyB.constraintImpulse.x += force.x;
@@ -3568,7 +3595,7 @@ var Common = require('../core/Common');
     };
 
     /**
-     * Performs body updates required after solving constraints
+     * Performs body updates required after solving constraints.
      * @private
      * @method postSolveAll
      * @param {body[]} bodies
@@ -3581,6 +3608,8 @@ var Common = require('../core/Common');
             if (impulse.x === 0 && impulse.y === 0 && impulse.angle === 0) {
                 continue;
             }
+
+            Sleeping.set(body, false);
 
             // update geometry and reset
             for (var j = 0; j < body.parts.length; j++) {
@@ -3729,8 +3758,7 @@ var Common = require('../core/Common');
 * The `Matter.MouseConstraint` module contains methods for creating mouse constraints.
 * Mouse constraints are used for allowing user interaction, providing the ability to move bodies via the mouse or touch.
 *
-* See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
-* and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
+* See the included usage [examples](https://github.com/liabru/matter-js/tree/master/examples).
 *
 * @class MouseConstraint
 */
@@ -3856,7 +3884,7 @@ var Bounds = require('../geometry/Bounds');
     };
 
     /**
-     * Triggers mouse constraint events
+     * Triggers mouse constraint events.
      * @method _triggerEvents
      * @private
      * @param {mouse} mouseConstraint
@@ -3986,7 +4014,7 @@ var Bounds = require('../geometry/Bounds');
 
 },{"../body/Composite":2,"../collision/Detector":5,"../core/Common":14,"../core/Events":16,"../core/Mouse":18,"../core/Sleeping":20,"../geometry/Bounds":24,"../geometry/Vertices":27,"./Constraint":12}],14:[function(require,module,exports){
 /**
-* _Internal Class_, not generally used outside of the engine's internals.
+* The `Matter.Common` module contains utility functions that are common to all modules.
 *
 * @class Common
 */
@@ -4001,7 +4029,7 @@ module.exports = Common;
     Common._seed = 0;
 
     /**
-     * Description
+     * Extends the object in the first argument using the object in the second argument.
      * @method extend
      * @param {} obj
      * @param {boolean} deep
@@ -4045,7 +4073,7 @@ module.exports = Common;
     };
 
     /**
-     * Creates a new clone of the object, if deep is true references will also be cloned
+     * Creates a new clone of the object, if deep is true references will also be cloned.
      * @method clone
      * @param {} obj
      * @param {bool} deep
@@ -4056,7 +4084,7 @@ module.exports = Common;
     };
 
     /**
-     * Description
+     * Returns the list of keys for the given object.
      * @method keys
      * @param {} obj
      * @return {string[]} keys
@@ -4073,7 +4101,7 @@ module.exports = Common;
     };
 
     /**
-     * Description
+     * Returns the list of values for the given object.
      * @method values
      * @param {} obj
      * @return {array} Array of the objects property values
@@ -4096,11 +4124,11 @@ module.exports = Common;
     };
 
     /**
-     * Description
+     * Returns a hex colour string made by lightening or darkening color by percent.
      * @method shadeColor
      * @param {string} color
      * @param {number} percent
-     * @return {string} A hex colour string made by lightening or darkening color by percent
+     * @return {string} A hex colour
      */
     Common.shadeColor = function(color, percent) {   
         // http://stackoverflow.com/questions/5560248/programmatically-lighten-or-darken-a-hex-color
@@ -4115,7 +4143,8 @@ module.exports = Common;
     };
 
     /**
-     * Description
+     * Shuffles the given array in-place.
+     * The function uses a seeded random generator.
      * @method shuffle
      * @param {array} array
      * @return {array} array shuffled randomly
@@ -4131,7 +4160,8 @@ module.exports = Common;
     };
 
     /**
-     * Description
+     * Randomly chooses a value from a list with equal probability.
+     * The function uses a seeded random generator.
      * @method choose
      * @param {array} choices
      * @return {object} A random choice object from the array
@@ -4141,7 +4171,7 @@ module.exports = Common;
     };
 
     /**
-     * Description
+     * Returns true if the object is a HTMLElement, otherwise false.
      * @method isElement
      * @param {object} obj
      * @return {boolean} True if the object is a HTMLElement, otherwise false
@@ -4159,7 +4189,7 @@ module.exports = Common;
     };
 
     /**
-     * Description
+     * Returns true if the object is an array.
      * @method isArray
      * @param {object} obj
      * @return {boolean} True if the object is an array, otherwise false
@@ -4169,7 +4199,7 @@ module.exports = Common;
     };
     
     /**
-     * Description
+     * Returns the given value clamped between a minimum and maximum value.
      * @method clamp
      * @param {number} value
      * @param {number} min
@@ -4185,7 +4215,7 @@ module.exports = Common;
     };
     
     /**
-     * Description
+     * Returns the sign of the given value.
      * @method sign
      * @param {number} value
      * @return {number} -1 if negative, +1 if 0 or positive
@@ -4195,7 +4225,7 @@ module.exports = Common;
     };
     
     /**
-     * Description
+     * Returns the current timestamp (high-res if available).
      * @method now
      * @return {number} the current timestamp (high-res if available)
      */
@@ -4219,7 +4249,8 @@ module.exports = Common;
 
     
     /**
-     * Description
+     * Returns a random value between a minimum and a maximum value inclusive.
+     * The function uses a seeded random generator.
      * @method random
      * @param {number} min
      * @param {number} max
@@ -4232,7 +4263,7 @@ module.exports = Common;
     };
 
     /**
-     * Converts a CSS hex colour string into an integer
+     * Converts a CSS hex colour string into an integer.
      * @method colorToNumber
      * @param {string} colorString
      * @return {number} An integer representing the CSS hex string
@@ -4250,7 +4281,7 @@ module.exports = Common;
     };
 
     /**
-     * A wrapper for console.log, for providing errors and warnings
+     * A wrapper for console.log, for providing errors and warnings.
      * @method log
      * @param {string} message
      * @param {string} type
@@ -4272,7 +4303,7 @@ module.exports = Common;
     };
 
     /**
-     * Returns the next unique sequential ID
+     * Returns the next unique sequential ID.
      * @method nextId
      * @return {Number} Unique sequential ID
      */
@@ -4281,7 +4312,7 @@ module.exports = Common;
     };
 
     /**
-     * A cross browser compatible indexOf implementation
+     * A cross browser compatible indexOf implementation.
      * @method indexOf
      * @param {array} haystack
      * @param {object} needle
@@ -4312,8 +4343,7 @@ module.exports = Common;
 * An engine is a controller that manages updating the simulation of the world.
 * See `Matter.Runner` for an optional game loop utility.
 *
-* See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
-* and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
+* See the included usage [examples](https://github.com/liabru/matter-js/tree/master/examples).
 *
 * @class Engine
 */
@@ -4579,6 +4609,12 @@ var Body = require('../body/Body');
      * @param {vector} gravity
      */
     var _bodiesApplyGravity = function(bodies, gravity) {
+        var gravityScale = typeof gravity.scale !== 'undefined' ? gravity.scale : 0.001;
+
+        if ((gravity.x === 0 && gravity.y === 0) || gravityScale === 0) {
+            return;
+        }
+        
         for (var i = 0; i < bodies.length; i++) {
             var body = bodies[i];
 
@@ -4586,8 +4622,8 @@ var Body = require('../body/Body');
                 continue;
 
             // apply gravity
-            body.force.y += body.mass * gravity.y * 0.001;
-            body.force.x += body.mass * gravity.x * 0.001;
+            body.force.y += body.mass * gravity.y * gravityScale;
+            body.force.x += body.mass * gravity.x * gravityScale;
         }
     };
 
@@ -4775,8 +4811,9 @@ var Body = require('../body/Body');
 
 },{"../body/Body":1,"../body/Composite":2,"../body/World":3,"../collision/Grid":6,"../collision/Pairs":8,"../collision/Resolver":10,"../constraint/Constraint":12,"../render/Render":29,"./Common":14,"./Events":16,"./Metrics":17,"./Sleeping":20}],16:[function(require,module,exports){
 /**
-* See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
-* and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
+* The `Matter.Events` module contains methods to fire and listen to events on other objects.
+*
+* See the included usage [examples](https://github.com/liabru/matter-js/tree/master/examples).
 *
 * @class Events
 */
@@ -4883,10 +4920,12 @@ var Common = require('./Common');
     };
 
 })();
+
 },{"./Common":14}],17:[function(require,module,exports){
+
 },{"../body/Composite":2,"./Common":14}],18:[function(require,module,exports){
 /**
-* _Internal Class_, not generally used outside of the engine's internals.
+* The `Matter.Mouse` module contains methods for creating and manipulating mouse inputs.
 *
 * @class Mouse
 */
@@ -4900,7 +4939,7 @@ var Common = require('../core/Common');
 (function() {
 
     /**
-     * Description
+     * Creates a mouse input.
      * @method create
      * @param {HTMLElement} element
      * @return {mouse} A new mouse
@@ -4995,7 +5034,7 @@ var Common = require('../core/Common');
     };
 
     /**
-     * Sets the element the mouse is bound to (and relative to)
+     * Sets the element the mouse is bound to (and relative to).
      * @method setElement
      * @param {mouse} mouse
      * @param {HTMLElement} element
@@ -5007,8 +5046,8 @@ var Common = require('../core/Common');
         element.addEventListener('mousedown', mouse.mousedown);
         element.addEventListener('mouseup', mouse.mouseup);
         
-        element.addEventListener("mousewheel", mouse.mousewheel);
-        element.addEventListener("DOMMouseScroll", mouse.mousewheel);
+        element.addEventListener('mousewheel', mouse.mousewheel);
+        element.addEventListener('DOMMouseScroll', mouse.mousewheel);
 
         element.addEventListener('touchmove', mouse.mousemove);
         element.addEventListener('touchstart', mouse.mousedown);
@@ -5016,7 +5055,7 @@ var Common = require('../core/Common');
     };
 
     /**
-     * Clears all captured source events
+     * Clears all captured source events.
      * @method clearSourceEvents
      * @param {mouse} mouse
      */
@@ -5029,7 +5068,7 @@ var Common = require('../core/Common');
     };
 
     /**
-     * Sets the offset
+     * Sets the mouse position offset.
      * @method setOffset
      * @param {mouse} mouse
      * @param {vector} offset
@@ -5042,7 +5081,7 @@ var Common = require('../core/Common');
     };
 
     /**
-     * Sets the scale
+     * Sets the mouse position scale.
      * @method setScale
      * @param {mouse} mouse
      * @param {vector} scale
@@ -5055,7 +5094,7 @@ var Common = require('../core/Common');
     };
     
     /**
-     * Description
+     * Gets the mouse position relative to an element given a screen pixel ratio.
      * @method _getRelativeMousePosition
      * @private
      * @param {} event
@@ -5096,8 +5135,7 @@ var Common = require('../core/Common');
 * Instead just call `Engine.update(engine, delta)` in your own loop.
 * Note that the method `Engine.run` is an alias for `Runner.run`.
 *
-* See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
-* and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
+* See the included usage [examples](https://github.com/liabru/matter-js/tree/master/examples).
 *
 * @class Runner
 */
@@ -5407,7 +5445,7 @@ var Common = require('./Common');
 
 },{"./Common":14,"./Engine":15,"./Events":16}],20:[function(require,module,exports){
 /**
-* _Internal Class_, not generally used outside of the engine's internals.
+* The `Matter.Sleeping` module contains methods to manage the sleeping state of bodies.
 *
 * @class Sleeping
 */
@@ -5498,7 +5536,7 @@ var Events = require('./Events');
     };
   
     /**
-     * Description
+     * Set a body as sleeping or awake.
      * @method set
      * @param {body} body
      * @param {boolean} isSleeping
@@ -5535,13 +5573,13 @@ var Events = require('./Events');
     };
 
 })();
+
 },{"./Events":16}],21:[function(require,module,exports){
 /**
 * The `Matter.Bodies` module contains factory methods for creating rigid body models 
 * with commonly used body configurations (such as rectangles, circles and other polygons).
 *
-* See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
-* and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
+* See the included usage [examples](https://github.com/liabru/matter-js/tree/master/examples).
 *
 * @class Bodies
 */
@@ -5868,8 +5906,10 @@ var Vector = require('../geometry/Vector');
 })();
 },{"../body/Body":1,"../core/Common":14,"../geometry/Bounds":24,"../geometry/Vector":26,"../geometry/Vertices":27}],22:[function(require,module,exports){
 /**
-* See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
-* and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
+* The `Matter.Composites` module contains factory methods for creating composite bodies
+* with commonly used configurations (such as stacks and chains).
+*
+* See the included usage [examples](https://github.com/liabru/matter-js/tree/master/examples).
 *
 * @class Composites
 */
@@ -5887,7 +5927,8 @@ var Bodies = require('./Bodies');
 (function() {
 
     /**
-     * Description
+     * Create a new composite containing bodies created in the callback in a grid arrangement.
+     * This function uses the body's bounds to prevent overlaps.
      * @method stack
      * @param {number} xx
      * @param {number} yy
@@ -5939,7 +5980,7 @@ var Bodies = require('./Bodies');
     };
     
     /**
-     * Description
+     * Chains all bodies in the given composite together using constraints.
      * @method chain
      * @param {composite} composite
      * @param {number} xOffsetA
@@ -5978,7 +6019,7 @@ var Bodies = require('./Bodies');
     };
 
     /**
-     * Connects bodies in the composite with constraints in a grid pattern, with optional cross braces
+     * Connects bodies in the composite with constraints in a grid pattern, with optional cross braces.
      * @method mesh
      * @param {composite} composite
      * @param {number} columns
@@ -6027,7 +6068,8 @@ var Bodies = require('./Bodies');
     };
     
     /**
-     * Description
+     * Create a new composite containing bodies created in the callback in a pyramid arrangement.
+     * This function uses the body's bounds to prevent overlaps.
      * @method pyramid
      * @param {number} xx
      * @param {number} yy
@@ -6067,7 +6109,7 @@ var Bodies = require('./Bodies');
     };
 
     /**
-     * Description
+     * Creates a composite with a Newton's Cradle setup of bodies and constraints.
      * @method newtonsCradle
      * @param {number} xx
      * @param {number} yy
@@ -6093,7 +6135,7 @@ var Bodies = require('./Bodies');
     };
     
     /**
-     * Description
+     * Creates a composite with simple car setup of bodies and constraints.
      * @method car
      * @param {number} xx
      * @param {number} yy
@@ -6124,10 +6166,7 @@ var Bodies = require('./Bodies');
             collisionFilter: {
                 group: group
             },
-            restitution: 0.5, 
-            friction: 0.9,
-            frictionStatic: 10,
-            slop: 0.5,
+            friction: 0.8,
             density: 0.01
         });
                     
@@ -6135,10 +6174,7 @@ var Bodies = require('./Bodies');
             collisionFilter: {
                 group: group
             },
-            restitution: 0.5, 
-            friction: 0.9,
-            frictionStatic: 10,
-            slop: 0.5,
+            friction: 0.8,
             density: 0.01
         });
                     
@@ -6146,14 +6182,14 @@ var Bodies = require('./Bodies');
             bodyA: body,
             pointA: { x: wheelAOffset, y: wheelYOffset },
             bodyB: wheelA,
-            stiffness: 0.5
+            stiffness: 0.2
         });
                         
         var axelB = Constraint.create({
             bodyA: body,
             pointA: { x: wheelBOffset, y: wheelYOffset },
             bodyB: wheelB,
-            stiffness: 0.5
+            stiffness: 0.2
         });
         
         Composite.addBody(car, body);
@@ -6166,7 +6202,7 @@ var Bodies = require('./Bodies');
     };
 
     /**
-     * Creates a simple soft body like object
+     * Creates a simple soft body like object.
      * @method softBody
      * @param {number} xx
      * @param {number} yy
@@ -6199,7 +6235,7 @@ var Bodies = require('./Bodies');
 
 },{"../body/Body":1,"../body/Composite":2,"../constraint/Constraint":12,"../core/Common":14,"./Bodies":21}],23:[function(require,module,exports){
 /**
-* _Internal Class_, not generally used outside of the engine's internals.
+* The `Matter.Axes` module contains methods for creating and manipulating sets of axes.
 *
 * @class Axes
 */
@@ -6214,7 +6250,7 @@ var Common = require('../core/Common');
 (function() {
 
     /**
-     * Description
+     * Creates a new set of axes from the given vertices.
      * @method fromVertices
      * @param {vertices} vertices
      * @return {axes} A new axes from the given vertices
@@ -6240,7 +6276,7 @@ var Common = require('../core/Common');
     };
 
     /**
-     * Description
+     * Rotates a set of axes by the given angle.
      * @method rotate
      * @param {axes} axes
      * @param {number} angle
@@ -6262,9 +6298,10 @@ var Common = require('../core/Common');
     };
 
 })();
+
 },{"../core/Common":14,"../geometry/Vector":26}],24:[function(require,module,exports){
 /**
-* _Internal Class_, not generally used outside of the engine's internals.
+* The `Matter.Bounds` module contains methods for creating and manipulating axis-aligned bounding boxes (AABB).
 *
 * @class Bounds
 */
@@ -6276,7 +6313,7 @@ module.exports = Bounds;
 (function() {
 
     /**
-     * Description
+     * Creates a new axis-aligned bounding box (AABB) for the given vertices.
      * @method create
      * @param {vertices} vertices
      * @return {bounds} A new bounds object
@@ -6294,7 +6331,7 @@ module.exports = Bounds;
     };
 
     /**
-     * Description
+     * Updates bounds using the given vertices and extends the bounds given a velocity.
      * @method update
      * @param {bounds} bounds
      * @param {vertices} vertices
@@ -6330,7 +6367,7 @@ module.exports = Bounds;
     };
 
     /**
-     * Description
+     * Returns true if the bounds contains the given point.
      * @method contains
      * @param {bounds} bounds
      * @param {vector} point
@@ -6342,7 +6379,7 @@ module.exports = Bounds;
     };
 
     /**
-     * Description
+     * Returns true if the two bounds intersect.
      * @method overlaps
      * @param {bounds} boundsA
      * @param {bounds} boundsB
@@ -6354,7 +6391,7 @@ module.exports = Bounds;
     };
 
     /**
-     * Translates the bounds by the given vector
+     * Translates the bounds by the given vector.
      * @method translate
      * @param {bounds} bounds
      * @param {vector} vector
@@ -6367,7 +6404,7 @@ module.exports = Bounds;
     };
 
     /**
-     * Shifts the bounds to the given position
+     * Shifts the bounds to the given position.
      * @method shift
      * @param {bounds} bounds
      * @param {vector} position
@@ -6383,12 +6420,12 @@ module.exports = Bounds;
     };
     
 })();
+
 },{}],25:[function(require,module,exports){
 /**
 * The `Matter.Svg` module contains methods for converting SVG images into an array of vector points.
 *
-* See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
-* and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
+* See the included usage [examples](https://github.com/liabru/matter-js/tree/master/examples).
 *
 * @class Svg
 */
@@ -6606,8 +6643,7 @@ var Bounds = require('../geometry/Bounds');
 * Vectors are the basis of all the geometry related operations in the engine.
 * A `Matter.Vector` object is of the form `{ x: 0, y: 0 }`.
 *
-* See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
-* and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
+* See the included usage [examples](https://github.com/liabru/matter-js/tree/master/examples).
 *
 * @class Vector
 */
@@ -6843,8 +6879,7 @@ module.exports = Vector;
 * A set of vertices is an array of `Matter.Vector` with additional indexing properties inserted by `Vertices.create`.
 * A `Matter.Body` maintains a set of vertices to represent the shape of the object (its convex hull).
 *
-* See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
-* and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
+* See the included usage [examples](https://github.com/liabru/matter-js/tree/master/examples).
 *
 * @class Vertices
 */
@@ -8603,8 +8638,7 @@ var Vector = require('../geometry/Vector');
 
 },{"../body/Composite":2,"../collision/Grid":6,"../core/Common":14,"../core/Events":16,"../geometry/Bounds":24,"../geometry/Vector":26}],30:[function(require,module,exports){
 /**
-* See [Demo.js](https://github.com/liabru/matter-js/blob/master/demo/js/Demo.js) 
-* and [DemoMobile.js](https://github.com/liabru/matter-js/blob/master/demo/js/DemoMobile.js) for usage examples.
+* See the included usage [examples](https://github.com/liabru/matter-js/tree/master/examples).
 *
 * @class RenderPixi
 */
