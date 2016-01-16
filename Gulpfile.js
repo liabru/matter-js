@@ -35,19 +35,19 @@ gulp.task('dev', function(callback) {
 });
 
 gulp.task('release', function(callback) {
-    sequence('build:dev', 'build:examples', 'test', 'build:release', 'bump', 'doc', 'changelog', 'tag', callback);
+    sequence('build:dev', 'build:examples', 'test', 'bump', 'reload', 'build:edge', 'build:release', 'doc', 'changelog', callback);
 });
 
 gulp.task('release:push', function(callback) {
-    sequence('release:push:git', 'release:push:github', 'release:push:npm', callback);
+    sequence('tag', 'release:push:git', 'release:push:github', 'release:push:npm', callback);
 });
 
 gulp.task('release:push:github', function(callback) {
     return gulp.src([
         'CHANGELOG.md',
         'LICENSE', 
-        buildDirectory + '/matter-' + pkg.version + '.min.js', 
-        buildDirectory + '/matter-' + pkg.version + '.js'
+        buildDirectory + '/matter.min.js', 
+        buildDirectory + '/matter.js'
     ]).pipe(release({
         owner: 'liabru',
         repo: pkg.name,
@@ -104,6 +104,13 @@ gulp.task('bump', function() {
     return gulp.src(['package.json', 'bower.json'])
         .pipe(bump({ type: process.argv[4] || 'minor' }))
         .pipe(gulp.dest('.'));
+});
+
+gulp.task('reload', function(callback) {
+    delete require.cache[require.resolve('./package.json')];
+    pkg = require('./package.json');
+    console.log(pkg.version);
+    callback();
 });
 
 gulp.task('tag', function() {
@@ -205,7 +212,7 @@ var serve = function(isTest) {
 };
 
 var build = function(options) {
-    var filename = 'build/matter' + (options.version === 'master' ? '' : '-' + options.version),
+    var filename = buildDirectory + '/matter',
         dest = filename + '.js',
         destMin = filename + '.min.js';
 
