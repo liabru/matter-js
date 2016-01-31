@@ -70,7 +70,7 @@ See how others are using matter.js physics
 
 - [Les métamorphoses de Mr. Kalia](http://www.lab212.org/projects/les-metamorphoses-de-mr-kalia) by Lab212 for Google
 - [Pablo The Flamingo](http://pablotheflamingo.com/) by Nathan Gordon et al
-- [#GIFMYLIVE](http://bonhommeparis.com/en/projects/arte-gifmylive) by Bonnehomme for Arte
+- [#GIFMYLIVE](http://bonhommeparis.com/en/projects/arte-gifmylive) by Bonhomme for Arte
 - [Adobe Analytics Live Stream](http://adobefirehose.mediarain.com/) by Rain for Adobe
 - [Blood Sweat & Tools Interactive](http://bloodsweatandtools.discovery.ca/gamebench/) by Jam3 for Discovery
 - [Hype](http://tumult.com/hype/pro/) by Tumult
