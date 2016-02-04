@@ -36,10 +36,10 @@ module.exports = Bounds;
      * @param {vector} velocity
      */
     Bounds.update = function(bounds, vertices, velocity) {
-        bounds.min.x = Number.MAX_VALUE;
-        bounds.max.x = Number.MIN_VALUE;
-        bounds.min.y = Number.MAX_VALUE;
-        bounds.max.y = Number.MIN_VALUE;
+        bounds.min.x = Infinity;
+        bounds.max.x = -Infinity;
+        bounds.min.y = Infinity;
+        bounds.max.y = -Infinity;
 
         for (var i = 0; i < vertices.length; i++) {
             var vertex = vertices[i];
