@@ -437,17 +437,16 @@ var Vector = require('../geometry/Vector');
                 if (!part.render.visible)
                     continue;
 
+                if (options.showSleeping && body.isSleeping) {
+                    c.globalAlpha = 0.5 * part.render.opacity;
+                } else if (part.render.opacity !== 1) {
+                    c.globalAlpha = part.render.opacity;
+                }
+
                 if (part.render.sprite && part.render.sprite.texture && !options.wireframes) {
                     // part sprite
                     var sprite = part.render.sprite,
                         texture = _getTexture(render, sprite.texture);
-
-                    if (options.showSleeping && body.isSleeping) 
-                        c.globalAlpha = 0.5;
-
-                    if (part.render.opacity !== 1)
-                        c.globalAlpha = part.render.opacity;
-
 
                     c.translate(part.position.x, part.position.y); 
                     c.rotate(part.angle);
@@ -463,9 +462,6 @@ var Vector = require('../geometry/Vector');
                     // revert translation, hopefully faster than save / restore
                     c.rotate(-part.angle);
                     c.translate(-part.position.x, -part.position.y); 
-
-                    if ((options.showSleeping && body.isSleeping) || part.render.opacity !== 1) 
-                        c.globalAlpha = 1;
                 } else {
                     // part polygon
                     if (part.circleRadius) {
@@ -481,24 +477,19 @@ var Vector = require('../geometry/Vector');
                     }
 
                     if (!options.wireframes) {
-                        if (options.showSleeping && body.isSleeping) {
-                            c.fillStyle = Common.shadeColor(part.render.fillStyle, 50);
-                        } else {
                             c.fillStyle = part.render.fillStyle;
-                        }
-
                         c.lineWidth = part.render.lineWidth;
                         c.strokeStyle = part.render.strokeStyle;
                         c.fill();
-                        c.stroke();
                     } else {
                         c.lineWidth = 1;
                         c.strokeStyle = '#bbb';
-                        if (options.showSleeping && body.isSleeping)
-                            c.strokeStyle = 'rgba(255,255,255,0.2)';
-                        c.stroke();
                     }
+
+                    c.stroke();
                 }
+
+                c.globalAlpha = 1;
             }
         }
     };
