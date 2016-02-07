@@ -1,5 +1,5 @@
 /**
-* matter-js 0.9.0 by @liabru 2016-01-16
+* matter-js master by @liabru 2016-02-07
 * http://brm.io/matter-js/
 * License MIT
 */
@@ -102,6 +102,7 @@ var Axes = require('../geometry/Axes');
             timeScale: 1,
             render: {
                 visible: true,
+                opacity: 1,
                 sprite: {
                     xScale: 1,
                     yScale: 1,
@@ -1027,6 +1028,14 @@ var Axes = require('../geometry/Axes');
      * @type boolean
      * @default true
      */
+
+    /**
+     * Sets the opacity to use when rendering.
+     *
+     * @property render.opacity
+     * @type number
+     * @default 1
+    */
 
     /**
      * An `Object` that defines the sprite properties to use when rendering, if any.
@@ -6338,10 +6347,10 @@ module.exports = Bounds;
      * @param {vector} velocity
      */
     Bounds.update = function(bounds, vertices, velocity) {
-        bounds.min.x = Number.MAX_VALUE;
-        bounds.max.x = Number.MIN_VALUE;
-        bounds.min.y = Number.MAX_VALUE;
-        bounds.max.y = Number.MIN_VALUE;
+        bounds.min.x = Infinity;
+        bounds.max.x = -Infinity;
+        bounds.min.y = Infinity;
+        bounds.max.y = -Infinity;
 
         for (var i = 0; i < vertices.length; i++) {
             var vertex = vertices[i];
@@ -6424,6 +6433,8 @@ module.exports = Bounds;
 },{}],25:[function(require,module,exports){
 /**
 * The `Matter.Svg` module contains methods for converting SVG images into an array of vector points.
+*
+* To use this module you also need the SVGPathSeg polyfill: https://github.com/progers/pathseg
 *
 * See the included usage [examples](https://github.com/liabru/matter-js/tree/master/examples).
 *
@@ -7769,6 +7780,7 @@ var Vector = require('../geometry/Vector');
         var c = context,
             render = engine.render,
             options = render.options,
+            showInternalEdges = options.showInternalEdges || !options.wireframes,
             body,
             part,
             i,
@@ -7787,13 +7799,16 @@ var Vector = require('../geometry/Vector');
                 if (!part.render.visible)
                     continue;
 
+                if (options.showSleeping && body.isSleeping) {
+                    c.globalAlpha = 0.5 * part.render.opacity;
+                } else if (part.render.opacity !== 1) {
+                    c.globalAlpha = part.render.opacity;
+                }
+
                 if (part.render.sprite && part.render.sprite.texture && !options.wireframes) {
                     // part sprite
                     var sprite = part.render.sprite,
                         texture = _getTexture(render, sprite.texture);
-
-                    if (options.showSleeping && body.isSleeping) 
-                        c.globalAlpha = 0.5;
 
                     c.translate(part.position.x, part.position.y); 
                     c.rotate(part.angle);
@@ -7809,9 +7824,6 @@ var Vector = require('../geometry/Vector');
                     // revert translation, hopefully faster than save / restore
                     c.rotate(-part.angle);
                     c.translate(-part.position.x, -part.position.y); 
-
-                    if (options.showSleeping && body.isSleeping) 
-                        c.globalAlpha = 1;
                 } else {
                     // part polygon
                     if (part.circleRadius) {
@@ -7820,31 +7832,37 @@ var Vector = require('../geometry/Vector');
                     } else {
                         c.beginPath();
                         c.moveTo(part.vertices[0].x, part.vertices[0].y);
+
                         for (var j = 1; j < part.vertices.length; j++) {
-                            c.lineTo(part.vertices[j].x, part.vertices[j].y);
+                            if (!part.vertices[j - 1].isInternal || showInternalEdges) {
+                                c.lineTo(part.vertices[j].x, part.vertices[j].y);
+                            } else {
+                                c.moveTo(part.vertices[j].x, part.vertices[j].y);
+                            }
+
+                            if (part.vertices[j].isInternal && !showInternalEdges) {
+                                c.moveTo(part.vertices[(j + 1) % part.vertices.length].x, part.vertices[(j + 1) % part.vertices.length].y);
+                            }
                         }
+                        
+                        c.lineTo(part.vertices[0].x, part.vertices[0].y);
                         c.closePath();
                     }
 
                     if (!options.wireframes) {
-                        if (options.showSleeping && body.isSleeping) {
-                            c.fillStyle = Common.shadeColor(part.render.fillStyle, 50);
-                        } else {
-                            c.fillStyle = part.render.fillStyle;
-                        }
-
+                        c.fillStyle = part.render.fillStyle;
                         c.lineWidth = part.render.lineWidth;
                         c.strokeStyle = part.render.strokeStyle;
                         c.fill();
-                        c.stroke();
                     } else {
                         c.lineWidth = 1;
                         c.strokeStyle = '#bbb';
-                        if (options.showSleeping && body.isSleeping)
-                            c.strokeStyle = 'rgba(255,255,255,0.2)';
-                        c.stroke();
                     }
+
+                    c.stroke();
                 }
+
+                c.globalAlpha = 1;
             }
         }
     };
@@ -8070,11 +8088,13 @@ var Vector = require('../geometry/Vector');
         if (options.wireframes) {
             c.strokeStyle = 'indianred';
         } else {
-            c.strokeStyle = 'rgba(0,0,0,0.3)';
+            c.strokeStyle = 'rgba(0,0,0,0.8)';
+            c.globalCompositeOperation = 'overlay';
         }
 
         c.lineWidth = 1;
         c.stroke();
+        c.globalCompositeOperation = 'source-over';
     };
 
     /**
@@ -8638,7 +8658,8 @@ var Vector = require('../geometry/Vector');
 
 },{"../body/Composite":2,"../collision/Grid":6,"../core/Common":14,"../core/Events":16,"../geometry/Bounds":24,"../geometry/Vector":26}],30:[function(require,module,exports){
 /**
-* See the included usage [examples](https://github.com/liabru/matter-js/tree/master/examples).
+* The `Matter.RenderPixi` module is an example renderer using pixi.js.
+* See also `Matter.Render` for a canvas based renderer.
 *
 * @class RenderPixi
 */
@@ -8663,6 +8684,10 @@ var Common = require('../core/Common');
             controller: RenderPixi,
             element: null,
             canvas: null,
+            renderer: null,
+            container: null,
+            spriteContainer: null,
+            pixiOptions: null,
             options: {
                 width: 800,
                 height: 600,
@@ -8689,17 +8714,19 @@ var Common = require('../core/Common');
             transparent = !render.options.wireframes && render.options.background === 'transparent';
 
         // init pixi
-        render.context = new PIXI.WebGLRenderer(render.options.width, render.options.height, {
+        render.pixiOptions = render.pixiOptions || {
             view: render.canvas,
             transparent: transparent,
             antialias: true,
             backgroundColor: options.background
-        });
-        
-        render.canvas = render.context.view;
-        render.container = new PIXI.Container();
+        };
+
+        render.renderer = render.renderer || new PIXI.WebGLRenderer(render.options.width, render.options.height, render.pixiOptions);
+        render.container = render.container || new PIXI.Container();
+        render.spriteContainer = render.spriteContainer || new PIXI.Container();
+        render.canvas = render.canvas || render.renderer.view;
         render.bounds = render.bounds || { 
-            min: { 
+            min: {
                 x: 0,
                 y: 0
             }, 
@@ -8715,7 +8742,6 @@ var Common = require('../core/Common');
         render.primitives = {};
 
         // use a sprite batch for performance
-        render.spriteContainer = new PIXI.Container();
         render.container.addChild(render.spriteContainer);
 
         // insert canvas
@@ -8788,7 +8814,7 @@ var Common = require('../core/Common');
             if (isColor) {
                 // if solid background color
                 var color = Common.colorToNumber(background);
-                render.context.backgroundColor = color;
+                render.renderer.backgroundColor = color;
 
                 // remove background sprite if existing
                 if (bgSprite)
@@ -8817,7 +8843,7 @@ var Common = require('../core/Common');
     RenderPixi.world = function(engine) {
         var render = engine.render,
             world = engine.world,
-            context = render.context,
+            renderer = render.renderer,
             container = render.container,
             options = render.options,
             bodies = Composite.allBodies(world),
@@ -8875,7 +8901,7 @@ var Common = require('../core/Common');
         for (i = 0; i < constraints.length; i++)
             RenderPixi.constraint(engine, constraints[i]);
 
-        context.render(container);
+        renderer.render(container);
     };
 
 
