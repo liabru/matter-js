@@ -999,6 +999,14 @@ var Axes = require('../geometry/Axes');
      */
 
     /**
+     * Sets the opacity to use when rendering.
+     *
+     * @property render.opacity
+     * @type number
+     * @default 1
+    */
+
+    /**
      * An `Object` that defines the sprite properties to use when rendering, if any.
      *
      * @property render.sprite
