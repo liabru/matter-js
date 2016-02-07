@@ -1,5 +1,6 @@
 /**
-* See the included usage [examples](https://github.com/liabru/matter-js/tree/master/examples).
+* The `Matter.RenderPixi` module is an example renderer using pixi.js.
+* See also `Matter.Render` for a canvas based renderer.
 *
 * @class RenderPixi
 */
@@ -24,6 +25,10 @@ var Common = require('../core/Common');
             controller: RenderPixi,
             element: null,
             canvas: null,
+            renderer: null,
+            container: null,
+            spriteContainer: null,
+            pixiOptions: null,
             options: {
                 width: 800,
                 height: 600,
@@ -50,17 +55,19 @@ var Common = require('../core/Common');
             transparent = !render.options.wireframes && render.options.background === 'transparent';
 
         // init pixi
-        render.context = new PIXI.WebGLRenderer(render.options.width, render.options.height, {
+        render.pixiOptions = render.pixiOptions || {
             view: render.canvas,
             transparent: transparent,
             antialias: true,
             backgroundColor: options.background
-        });
-        
-        render.canvas = render.context.view;
-        render.container = new PIXI.Container();
+        };
+
+        render.renderer = render.renderer || new PIXI.WebGLRenderer(render.options.width, render.options.height, render.pixiOptions);
+        render.container = render.container || new PIXI.Container();
+        render.spriteContainer = render.spriteContainer || new PIXI.Container();
+        render.canvas = render.canvas || render.renderer.view;
         render.bounds = render.bounds || { 
-            min: { 
+            min: {
                 x: 0,
                 y: 0
             }, 
@@ -76,7 +83,6 @@ var Common = require('../core/Common');
         render.primitives = {};
 
         // use a sprite batch for performance
-        render.spriteContainer = new PIXI.Container();
         render.container.addChild(render.spriteContainer);
 
         // insert canvas
@@ -149,7 +155,7 @@ var Common = require('../core/Common');
             if (isColor) {
                 // if solid background color
                 var color = Common.colorToNumber(background);
-                render.context.backgroundColor = color;
+                render.renderer.backgroundColor = color;
 
                 // remove background sprite if existing
                 if (bgSprite)
@@ -178,7 +184,7 @@ var Common = require('../core/Common');
     RenderPixi.world = function(engine) {
         var render = engine.render,
             world = engine.world,
-            context = render.context,
+            renderer = render.renderer,
             container = render.container,
             options = render.options,
             bodies = Composite.allBodies(world),
@@ -236,7 +242,7 @@ var Common = require('../core/Common');
         for (i = 0; i < constraints.length; i++)
             RenderPixi.constraint(engine, constraints[i]);
 
-        context.render(container);
+        renderer.render(container);
     };
 
 
