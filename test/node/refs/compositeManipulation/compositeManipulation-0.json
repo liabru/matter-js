@@ -201,6 +201,7 @@
   },
   {
     "visible": true,
+    "opacity": 1,
     "sprite": {
       "#": 16
     },
@@ -416,6 +417,7 @@
   },
   {
     "visible": true,
+    "opacity": 1,
     "sprite": {
       "#": 38
     },
@@ -631,6 +633,7 @@
   },
   {
     "visible": true,
+    "opacity": 1,
     "sprite": {
       "#": 60
     },
@@ -846,6 +849,7 @@
   },
   {
     "visible": true,
+    "opacity": 1,
     "sprite": {
       "#": 82
     },
@@ -1120,6 +1124,7 @@
   },
   {
     "visible": true,
+    "opacity": 1,
     "sprite": {
       "#": 108
     },
@@ -1320,6 +1325,7 @@
   },
   {
     "visible": true,
+    "opacity": 1,
     "sprite": {
       "#": 130
     },
@@ -1520,6 +1526,7 @@
   },
   {
     "visible": true,
+    "opacity": 1,
     "sprite": {
       "#": 152
     },
@@ -1720,6 +1727,7 @@
   },
   {
     "visible": true,
+    "opacity": 1,
     "sprite": {
       "#": 174
     },
@@ -1920,6 +1928,7 @@
   },
   {
     "visible": true,
+    "opacity": 1,
     "sprite": {
       "#": 196
     },
@@ -2120,6 +2129,7 @@
   },
   {
     "visible": true,
+    "opacity": 1,
     "sprite": {
       "#": 218
     },
@@ -2320,6 +2330,7 @@
   },
   {
     "visible": true,
+    "opacity": 1,
     "sprite": {
       "#": 240
     },
@@ -2520,6 +2531,7 @@
   },
   {
     "visible": true,
+    "opacity": 1,
     "sprite": {
       "#": 262
     },
@@ -2720,6 +2732,7 @@
   },
   {
     "visible": true,
+    "opacity": 1,
     "sprite": {
       "#": 284
     },
@@ -2920,6 +2933,7 @@
   },
   {
     "visible": true,
+    "opacity": 1,
     "sprite": {
       "#": 306
     },
@@ -3120,6 +3134,7 @@
   },
   {
     "visible": true,
+    "opacity": 1,
     "sprite": {
       "#": 328
     },
@@ -3320,6 +3335,7 @@
   },
   {
     "visible": true,
+    "opacity": 1,
     "sprite": {
       "#": 350
     },
@@ -3520,6 +3536,7 @@
   },
   {
     "visible": true,
+    "opacity": 1,
     "sprite": {
       "#": 372
     },
@@ -3720,6 +3737,7 @@
   },
   {
     "visible": true,
+    "opacity": 1,
     "sprite": {
       "#": 394
     },
@@ -3920,6 +3938,7 @@
   },
   {
     "visible": true,
+    "opacity": 1,
     "sprite": {
       "#": 416
     },
@@ -4120,6 +4139,7 @@
   },
   {
     "visible": true,
+    "opacity": 1,
     "sprite": {
       "#": 438
     },

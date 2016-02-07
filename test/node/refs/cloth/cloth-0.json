@@ -207,6 +207,7 @@
   },
   {
     "visible": true,
+    "opacity": 1,
     "sprite": {
       "#": 16
     },
@@ -422,6 +423,7 @@
   },
   {
     "visible": true,
+    "opacity": 1,
     "sprite": {
       "#": 38
     },
@@ -637,6 +639,7 @@
   },
   {
     "visible": true,
+    "opacity": 1,
     "sprite": {
       "#": 60
     },
@@ -852,6 +855,7 @@
   },
   {
     "visible": true,
+    "opacity": 1,
     "sprite": {
       "#": 82
     },
@@ -1332,6 +1336,7 @@
   },
   {
     "visible": true,
+    "opacity": 1,
     "sprite": {
       "#": 126
     },
@@ -1624,6 +1629,7 @@
   },
   {
     "visible": true,
+    "opacity": 1,
     "sprite": {
       "#": 159
     },
@@ -2648,6 +2654,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 191
     },
@@ -2947,6 +2954,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 222
     },
@@ -3246,6 +3254,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 253
     },
@@ -3545,6 +3554,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 284
     },
@@ -3844,6 +3854,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 315
     },
@@ -4143,6 +4154,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 346
     },
@@ -4442,6 +4454,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 377
     },
@@ -4741,6 +4754,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 408
     },
@@ -5040,6 +5054,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 439
     },
@@ -5339,6 +5354,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 470
     },
@@ -5638,6 +5654,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 501
     },
@@ -5937,6 +5954,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 532
     },
@@ -6236,6 +6254,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 563
     },
@@ -6535,6 +6554,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 594
     },
@@ -6834,6 +6854,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 625
     },
@@ -7133,6 +7154,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 656
     },
@@ -7432,6 +7454,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 687
     },
@@ -7731,6 +7754,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 718
     },
@@ -8030,6 +8054,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 749
     },
@@ -8329,6 +8354,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 780
     },
@@ -8628,6 +8654,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 811
     },
@@ -8927,6 +8954,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 842
     },
@@ -9226,6 +9254,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 873
     },
@@ -9525,6 +9554,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 904
     },
@@ -9824,6 +9854,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 935
     },
@@ -10123,6 +10154,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 966
     },
@@ -10422,6 +10454,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 997
     },
@@ -10721,6 +10754,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 1028
     },
@@ -11020,6 +11054,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 1059
     },
@@ -11319,6 +11354,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 1090
     },
@@ -11618,6 +11654,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 1121
     },
@@ -11917,6 +11954,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 1152
     },
@@ -12216,6 +12254,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 1183
     },
@@ -12515,6 +12554,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 1214
     },
@@ -12814,6 +12854,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 1245
     },
@@ -13113,6 +13154,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 1276
     },
@@ -13412,6 +13454,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 1307
     },
@@ -13711,6 +13754,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 1338
     },
@@ -14010,6 +14054,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 1369
     },
@@ -14309,6 +14354,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 1400
     },
@@ -14608,6 +14654,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 1431
     },
@@ -14907,6 +14954,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 1462
     },
@@ -15206,6 +15254,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 1493
     },
@@ -15505,6 +15554,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 1524
     },
@@ -15804,6 +15854,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 1555
     },
@@ -16103,6 +16154,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 1586
     },
@@ -16402,6 +16454,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 1617
     },
@@ -16701,6 +16754,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 1648
     },
@@ -17000,6 +17054,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 1679
     },
@@ -17299,6 +17354,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 1710
     },
@@ -17598,6 +17654,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 1741
     },
@@ -17897,6 +17954,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 1772
     },
@@ -18196,6 +18254,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 1803
     },
@@ -18495,6 +18554,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 1834
     },
@@ -18794,6 +18854,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 1865
     },
@@ -19093,6 +19154,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 1896
     },
@@ -19392,6 +19454,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 1927
     },
@@ -19691,6 +19754,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 1958
     },
@@ -19990,6 +20054,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 1989
     },
@@ -20289,6 +20354,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 2020
     },
@@ -20588,6 +20654,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 2051
     },
@@ -20887,6 +20954,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 2082
     },
@@ -21186,6 +21254,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 2113
     },
@@ -21485,6 +21554,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 2144
     },
@@ -21784,6 +21854,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 2175
     },
@@ -22083,6 +22154,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 2206
     },
@@ -22382,6 +22454,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 2237
     },
@@ -22681,6 +22754,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 2268
     },
@@ -22980,6 +23054,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 2299
     },
@@ -23279,6 +23354,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 2330
     },
@@ -23578,6 +23654,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 2361
     },
@@ -23877,6 +23954,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 2392
     },
@@ -24176,6 +24254,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 2423
     },
@@ -24475,6 +24554,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 2454
     },
@@ -24774,6 +24854,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 2485
     },
@@ -25073,6 +25154,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 2516
     },
@@ -25372,6 +25454,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 2547
     },
@@ -25671,6 +25754,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 2578
     },
@@ -25970,6 +26054,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 2609
     },
@@ -26269,6 +26354,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 2640
     },
@@ -26568,6 +26654,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 2671
     },
@@ -26867,6 +26954,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 2702
     },
@@ -27166,6 +27254,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 2733
     },
@@ -27465,6 +27554,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 2764
     },
@@ -27764,6 +27854,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 2795
     },
@@ -28063,6 +28154,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 2826
     },
@@ -28362,6 +28454,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 2857
     },
@@ -28661,6 +28754,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 2888
     },
@@ -28960,6 +29054,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 2919
     },
@@ -29259,6 +29354,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 2950
     },
@@ -29558,6 +29654,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 2981
     },
@@ -29857,6 +29954,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 3012
     },
@@ -30156,6 +30254,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 3043
     },
@@ -30455,6 +30554,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 3074
     },
@@ -30754,6 +30854,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 3105
     },
@@ -31053,6 +31154,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 3136
     },
@@ -31352,6 +31454,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 3167
     },
@@ -31651,6 +31754,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 3198
     },
@@ -31950,6 +32054,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 3229
     },
@@ -32249,6 +32354,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 3260
     },
@@ -32548,6 +32654,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 3291
     },
@@ -32847,6 +32954,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 3322
     },
@@ -33146,6 +33254,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 3353
     },
@@ -33445,6 +33554,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 3384
     },
@@ -33744,6 +33854,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 3415
     },
@@ -34043,6 +34154,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 3446
     },
@@ -34342,6 +34454,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 3477
     },
@@ -34641,6 +34754,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 3508
     },
@@ -34940,6 +35054,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 3539
     },
@@ -35239,6 +35354,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 3570
     },
@@ -35538,6 +35654,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 3601
     },
@@ -35837,6 +35954,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 3632
     },
@@ -36136,6 +36254,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 3663
     },
@@ -36435,6 +36554,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 3694
     },
@@ -36734,6 +36854,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 3725
     },
@@ -37033,6 +37154,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 3756
     },
@@ -37332,6 +37454,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 3787
     },
@@ -37631,6 +37754,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 3818
     },
@@ -37930,6 +38054,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 3849
     },
@@ -38229,6 +38354,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 3880
     },
@@ -38528,6 +38654,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 3911
     },
@@ -38827,6 +38954,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 3942
     },
@@ -39126,6 +39254,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 3973
     },
@@ -39425,6 +39554,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 4004
     },
@@ -39724,6 +39854,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 4035
     },
@@ -40023,6 +40154,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 4066
     },
@@ -40322,6 +40454,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 4097
     },
@@ -40621,6 +40754,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 4128
     },
@@ -40920,6 +41054,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 4159
     },
@@ -41219,6 +41354,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 4190
     },
@@ -41518,6 +41654,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 4221
     },
@@ -41817,6 +41954,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 4252
     },
@@ -42116,6 +42254,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 4283
     },
@@ -42415,6 +42554,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 4314
     },
@@ -42714,6 +42854,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 4345
     },
@@ -43013,6 +43154,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 4376
     },
@@ -43312,6 +43454,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 4407
     },
@@ -43611,6 +43754,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 4438
     },
@@ -43910,6 +44054,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 4469
     },
@@ -44209,6 +44354,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 4500
     },
@@ -44508,6 +44654,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 4531
     },
@@ -44807,6 +44954,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 4562
     },
@@ -45106,6 +45254,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 4593
     },
@@ -45405,6 +45554,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 4624
     },
@@ -45704,6 +45854,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 4655
     },
@@ -46003,6 +46154,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 4686
     },
@@ -46302,6 +46454,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 4717
     },
@@ -46601,6 +46754,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 4748
     },
@@ -46900,6 +47054,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 4779
     },
@@ -47199,6 +47354,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 4810
     },
@@ -47498,6 +47654,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 4841
     },
@@ -47797,6 +47954,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 4872
     },
@@ -48096,6 +48254,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 4903
     },
@@ -48395,6 +48554,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 4934
     },
@@ -48694,6 +48854,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 4965
     },
@@ -48993,6 +49154,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 4996
     },
@@ -49292,6 +49454,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 5027
     },
@@ -49591,6 +49754,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 5058
     },
@@ -49890,6 +50054,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 5089
     },
@@ -50189,6 +50354,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 5120
     },
@@ -50488,6 +50654,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 5151
     },
@@ -50787,6 +50954,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 5182
     },
@@ -51086,6 +51254,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 5213
     },
@@ -51385,6 +51554,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 5244
     },
@@ -51684,6 +51854,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 5275
     },
@@ -51983,6 +52154,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 5306
     },
@@ -52282,6 +52454,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 5337
     },
@@ -52581,6 +52754,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 5368
     },
@@ -52880,6 +53054,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 5399
     },
@@ -53179,6 +53354,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 5430
     },
@@ -53478,6 +53654,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 5461
     },
@@ -53777,6 +53954,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 5492
     },
@@ -54076,6 +54254,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 5523
     },
@@ -54375,6 +54554,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 5554
     },
@@ -54674,6 +54854,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 5585
     },
@@ -54973,6 +55154,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 5616
     },
@@ -55272,6 +55454,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 5647
     },
@@ -55571,6 +55754,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 5678
     },
@@ -55870,6 +56054,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 5709
     },
@@ -56169,6 +56354,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 5740
     },
@@ -56468,6 +56654,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 5771
     },
@@ -56767,6 +56954,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 5802
     },
@@ -57066,6 +57254,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 5833
     },
@@ -57365,6 +57554,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 5864
     },
@@ -57664,6 +57854,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 5895
     },
@@ -57963,6 +58154,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 5926
     },
@@ -58262,6 +58454,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 5957
     },
@@ -58561,6 +58754,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 5988
     },
@@ -58860,6 +59054,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 6019
     },
@@ -59159,6 +59354,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 6050
     },
@@ -59458,6 +59654,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 6081
     },
@@ -59757,6 +59954,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 6112
     },
@@ -60056,6 +60254,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 6143
     },
@@ -60355,6 +60554,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 6174
     },
@@ -60654,6 +60854,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 6205
     },
@@ -60953,6 +61154,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 6236
     },
@@ -61252,6 +61454,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 6267
     },
@@ -61551,6 +61754,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 6298
     },
@@ -61850,6 +62054,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 6329
     },
@@ -62149,6 +62354,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 6360
     },
@@ -62448,6 +62654,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 6391
     },
@@ -62747,6 +62954,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 6422
     },
@@ -63046,6 +63254,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 6453
     },
@@ -63345,6 +63554,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 6484
     },
@@ -63644,6 +63854,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 6515
     },
@@ -63943,6 +64154,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 6546
     },
@@ -64242,6 +64454,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 6577
     },
@@ -64541,6 +64754,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 6608
     },
@@ -64840,6 +65054,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 6639
     },
@@ -65139,6 +65354,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 6670
     },
@@ -65438,6 +65654,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 6701
     },
@@ -65737,6 +65954,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 6732
     },
@@ -66036,6 +66254,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 6763
     },
@@ -66335,6 +66554,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 6794
     },
@@ -66634,6 +66854,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 6825
     },
@@ -66933,6 +67154,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 6856
     },
@@ -67232,6 +67454,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 6887
     },
@@ -67531,6 +67754,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 6918
     },
@@ -67830,6 +68054,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 6949
     },
@@ -68129,6 +68354,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 6980
     },
@@ -68428,6 +68654,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 7011
     },
@@ -68727,6 +68954,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 7042
     },
@@ -69026,6 +69254,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 7073
     },
@@ -69325,6 +69554,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 7104
     },
@@ -69624,6 +69854,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 7135
     },
@@ -69923,6 +70154,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 7166
     },
@@ -70222,6 +70454,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 7197
     },
@@ -70521,6 +70754,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 7228
     },
@@ -70820,6 +71054,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 7259
     },
@@ -71119,6 +71354,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 7290
     },
@@ -71418,6 +71654,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 7321
     },
@@ -71717,6 +71954,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 7352
     },
@@ -72016,6 +72254,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 7383
     },
@@ -72315,6 +72554,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 7414
     },
@@ -72614,6 +72854,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 7445
     },
@@ -72913,6 +73154,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 7476
     },
@@ -73212,6 +73454,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 7507
     },
@@ -73511,6 +73754,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 7538
     },
@@ -73810,6 +74054,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 7569
     },
@@ -74109,6 +74354,7 @@
   },
   {
     "visible": false,
+    "opacity": 1,
     "sprite": {
       "#": 7600
     },

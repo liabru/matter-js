@@ -183,6 +183,7 @@
   {
     "fillStyle": "#eeeeee",
     "lineWidth": 1.5,
+    "opacity": 1,
     "sprite": {
       "#": 16
     },
@@ -380,6 +381,7 @@
   {
     "fillStyle": "#eeeeee",
     "lineWidth": 1.5,
+    "opacity": 1,
     "sprite": {
       "#": 37
     },
@@ -577,6 +579,7 @@
   {
     "fillStyle": "#eeeeee",
     "lineWidth": 1.5,
+    "opacity": 1,
     "sprite": {
       "#": 58
     },
@@ -774,6 +777,7 @@
   {
     "fillStyle": "#eeeeee",
     "lineWidth": 1.5,
+    "opacity": 1,
     "sprite": {
       "#": 79
     },
@@ -1034,6 +1038,7 @@
   {
     "fillStyle": "#C7F464",
     "lineWidth": 1.5,
+    "opacity": 1,
     "sprite": {
       "#": 111
     },
@@ -1514,6 +1519,7 @@
   {
     "fillStyle": "#C44D58",
     "lineWidth": 1.5,
+    "opacity": 1,
     "sprite": {
       "#": 165
     },
@@ -1994,6 +2000,7 @@
   {
     "fillStyle": "#4ECDC4",
     "lineWidth": 1.5,
+    "opacity": 1,
     "sprite": {
       "#": 219
     },
@@ -2662,6 +2669,7 @@
   {
     "fillStyle": "transparent",
     "lineWidth": 1.5,
+    "opacity": 1,
     "sprite": {
       "#": 276
     },
@@ -3061,6 +3069,7 @@
   {
     "fillStyle": "transparent",
     "lineWidth": 1.5,
+    "opacity": 1,
     "sprite": {
       "#": 321
     },
@@ -3460,6 +3469,7 @@
   {
     "fillStyle": "transparent",
     "lineWidth": 1.5,
+    "opacity": 1,
     "sprite": {
       "#": 366
     },
@@ -3859,6 +3869,7 @@
   {
     "fillStyle": "transparent",
     "lineWidth": 1.5,
+    "opacity": 1,
     "sprite": {
       "#": 411
     },
@@ -4258,6 +4269,7 @@
   {
     "fillStyle": "transparent",
     "lineWidth": 1.5,
+    "opacity": 1,
     "sprite": {
       "#": 456
     },
@@ -4657,6 +4669,7 @@
   {
     "fillStyle": "transparent",
     "lineWidth": 1.5,
+    "opacity": 1,
     "sprite": {
       "#": 501
     },
@@ -5056,6 +5069,7 @@
   {
     "fillStyle": "transparent",
     "lineWidth": 1.5,
+    "opacity": 1,
     "sprite": {
       "#": 546
     },
@@ -5455,6 +5469,7 @@
   {
     "fillStyle": "transparent",
     "lineWidth": 1.5,
+    "opacity": 1,
     "sprite": {
       "#": 591
     },
@@ -5854,6 +5869,7 @@
   {
     "fillStyle": "transparent",
     "lineWidth": 1.5,
+    "opacity": 1,
     "sprite": {
       "#": 636
     },
@@ -6253,6 +6269,7 @@
   {
     "fillStyle": "transparent",
     "lineWidth": 1.5,
+    "opacity": 1,
     "sprite": {
       "#": 681
     },
@@ -6652,6 +6669,7 @@
   {
     "fillStyle": "transparent",
     "lineWidth": 1.5,
+    "opacity": 1,
     "sprite": {
       "#": 726
     },
@@ -7051,6 +7069,7 @@
   {
     "fillStyle": "transparent",
     "lineWidth": 1.5,
+    "opacity": 1,
     "sprite": {
       "#": 771
     },
@@ -7450,6 +7469,7 @@
   {
     "fillStyle": "transparent",
     "lineWidth": 1.5,
+    "opacity": 1,
     "sprite": {
       "#": 816
     },
@@ -7849,6 +7869,7 @@
   {
     "fillStyle": "transparent",
     "lineWidth": 1.5,
+    "opacity": 1,
     "sprite": {
       "#": 861
     },
@@ -8248,6 +8269,7 @@
   {
     "fillStyle": "transparent",
     "lineWidth": 1.5,
+    "opacity": 1,
     "sprite": {
       "#": 906
     },
@@ -8647,6 +8669,7 @@
   {
     "fillStyle": "transparent",
     "lineWidth": 1.5,
+    "opacity": 1,
     "sprite": {
       "#": 951
     },
@@ -9046,6 +9069,7 @@
   {
     "fillStyle": "transparent",
     "lineWidth": 1.5,
+    "opacity": 1,
     "sprite": {
       "#": 996
     },
@@ -9445,6 +9469,7 @@
   {
     "fillStyle": "transparent",
     "lineWidth": 1.5,
+    "opacity": 1,
     "sprite": {
       "#": 1041
     },
@@ -9844,6 +9869,7 @@
   {
     "fillStyle": "transparent",
     "lineWidth": 1.5,
+    "opacity": 1,
     "sprite": {
       "#": 1086
     },
@@ -10243,6 +10269,7 @@
   {
     "fillStyle": "transparent",
     "lineWidth": 1.5,
+    "opacity": 1,
     "sprite": {
       "#": 1131
     },
@@ -10642,6 +10669,7 @@
   {
     "fillStyle": "transparent",
     "lineWidth": 1.5,
+    "opacity": 1,
     "sprite": {
       "#": 1176
     },
@@ -11041,6 +11069,7 @@
   {
     "fillStyle": "transparent",
     "lineWidth": 1.5,
+    "opacity": 1,
     "sprite": {
       "#": 1221
     },
@@ -11440,6 +11469,7 @@
   {
     "fillStyle": "transparent",
     "lineWidth": 1.5,
+    "opacity": 1,
     "sprite": {
       "#": 1266
     },
@@ -11839,6 +11869,7 @@
   {
     "fillStyle": "transparent",
     "lineWidth": 1.5,
+    "opacity": 1,
     "sprite": {
       "#": 1311
     },
@@ -12238,6 +12269,7 @@
   {
     "fillStyle": "transparent",
     "lineWidth": 1.5,
+    "opacity": 1,
     "sprite": {
       "#": 1356
     },
@@ -12637,6 +12669,7 @@
   {
     "fillStyle": "transparent",
     "lineWidth": 1.5,
+    "opacity": 1,
     "sprite": {
       "#": 1401
     },
@@ -13036,6 +13069,7 @@
   {
     "fillStyle": "transparent",
     "lineWidth": 1.5,
+    "opacity": 1,
     "sprite": {
       "#": 1446
     },
@@ -13435,6 +13469,7 @@
   {
     "fillStyle": "transparent",
     "lineWidth": 1.5,
+    "opacity": 1,
     "sprite": {
       "#": 1491
     },
@@ -13834,6 +13869,7 @@
   {
     "fillStyle": "transparent",
     "lineWidth": 1.5,
+    "opacity": 1,
     "sprite": {
       "#": 1536
     },
@@ -14233,6 +14269,7 @@
   {
     "fillStyle": "transparent",
     "lineWidth": 1.5,
+    "opacity": 1,
     "sprite": {
       "#": 1581
     },
@@ -14632,6 +14669,7 @@
   {
     "fillStyle": "transparent",
     "lineWidth": 1.5,
+    "opacity": 1,
     "sprite": {
       "#": 1626
     },
@@ -15031,6 +15069,7 @@
   {
     "fillStyle": "transparent",
     "lineWidth": 1.5,
+    "opacity": 1,
     "sprite": {
       "#": 1671
     },
@@ -15430,6 +15469,7 @@
   {
     "fillStyle": "transparent",
     "lineWidth": 1.5,
+    "opacity": 1,
     "sprite": {
       "#": 1716
     },
@@ -15829,6 +15869,7 @@
   {
     "fillStyle": "transparent",
     "lineWidth": 1.5,
+    "opacity": 1,
     "sprite": {
       "#": 1761
     },
@@ -16228,6 +16269,7 @@
   {
     "fillStyle": "transparent",
     "lineWidth": 1.5,
+    "opacity": 1,
     "sprite": {
       "#": 1806
     },
@@ -16627,6 +16669,7 @@
   {
     "fillStyle": "transparent",
     "lineWidth": 1.5,
+    "opacity": 1,
     "sprite": {
       "#": 1851
     },
@@ -17026,6 +17069,7 @@
   {
     "fillStyle": "transparent",
     "lineWidth": 1.5,
+    "opacity": 1,
     "sprite": {
       "#": 1896
     },
@@ -17425,6 +17469,7 @@
   {
     "fillStyle": "transparent",
     "lineWidth": 1.5,
+    "opacity": 1,
     "sprite": {
       "#": 1941
     },
@@ -17824,6 +17869,7 @@
   {
     "fillStyle": "transparent",
     "lineWidth": 1.5,
+    "opacity": 1,
     "sprite": {
       "#": 1986
     },
@@ -18223,6 +18269,7 @@
   {
     "fillStyle": "transparent",
     "lineWidth": 1.5,
+    "opacity": 1,
     "sprite": {
       "#": 2031
     },
@@ -18622,6 +18669,7 @@
   {
     "fillStyle": "transparent",
     "lineWidth": 1.5,
+    "opacity": 1,
     "sprite": {
       "#": 2076
     },
@@ -19021,6 +19069,7 @@
   {
     "fillStyle": "transparent",
     "lineWidth": 1.5,
+    "opacity": 1,
     "sprite": {
       "#": 2121
     },
@@ -19420,6 +19469,7 @@
   {
     "fillStyle": "transparent",
     "lineWidth": 1.5,
+    "opacity": 1,
     "sprite": {
       "#": 2166
     },
@@ -19819,6 +19869,7 @@
   {
     "fillStyle": "transparent",
     "lineWidth": 1.5,
+    "opacity": 1,
     "sprite": {
       "#": 2211
     },
@@ -20218,6 +20269,7 @@
   {
     "fillStyle": "transparent",
     "lineWidth": 1.5,
+    "opacity": 1,
     "sprite": {
       "#": 2256
     },
@@ -20617,6 +20669,7 @@
   {
     "fillStyle": "transparent",
     "lineWidth": 1.5,
+    "opacity": 1,
     "sprite": {
       "#": 2301
     },
@@ -21016,6 +21069,7 @@
   {
     "fillStyle": "transparent",
     "lineWidth": 1.5,
+    "opacity": 1,
     "sprite": {
       "#": 2346
     },
@@ -21415,6 +21469,7 @@
   {
     "fillStyle": "transparent",
     "lineWidth": 1.5,
+    "opacity": 1,
     "sprite": {
       "#": 2391
     },
@@ -21814,6 +21869,7 @@
   {
     "fillStyle": "transparent",
     "lineWidth": 1.5,
+    "opacity": 1,
     "sprite": {
       "#": 2436
     },
@@ -22213,6 +22269,7 @@
   {
     "fillStyle": "transparent",
     "lineWidth": 1.5,
+    "opacity": 1,
     "sprite": {
       "#": 2481
     },
