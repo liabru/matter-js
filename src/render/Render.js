@@ -472,7 +472,7 @@ var Vector = require('../geometry/Vector');
                         c.beginPath();
                         c.moveTo(part.vertices[0].x, part.vertices[0].y);
 
-                        for (j = 1; j < part.vertices.length; j++) {
+                        for (var j = 1; j < part.vertices.length; j++) {
                             if (!part.vertices[j - 1].isInternal || showInternalEdges) {
                                 c.lineTo(part.vertices[j].x, part.vertices[j].y);
                             } else {
