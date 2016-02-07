@@ -96,11 +96,12 @@ var Body = require('../body/Body');
      * Triggers `collisionStart`, `collisionActive` and `collisionEnd` events.
      * @method update
      * @param {engine} engine
-     * @param {number} delta
-     * @param {number} [correction]
+     * @param {number} [delta=16.666]
+     * @param {number} [correction=1]
      */
     Engine.update = function(engine, delta, correction) {
-        correction = (typeof correction !== 'undefined') ? correction : 1;
+        delta = delta || 1000 / 60;
+        correction = correction || 1;
 
         var world = engine.world,
             timing = engine.timing,
