@@ -109,7 +109,6 @@ gulp.task('bump', function() {
 gulp.task('reload', function(callback) {
     delete require.cache[require.resolve('./package.json')];
     pkg = require('./package.json');
-    console.log(pkg.version);
     callback();
 });
 
