@@ -715,11 +715,13 @@ var Vector = require('../geometry/Vector');
         if (options.wireframes) {
             c.strokeStyle = 'indianred';
         } else {
-            c.strokeStyle = 'rgba(0,0,0,0.3)';
+            c.strokeStyle = 'rgba(0,0,0,0.8)';
+            c.globalCompositeOperation = 'overlay';
         }
 
         c.lineWidth = 1;
         c.stroke();
+        c.globalCompositeOperation = 'source-over';
     };
 
     /**
