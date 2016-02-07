@@ -71,6 +71,7 @@ var Axes = require('../geometry/Axes');
             timeScale: 1,
             render: {
                 visible: true,
+                opacity: 1,
                 sprite: {
                     xScale: 1,
                     yScale: 1,

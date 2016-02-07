@@ -445,6 +445,10 @@ var Vector = require('../geometry/Vector');
                     if (options.showSleeping && body.isSleeping) 
                         c.globalAlpha = 0.5;
 
+                    if (part.render.opacity !== 1)
+                        c.globalAlpha = part.render.opacity;
+
+
                     c.translate(part.position.x, part.position.y); 
                     c.rotate(part.angle);
 
@@ -460,7 +464,7 @@ var Vector = require('../geometry/Vector');
                     c.rotate(-part.angle);
                     c.translate(-part.position.x, -part.position.y); 
 
-                    if (options.showSleeping && body.isSleeping) 
+                    if ((options.showSleeping && body.isSleeping) || part.render.opacity !== 1) 
                         c.globalAlpha = 1;
                 } else {
                     // part polygon
