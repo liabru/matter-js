@@ -112,10 +112,13 @@ var Vector = require('../geometry/Vector');
      */
     Bodies.circle = function(x, y, radius, options, maxSides) {
         options = options || {};
-        options.label = 'Circle Body';
+
+        var circle = {
+            label: 'Circle Body',
+            circleRadius: radius
+        };
         
         // approximate circles with polygons until true circles implemented in SAT
-
         maxSides = maxSides || 25;
         var sides = Math.ceil(Math.max(10, Math.min(maxSides, radius)));
 
@@ -123,10 +126,7 @@ var Vector = require('../geometry/Vector');
         if (sides % 2 === 1)
             sides += 1;
 
-        // flag for better rendering
-        options.circleRadius = radius;
-
-        return Bodies.polygon(x, y, sides, radius, options);
+        return Bodies.polygon(x, y, sides, radius, Common.extend({}, circle, options));
     };
 
     /**
