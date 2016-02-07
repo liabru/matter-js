@@ -419,6 +419,7 @@ var Vector = require('../geometry/Vector');
         var c = context,
             render = engine.render,
             options = render.options,
+            showInternalEdges = options.showInternalEdges || !options.wireframes,
             body,
             part,
             i,
@@ -470,14 +471,25 @@ var Vector = require('../geometry/Vector');
                     } else {
                         c.beginPath();
                         c.moveTo(part.vertices[0].x, part.vertices[0].y);
-                        for (var j = 1; j < part.vertices.length; j++) {
-                            c.lineTo(part.vertices[j].x, part.vertices[j].y);
+
+                        for (j = 1; j < part.vertices.length; j++) {
+                            if (!part.vertices[j - 1].isInternal || showInternalEdges) {
+                                c.lineTo(part.vertices[j].x, part.vertices[j].y);
+                            } else {
+                                c.moveTo(part.vertices[j].x, part.vertices[j].y);
+                            }
+
+                            if (part.vertices[j].isInternal && !showInternalEdges) {
+                                c.moveTo(part.vertices[(j + 1) % part.vertices.length].x, part.vertices[(j + 1) % part.vertices.length].y);
+                            }
                         }
+                        
+                        c.lineTo(part.vertices[0].x, part.vertices[0].y);
                         c.closePath();
                     }
 
                     if (!options.wireframes) {
-                            c.fillStyle = part.render.fillStyle;
+                        c.fillStyle = part.render.fillStyle;
                         c.lineWidth = part.render.lineWidth;
                         c.strokeStyle = part.render.strokeStyle;
                         c.fill();
