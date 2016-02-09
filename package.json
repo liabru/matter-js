@@ -5,7 +5,7 @@
   "homepage": "http://brm.io/matter-js/",
   "author": "Liam Brummitt <liam@brm.io> (http://brm.io/)",
   "description": "a 2D rigid body physics engine for the web",
-  "main": "build/matter.js",
+  "main": "src/module/main.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/liabru/matter-js.git"
