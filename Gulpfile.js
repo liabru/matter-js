@@ -31,7 +31,7 @@ var server;
 gulp.task('default', ['build:dev', 'build:examples']);
 
 gulp.task('dev', function(callback) {
-    sequence('build:dev', 'build:examples', 'watch', 'serve', callback);
+    sequence('build:examples', 'watch', 'serve', callback);
 });
 
 gulp.task('release', function(callback) {
