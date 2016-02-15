@@ -16860,7 +16860,6 @@
     "bounds": {
       "#": 1873
     },
-    "circleRadius": 16.27542,
     "collisionFilter": {
       "#": 1876
     },
@@ -16880,7 +16879,7 @@
     "inverseMass": 0.979,
     "isSleeping": false,
     "isStatic": false,
-    "label": "Circle Body",
+    "label": "Rectangle Body",
     "mass": 1.02145,
     "motion": 0,
     "parent": null,
@@ -17044,7 +17043,6 @@
     "bounds": {
       "#": 1894
     },
-    "circleRadius": 16.27542,
     "collisionFilter": {
       "#": 1897
     },
@@ -17064,7 +17062,7 @@
     "inverseMass": 0.88886,
     "isSleeping": false,
     "isStatic": false,
-    "label": "Circle Body",
+    "label": "Rectangle Body",
     "mass": 1.12504,
     "motion": 0,
     "parent": null,
@@ -17228,7 +17226,6 @@
     "bounds": {
       "#": 1915
     },
-    "circleRadius": 16.27542,
     "collisionFilter": {
       "#": 1918
     },
@@ -17248,7 +17245,7 @@
     "inverseMass": 0.67124,
     "isSleeping": false,
     "isStatic": false,
-    "label": "Circle Body",
+    "label": "Rectangle Body",
     "mass": 1.48978,
     "motion": 0,
     "parent": null,
@@ -17412,7 +17409,6 @@
     "bounds": {
       "#": 1936
     },
-    "circleRadius": 16.27542,
     "collisionFilter": {
       "#": 1939
     },
@@ -17432,7 +17428,7 @@
     "inverseMass": 0.56645,
     "isSleeping": false,
     "isStatic": false,
-    "label": "Circle Body",
+    "label": "Rectangle Body",
     "mass": 1.76537,
     "motion": 0,
     "parent": null,
@@ -17596,7 +17592,6 @@
     "bounds": {
       "#": 1962
     },
-    "circleRadius": 16.27542,
     "collisionFilter": {
       "#": 1965
     },
@@ -17616,7 +17611,7 @@
     "inverseMass": 0.49464,
     "isSleeping": false,
     "isStatic": false,
-    "label": "Circle Body",
+    "label": "Polygon Body",
     "mass": 2.02168,
     "motion": 0,
     "parent": null,
@@ -17845,7 +17840,6 @@
     "bounds": {
       "#": 1991
     },
-    "circleRadius": 16.27542,
     "collisionFilter": {
       "#": 1994
     },
@@ -17865,7 +17859,7 @@
     "inverseMass": 0.15688,
     "isSleeping": false,
     "isStatic": false,
-    "label": "Circle Body",
+    "label": "Polygon Body",
     "mass": 6.37448,
     "motion": 0,
     "parent": null,
@@ -18094,7 +18088,6 @@
     "bounds": {
       "#": 2015
     },
-    "circleRadius": 16.27542,
     "collisionFilter": {
       "#": 2018
     },
@@ -18114,7 +18107,7 @@
     "inverseMass": 0.45045,
     "isSleeping": false,
     "isStatic": false,
-    "label": "Circle Body",
+    "label": "Rectangle Body",
     "mass": 2.22002,
     "motion": 0,
     "parent": null,
@@ -18278,7 +18271,6 @@
     "bounds": {
       "#": 2041
     },
-    "circleRadius": 16.27542,
     "collisionFilter": {
       "#": 2044
     },
@@ -18298,7 +18290,7 @@
     "inverseMass": 0.36501,
     "isSleeping": false,
     "isStatic": false,
-    "label": "Circle Body",
+    "label": "Polygon Body",
     "mass": 2.73962,
     "motion": 0,
     "parent": null,
@@ -18527,7 +18519,6 @@
     "bounds": {
       "#": 2066
     },
-    "circleRadius": 16.27542,
     "collisionFilter": {
       "#": 2069
     },
@@ -18547,7 +18538,7 @@
     "inverseMass": 0.54466,
     "isSleeping": false,
     "isStatic": false,
-    "label": "Circle Body",
+    "label": "Polygon Body",
     "mass": 1.836,
     "motion": 0,
     "parent": null,
@@ -18738,7 +18729,6 @@
     "bounds": {
       "#": 2094
     },
-    "circleRadius": 16.27542,
     "collisionFilter": {
       "#": 2097
     },
@@ -18758,7 +18748,7 @@
     "inverseMass": 0.17387,
     "isSleeping": false,
     "isStatic": false,
-    "label": "Circle Body",
+    "label": "Polygon Body",
     "mass": 5.75151,
     "motion": 0,
     "parent": null,
@@ -18987,7 +18977,6 @@
     "bounds": {
       "#": 2118
     },
-    "circleRadius": 16.27542,
     "collisionFilter": {
       "#": 2121
     },
@@ -19007,7 +18996,7 @@
     "inverseMass": 2.21428,
     "isSleeping": false,
     "isStatic": false,
-    "label": "Circle Body",
+    "label": "Rectangle Body",
     "mass": 0.45161,
     "motion": 0,
     "parent": null,
@@ -19171,7 +19160,6 @@
     "bounds": {
       "#": 2139
     },
-    "circleRadius": 16.27542,
     "collisionFilter": {
       "#": 2142
     },
@@ -19191,7 +19179,7 @@
     "inverseMass": 0.33094,
     "isSleeping": false,
     "isStatic": false,
-    "label": "Circle Body",
+    "label": "Rectangle Body",
     "mass": 3.02168,
     "motion": 0,
     "parent": null,
@@ -19355,7 +19343,6 @@
     "bounds": {
       "#": 2160
     },
-    "circleRadius": 16.27542,
     "collisionFilter": {
       "#": 2163
     },
@@ -19375,7 +19362,7 @@
     "inverseMass": 1.16722,
     "isSleeping": false,
     "isStatic": false,
-    "label": "Circle Body",
+    "label": "Rectangle Body",
     "mass": 0.85674,
     "motion": 0,
     "parent": null,
@@ -19539,7 +19526,6 @@
     "bounds": {
       "#": 2183
     },
-    "circleRadius": 16.27542,
     "collisionFilter": {
       "#": 2186
     },
@@ -19559,7 +19545,7 @@
     "inverseMass": 0.24458,
     "isSleeping": false,
     "isStatic": false,
-    "label": "Circle Body",
+    "label": "Polygon Body",
     "mass": 4.0886,
     "motion": 0,
     "parent": null,
@@ -19777,7 +19763,6 @@
     "bounds": {
       "#": 2208
     },
-    "circleRadius": 16.27542,
     "collisionFilter": {
       "#": 2211
     },
@@ -19797,7 +19782,7 @@
     "inverseMass": 0.50887,
     "isSleeping": false,
     "isStatic": false,
-    "label": "Circle Body",
+    "label": "Rectangle Body",
     "mass": 1.96514,
     "motion": 0,
     "parent": null,
@@ -19961,7 +19946,6 @@
     "bounds": {
       "#": 2232
     },
-    "circleRadius": 16.27542,
     "collisionFilter": {
       "#": 2235
     },
@@ -19981,7 +19965,7 @@
     "inverseMass": 0.36607,
     "isSleeping": false,
     "isStatic": false,
-    "label": "Circle Body",
+    "label": "Polygon Body",
     "mass": 2.73171,
     "motion": 0,
     "parent": null,
@@ -20176,7 +20160,6 @@
     "bounds": {
       "#": 2254
     },
-    "circleRadius": 16.27542,
     "collisionFilter": {
       "#": 2257
     },
@@ -20196,7 +20179,7 @@
     "inverseMass": 1.06156,
     "isSleeping": false,
     "isStatic": false,
-    "label": "Circle Body",
+    "label": "Rectangle Body",
     "mass": 0.94201,
     "motion": 0,
     "parent": null,
@@ -20360,7 +20343,6 @@
     "bounds": {
       "#": 2275
     },
-    "circleRadius": 16.27542,
     "collisionFilter": {
       "#": 2278
     },
@@ -20380,7 +20362,7 @@
     "inverseMass": 0.34502,
     "isSleeping": false,
     "isStatic": false,
-    "label": "Circle Body",
+    "label": "Rectangle Body",
     "mass": 2.89842,
     "motion": 0,
     "parent": null,
@@ -20544,7 +20526,6 @@
     "bounds": {
       "#": 2299
     },
-    "circleRadius": 16.27542,
     "collisionFilter": {
       "#": 2302
     },
@@ -20564,7 +20545,7 @@
     "inverseMass": 0.64848,
     "isSleeping": false,
     "isStatic": false,
-    "label": "Circle Body",
+    "label": "Polygon Body",
     "mass": 1.54207,
     "motion": 0,
     "parent": null,
@@ -20759,7 +20740,6 @@
     "bounds": {
       "#": 2321
     },
-    "circleRadius": 16.27542,
     "collisionFilter": {
       "#": 2324
     },
@@ -20779,7 +20759,7 @@
     "inverseMass": 0.23351,
     "isSleeping": false,
     "isStatic": false,
-    "label": "Circle Body",
+    "label": "Polygon Body",
     "mass": 4.28239,
     "motion": 0,
     "parent": null,
@@ -20943,7 +20923,6 @@
     "bounds": {
       "#": 2342
     },
-    "circleRadius": 16.27542,
     "collisionFilter": {
       "#": 2345
     },
@@ -20963,7 +20942,7 @@
     "inverseMass": 0.95119,
     "isSleeping": false,
     "isStatic": false,
-    "label": "Circle Body",
+    "label": "Rectangle Body",
     "mass": 1.05131,
     "motion": 0,
     "parent": null,
@@ -21127,7 +21106,6 @@
     "bounds": {
       "#": 2365
     },
-    "circleRadius": 16.27542,
     "collisionFilter": {
       "#": 2368
     },
@@ -21147,7 +21125,7 @@
     "inverseMass": 0.1549,
     "isSleeping": false,
     "isStatic": false,
-    "label": "Circle Body",
+    "label": "Polygon Body",
     "mass": 6.45559,
     "motion": 0,
     "parent": null,
@@ -21365,7 +21343,6 @@
     "bounds": {
       "#": 2393
     },
-    "circleRadius": 16.27542,
     "collisionFilter": {
       "#": 2396
     },
@@ -21385,7 +21362,7 @@
     "inverseMass": 0.49649,
     "isSleeping": false,
     "isStatic": false,
-    "label": "Circle Body",
+    "label": "Polygon Body",
     "mass": 2.01413,
     "motion": 0,
     "parent": null,
@@ -21580,7 +21557,6 @@
     "bounds": {
       "#": 2420
     },
-    "circleRadius": 16.27542,
     "collisionFilter": {
       "#": 2423
     },
@@ -21600,7 +21576,7 @@
     "inverseMass": 0.21298,
     "isSleeping": false,
     "isStatic": false,
-    "label": "Circle Body",
+    "label": "Polygon Body",
     "mass": 4.69539,
     "motion": 0,
     "parent": null,

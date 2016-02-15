@@ -18806,7 +18806,7 @@
   {
     "id": 51,
     "type": "body",
-    "label": "Circle Body",
+    "label": "Rectangle Body",
     "parts": {
       "#": 1917
     },
@@ -18851,7 +18851,6 @@
     "render": {
       "#": 1929
     },
-    "circleRadius": 16.27542,
     "bounds": {
       "#": 1931
     },
@@ -19008,7 +19007,7 @@
   {
     "id": 52,
     "type": "body",
-    "label": "Circle Body",
+    "label": "Rectangle Body",
     "parts": {
       "#": 1939
     },
@@ -19053,7 +19052,6 @@
     "render": {
       "#": 1951
     },
-    "circleRadius": 16.27542,
     "bounds": {
       "#": 1953
     },
@@ -19210,7 +19208,7 @@
   {
     "id": 53,
     "type": "body",
-    "label": "Circle Body",
+    "label": "Rectangle Body",
     "parts": {
       "#": 1961
     },
@@ -19255,7 +19253,6 @@
     "render": {
       "#": 1973
     },
-    "circleRadius": 16.27542,
     "bounds": {
       "#": 1975
     },
@@ -19412,7 +19409,7 @@
   {
     "id": 54,
     "type": "body",
-    "label": "Circle Body",
+    "label": "Rectangle Body",
     "parts": {
       "#": 1983
     },
@@ -19457,7 +19454,6 @@
     "render": {
       "#": 1995
     },
-    "circleRadius": 16.27542,
     "bounds": {
       "#": 1997
     },
@@ -19614,7 +19610,7 @@
   {
     "id": 55,
     "type": "body",
-    "label": "Circle Body",
+    "label": "Polygon Body",
     "parts": {
       "#": 2005
     },
@@ -19659,7 +19655,6 @@
     "render": {
       "#": 2020
     },
-    "circleRadius": 16.27542,
     "bounds": {
       "#": 2022
     },
@@ -19887,7 +19882,7 @@
   {
     "id": 56,
     "type": "body",
-    "label": "Circle Body",
+    "label": "Polygon Body",
     "parts": {
       "#": 2035
     },
@@ -19932,7 +19927,6 @@
     "render": {
       "#": 2050
     },
-    "circleRadius": 16.27542,
     "bounds": {
       "#": 2052
     },
@@ -20160,7 +20154,7 @@
   {
     "id": 57,
     "type": "body",
-    "label": "Circle Body",
+    "label": "Rectangle Body",
     "parts": {
       "#": 2065
     },
@@ -20205,7 +20199,6 @@
     "render": {
       "#": 2077
     },
-    "circleRadius": 16.27542,
     "bounds": {
       "#": 2079
     },
@@ -20362,7 +20355,7 @@
   {
     "id": 58,
     "type": "body",
-    "label": "Circle Body",
+    "label": "Polygon Body",
     "parts": {
       "#": 2087
     },
@@ -20407,7 +20400,6 @@
     "render": {
       "#": 2102
     },
-    "circleRadius": 16.27542,
     "bounds": {
       "#": 2104
     },
@@ -20635,7 +20627,7 @@
   {
     "id": 59,
     "type": "body",
-    "label": "Circle Body",
+    "label": "Polygon Body",
     "parts": {
       "#": 2117
     },
@@ -20680,7 +20672,6 @@
     "render": {
       "#": 2131
     },
-    "circleRadius": 16.27542,
     "bounds": {
       "#": 2133
     },
@@ -20868,7 +20859,7 @@
   {
     "id": 60,
     "type": "body",
-    "label": "Circle Body",
+    "label": "Polygon Body",
     "parts": {
       "#": 2142
     },
@@ -20913,7 +20904,6 @@
     "render": {
       "#": 2157
     },
-    "circleRadius": 16.27542,
     "bounds": {
       "#": 2159
     },
@@ -21141,7 +21131,7 @@
   {
     "id": 61,
     "type": "body",
-    "label": "Circle Body",
+    "label": "Rectangle Body",
     "parts": {
       "#": 2172
     },
@@ -21186,7 +21176,6 @@
     "render": {
       "#": 2184
     },
-    "circleRadius": 16.27542,
     "bounds": {
       "#": 2186
     },
@@ -21343,7 +21332,7 @@
   {
     "id": 62,
     "type": "body",
-    "label": "Circle Body",
+    "label": "Rectangle Body",
     "parts": {
       "#": 2194
     },
@@ -21388,7 +21377,6 @@
     "render": {
       "#": 2206
     },
-    "circleRadius": 16.27542,
     "bounds": {
       "#": 2208
     },
@@ -21545,7 +21533,7 @@
   {
     "id": 63,
     "type": "body",
-    "label": "Circle Body",
+    "label": "Rectangle Body",
     "parts": {
       "#": 2216
     },
@@ -21590,7 +21578,6 @@
     "render": {
       "#": 2228
     },
-    "circleRadius": 16.27542,
     "bounds": {
       "#": 2230
     },
@@ -21747,7 +21734,7 @@
   {
     "id": 64,
     "type": "body",
-    "label": "Circle Body",
+    "label": "Polygon Body",
     "parts": {
       "#": 2238
     },
@@ -21792,7 +21779,6 @@
     "render": {
       "#": 2254
     },
-    "circleRadius": 16.27542,
     "bounds": {
       "#": 2256
     },
@@ -22011,7 +21997,7 @@
   {
     "id": 65,
     "type": "body",
-    "label": "Circle Body",
+    "label": "Rectangle Body",
     "parts": {
       "#": 2266
     },
@@ -22056,7 +22042,6 @@
     "render": {
       "#": 2278
     },
-    "circleRadius": 16.27542,
     "bounds": {
       "#": 2280
     },
@@ -22213,7 +22198,7 @@
   {
     "id": 66,
     "type": "body",
-    "label": "Circle Body",
+    "label": "Polygon Body",
     "parts": {
       "#": 2288
     },
@@ -22258,7 +22243,6 @@
     "render": {
       "#": 2301
     },
-    "circleRadius": 16.27542,
     "bounds": {
       "#": 2303
     },
@@ -22448,7 +22432,7 @@
   {
     "id": 67,
     "type": "body",
-    "label": "Circle Body",
+    "label": "Rectangle Body",
     "parts": {
       "#": 2314
     },
@@ -22493,7 +22477,6 @@
     "render": {
       "#": 2326
     },
-    "circleRadius": 16.27542,
     "bounds": {
       "#": 2328
     },
@@ -22650,7 +22633,7 @@
   {
     "id": 68,
     "type": "body",
-    "label": "Circle Body",
+    "label": "Rectangle Body",
     "parts": {
       "#": 2336
     },
@@ -22695,7 +22678,6 @@
     "render": {
       "#": 2348
     },
-    "circleRadius": 16.27542,
     "bounds": {
       "#": 2350
     },
@@ -22852,7 +22834,7 @@
   {
     "id": 69,
     "type": "body",
-    "label": "Circle Body",
+    "label": "Polygon Body",
     "parts": {
       "#": 2358
     },
@@ -22897,7 +22879,6 @@
     "render": {
       "#": 2371
     },
-    "circleRadius": 16.27542,
     "bounds": {
       "#": 2373
     },
@@ -23087,7 +23068,7 @@
   {
     "id": 70,
     "type": "body",
-    "label": "Circle Body",
+    "label": "Polygon Body",
     "parts": {
       "#": 2384
     },
@@ -23132,7 +23113,6 @@
     "render": {
       "#": 2396
     },
-    "circleRadius": 16.27542,
     "bounds": {
       "#": 2398
     },
@@ -23289,7 +23269,7 @@
   {
     "id": 71,
     "type": "body",
-    "label": "Circle Body",
+    "label": "Rectangle Body",
     "parts": {
       "#": 2406
     },
@@ -23334,7 +23314,6 @@
     "render": {
       "#": 2418
     },
-    "circleRadius": 16.27542,
     "bounds": {
       "#": 2420
     },
@@ -23491,7 +23470,7 @@
   {
     "id": 72,
     "type": "body",
-    "label": "Circle Body",
+    "label": "Polygon Body",
     "parts": {
       "#": 2428
     },
@@ -23536,7 +23515,6 @@
     "render": {
       "#": 2444
     },
-    "circleRadius": 16.27542,
     "bounds": {
       "#": 2446
     },
@@ -23755,7 +23733,7 @@
   {
     "id": 73,
     "type": "body",
-    "label": "Circle Body",
+    "label": "Polygon Body",
     "parts": {
       "#": 2456
     },
@@ -23800,7 +23778,6 @@
     "render": {
       "#": 2469
     },
-    "circleRadius": 16.27542,
     "bounds": {
       "#": 2471
     },
@@ -23990,7 +23967,7 @@
   {
     "id": 74,
     "type": "body",
-    "label": "Circle Body",
+    "label": "Polygon Body",
     "parts": {
       "#": 2482
     },
@@ -24035,7 +24012,6 @@
     "render": {
       "#": 2497
     },
-    "circleRadius": 16.27542,
     "bounds": {
       "#": 2499
     },
