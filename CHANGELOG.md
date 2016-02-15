@@ -1,3 +1,30 @@
+<a name="0.9.1"></a>
+## 0.9.1 (2016-02-15)
+
+
+* added default for delta parameter in Engine.update, closes #200 ([490d232](https://github.com/liabru/matter-js/commit/490d232)), closes [#200](https://github.com/liabru/matter-js/issues/200)
+* added docs for body.render.opacity ([adcb610](https://github.com/liabru/matter-js/commit/adcb610))
+* added SVGPathSeg polyfill, closes #196 ([8fcb893](https://github.com/liabru/matter-js/commit/8fcb893)), closes [#196](https://github.com/liabru/matter-js/issues/196)
+* Adding the opacity attribute to be able to draw semi-transarent sprites ([5b755a1](https://github.com/liabru/matter-js/commit/5b755a1))
+* allow passing of pixi objects to Matter.RenderPixi at creation, closes #193 ([dbdabcc](https://github.com/liabru/matter-js/commit/dbdabcc)), closes [#193](https://github.com/liabru/matter-js/issues/193)
+* change main reference in package.json ([633c305](https://github.com/liabru/matter-js/commit/633c305))
+* Changed bounds checking MIN_VALUE to -MAX_VALUE. Fixes #202 ([dd5e260](https://github.com/liabru/matter-js/commit/dd5e260)), closes [#202](https://github.com/liabru/matter-js/issues/202)
+* fix issue with Bodies.circle label option, closes #195 ([e7e8c26](https://github.com/liabru/matter-js/commit/e7e8c26)), closes [#195](https://github.com/liabru/matter-js/issues/195)
+* fix lint issue ([b4e875b](https://github.com/liabru/matter-js/commit/b4e875b))
+* fixed build issue ([bb3d43f](https://github.com/liabru/matter-js/commit/bb3d43f))
+* fixed rendering of angle indicators ([aaffee3](https://github.com/liabru/matter-js/commit/aaffee3))
+* fixed rendering of compound bodies ([99dd6c5](https://github.com/liabru/matter-js/commit/99dd6c5))
+* fixes to body opacity rendering ([8ac06b2](https://github.com/liabru/matter-js/commit/8ac06b2))
+* Merge branch 'master' of https://github.com/ma1069/matter-js into ma1069-master ([c99e6af](https://github.com/liabru/matter-js/commit/c99e6af))
+* Merge pull request #199 from kevinboudot/master ([34fa27a](https://github.com/liabru/matter-js/commit/34fa27a))
+* remove redundant console.log from gulpfile ([b5006e3](https://github.com/liabru/matter-js/commit/b5006e3))
+* Update README.md ([1bfb758](https://github.com/liabru/matter-js/commit/1bfb758))
+* updated edge build ([cc80837](https://github.com/liabru/matter-js/commit/cc80837))
+* updated test refs ([cfdc0b3](https://github.com/liabru/matter-js/commit/cfdc0b3))
+* updated test refs ([4d65dd1](https://github.com/liabru/matter-js/commit/4d65dd1))
+
+
+
 <a name="0.9.0"></a>
 # 0.9.0 (2016-01-16)
 

@@ -1,5 +1,5 @@
 /**
-* matter-js master by @liabru 2016-02-07
+* matter-js 0.9.1 by @liabru 2016-02-15
 * http://brm.io/matter-js/
 * License MIT
 */
@@ -4442,11 +4442,12 @@ var Body = require('../body/Body');
      * Triggers `collisionStart`, `collisionActive` and `collisionEnd` events.
      * @method update
      * @param {engine} engine
-     * @param {number} delta
-     * @param {number} [correction]
+     * @param {number} [delta=16.666]
+     * @param {number} [correction=1]
      */
     Engine.update = function(engine, delta, correction) {
-        correction = (typeof correction !== 'undefined') ? correction : 1;
+        delta = delta || 1000 / 60;
+        correction = correction || 1;
 
         var world = engine.world,
             timing = engine.timing,
@@ -5698,10 +5699,13 @@ var Vector = require('../geometry/Vector');
      */
     Bodies.circle = function(x, y, radius, options, maxSides) {
         options = options || {};
-        options.label = 'Circle Body';
+
+        var circle = {
+            label: 'Circle Body',
+            circleRadius: radius
+        };
         
         // approximate circles with polygons until true circles implemented in SAT
-
         maxSides = maxSides || 25;
         var sides = Math.ceil(Math.max(10, Math.min(maxSides, radius)));
 
@@ -5709,10 +5713,7 @@ var Vector = require('../geometry/Vector');
         if (sides % 2 === 1)
             sides += 1;
 
-        // flag for better rendering
-        options.circleRadius = radius;
-
-        return Bodies.polygon(x, y, sides, radius, options);
+        return Bodies.polygon(x, y, sides, radius, Common.extend({}, circle, options));
     };
 
     /**
