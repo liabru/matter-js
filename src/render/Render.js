@@ -43,7 +43,7 @@ var Vector = require('../geometry/Vector');
                 pixelRatio: 1,
                 background: '#fafafa',
                 wireframeBackground: '#222',
-                hasBounds: false,
+                hasBounds: !!options.bounds,
                 enabled: true,
                 wireframes: true,
                 showSleeping: true,
