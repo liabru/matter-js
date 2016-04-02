@@ -62,8 +62,8 @@ var Common = require('../core/Common');
                 continue;
 
             // don't update out of world bodies
-            if (body.bounds.max.x < 0 || body.bounds.min.x > world.bounds.width
-                || body.bounds.max.y < 0 || body.bounds.min.y > world.bounds.height)
+            if (body.bounds.max.x < world.bounds.min.x || body.bounds.min.x > world.bounds.max.x
+                || body.bounds.max.y < world.bounds.min.y || body.bounds.min.y > world.bounds.max.y)
                 continue;
 
             var newRegion = _getRegion(grid, body);
