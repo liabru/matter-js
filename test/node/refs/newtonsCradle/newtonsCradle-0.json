@@ -66,6 +66,7 @@
       "#": 13
     },
     "angularVelocity": 0,
+    "isSensor": false,
     "isStatic": true,
     "isSleeping": false,
     "motion": 0,
@@ -282,6 +283,7 @@
       "#": 35
     },
     "angularVelocity": 0,
+    "isSensor": false,
     "isStatic": true,
     "isSleeping": false,
     "motion": 0,
@@ -498,6 +500,7 @@
       "#": 57
     },
     "angularVelocity": 0,
+    "isSensor": false,
     "isStatic": true,
     "isSleeping": false,
     "motion": 0,
@@ -714,6 +717,7 @@
       "#": 79
     },
     "angularVelocity": 0,
+    "isSensor": false,
     "isStatic": true,
     "isSleeping": false,
     "motion": 0,
@@ -974,6 +978,7 @@
       "#": 127
     },
     "angularVelocity": 0,
+    "isSensor": false,
     "isStatic": false,
     "isSleeping": false,
     "motion": 0,
@@ -991,13 +996,13 @@
     "render": {
       "#": 129
     },
+    "circleRadius": 30,
     "inertia": {
       "#.": "Number",
       "#v": [
         "Infinity"
       ]
     },
-    "circleRadius": 30,
     "bounds": {
       "#": 131
     },
@@ -1522,6 +1527,7 @@
       "#": 182
     },
     "angularVelocity": 0,
+    "isSensor": false,
     "isStatic": false,
     "isSleeping": false,
     "motion": 0,
@@ -1539,13 +1545,13 @@
     "render": {
       "#": 184
     },
+    "circleRadius": 30,
     "inertia": {
       "#.": "Number",
       "#v": [
         "Infinity"
       ]
     },
-    "circleRadius": 30,
     "bounds": {
       "#": 186
     },
@@ -2070,6 +2076,7 @@
       "#": 237
     },
     "angularVelocity": 0,
+    "isSensor": false,
     "isStatic": false,
     "isSleeping": false,
     "motion": 0,
@@ -2087,13 +2094,13 @@
     "render": {
       "#": 239
     },
+    "circleRadius": 30,
     "inertia": {
       "#.": "Number",
       "#v": [
         "Infinity"
       ]
     },
-    "circleRadius": 30,
     "bounds": {
       "#": 241
     },
@@ -2618,6 +2625,7 @@
       "#": 292
     },
     "angularVelocity": 0,
+    "isSensor": false,
     "isStatic": false,
     "isSleeping": false,
     "motion": 0,
@@ -2635,13 +2643,13 @@
     "render": {
       "#": 294
     },
+    "circleRadius": 30,
     "inertia": {
       "#.": "Number",
       "#v": [
         "Infinity"
       ]
     },
-    "circleRadius": 30,
     "bounds": {
       "#": 296
     },
@@ -3166,6 +3174,7 @@
       "#": 347
     },
     "angularVelocity": 0,
+    "isSensor": false,
     "isStatic": false,
     "isSleeping": false,
     "motion": 0,
@@ -3183,13 +3192,13 @@
     "render": {
       "#": 349
     },
+    "circleRadius": 30,
     "inertia": {
       "#.": "Number",
       "#v": [
         "Infinity"
       ]
     },
-    "circleRadius": 30,
     "bounds": {
       "#": 351
     },
@@ -3958,6 +3967,7 @@
       "#": 420
     },
     "angularVelocity": 0,
+    "isSensor": false,
     "isStatic": false,
     "isSleeping": false,
     "motion": 0,
@@ -3975,13 +3985,13 @@
     "render": {
       "#": 422
     },
+    "circleRadius": 20,
     "inertia": {
       "#.": "Number",
       "#v": [
         "Infinity"
       ]
     },
-    "circleRadius": 20,
     "bounds": {
       "#": 424
     },
@@ -4413,6 +4423,7 @@
       "#": 466
     },
     "angularVelocity": 0,
+    "isSensor": false,
     "isStatic": false,
     "isSleeping": false,
     "motion": 0,
@@ -4430,13 +4441,13 @@
     "render": {
       "#": 468
     },
+    "circleRadius": 20,
     "inertia": {
       "#.": "Number",
       "#v": [
         "Infinity"
       ]
     },
-    "circleRadius": 20,
     "bounds": {
       "#": 470
     },
@@ -4868,6 +4879,7 @@
       "#": 512
     },
     "angularVelocity": 0,
+    "isSensor": false,
     "isStatic": false,
     "isSleeping": false,
     "motion": 0,
@@ -4885,13 +4897,13 @@
     "render": {
       "#": 514
     },
+    "circleRadius": 20,
     "inertia": {
       "#.": "Number",
       "#v": [
         "Infinity"
       ]
     },
-    "circleRadius": 20,
     "bounds": {
       "#": 516
     },
@@ -5323,6 +5335,7 @@
       "#": 558
     },
     "angularVelocity": 0,
+    "isSensor": false,
     "isStatic": false,
     "isSleeping": false,
     "motion": 0,
@@ -5340,13 +5353,13 @@
     "render": {
       "#": 560
     },
+    "circleRadius": 20,
     "inertia": {
       "#.": "Number",
       "#v": [
         "Infinity"
       ]
     },
-    "circleRadius": 20,
     "bounds": {
       "#": 562
     },
@@ -5778,6 +5791,7 @@
       "#": 604
     },
     "angularVelocity": 0,
+    "isSensor": false,
     "isStatic": false,
     "isSleeping": false,
     "motion": 0,
@@ -5795,13 +5809,13 @@
     "render": {
       "#": 606
     },
+    "circleRadius": 20,
     "inertia": {
       "#.": "Number",
       "#v": [
         "Infinity"
       ]
     },
-    "circleRadius": 20,
     "bounds": {
       "#": 608
     },
@@ -6233,6 +6247,7 @@
       "#": 650
     },
     "angularVelocity": 0,
+    "isSensor": false,
     "isStatic": false,
     "isSleeping": false,
     "motion": 0,
@@ -6250,13 +6265,13 @@
     "render": {
       "#": 652
     },
+    "circleRadius": 20,
     "inertia": {
       "#.": "Number",
       "#v": [
         "Infinity"
       ]
     },
-    "circleRadius": 20,
     "bounds": {
       "#": 654
     },
@@ -6688,6 +6703,7 @@
       "#": 696
     },
     "angularVelocity": 0,
+    "isSensor": false,
     "isStatic": false,
     "isSleeping": false,
     "motion": 0,
@@ -6705,13 +6721,13 @@
     "render": {
       "#": 698
     },
+    "circleRadius": 20,
     "inertia": {
       "#.": "Number",
       "#v": [
         "Infinity"
       ]
     },
-    "circleRadius": 20,
     "bounds": {
       "#": 700
     },

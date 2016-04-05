@@ -69,6 +69,7 @@
       "#": 13
     },
     "angularVelocity": 0,
+    "isSensor": false,
     "isStatic": true,
     "isSleeping": false,
     "motion": 0,
@@ -295,6 +296,7 @@
       "#": 36
     },
     "angularVelocity": 0,
+    "isSensor": false,
     "isStatic": true,
     "isSleeping": false,
     "motion": 0,
@@ -521,6 +523,7 @@
       "#": 59
     },
     "angularVelocity": 0,
+    "isSensor": false,
     "isStatic": true,
     "isSleeping": false,
     "motion": 0,
@@ -747,6 +750,7 @@
       "#": 82
     },
     "angularVelocity": 0,
+    "isSensor": false,
     "isStatic": true,
     "isSleeping": false,
     "motion": 0,
@@ -973,6 +977,7 @@
       "#": 117
     },
     "angularVelocity": 0,
+    "isSensor": false,
     "isStatic": true,
     "isSleeping": false,
     "motion": 0,
@@ -1429,6 +1434,7 @@
       "#": 150
     },
     "angularVelocity": -0.00004,
+    "isSensor": false,
     "isStatic": false,
     "isSleeping": false,
     "motion": 0,
@@ -1645,6 +1651,7 @@
       "#": 173
     },
     "angularVelocity": -0.00004,
+    "isSensor": false,
     "isStatic": false,
     "isSleeping": false,
     "motion": 0,
@@ -1861,6 +1868,7 @@
       "#": 196
     },
     "angularVelocity": -0.00003,
+    "isSensor": false,
     "isStatic": false,
     "isSleeping": false,
     "motion": 0,
@@ -2077,6 +2085,7 @@
       "#": 219
     },
     "angularVelocity": -0.00001,
+    "isSensor": false,
     "isStatic": false,
     "isSleeping": false,
     "motion": 0,
@@ -2293,6 +2302,7 @@
       "#": 242
     },
     "angularVelocity": 0,
+    "isSensor": false,
     "isStatic": false,
     "isSleeping": false,
     "motion": 0,
@@ -2509,6 +2519,7 @@
       "#": 265
     },
     "angularVelocity": 0.00001,
+    "isSensor": false,
     "isStatic": false,
     "isSleeping": false,
     "motion": 0,

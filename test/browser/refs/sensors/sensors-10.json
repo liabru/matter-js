@@ -4,18 +4,18 @@
       "#": 1
     },
     "bounds": {
-      "#": 156
+      "#": 167
     },
     "composites": {
-      "#": 159
+      "#": 170
     },
     "constraints": {
-      "#": 160
+      "#": 171
     },
     "gravity": {
-      "#": 164
+      "#": 175
     },
-    "id": 10,
+    "id": 58,
     "isModified": false,
     "label": "World",
     "parent": "",
@@ -39,9 +39,6 @@
     },
     {
       "#": 112
-    },
-    {
-      "#": 134
     }
   ],
   {
@@ -885,7 +882,7 @@
     "anglePrev": 0,
     "angularSpeed": 0,
     "angularVelocity": 0,
-    "area": 3600,
+    "area": 25000,
     "axes": {
       "#": 91
     },
@@ -898,22 +895,37 @@
     "constraintImpulse": {
       "#": 98
     },
-    "density": 0.001,
+    "density": {
+      "#.": "Number",
+      "#v": [
+        "Infinity"
+      ]
+    },
     "force": {
       "#": 99
     },
-    "friction": 0.1,
-    "frictionAir": 0.001,
+    "friction": 1,
+    "frictionAir": 0.01,
     "frictionStatic": 0.5,
     "id": 4,
-    "inertia": 8640,
-    "inverseInertia": 0.00012,
-    "inverseMass": 0.27778,
-    "isSensor": false,
+    "inertia": {
+      "#.": "Number",
+      "#v": [
+        "Infinity"
+      ]
+    },
+    "inverseInertia": 0,
+    "inverseMass": 0,
+    "isSensor": true,
     "isSleeping": false,
-    "isStatic": false,
+    "isStatic": true,
     "label": "Rectangle Body",
-    "mass": 3.6,
+    "mass": {
+      "#.": "Number",
+      "#v": [
+        "Infinity"
+      ]
+    },
     "motion": 0,
     "parent": null,
     "position": {
@@ -935,7 +947,7 @@
     "sleepCounter": 0,
     "sleepThreshold": 60,
     "slop": 0.05,
-    "speed": 3.04032,
+    "speed": 0,
     "timeScale": 1,
     "torque": 0,
     "totalContacts": 0,
@@ -972,12 +984,12 @@
     }
   },
   {
-    "x": 230,
-    "y": 151.31268
+    "x": 650,
+    "y": 325
   },
   {
-    "x": 170,
-    "y": 88.27236
+    "x": 150,
+    "y": 275
   },
   {
     "category": 1,
@@ -994,32 +1006,32 @@
     "y": 0
   },
   {
-    "x": 200,
-    "y": 118.27236
+    "x": 400,
+    "y": 300
   },
   {
     "x": 0,
     "y": 0
   },
   {
-    "x": 200,
-    "y": 115.23204
+    "x": 400,
+    "y": 300
   },
   {
-    "endCol": 4,
-    "endRow": 3,
-    "id": "3,4,1,3",
+    "endCol": 13,
+    "endRow": 6,
+    "id": "3,13,5,6",
     "startCol": 3,
-    "startRow": 1
+    "startRow": 5
   },
   {
-    "fillStyle": "#4ECDC4",
+    "fillStyle": "transparent",
     "lineWidth": 1.5,
     "opacity": 1,
     "sprite": {
       "#": 105
     },
-    "strokeStyle": "#1b9a91",
+    "strokeStyle": "#C44D58",
     "visible": true
   },
   {
@@ -1030,7 +1042,7 @@
   },
   {
     "x": 0,
-    "y": 3.04032
+    "y": 0
   },
   [
     {
@@ -1050,95 +1062,96 @@
     "body": null,
     "index": 0,
     "isInternal": false,
-    "x": 170,
-    "y": 88.27236
+    "x": 150,
+    "y": 275
   },
   {
     "body": null,
     "index": 1,
     "isInternal": false,
-    "x": 230,
-    "y": 88.27236
+    "x": 650,
+    "y": 275
   },
   {
     "body": null,
     "index": 2,
     "isInternal": false,
-    "x": 230,
-    "y": 148.27236
+    "x": 650,
+    "y": 325
   },
   {
     "body": null,
     "index": 3,
     "isInternal": false,
-    "x": 170,
-    "y": 148.27236
+    "x": 150,
+    "y": 325
   },
   {
     "angle": 0,
     "anglePrev": 0,
     "angularSpeed": 0,
     "angularVelocity": 0,
-    "area": 3600,
+    "area": 2799.98416,
     "axes": {
       "#": 113
     },
     "bounds": {
-      "#": 116
+      "#": 127
     },
+    "circleRadius": 30,
     "collisionFilter": {
-      "#": 119
+      "#": 130
     },
     "constraintImpulse": {
-      "#": 120
+      "#": 131
     },
     "density": 0.001,
     "force": {
-      "#": 121
+      "#": 132
     },
     "friction": 0.1,
-    "frictionAir": 0.05,
+    "frictionAir": 0.01,
     "frictionStatic": 0.5,
     "id": 5,
-    "inertia": 8640,
-    "inverseInertia": 0.00012,
-    "inverseMass": 0.27778,
+    "inertia": 4991.13779,
+    "inverseInertia": 0.0002,
+    "inverseMass": 0.35714,
     "isSensor": false,
     "isSleeping": false,
     "isStatic": false,
-    "label": "Rectangle Body",
-    "mass": 3.6,
+    "label": "Circle Body",
+    "mass": 2.79998,
     "motion": 0,
     "parent": null,
     "position": {
-      "#": 122
+      "#": 133
     },
     "positionImpulse": {
-      "#": 123
+      "#": 134
     },
     "positionPrev": {
-      "#": 124
+      "#": 135
     },
     "region": {
-      "#": 125
+      "#": 136
     },
     "render": {
-      "#": 126
+      "#": 137
     },
     "restitution": 0,
     "sleepCounter": 0,
     "sleepThreshold": 60,
     "slop": 0.05,
-    "speed": 2.39556,
+    "speed": 2.90727,
     "timeScale": 1,
     "torque": 0,
     "totalContacts": 0,
     "type": "body",
     "velocity": {
-      "#": 128
+      "#": 139
     },
     "vertices": {
-      "#": 129
+      "#": 140
     }
   },
   [
@@ -1147,31 +1160,108 @@
     },
     {
       "#": 115
+    },
+    {
+      "#": 116
+    },
+    {
+      "#": 117
+    },
+    {
+      "#": 118
+    },
+    {
+      "#": 119
+    },
+    {
+      "#": 120
+    },
+    {
+      "#": 121
+    },
+    {
+      "#": 122
+    },
+    {
+      "#": 123
+    },
+    {
+      "#": 124
+    },
+    {
+      "#": 125
+    },
+    {
+      "#": 126
     }
   ],
   {
-    "x": 0,
-    "y": 1
+    "x": -0.97093,
+    "y": -0.23935
   },
   {
-    "x": -1,
+    "x": -0.88552,
+    "y": -0.46461
+  },
+  {
+    "x": -0.74848,
+    "y": -0.66316
+  },
+  {
+    "x": -0.56812,
+    "y": -0.82294
+  },
+  {
+    "x": -0.3545,
+    "y": -0.93506
+  },
+  {
+    "x": -0.12058,
+    "y": -0.9927
+  },
+  {
+    "x": 0.12058,
+    "y": -0.9927
+  },
+  {
+    "x": 0.3545,
+    "y": -0.93506
+  },
+  {
+    "x": 0.56812,
+    "y": -0.82294
+  },
+  {
+    "x": 0.74848,
+    "y": -0.66316
+  },
+  {
+    "x": 0.88552,
+    "y": -0.46461
+  },
+  {
+    "x": 0.97093,
+    "y": -0.23935
+  },
+  {
+    "x": 1,
     "y": 0
   },
   {
     "max": {
-      "#": 117
+      "#": 128
     },
     "min": {
-      "#": 118
+      "#": 129
     }
   },
   {
-    "x": 430,
-    "y": 147.99112
+    "x": 429.781,
+    "y": 135.99253
   },
   {
-    "x": 370,
-    "y": 85.59557
+    "x": 370.219,
+    "y": 73.08526
   },
   {
     "category": 1,
@@ -1189,225 +1279,31 @@
   },
   {
     "x": 400,
-    "y": 115.59557
+    "y": 103.08526
   },
   {
     "x": 0,
-    "y": 0
+    "y": 0.85231
   },
   {
     "x": 400,
-    "y": 113.20001
+    "y": 100.17799
   },
   {
     "endCol": 8,
-    "endRow": 3,
-    "id": "7,8,1,3",
+    "endRow": 2,
+    "id": "7,8,1,2",
     "startCol": 7,
     "startRow": 1
   },
   {
-    "fillStyle": "#FF6B6B",
+    "fillStyle": "transparent",
     "lineWidth": 1.5,
     "opacity": 1,
     "sprite": {
-      "#": 127
-    },
-    "strokeStyle": "#cc3838",
-    "visible": true
-  },
-  {
-    "xOffset": 0.5,
-    "xScale": 1,
-    "yOffset": 0.5,
-    "yScale": 1
-  },
-  {
-    "x": 0,
-    "y": 2.39556
-  },
-  [
-    {
-      "#": 130
-    },
-    {
-      "#": 131
-    },
-    {
-      "#": 132
-    },
-    {
-      "#": 133
-    }
-  ],
-  {
-    "body": null,
-    "index": 0,
-    "isInternal": false,
-    "x": 370,
-    "y": 85.59557
-  },
-  {
-    "body": null,
-    "index": 1,
-    "isInternal": false,
-    "x": 430,
-    "y": 85.59557
-  },
-  {
-    "body": null,
-    "index": 2,
-    "isInternal": false,
-    "x": 430,
-    "y": 145.59557
-  },
-  {
-    "body": null,
-    "index": 3,
-    "isInternal": false,
-    "x": 370,
-    "y": 145.59557
-  },
-  {
-    "angle": 0,
-    "anglePrev": 0,
-    "angularSpeed": 0,
-    "angularVelocity": 0,
-    "area": 3600,
-    "axes": {
-      "#": 135
-    },
-    "bounds": {
       "#": 138
     },
-    "collisionFilter": {
-      "#": 141
-    },
-    "constraintImpulse": {
-      "#": 142
-    },
-    "density": 0.001,
-    "force": {
-      "#": 143
-    },
-    "friction": 0.1,
-    "frictionAir": 0.1,
-    "frictionStatic": 0.5,
-    "id": 6,
-    "inertia": 8640,
-    "inverseInertia": 0.00012,
-    "inverseMass": 0.27778,
-    "isSensor": false,
-    "isSleeping": false,
-    "isStatic": false,
-    "label": "Rectangle Body",
-    "mass": 3.6,
-    "motion": 0,
-    "parent": null,
-    "position": {
-      "#": 144
-    },
-    "positionImpulse": {
-      "#": 145
-    },
-    "positionPrev": {
-      "#": 146
-    },
-    "region": {
-      "#": 147
-    },
-    "render": {
-      "#": 148
-    },
-    "restitution": 0,
-    "sleepCounter": 0,
-    "sleepThreshold": 60,
-    "slop": 0.05,
-    "speed": 1.90608,
-    "timeScale": 1,
-    "torque": 0,
-    "totalContacts": 0,
-    "type": "body",
-    "velocity": {
-      "#": 150
-    },
-    "vertices": {
-      "#": 151
-    }
-  },
-  [
-    {
-      "#": 136
-    },
-    {
-      "#": 137
-    }
-  ],
-  {
-    "x": 0,
-    "y": 1
-  },
-  {
-    "x": -1,
-    "y": 0
-  },
-  {
-    "max": {
-      "#": 139
-    },
-    "min": {
-      "#": 140
-    }
-  },
-  {
-    "x": 630,
-    "y": 145.3069
-  },
-  {
-    "x": 570,
-    "y": 83.40082
-  },
-  {
-    "category": 1,
-    "group": 0,
-    "mask": 4294967295
-  },
-  {
-    "angle": 0,
-    "x": 0,
-    "y": 0
-  },
-  {
-    "x": 0,
-    "y": 0
-  },
-  {
-    "x": 600,
-    "y": 113.40082
-  },
-  {
-    "x": 0,
-    "y": 0
-  },
-  {
-    "x": 600,
-    "y": 111.49474
-  },
-  {
-    "endCol": 13,
-    "endRow": 3,
-    "id": "11,13,1,3",
-    "startCol": 11,
-    "startRow": 1
-  },
-  {
-    "fillStyle": "#C7F464",
-    "lineWidth": 1.5,
-    "opacity": 1,
-    "sprite": {
-      "#": 149
-    },
-    "strokeStyle": "#94c131",
+    "strokeStyle": "#C7F464",
     "visible": true
   },
   {
@@ -1418,9 +1314,42 @@
   },
   {
     "x": 0,
-    "y": 1.90608
+    "y": 2.90727
   },
   [
+    {
+      "#": 141
+    },
+    {
+      "#": 142
+    },
+    {
+      "#": 143
+    },
+    {
+      "#": 144
+    },
+    {
+      "#": 145
+    },
+    {
+      "#": 146
+    },
+    {
+      "#": 147
+    },
+    {
+      "#": 148
+    },
+    {
+      "#": 149
+    },
+    {
+      "#": 150
+    },
+    {
+      "#": 151
+    },
     {
       "#": 152
     },
@@ -1432,42 +1361,229 @@
     },
     {
       "#": 155
+    },
+    {
+      "#": 156
+    },
+    {
+      "#": 157
+    },
+    {
+      "#": 158
+    },
+    {
+      "#": 159
+    },
+    {
+      "#": 160
+    },
+    {
+      "#": 161
+    },
+    {
+      "#": 162
+    },
+    {
+      "#": 163
+    },
+    {
+      "#": 164
+    },
+    {
+      "#": 165
+    },
+    {
+      "#": 166
     }
   ],
   {
     "body": null,
     "index": 0,
     "isInternal": false,
-    "x": 570,
-    "y": 83.40082
+    "x": 429.781,
+    "y": 106.70126
   },
   {
     "body": null,
     "index": 1,
     "isInternal": false,
-    "x": 630,
-    "y": 83.40082
+    "x": 428.05,
+    "y": 113.72326
   },
   {
     "body": null,
     "index": 2,
     "isInternal": false,
-    "x": 630,
-    "y": 143.40082
+    "x": 424.69,
+    "y": 120.12726
   },
   {
     "body": null,
     "index": 3,
     "isInternal": false,
-    "x": 570,
-    "y": 143.40082
+    "x": 419.894,
+    "y": 125.54026
+  },
+  {
+    "body": null,
+    "index": 4,
+    "isInternal": false,
+    "x": 413.942,
+    "y": 129.64926
+  },
+  {
+    "body": null,
+    "index": 5,
+    "isInternal": false,
+    "x": 407.179,
+    "y": 132.21326
+  },
+  {
+    "body": null,
+    "index": 6,
+    "isInternal": false,
+    "x": 400,
+    "y": 133.08526
+  },
+  {
+    "body": null,
+    "index": 7,
+    "isInternal": false,
+    "x": 392.821,
+    "y": 132.21326
+  },
+  {
+    "body": null,
+    "index": 8,
+    "isInternal": false,
+    "x": 386.058,
+    "y": 129.64926
+  },
+  {
+    "body": null,
+    "index": 9,
+    "isInternal": false,
+    "x": 380.106,
+    "y": 125.54026
+  },
+  {
+    "body": null,
+    "index": 10,
+    "isInternal": false,
+    "x": 375.31,
+    "y": 120.12726
+  },
+  {
+    "body": null,
+    "index": 11,
+    "isInternal": false,
+    "x": 371.95,
+    "y": 113.72326
+  },
+  {
+    "body": null,
+    "index": 12,
+    "isInternal": false,
+    "x": 370.219,
+    "y": 106.70126
+  },
+  {
+    "body": null,
+    "index": 13,
+    "isInternal": false,
+    "x": 370.219,
+    "y": 99.46926
+  },
+  {
+    "body": null,
+    "index": 14,
+    "isInternal": false,
+    "x": 371.95,
+    "y": 92.44726
+  },
+  {
+    "body": null,
+    "index": 15,
+    "isInternal": false,
+    "x": 375.31,
+    "y": 86.04326
+  },
+  {
+    "body": null,
+    "index": 16,
+    "isInternal": false,
+    "x": 380.106,
+    "y": 80.63026
+  },
+  {
+    "body": null,
+    "index": 17,
+    "isInternal": false,
+    "x": 386.058,
+    "y": 76.52126
+  },
+  {
+    "body": null,
+    "index": 18,
+    "isInternal": false,
+    "x": 392.821,
+    "y": 73.95726
+  },
+  {
+    "body": null,
+    "index": 19,
+    "isInternal": false,
+    "x": 400,
+    "y": 73.08526
+  },
+  {
+    "body": null,
+    "index": 20,
+    "isInternal": false,
+    "x": 407.179,
+    "y": 73.95726
+  },
+  {
+    "body": null,
+    "index": 21,
+    "isInternal": false,
+    "x": 413.942,
+    "y": 76.52126
+  },
+  {
+    "body": null,
+    "index": 22,
+    "isInternal": false,
+    "x": 419.894,
+    "y": 80.63026
+  },
+  {
+    "body": null,
+    "index": 23,
+    "isInternal": false,
+    "x": 424.69,
+    "y": 86.04326
+  },
+  {
+    "body": null,
+    "index": 24,
+    "isInternal": false,
+    "x": 428.05,
+    "y": 92.44726
+  },
+  {
+    "body": null,
+    "index": 25,
+    "isInternal": false,
+    "x": 429.781,
+    "y": 99.46926
   },
   {
     "max": {
-      "#": 157
+      "#": 168
     },
     "min": {
-      "#": 158
+      "#": 169
     }
   },
   {
@@ -1501,21 +1617,21 @@
   [],
   [
     {
-      "#": 161
+      "#": 172
     }
   ],
   {
     "angularStiffness": 1,
     "bodyB": "",
-    "id": 11,
+    "id": 59,
     "label": "Mouse Constraint",
     "length": 0.01,
     "pointA": {
-      "#": 162
+      "#": 173
     },
     "pointB": "",
     "render": {
-      "#": 163
+      "#": 174
     },
     "stiffness": 0.1,
     "type": "constraint"
