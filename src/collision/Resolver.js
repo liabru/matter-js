@@ -70,9 +70,9 @@ var Bounds = require('../geometry/Bounds');
         for (i = 0; i < pairs.length; i++) {
             pair = pairs[i];
             
-            if (!pair.isActive)
+            if (!pair.isActive || pair.isSensor)
                 continue;
-            
+
             collision = pair.collision;
             bodyA = collision.parentA;
             bodyB = collision.parentB;
@@ -89,7 +89,7 @@ var Bounds = require('../geometry/Bounds');
         for (i = 0; i < pairs.length; i++) {
             pair = pairs[i];
 
-            if (!pair.isActive || pair.separation < 0)
+            if (!pair.isActive || pair.isSensor || pair.separation < 0)
                 continue;
             
             collision = pair.collision;
@@ -97,7 +97,7 @@ var Bounds = require('../geometry/Bounds');
             bodyB = collision.parentB;
             normal = collision.normal;
             positionImpulse = (pair.separation - pair.slop) * timeScale;
-        
+
             if (bodyA.isStatic || bodyB.isStatic)
                 positionImpulse *= 2;
             
@@ -180,7 +180,7 @@ var Bounds = require('../geometry/Bounds');
         for (i = 0; i < pairs.length; i++) {
             pair = pairs[i];
             
-            if (!pair.isActive)
+            if (!pair.isActive || pair.isSensor)
                 continue;
             
             contacts = pair.activeContacts;
@@ -189,7 +189,7 @@ var Bounds = require('../geometry/Bounds');
             bodyB = collision.parentB;
             normal = collision.normal;
             tangent = collision.tangent;
-                
+
             // resolve each contact
             for (j = 0; j < contacts.length; j++) {
                 contact = contacts[j];
@@ -239,7 +239,7 @@ var Bounds = require('../geometry/Bounds');
         for (var i = 0; i < pairs.length; i++) {
             var pair = pairs[i];
             
-            if (!pair.isActive)
+            if (!pair.isActive || pair.isSensor)
                 continue;
             
             var collision = pair.collision,

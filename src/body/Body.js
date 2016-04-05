@@ -53,6 +53,7 @@ var Axes = require('../geometry/Axes');
             angularSpeed: 0,
             velocity: { x: 0, y: 0 },
             angularVelocity: 0,
+            isSensor: false,
             isStatic: false,
             isSleeping: false,
             motion: 0,
@@ -784,6 +785,14 @@ var Axes = require('../geometry/Axes');
      * If you need to set a body as static after its creation, you should use `Body.setStatic` as this requires more than just setting this flag.
      *
      * @property isStatic
+     * @type boolean
+     * @default false
+     */
+
+    /**
+     * A flag that indicates whether a body is a sensor. Sensor triggers collision events, but doesn't react with colliding body physically.
+     *
+     * @property isSensor
      * @type boolean
      * @default false
      */

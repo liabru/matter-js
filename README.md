@@ -58,6 +58,7 @@
         <li><a href="http://brm.io/matter-js/demo#beachBalls">Beach Balls</a></li>
         <li><a href="http://brm.io/matter-js/demo#stress">Stress 1</a></li>
         <li><a href="http://brm.io/matter-js/demo#stress2">Stress 2</a></li>
+        <li><a href="http://brm.io/matter-js/demo#sensors">Sensors</a></li>
       </ul>
       <br>
     </td>
