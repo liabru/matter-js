@@ -35,6 +35,22 @@ var Common = require('../core/Common');
     };
 
     /**
+     * The width of a single grid bucket.
+     *
+     * @property bucketWidth
+     * @type number
+     * @default 48
+     */
+
+    /**
+     * The height of a single grid bucket.
+     *
+     * @property bucketHeight
+     * @type number
+     * @default 48
+     */
+
+    /**
      * Updates the grid.
      * @method update
      * @param {grid} grid

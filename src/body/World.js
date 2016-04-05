@@ -85,6 +85,14 @@ var Common = require('../core/Common');
      * @default 0.001
      */
 
+    /**
+     * A `Bounds` object that defines the world bounds for collision detection.
+     *
+     * @property bounds
+     * @type bounds
+     * @default { min: { x: -Infinity, y: -Infinity }, max: { x: Infinity, y: Infinity } }
+     */
+
     // World is a Composite body
     // see src/module/Outro.js for these aliases:
     
