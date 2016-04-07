@@ -1,3 +1,24 @@
+<a name="0.9.2"></a>
+## 0.9.2 (2016-04-07)
+
+
+* Add permeability example and doc entry ([6e7add1](https://github.com/liabru/matter-js/commit/6e7add1))
+* Add permeable objects ([1573359](https://github.com/liabru/matter-js/commit/1573359))
+* Change permeable name to sensors, add isSensor to Pair ([28084b0](https://github.com/liabru/matter-js/commit/28084b0))
+* Document World bounds and Grid bucket size. ([5054c97](https://github.com/liabru/matter-js/commit/5054c97))
+* fix Body.scale for circles, closes #234 ([f428d6b](https://github.com/liabru/matter-js/commit/f428d6b)), closes [#234](https://github.com/liabru/matter-js/issues/234)
+* Fix the out-of-bounds check in grid broadphase ([a20a9fb](https://github.com/liabru/matter-js/commit/a20a9fb))
+* Merge pull request #224 from brollb/223-bounds-ignored-in-renderer ([1944f6a](https://github.com/liabru/matter-js/commit/1944f6a)), closes [#223](https://github.com/liabru/matter-js/issues/223)
+* Merge pull request #231 from Rantanen/patch-1 ([b6f6a03](https://github.com/liabru/matter-js/commit/b6f6a03))
+* Merge pull request #232 from Rantanen/docs ([79fa57e](https://github.com/liabru/matter-js/commit/79fa57e))
+* Merged sensors from Misiur-master ([e1a52d5](https://github.com/liabru/matter-js/commit/e1a52d5))
+* Update README.md ([a5b535d](https://github.com/liabru/matter-js/commit/a5b535d))
+* Update README.md ([a31ab39](https://github.com/liabru/matter-js/commit/a31ab39))
+* Updated `hasBounds` default value. Fixes #223 ([053ea76](https://github.com/liabru/matter-js/commit/053ea76)), closes [#223](https://github.com/liabru/matter-js/issues/223)
+* updated test refs ([93ba111](https://github.com/liabru/matter-js/commit/93ba111))
+
+
+
 <a name="0.9.1"></a>
 ## 0.9.1 (2016-02-15)
 

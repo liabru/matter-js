@@ -1,5 +1,5 @@
 /**
-* matter-js 0.9.1 by @liabru 2016-02-15
+* matter-js 0.9.2 by @liabru 2016-04-07
 * http://brm.io/matter-js/
 * License MIT
 */
@@ -84,6 +84,7 @@ var Axes = require('../geometry/Axes');
             angularSpeed: 0,
             velocity: { x: 0, y: 0 },
             angularVelocity: 0,
+            isSensor: false,
             isStatic: false,
             isSleeping: false,
             motion: 0,
@@ -535,6 +536,16 @@ var Axes = require('../geometry/Axes');
             Bounds.update(part.bounds, part.vertices, body.velocity);
         }
 
+        // handle circles
+        if (body.circleRadius) { 
+            if (scaleX === scaleY) {
+                body.circleRadius *= scaleX;
+            } else {
+                // body is no longer a circle
+                body.circleRadius = null;
+            }
+        }
+
         if (!body.isStatic) {
             var total = _totalProperties(body);
             body.area = total.area;
@@ -815,6 +826,14 @@ var Axes = require('../geometry/Axes');
      * If you need to set a body as static after its creation, you should use `Body.setStatic` as this requires more than just setting this flag.
      *
      * @property isStatic
+     * @type boolean
+     * @default false
+     */
+
+    /**
+     * A flag that indicates whether a body is a sensor. Sensor triggers collision events, but doesn't react with colliding body physically.
+     *
+     * @property isSensor
      * @type boolean
      * @default false
      */
@@ -1884,6 +1903,14 @@ var Common = require('../core/Common');
      * @default 0.001
      */
 
+    /**
+     * A `Bounds` object that defines the world bounds for collision detection.
+     *
+     * @property bounds
+     * @type bounds
+     * @default { min: { x: -Infinity, y: -Infinity }, max: { x: Infinity, y: Infinity } }
+     */
+
     // World is a Composite body
     // see src/module/Outro.js for these aliases:
     
@@ -2093,6 +2120,22 @@ var Common = require('../core/Common');
     };
 
     /**
+     * The width of a single grid bucket.
+     *
+     * @property bucketWidth
+     * @type number
+     * @default 48
+     */
+
+    /**
+     * The height of a single grid bucket.
+     *
+     * @property bucketHeight
+     * @type number
+     * @default 48
+     */
+
+    /**
      * Updates the grid.
      * @method update
      * @param {grid} grid
@@ -2116,8 +2159,8 @@ var Common = require('../core/Common');
                 continue;
 
             // don't update out of world bodies
-            if (body.bounds.max.x < 0 || body.bounds.min.x > world.bounds.width
-                || body.bounds.max.y < 0 || body.bounds.min.y > world.bounds.height)
+            if (body.bounds.max.x < world.bounds.min.x || body.bounds.min.x > world.bounds.max.x
+                || body.bounds.max.y < world.bounds.min.y || body.bounds.min.y > world.bounds.max.y)
                 continue;
 
             var newRegion = _getRegion(grid, body);
@@ -2391,6 +2434,7 @@ var Contact = require('./Contact');
             activeContacts: [],
             separation: 0,
             isActive: true,
+            isSensor: bodyA.isSensor || bodyB.isSensor,
             timeCreated: timestamp,
             timeUpdated: timestamp,
             inverseMass: parentA.inverseMass + parentB.inverseMass,
@@ -2827,9 +2871,9 @@ var Bounds = require('../geometry/Bounds');
         for (i = 0; i < pairs.length; i++) {
             pair = pairs[i];
             
-            if (!pair.isActive)
+            if (!pair.isActive || pair.isSensor)
                 continue;
-            
+
             collision = pair.collision;
             bodyA = collision.parentA;
             bodyB = collision.parentB;
@@ -2846,7 +2890,7 @@ var Bounds = require('../geometry/Bounds');
         for (i = 0; i < pairs.length; i++) {
             pair = pairs[i];
 
-            if (!pair.isActive || pair.separation < 0)
+            if (!pair.isActive || pair.isSensor || pair.separation < 0)
                 continue;
             
             collision = pair.collision;
@@ -2854,7 +2898,7 @@ var Bounds = require('../geometry/Bounds');
             bodyB = collision.parentB;
             normal = collision.normal;
             positionImpulse = (pair.separation - pair.slop) * timeScale;
-        
+
             if (bodyA.isStatic || bodyB.isStatic)
                 positionImpulse *= 2;
             
@@ -2937,7 +2981,7 @@ var Bounds = require('../geometry/Bounds');
         for (i = 0; i < pairs.length; i++) {
             pair = pairs[i];
             
-            if (!pair.isActive)
+            if (!pair.isActive || pair.isSensor)
                 continue;
             
             contacts = pair.activeContacts;
@@ -2946,7 +2990,7 @@ var Bounds = require('../geometry/Bounds');
             bodyB = collision.parentB;
             normal = collision.normal;
             tangent = collision.tangent;
-                
+
             // resolve each contact
             for (j = 0; j < contacts.length; j++) {
                 contact = contacts[j];
@@ -2996,7 +3040,7 @@ var Bounds = require('../geometry/Bounds');
         for (var i = 0; i < pairs.length; i++) {
             var pair = pairs[i];
             
-            if (!pair.isActive)
+            if (!pair.isActive || pair.isSensor)
                 continue;
             
             var collision = pair.collision,
@@ -7426,7 +7470,7 @@ var Vector = require('../geometry/Vector');
                 pixelRatio: 1,
                 background: '#fafafa',
                 wireframeBackground: '#222',
-                hasBounds: false,
+                hasBounds: !!options.bounds,
                 enabled: true,
                 wireframes: true,
                 showSleeping: true,
