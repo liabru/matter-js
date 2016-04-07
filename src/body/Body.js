@@ -505,6 +505,16 @@ var Axes = require('../geometry/Axes');
             Bounds.update(part.bounds, part.vertices, body.velocity);
         }
 
+        // handle circles
+        if (body.circleRadius) { 
+            if (scaleX === scaleY) {
+                body.circleRadius *= scaleX;
+            } else {
+                // body is no longer a circle
+                body.circleRadius = null;
+            }
+        }
+
         if (!body.isStatic) {
             var total = _totalProperties(body);
             body.area = total.area;
