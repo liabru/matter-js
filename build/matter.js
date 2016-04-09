@@ -1,5 +1,5 @@
 /**
-* matter-js 0.9.2 by @liabru 2016-04-07
+* matter-js master by @liabru 2016-04-09
 * http://brm.io/matter-js/
 * License MIT
 */
@@ -4546,6 +4546,11 @@ var Body = require('../body/Body');
             broadphasePairs = allBodies;
         }
 
+        // clear all composite modified flags
+        if (world.isModified) {
+            Composite.setModified(world, false, false, true);
+        }
+
         // narrowphase pass: find actual collisions, then create or update collision pairs
         var collisions = broadphase.detector(broadphasePairs, engine);
 
@@ -4586,10 +4591,6 @@ var Body = require('../body/Body');
 
         // clear force buffers
         _bodiesClearForces(allBodies);
-
-        // clear all composite modified flags
-        if (world.isModified)
-            Composite.setModified(world, false, false, true);
 
         Events.trigger(engine, 'afterUpdate', event);
 
