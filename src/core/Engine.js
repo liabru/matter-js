@@ -160,6 +160,11 @@ var Body = require('../body/Body');
             broadphasePairs = allBodies;
         }
 
+        // clear all composite modified flags
+        if (world.isModified) {
+            Composite.setModified(world, false, false, true);
+        }
+
         // narrowphase pass: find actual collisions, then create or update collision pairs
         var collisions = broadphase.detector(broadphasePairs, engine);
 
@@ -204,10 +209,6 @@ var Body = require('../body/Body');
 
         // clear force buffers
         _bodiesClearForces(allBodies);
-
-        // clear all composite modified flags
-        if (world.isModified)
-            Composite.setModified(world, false, false, true);
 
         Events.trigger(engine, 'afterUpdate', event);
 
