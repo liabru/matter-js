@@ -596,6 +596,7 @@ var Body = require('./Body');
      * @property type
      * @type string
      * @default "composite"
+     * @readOnly
      */
 
     /**

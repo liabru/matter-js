@@ -673,6 +673,7 @@ var Axes = require('../geometry/Axes');
      * @property type
      * @type string
      * @default "body"
+     * @readOnly
      */
 
     /**

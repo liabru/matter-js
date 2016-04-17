@@ -297,6 +297,7 @@ var Common = require('../core/Common');
      * @property type
      * @type string
      * @default "constraint"
+     * @readOnly
      */
 
     /**

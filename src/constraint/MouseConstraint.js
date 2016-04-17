@@ -220,6 +220,7 @@ var Bounds = require('../geometry/Bounds');
      * @property type
      * @type string
      * @default "constraint"
+     * @readOnly
      */
 
     /**
