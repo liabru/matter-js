@@ -37,10 +37,11 @@ var Body = require('../body/Body');
      * @return {engine} engine
      */
     Engine.create = function(element, options) {
-
         // options may be passed as the first (and only) argument
         options = Common.isElement(element) ? options : element;
         element = Common.isElement(element) ? element : null;
+        
+        options = options || {};
 
         var defaults = {
             positionIterations: 6,
