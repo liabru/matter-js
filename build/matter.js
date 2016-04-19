@@ -1,5 +1,5 @@
 /**
-* matter-js master by @liabru 2016-04-09
+* matter-js 0.9.3 by @liabru 2016-04-19
 * http://brm.io/matter-js/
 * License MIT
 */
@@ -704,6 +704,7 @@ var Axes = require('../geometry/Axes');
      * @property type
      * @type string
      * @default "body"
+     * @readOnly
      */
 
     /**
@@ -1755,6 +1756,7 @@ var Body = require('./Body');
      * @property type
      * @type string
      * @default "composite"
+     * @readOnly
      */
 
     /**
@@ -3711,6 +3713,7 @@ var Common = require('../core/Common');
      * @property type
      * @type string
      * @default "constraint"
+     * @readOnly
      */
 
     /**
@@ -4029,6 +4032,7 @@ var Bounds = require('../geometry/Bounds');
      * @property type
      * @type string
      * @default "constraint"
+     * @readOnly
      */
 
     /**
@@ -4425,15 +4429,16 @@ var Body = require('../body/Body');
      * All properties have default values, and many are pre-calculated automatically based on other properties.
      * See the properties section below for detailed information on what you can pass via the `options` object.
      * @method create
-     * @param {HTMLElement} element
+     * @param {HTMLElement} [element]
      * @param {object} [options]
      * @return {engine} engine
      */
     Engine.create = function(element, options) {
-
         // options may be passed as the first (and only) argument
         options = Common.isElement(element) ? options : element;
         element = Common.isElement(element) ? element : null;
+        
+        options = options || {};
 
         var defaults = {
             positionIterations: 6,
@@ -4465,7 +4470,7 @@ var Body = require('../body/Body');
             engine.render = engine.render.controller.create(engine.render);
         }
 
-        engine.world = World.create(engine.world);
+        engine.world = options.world || World.create(engine.world);
         engine.pairs = Pairs.create();
         engine.broadphase = engine.broadphase.controller.create(engine.broadphase);
         engine.metrics = engine.metrics || { extended: false };

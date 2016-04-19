@@ -1,3 +1,20 @@
+<a name="0.9.3"></a>
+## 0.9.3 (2016-04-19)
+
+
+* added readonly to docs for type property, closes #235 ([afd7531](https://github.com/liabru/matter-js/commit/afd7531)), closes [#235](https://github.com/liabru/matter-js/issues/235)
+* Engine uses provided world; fixes issue #230 ([158c404](https://github.com/liabru/matter-js/commit/158c404)), closes [#230](https://github.com/liabru/matter-js/issues/230)
+* fix issue with removed bodies causing collisions ([23a773a](https://github.com/liabru/matter-js/commit/23a773a))
+* fix Matter.Engine.create docs to show element param is optional ([e2e7c0b](https://github.com/liabru/matter-js/commit/e2e7c0b))
+* handle missing options in Engine.create ([f36fe2c](https://github.com/liabru/matter-js/commit/f36fe2c))
+* improved release tasks ([e13d2d2](https://github.com/liabru/matter-js/commit/e13d2d2))
+* Merge branch 'master' of github.com:liabru/matter-js ([d373172](https://github.com/liabru/matter-js/commit/d373172))
+* Merge pull request #237 from iamjoshua/master ([b724959](https://github.com/liabru/matter-js/commit/b724959)), closes [#230](https://github.com/liabru/matter-js/issues/230)
+* set release task to default to patch ([9d396fe](https://github.com/liabru/matter-js/commit/9d396fe))
+* updated edge build ([7eb9ac7](https://github.com/liabru/matter-js/commit/7eb9ac7))
+
+
+
 <a name="0.9.2"></a>
 ## 0.9.2 (2016-04-07)
 
