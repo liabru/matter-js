@@ -102,7 +102,7 @@ gulp.task('watch', function() {
 
 gulp.task('bump', function() {
     return gulp.src(['package.json', 'bower.json'])
-        .pipe(bump({ type: process.argv[4] || 'minor' }))
+        .pipe(bump({ type: process.argv[4] || 'patch' }))
         .pipe(gulp.dest('.'));
 });
 
