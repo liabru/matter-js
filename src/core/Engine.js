@@ -72,7 +72,7 @@ var Body = require('../body/Body');
             engine.render = engine.render.controller.create(engine.render);
         }
 
-        engine.world = World.create(engine.world);
+        engine.world = options.world || World.create(engine.world);
         engine.pairs = Pairs.create();
         engine.broadphase = engine.broadphase.controller.create(engine.broadphase);
         engine.metrics = engine.metrics || { extended: false };
