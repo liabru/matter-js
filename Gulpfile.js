@@ -35,11 +35,29 @@ gulp.task('dev', function(callback) {
 });
 
 gulp.task('release', function(callback) {
-    sequence('build:dev', 'build:examples', 'test', 'bump', 'reload', 'build:edge', 'build:release', 'doc', 'changelog', callback);
+    shell('git status --porcelain', function(err, stdout) {
+        if (stdout && stdout.trim()) {
+            throw new gutil.PluginError({
+                plugin: 'release',
+                message: 'cannot build release as there are uncomitted changes'
+            });
+        } else {
+            sequence('build:dev', 'build:examples', 'test', 'bump', 'reload', 'build:edge', 'build:release', 'doc', 'changelog', callback);
+        }
+    });
 });
 
 gulp.task('release:push', function(callback) {
-    sequence('tag', 'release:push:git', 'release:push:github', 'release:push:npm', callback);
+    shell('git status --porcelain', function(err, stdout) {
+        if (stdout && stdout.trim()) {
+            throw new gutil.PluginError({
+                plugin: 'release',
+                message: 'cannot push release as it has not yet been committed'
+            });
+        } else {
+            sequence('tag', 'release:push:git', 'release:push:github', 'release:push:npm', callback);
+        }
+    });
 });
 
 gulp.task('release:push:github', function(callback) {
@@ -250,8 +268,8 @@ var build = function(options) {
 
 var shell = function(command, callback) {
     var args = process.argv.slice(3).join(' '),
-        proc = exec(command + ' ' + args, function(err) {
-            callback(err);
+        proc = exec(command + ' ' + args, function(err, stdout, stderr) {
+            callback(err, stdout, stderr, proc);
         });
 
     proc.stdout.on('data', function(data) {
