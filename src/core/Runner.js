@@ -168,11 +168,12 @@ var Common = require('./Common');
         Events.trigger(runner, 'afterUpdate', event);
 
         // render
+        // @deprecated
         if (engine.render && engine.render.controller) {
             Events.trigger(runner, 'beforeRender', event);
             Events.trigger(engine, 'beforeRender', event); // @deprecated
 
-            engine.render.controller.world(engine);
+            engine.render.controller.world(engine.render);
 
             Events.trigger(runner, 'afterRender', event);
             Events.trigger(engine, 'afterRender', event); // @deprecated

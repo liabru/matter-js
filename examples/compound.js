@@ -40,7 +40,7 @@
 
         World.add(world, [compoundBodyA, compoundBodyB, constraint]);
         
-        var renderOptions = engine.render.options;
+        var renderOptions = demo.render.options;
         renderOptions.showAxes = true;
         renderOptions.showPositions = true;
         renderOptions.showConvexHulls = true;

@@ -1,5 +1,5 @@
 /**
-* matter-tools-dev.min.js 0.5.0-dev 2015-12-05
+* matter-tools-dev.min.js 0.5.0-dev 2016-04-24
 * https://github.com/liabru/matter-tools
 * License: MIT
 */
@@ -10,7 +10,7 @@
   var Gui = {};
   (function() {
     var _isWebkit = "WebkitAppearance" in document.documentElement.style;
-    Gui.create = function(engine, runner, options) {
+    Gui.create = function(engine, runner, render, options) {
       var _datGuiSupported = window.dat && window.localStorage;
       if (!_datGuiSupported) {
         console.log("Could not create GUI. Check dat.gui library is loaded first.");
@@ -20,6 +20,7 @@
       var gui = {
         engine:engine,
         runner:runner,
+        render:render,
         datGui:datGui,
         broadphase:"grid",
         broadphaseCache:{
@@ -116,7 +117,7 @@
           Events.trigger(gui, "load");
         },
         inspect:function() {
-          if (!Inspector.instance) gui.inspector = Inspector.create(gui.engine, gui.runner);
+          if (!Inspector.instance) gui.inspector = Inspector.create(gui.engine, gui.runner, gui.render);
         },
         recordGif:function() {
           if (!gui.isRecording) {
@@ -204,35 +205,35 @@
       render.add(gui, "renderer", [ "canvas", "webgl" ]).onFinishChange(function(value) {
         _setRenderer(gui, value);
       });
-      render.add(engine.render.options, "wireframes");
-      render.add(engine.render.options, "showDebug");
-      render.add(engine.render.options, "showPositions");
-      render.add(engine.render.options, "showBroadphase");
-      render.add(engine.render.options, "showBounds");
-      render.add(engine.render.options, "showVelocity");
-      render.add(engine.render.options, "showCollisions");
-      render.add(engine.render.options, "showSeparations");
-      render.add(engine.render.options, "showAxes");
-      render.add(engine.render.options, "showAngleIndicator");
-      render.add(engine.render.options, "showSleeping");
-      render.add(engine.render.options, "showIds");
-      render.add(engine.render.options, "showVertexNumbers");
-      render.add(engine.render.options, "showConvexHulls");
-      render.add(engine.render.options, "showInternalEdges");
-      render.add(engine.render.options, "enabled");
+      render.add(gui.render.options, "wireframes");
+      render.add(gui.render.options, "showDebug");
+      render.add(gui.render.options, "showPositions");
+      render.add(gui.render.options, "showBroadphase");
+      render.add(gui.render.options, "showBounds");
+      render.add(gui.render.options, "showVelocity");
+      render.add(gui.render.options, "showCollisions");
+      render.add(gui.render.options, "showSeparations");
+      render.add(gui.render.options, "showAxes");
+      render.add(gui.render.options, "showAngleIndicator");
+      render.add(gui.render.options, "showSleeping");
+      render.add(gui.render.options, "showIds");
+      render.add(gui.render.options, "showVertexNumbers");
+      render.add(gui.render.options, "showConvexHulls");
+      render.add(gui.render.options, "showInternalEdges");
+      render.add(gui.render.options, "enabled");
       render.open();
     };
     var _setRenderer = function(gui, rendererName) {
       var engine = gui.engine, controller;
       if (rendererName === "canvas") controller = Render;
       if (rendererName === "webgl") controller = RenderPixi;
-      engine.render.element.removeChild(engine.render.canvas);
-      var options = engine.render.options;
-      engine.render = controller.create({
-        element:engine.render.element,
+      gui.render.element.removeChild(gui.render.canvas);
+      var options = gui.render.options;
+      gui.render = controller.create({
+        element:gui.render.element,
         options:options
       });
-      engine.render.options = options;
+      gui.render = options;
       Events.trigger(gui, "setRenderer");
     };
     var _addBody = function(gui) {
@@ -257,8 +258,8 @@
       var engine = gui.engine;
       World.clear(engine.world, true);
       Engine.clear(engine);
-      var renderController = engine.render.controller;
-      if (renderController.clear) renderController.clear(engine.render);
+      var renderController = gui.render.controller;
+      if (renderController.clear) renderController.clear(gui.render);
       Events.trigger(gui, "clear");
     };
     var _initGif = function(gui) {
@@ -268,7 +269,7 @@
       var engine = gui.engine, skipFrame = false;
       Matter.Events.on(gui.runner, "beforeTick", function(event) {
         if (gui.isRecording && !skipFrame) {
-          gui.gif.addFrame(engine.render.context, {
+          gui.gif.addFrame(gui.render.context, {
             copy:true,
             delay:25
           });
@@ -280,14 +281,15 @@
   var Inspector = {};
   (function() {
     var _key, _isWebkit = "WebkitAppearance" in document.documentElement.style, $body;
-    Inspector.create = function(engine, runner, options) {
+    Inspector.create = function(engine, runner, render, options) {
       if (!jQuery || !$.fn.jstree || !window.key) {
         console.log("Could not create inspector. Check keymaster, jQuery, jsTree libraries are loaded first.");
         return;
       }
       var inspector = {
-        engine:engine,
-        runner:runner,
+        engine:null,
+        runner:null,
+        render:null,
         isPaused:false,
         selected:[],
         selectStart:null,
@@ -317,7 +319,10 @@
       };
       inspector = Common.extend(inspector, options);
       Inspector.instance = inspector;
-      inspector.mouse = Mouse.create(engine.render.canvas);
+      inspector.engine = engine;
+      inspector.runner = runner;
+      inspector.render = render;
+      inspector.mouse = Mouse.create(inspector.render.canvas);
       inspector.mouseConstraint = MouseConstraint.create(engine, {
         mouse:inspector.mouse
       });
@@ -670,8 +675,8 @@
           _updateSelectedMouseDownOffset(inspector);
         }
       });
-      Events.on(inspector.engine.render, "afterRender", function() {
-        var renderController = engine.render.controller, context = engine.render.context;
+      Events.on(inspector.render, "afterRender", function() {
+        var renderController = inspector.render.controller, context = inspector.render.context;
         if (renderController.inspector) renderController.inspector(inspector, context);
       });
     };

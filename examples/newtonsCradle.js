@@ -16,7 +16,7 @@
         World.add(world, cradle);
         Body.translate(cradle.bodies[0], { x: -140, y: -100 });
         
-        var renderOptions = engine.render.options;
+        var renderOptions = demo.render.options;
         renderOptions.showVelocity = true;
     };
 

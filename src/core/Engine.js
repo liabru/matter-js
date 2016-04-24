@@ -32,7 +32,6 @@ var Body = require('../body/Body');
      * All properties have default values, and many are pre-calculated automatically based on other properties.
      * See the properties section below for detailed information on what you can pass via the `options` object.
      * @method create
-     * @param {HTMLElement} [element]
      * @param {object} [options]
      * @return {engine} engine
      */
@@ -40,8 +39,11 @@ var Body = require('../body/Body');
         // options may be passed as the first (and only) argument
         options = Common.isElement(element) ? options : element;
         element = Common.isElement(element) ? element : null;
-        
         options = options || {};
+
+        if (element || options.render) {
+            Common.log('Engine.create: engine.render is deprecated (see docs)', 'warn');
+        }
 
         var defaults = {
             positionIterations: 6,
@@ -60,6 +62,7 @@ var Body = require('../body/Body');
 
         var engine = Common.extend(defaults, options);
 
+        // @deprecated
         if (element || engine.render) {
             var renderDefaults = {
                 element: element,
@@ -69,8 +72,14 @@ var Body = require('../body/Body');
             engine.render = Common.extend(renderDefaults, engine.render);
         }
 
+        // @deprecated
         if (engine.render && engine.render.controller) {
             engine.render = engine.render.controller.create(engine.render);
+        }
+
+        // @deprecated
+        if (engine.render) {
+            engine.render.engine = engine;
         }
 
         engine.world = options.world || World.create(engine.world);
@@ -454,6 +463,8 @@ var Body = require('../body/Body');
      */
 
     /**
+     * __DEPRECATED__ see Demo.js for an example of creating a renderer.
+     *
      * An instance of a `Render` controller. The default value is a `Matter.Render` instance created by `Engine.create`.
      * One may also develop a custom renderer module based on `Matter.Render` and pass an instance of it to `Engine.create` via `options.render`.
      *
@@ -462,6 +473,7 @@ var Body = require('../body/Body');
      *
      * @property render
      * @type render
+     * @deprecated see Demo.js for an example of creating a renderer
      * @default a Matter.Render instance
      */
 

@@ -38,9 +38,11 @@ var Bounds = require('../geometry/Bounds');
         if (!mouse) {
             if (engine && engine.render && engine.render.canvas) {
                 mouse = Mouse.create(engine.render.canvas);
+            } else if (options && options.element) {
+                mouse = Mouse.create(options.element);
             } else {
                 mouse = Mouse.create();
-                Common.log('MouseConstraint.create: options.mouse was undefined, engine.render.canvas was undefined, may not function as expected', 'warn');
+                Common.log('MouseConstraint.create: options.mouse was undefined, options.element was undefined, may not function as expected', 'warn');
             }
         }
 
@@ -60,6 +62,7 @@ var Bounds = require('../geometry/Bounds');
         var defaults = {
             type: 'mouseConstraint',
             mouse: mouse,
+            element: null,
             body: null,
             constraint: constraint,
             collisionFilter: {

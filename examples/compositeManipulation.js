@@ -42,7 +42,7 @@
             })
         );
 
-        var renderOptions = engine.render.options;
+        var renderOptions = demo.render.options;
         renderOptions.wireframes = false;
         renderOptions.showAxes = true;
         renderOptions.showCollisions = true;

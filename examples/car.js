@@ -21,7 +21,7 @@
             Bodies.rectangle(340, 580, 700, 20, { isStatic: true, angle: Math.PI * 0.04 })
         ]);
         
-        var renderOptions = engine.render.options;
+        var renderOptions = demo.render.options;
         renderOptions.showAngleIndicator = true;
         renderOptions.showCollisions = true;
     };

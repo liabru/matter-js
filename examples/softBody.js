@@ -19,7 +19,7 @@
             Composites.softBody(250, 400, 4, 4, 0, 0, true, 15, particleOptions)
         ]);
 
-        var renderOptions = engine.render.options;
+        var renderOptions = demo.render.options;
         renderOptions.showAngleIndicator = false;
     };
 

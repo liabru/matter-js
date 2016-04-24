@@ -92,7 +92,7 @@
             Events.on(mouseConstraint, 'mousedown', function(event) {
                 var mousePosition = event.mouse.position;
                 console.log('mousedown at ' + mousePosition.x + ' ' + mousePosition.y);
-                engine.render.options.background = 'cornsilk';
+                demo.render.options.background = 'cornsilk';
                 shakeScene(engine);
             })
 
@@ -103,7 +103,7 @@
             // an example of using mouse events on a mouse
             Events.on(mouseConstraint, 'mouseup', function(event) {
                 var mousePosition = event.mouse.position;
-                engine.render.options.background = "white";
+                demo.render.options.background = "white";
                 console.log('mouseup at ' + mousePosition.x + ' ' + mousePosition.y);
             })
 
@@ -135,7 +135,7 @@
         
         World.add(world, stack);
 
-        var renderOptions = engine.render.options;
+        var renderOptions = demo.render.options;
         renderOptions.wireframes = false;
 
         var shakeScene = function(engine) {

@@ -62,7 +62,7 @@
             })
         );
 
-        var renderOptions = engine.render.options;
+        var renderOptions = demo.render.options;
         renderOptions.wireframes = false;
         renderOptions.background = '#222';
         renderOptions.showAngleIndicator = false;

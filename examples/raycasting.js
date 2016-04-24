@@ -38,9 +38,9 @@
         World.add(world, [stack, concave]);
 
         sceneEvents.push(
-            Events.on(engine.render, 'afterRender', function() {
+            Events.on(demo.render, 'afterRender', function() {
                 var mouse = mouseConstraint.mouse,
-                    context = engine.render.context,
+                    context = demo.render.context,
                     bodies = Composite.allBodies(engine.world),
                     startPoint = { x: 400, y: 100 },
                     endPoint = mouse.position;

@@ -53,7 +53,7 @@
 
         World.add(world, stack);
 
-        var renderOptions = engine.render.options;
+        var renderOptions = demo.render.options;
         renderOptions.background = './img/wall-bg.jpg';
         renderOptions.showAngleIndicator = false;
         renderOptions.wireframes = false;
