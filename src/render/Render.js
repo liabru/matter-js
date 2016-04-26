@@ -1,11 +1,7 @@
 /**
-* The `Matter.Render` module is the default `render.controller` used by a `Matter.Engine`.
-* This renderer is HTML5 canvas based and supports a number of drawing options including sprites and viewports.
-*
-* It is possible develop a custom renderer module based on `Matter.Render` and pass an instance of it to `Engine.create` via `options.render`.
-* A minimal custom renderer object must define at least three functions: `create`, `clear` and `world` (see `Matter.Render`).
-*
-* See also `Matter.RenderPixi` for an alternate WebGL, scene-graph based renderer.
+* The `Matter.Render` module is a simple HTML5 canvas based renderer for visualising instances of `Matter.Engine`.
+* It is intended for development and debugging purposes, but may also be suitable for simple games.
+* It includes a number of drawing options including wireframe, vector with support for sprites and viewports.
 *
 * @class Render
 */

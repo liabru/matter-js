@@ -1,10 +1,9 @@
 /**
 * The `Matter.Runner` module is an optional utility which provides a game loop, 
-* that handles updating and rendering a `Matter.Engine` for you within a browser.
-* It is intended for demo and testing purposes, but may be adequate for simple games.
+* that handles continuously updating a `Matter.Engine` for you within a browser.
+* It is intended for development and debugging purposes, but may also be suitable for simple games.
 * If you are using your own game loop instead, then you do not need the `Matter.Runner` module.
 * Instead just call `Engine.update(engine, delta)` in your own loop.
-* Note that the method `Engine.run` is an alias for `Runner.run`.
 *
 * See the included usage [examples](https://github.com/liabru/matter-js/tree/master/examples).
 *
@@ -267,6 +266,7 @@ var Common = require('./Common');
     * @param {number} event.timestamp The engine.timing.timestamp of the event
     * @param {} event.source The source object of the event
     * @param {} event.name The name of the event
+    * @deprecated
     */
 
     /**
@@ -277,6 +277,7 @@ var Common = require('./Common');
     * @param {number} event.timestamp The engine.timing.timestamp of the event
     * @param {} event.source The source object of the event
     * @param {} event.name The name of the event
+    * @deprecated
     */
 
     /*

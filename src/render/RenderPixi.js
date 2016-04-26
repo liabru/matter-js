@@ -3,7 +3,7 @@
 * See also `Matter.Render` for a canvas based renderer.
 *
 * @class RenderPixi
-* @deprecated the `Matter.RenderPixi` module will soon be removed from the Matter.js core.
+* @deprecated the Matter.RenderPixi module will soon be removed from the Matter.js core.
 * It will likely be moved to its own repository (but maintenance will be limited).
 */
 
