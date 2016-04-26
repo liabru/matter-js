@@ -1,9 +1,0 @@
-.idea
-node_modules
-npm-debug.log
-doc
-matter-doc-theme
-build/matter-dev.js
-build/matter-dev.min.js
-demo/js/lib/matter-dev.js
-test/browser/diffs

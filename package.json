@@ -52,5 +52,10 @@
   "scripts": {
     "test": "gulp build:dev && gulp build:examples && gulp lint"
   },
-  "dependencies": {}
+  "dependencies": {},
+  "files": [
+    "src",
+    "build",
+    "CHANGELOG.md"
+  ]
 }
