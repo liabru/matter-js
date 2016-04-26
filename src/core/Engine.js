@@ -463,8 +463,6 @@ var Body = require('../body/Body');
      */
 
     /**
-     * __DEPRECATED__ see Demo.js for an example of creating a renderer.
-     *
      * An instance of a `Render` controller. The default value is a `Matter.Render` instance created by `Engine.create`.
      * One may also develop a custom renderer module based on `Matter.Render` and pass an instance of it to `Engine.create` via `options.render`.
      *

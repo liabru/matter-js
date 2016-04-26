@@ -3,6 +3,8 @@
 * See also `Matter.Render` for a canvas based renderer.
 *
 * @class RenderPixi
+* @deprecated the `Matter.RenderPixi` module will soon be removed from the Matter.js core.
+* It will likely be moved to its own repository (but maintenance will be limited).
 */
 
 var RenderPixi = {};
@@ -31,8 +33,11 @@ var Common = require('../core/Common');
      * @method create
      * @param {object} options
      * @return {RenderPixi} A new renderer
+     * @deprecated
      */
     RenderPixi.create = function(options) {
+        Common.log('RenderPixi.create: Matter.RenderPixi is deprecated (see docs)', 'warn');
+
         var defaults = {
             controller: RenderPixi,
             engine: null,
@@ -119,6 +124,7 @@ var Common = require('../core/Common');
      * Continuously updates the render canvas on the `requestAnimationFrame` event.
      * @method run
      * @param {render} render
+     * @deprecated
      */
     RenderPixi.run = function(render) {
         (function loop(time){
@@ -131,6 +137,7 @@ var Common = require('../core/Common');
      * Ends execution of `Render.run` on the given `render`, by canceling the animation frame request event loop.
      * @method stop
      * @param {render} render
+     * @deprecated
      */
     RenderPixi.stop = function(render) {
         _cancelAnimationFrame(render.frameRequestId);
@@ -140,6 +147,7 @@ var Common = require('../core/Common');
      * Clears the scene graph
      * @method clear
      * @param {RenderPixi} render
+     * @deprecated
      */
     RenderPixi.clear = function(render) {
         var container = render.container,
@@ -183,6 +191,7 @@ var Common = require('../core/Common');
      * @method setBackground
      * @param {RenderPixi} render
      * @param {string} background
+     * @deprecated
      */
     RenderPixi.setBackground = function(render, background) {
         if (render.currentBackground !== background) {
@@ -217,6 +226,7 @@ var Common = require('../core/Common');
      * Description
      * @method world
      * @param {engine} engine
+     * @deprecated
      */
     RenderPixi.world = function(render) {
         var engine = render.engine,
@@ -288,6 +298,7 @@ var Common = require('../core/Common');
      * @method constraint
      * @param {engine} engine
      * @param {constraint} constraint
+     * @deprecated
      */
     RenderPixi.constraint = function(render, constraint) {
         var engine = render.engine,
@@ -339,6 +350,7 @@ var Common = require('../core/Common');
      * @method body
      * @param {engine} engine
      * @param {body} body
+     * @deprecated
      */
     RenderPixi.body = function(render, body) {
         var engine = render.engine,
@@ -395,6 +407,7 @@ var Common = require('../core/Common');
      * @param {RenderPixi} render
      * @param {body} body
      * @return {PIXI.Sprite} sprite
+     * @deprecated
      */
     var _createBodySprite = function(render, body) {
         var bodyRender = body.render,
@@ -415,6 +428,7 @@ var Common = require('../core/Common');
      * @param {RenderPixi} render
      * @param {body} body
      * @return {PIXI.Graphics} graphics
+     * @deprecated
      */
     var _createBodyPrimitive = function(render, body) {
         var bodyRender = body.render,
@@ -479,6 +493,7 @@ var Common = require('../core/Common');
      * @param {RenderPixi} render
      * @param {string} imagePath
      * @return {PIXI.Texture} texture
+     * @deprecated
      */
     var _getTexture = function(render, imagePath) {
         var texture = render.textures[imagePath];
