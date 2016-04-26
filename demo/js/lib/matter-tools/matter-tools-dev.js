@@ -1,5 +1,5 @@
 /**
-* matter-tools-dev.min.js 0.5.0-dev 2016-04-24
+* matter-tools-dev.min.js 0.5.0-dev 2016-04-26
 * https://github.com/liabru/matter-tools
 * License: MIT
 */
@@ -202,9 +202,6 @@
       physics.add(runner, "enabled");
       physics.open();
       var render = datGui.addFolder("Render");
-      render.add(gui, "renderer", [ "canvas", "webgl" ]).onFinishChange(function(value) {
-        _setRenderer(gui, value);
-      });
       render.add(gui.render.options, "wireframes");
       render.add(gui.render.options, "showDebug");
       render.add(gui.render.options, "showPositions");
@@ -222,19 +219,6 @@
       render.add(gui.render.options, "showInternalEdges");
       render.add(gui.render.options, "enabled");
       render.open();
-    };
-    var _setRenderer = function(gui, rendererName) {
-      var engine = gui.engine, controller;
-      if (rendererName === "canvas") controller = Render;
-      if (rendererName === "webgl") controller = RenderPixi;
-      gui.render.element.removeChild(gui.render.canvas);
-      var options = gui.render.options;
-      gui.render = controller.create({
-        element:gui.render.element,
-        options:options
-      });
-      gui.render = options;
-      Events.trigger(gui, "setRenderer");
     };
     var _addBody = function(gui) {
       var engine = gui.engine;

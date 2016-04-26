@@ -13,6 +13,18 @@ var Composite = require('../body/Composite');
 var Common = require('../core/Common');
 
 (function() {
+
+    var _requestAnimationFrame,
+        _cancelAnimationFrame;
+
+    if (typeof window !== 'undefined') {
+        _requestAnimationFrame = window.requestAnimationFrame || window.webkitRequestAnimationFrame
+                                      || window.mozRequestAnimationFrame || window.msRequestAnimationFrame 
+                                      || function(callback){ window.setTimeout(function() { callback(Common.now()); }, 1000 / 60); };
+   
+        _cancelAnimationFrame = window.cancelAnimationFrame || window.mozCancelAnimationFrame 
+                                      || window.webkitCancelAnimationFrame || window.msCancelAnimationFrame;
+    }
     
     /**
      * Creates a new Pixi.js WebGL renderer
@@ -23,7 +35,9 @@ var Common = require('../core/Common');
     RenderPixi.create = function(options) {
         var defaults = {
             controller: RenderPixi,
+            engine: null,
             element: null,
+            frameRequestId: null,
             canvas: null,
             renderer: null,
             container: null,
@@ -62,6 +76,8 @@ var Common = require('../core/Common');
             backgroundColor: options.background
         };
 
+        render.mouse = options.mouse;
+        render.engine = options.engine;
         render.renderer = render.renderer || new PIXI.WebGLRenderer(render.options.width, render.options.height, render.pixiOptions);
         render.container = render.container || new PIXI.Container();
         render.spriteContainer = render.spriteContainer || new PIXI.Container();
@@ -97,6 +113,27 @@ var Common = require('../core/Common');
         render.canvas.onselectstart = function() { return false; };
 
         return render;
+    };
+
+    /**
+     * Continuously updates the render canvas on the `requestAnimationFrame` event.
+     * @method run
+     * @param {render} render
+     */
+    RenderPixi.run = function(render) {
+        (function loop(time){
+            render.frameRequestId = _requestAnimationFrame(loop);
+            RenderPixi.world(render);
+        })();
+    };
+
+    /**
+     * Ends execution of `Render.run` on the given `render`, by canceling the animation frame request event loop.
+     * @method stop
+     * @param {render} render
+     */
+    RenderPixi.stop = function(render) {
+        _cancelAnimationFrame(render.frameRequestId);
     };
 
     /**
@@ -181,8 +218,8 @@ var Common = require('../core/Common');
      * @method world
      * @param {engine} engine
      */
-    RenderPixi.world = function(engine) {
-        var render = engine.render,
+    RenderPixi.world = function(render) {
+        var engine = render.engine,
             world = engine.world,
             renderer = render.renderer,
             container = render.container,
@@ -237,10 +274,10 @@ var Common = require('../core/Common');
         }
 
         for (i = 0; i < bodies.length; i++)
-            RenderPixi.body(engine, bodies[i]);
+            RenderPixi.body(render, bodies[i]);
 
         for (i = 0; i < constraints.length; i++)
-            RenderPixi.constraint(engine, constraints[i]);
+            RenderPixi.constraint(render, constraints[i]);
 
         renderer.render(container);
     };
@@ -252,8 +289,8 @@ var Common = require('../core/Common');
      * @param {engine} engine
      * @param {constraint} constraint
      */
-    RenderPixi.constraint = function(engine, constraint) {
-        var render = engine.render,
+    RenderPixi.constraint = function(render, constraint) {
+        var engine = render.engine,
             bodyA = constraint.bodyA,
             bodyB = constraint.bodyB,
             pointA = constraint.pointA,
@@ -303,8 +340,8 @@ var Common = require('../core/Common');
      * @param {engine} engine
      * @param {body} body
      */
-    RenderPixi.body = function(engine, body) {
-        var render = engine.render,
+    RenderPixi.body = function(render, body) {
+        var engine = render.engine,
             bodyRender = body.render;
 
         if (!bodyRender.visible)

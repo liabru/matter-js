@@ -131,11 +131,6 @@
 
                 World.add(demo.engine.world, demo.mouseConstraint);
             });
-
-            // need to rebind mouse on render change
-            Events.on(demo.gui, 'setRenderer', function() {
-                Mouse.setElement(demo.mouseConstraint.mouse, demo.render.canvas);
-            });
         }
 
         // create a Matter.Inspector
