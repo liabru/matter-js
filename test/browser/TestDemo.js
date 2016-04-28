@@ -64,6 +64,7 @@ var test = function(status) {
             _demo.engine.render = {};
             _demo.engine.render.options = {};
             _demo.runner = runner;
+            _demo.render = { options: {} };
             _demo.mouseConstraint = Matter.MouseConstraint.create(engine);
 
             Matter.Demo.reset(_demo);
