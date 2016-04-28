@@ -55,7 +55,7 @@ gulp.task('release:push', function(callback) {
                 message: 'cannot push release as it has not yet been committed'
             });
         } else {
-            sequence('tag', 'release:push:git', 'release:push:github', 'release:push:npm', callback);
+            sequence('tag', 'release:push:git', 'release:push:github', 'release:push:npm', 'release:push:docs', callback);
         }
     });
 });
@@ -80,6 +80,10 @@ gulp.task('release:push:git', function(callback) {
 
 gulp.task('release:push:npm', function(callback) {
     shell('npm publish', callback);
+});
+
+gulp.task('release:push:docs', function(callback) {
+    shell('../deploy-docs.sh', callback);
 });
 
 gulp.task('build:dev', function() {
