@@ -1256,6 +1256,13 @@ var Vector = require('../geometry/Vector');
      */
 
     /**
+     * A reference to the `Matter.Engine` instance to be used.
+     *
+     * @property engine
+     * @type engine
+     */
+
+    /**
      * A reference to the element where the canvas is to be inserted (if `render.canvas` has not been specified)
      *
      * @property element
