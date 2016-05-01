@@ -24,7 +24,7 @@
             Constraint.create({ bodyA: catapult, pointB: { x: 410, y: 580 } })
         ]);
         
-        var renderOptions = engine.render.options;
+        var renderOptions = demo.render.options;
         renderOptions.showCollisions = true;
         renderOptions.showVelocity = true;
         renderOptions.showAngleIndicator = true;

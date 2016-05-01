@@ -22,7 +22,7 @@
             Bodies.rectangle(300, 430, 40, 40, { friction: 0 })
         ]);
 
-        var renderOptions = engine.render.options;
+        var renderOptions = demo.render.options;
         renderOptions.showAngleIndicator = false;
         renderOptions.showVelocity = true;
     };

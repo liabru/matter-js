@@ -36,8 +36,8 @@
 
         // get the centre of the viewport
         var viewportCentre = {
-            x: engine.render.options.width * 0.5,
-            y: engine.render.options.height * 0.5
+            x: demo.render.options.width * 0.5,
+            y: demo.render.options.height * 0.5
         };
 
         // make the world bounds a little bigger than the render bounds
@@ -58,7 +58,7 @@
             Events.on(engine, 'beforeTick', function() {
                 var world = engine.world,
                     mouse = mouseConstraint.mouse,
-                    render = engine.render,
+                    render = demo.render,
                     translate;
 
                 // mouse wheel controls zoom
@@ -128,7 +128,7 @@
         );
 
         // must enable renderOptions.hasBounds for views to work
-        var renderOptions = engine.render.options;
+        var renderOptions = demo.render.options;
         renderOptions.hasBounds = true;
     };
 

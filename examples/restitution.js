@@ -18,7 +18,7 @@
             Bodies.rectangle(100 + space * 5, 150, 180, 20, { restitution: rest, angle: -Math.PI * 0.5 })
         ]);
         
-        var renderOptions = engine.render.options;
+        var renderOptions = demo.render.options;
         renderOptions.showCollisions = true;
         renderOptions.showVelocity = true;
         renderOptions.showAngleIndicator = true;

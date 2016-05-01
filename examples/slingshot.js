@@ -55,7 +55,7 @@
             }
         });
         
-        var renderOptions = engine.render.options;
+        var renderOptions = demo.render.options;
         renderOptions.wireframes = false;
         renderOptions.showAngleIndicator = false;
         renderOptions.background = './img/background.png';

@@ -1,11 +1,7 @@
 /**
-* The `Matter.Render` module is the default `render.controller` used by a `Matter.Engine`.
-* This renderer is HTML5 canvas based and supports a number of drawing options including sprites and viewports.
-*
-* It is possible develop a custom renderer module based on `Matter.Render` and pass an instance of it to `Engine.create` via `options.render`.
-* A minimal custom renderer object must define at least three functions: `create`, `clear` and `world` (see `Matter.Render`).
-*
-* See also `Matter.RenderPixi` for an alternate WebGL, scene-graph based renderer.
+* The `Matter.Render` module is a simple HTML5 canvas based renderer for visualising instances of `Matter.Engine`.
+* It is intended for development and debugging purposes, but may also be suitable for simple games.
+* It includes a number of drawing options including wireframe, vector with support for sprites and viewports.
 *
 * @class Render
 */
@@ -23,6 +19,18 @@ var Vector = require('../geometry/Vector');
 
 (function() {
     
+    var _requestAnimationFrame,
+        _cancelAnimationFrame;
+
+    if (typeof window !== 'undefined') {
+        _requestAnimationFrame = window.requestAnimationFrame || window.webkitRequestAnimationFrame
+                                      || window.mozRequestAnimationFrame || window.msRequestAnimationFrame 
+                                      || function(callback){ window.setTimeout(function() { callback(Common.now()); }, 1000 / 60); };
+   
+        _cancelAnimationFrame = window.cancelAnimationFrame || window.mozCancelAnimationFrame 
+                                      || window.webkitCancelAnimationFrame || window.msCancelAnimationFrame;
+    }
+
     /**
      * Creates a new renderer. The options parameter is an object that specifies any properties you wish to override the defaults.
      * All properties have default values, and many are pre-calculated automatically based on other properties.
@@ -34,9 +42,11 @@ var Vector = require('../geometry/Vector');
     Render.create = function(options) {
         var defaults = {
             controller: Render,
+            engine: null,
             element: null,
             canvas: null,
             mouse: null,
+            frameRequestId: null,
             options: {
                 width: 800,
                 height: 600,
@@ -72,6 +82,8 @@ var Vector = require('../geometry/Vector');
             render.canvas.height = render.options.height || render.canvas.height;
         }
 
+        render.mouse = options.mouse;
+        render.engine = options.engine;
         render.canvas = render.canvas || _createCanvas(render.options.width, render.options.height);
         render.context = render.canvas.getContext('2d');
         render.textures = {};
@@ -98,6 +110,27 @@ var Vector = require('../geometry/Vector');
         }
 
         return render;
+    };
+
+    /**
+     * Continuously updates the render canvas on the `requestAnimationFrame` event.
+     * @method run
+     * @param {render} render
+     */
+    Render.run = function(render) {
+        (function loop(time){
+            render.frameRequestId = _requestAnimationFrame(loop);
+            Render.world(render);
+        })();
+    };
+
+    /**
+     * Ends execution of `Render.run` on the given `render`, by canceling the animation frame request event loop.
+     * @method stop
+     * @param {render} render
+     */
+    Render.stop = function(render) {
+        _cancelAnimationFrame(render.frameRequestId);
     };
 
     /**
@@ -128,10 +161,10 @@ var Vector = require('../geometry/Vector');
      * Renders the given `engine`'s `Matter.World` object.
      * This is the entry point for all rendering and should be called every time the scene changes.
      * @method world
-     * @param {engine} engine
+     * @param {render} render
      */
-    Render.world = function(engine) {
-        var render = engine.render,
+    Render.world = function(render) {
+        var engine = render.engine,
             world = engine.world,
             canvas = render.canvas,
             context = render.context,
@@ -201,49 +234,49 @@ var Vector = require('../geometry/Vector');
 
         if (!options.wireframes || (engine.enableSleeping && options.showSleeping)) {
             // fully featured rendering of bodies
-            Render.bodies(engine, bodies, context);
+            Render.bodies(render, bodies, context);
         } else {
             if (options.showConvexHulls)
-                Render.bodyConvexHulls(engine, bodies, context);
+                Render.bodyConvexHulls(render, bodies, context);
 
             // optimised method for wireframes only
-            Render.bodyWireframes(engine, bodies, context);
+            Render.bodyWireframes(render, bodies, context);
         }
 
         if (options.showBounds)
-            Render.bodyBounds(engine, bodies, context);
+            Render.bodyBounds(render, bodies, context);
 
         if (options.showAxes || options.showAngleIndicator)
-            Render.bodyAxes(engine, bodies, context);
+            Render.bodyAxes(render, bodies, context);
         
         if (options.showPositions)
-            Render.bodyPositions(engine, bodies, context);
+            Render.bodyPositions(render, bodies, context);
 
         if (options.showVelocity)
-            Render.bodyVelocity(engine, bodies, context);
+            Render.bodyVelocity(render, bodies, context);
 
         if (options.showIds)
-            Render.bodyIds(engine, bodies, context);
+            Render.bodyIds(render, bodies, context);
 
         if (options.showSeparations)
-            Render.separations(engine, engine.pairs.list, context);
+            Render.separations(render, engine.pairs.list, context);
 
         if (options.showCollisions)
-            Render.collisions(engine, engine.pairs.list, context);
+            Render.collisions(render, engine.pairs.list, context);
 
         if (options.showVertexNumbers)
-            Render.vertexNumbers(engine, bodies, context);
+            Render.vertexNumbers(render, bodies, context);
 
         if (options.showMousePosition)
-            Render.mousePosition(engine, render.mouse, context);
+            Render.mousePosition(render, render.mouse, context);
 
         Render.constraints(constraints, context);
 
         if (options.showBroadphase && engine.broadphase.controller === Grid)
-            Render.grid(engine, engine.broadphase, context);
+            Render.grid(render, engine.broadphase, context);
 
         if (options.showDebug)
-            Render.debug(engine, context);
+            Render.debug(render, context);
 
         if (options.hasBounds) {
             // revert view transforms
@@ -257,13 +290,13 @@ var Vector = require('../geometry/Vector');
      * Description
      * @private
      * @method debug
-     * @param {engine} engine
+     * @param {render} render
      * @param {RenderingContext} context
      */
-    Render.debug = function(engine, context) {
+    Render.debug = function(render, context) {
         var c = context,
+            engine = render.engine,
             world = engine.world,
-            render = engine.render,
             metrics = engine.metrics,
             options = render.options,
             bodies = Composite.allBodies(world),
@@ -362,13 +395,13 @@ var Vector = require('../geometry/Vector');
      * Description
      * @private
      * @method bodyShadows
-     * @param {engine} engine
+     * @param {render} render
      * @param {body[]} bodies
      * @param {RenderingContext} context
      */
-    Render.bodyShadows = function(engine, bodies, context) {
+    Render.bodyShadows = function(render, bodies, context) {
         var c = context,
-            render = engine.render;
+            engine = render.engine;
 
         for (var i = 0; i < bodies.length; i++) {
             var body = bodies[i];
@@ -411,13 +444,13 @@ var Vector = require('../geometry/Vector');
      * Description
      * @private
      * @method bodies
-     * @param {engine} engine
+     * @param {render} render
      * @param {body[]} bodies
      * @param {RenderingContext} context
      */
-    Render.bodies = function(engine, bodies, context) {
+    Render.bodies = function(render, bodies, context) {
         var c = context,
-            render = engine.render,
+            engine = render.engine,
             options = render.options,
             showInternalEdges = options.showInternalEdges || !options.wireframes,
             body,
@@ -510,13 +543,13 @@ var Vector = require('../geometry/Vector');
      * Optimised method for drawing body wireframes in one pass
      * @private
      * @method bodyWireframes
-     * @param {engine} engine
+     * @param {render} render
      * @param {body[]} bodies
      * @param {RenderingContext} context
      */
-    Render.bodyWireframes = function(engine, bodies, context) {
+    Render.bodyWireframes = function(render, bodies, context) {
         var c = context,
-            showInternalEdges = engine.render.options.showInternalEdges,
+            showInternalEdges = render.options.showInternalEdges,
             body,
             part,
             i,
@@ -563,11 +596,11 @@ var Vector = require('../geometry/Vector');
      * Optimised method for drawing body convex hull wireframes in one pass
      * @private
      * @method bodyConvexHulls
-     * @param {engine} engine
+     * @param {render} render
      * @param {body[]} bodies
      * @param {RenderingContext} context
      */
-    Render.bodyConvexHulls = function(engine, bodies, context) {
+    Render.bodyConvexHulls = function(render, bodies, context) {
         var c = context,
             body,
             part,
@@ -602,11 +635,11 @@ var Vector = require('../geometry/Vector');
      * Renders body vertex numbers.
      * @private
      * @method vertexNumbers
-     * @param {engine} engine
+     * @param {render} render
      * @param {body[]} bodies
      * @param {RenderingContext} context
      */
-    Render.vertexNumbers = function(engine, bodies, context) {
+    Render.vertexNumbers = function(render, bodies, context) {
         var c = context,
             i,
             j,
@@ -628,11 +661,11 @@ var Vector = require('../geometry/Vector');
      * Renders mouse position.
      * @private
      * @method mousePosition
-     * @param {engine} engine
+     * @param {render} render
      * @param {mouse} mouse
      * @param {RenderingContext} context
      */
-    Render.mousePosition = function(engine, mouse, context) {
+    Render.mousePosition = function(render, mouse, context) {
         var c = context;
         c.fillStyle = 'rgba(255,255,255,0.8)';
         c.fillText(mouse.position.x + '  ' + mouse.position.y, mouse.position.x + 5, mouse.position.y - 5);
@@ -642,13 +675,13 @@ var Vector = require('../geometry/Vector');
      * Draws body bounds
      * @private
      * @method bodyBounds
-     * @param {engine} engine
+     * @param {render} render
      * @param {body[]} bodies
      * @param {RenderingContext} context
      */
-    Render.bodyBounds = function(engine, bodies, context) {
+    Render.bodyBounds = function(render, bodies, context) {
         var c = context,
-            render = engine.render,
+            engine = render.engine,
             options = render.options;
 
         c.beginPath();
@@ -679,13 +712,13 @@ var Vector = require('../geometry/Vector');
      * Draws body angle indicators and axes
      * @private
      * @method bodyAxes
-     * @param {engine} engine
+     * @param {render} render
      * @param {body[]} bodies
      * @param {RenderingContext} context
      */
-    Render.bodyAxes = function(engine, bodies, context) {
+    Render.bodyAxes = function(render, bodies, context) {
         var c = context,
-            render = engine.render,
+            engine = render.engine,
             options = render.options,
             part,
             i,
@@ -740,13 +773,13 @@ var Vector = require('../geometry/Vector');
      * Draws body positions
      * @private
      * @method bodyPositions
-     * @param {engine} engine
+     * @param {render} render
      * @param {body[]} bodies
      * @param {RenderingContext} context
      */
-    Render.bodyPositions = function(engine, bodies, context) {
+    Render.bodyPositions = function(render, bodies, context) {
         var c = context,
-            render = engine.render,
+            engine = render.engine,
             options = render.options,
             body,
             part,
@@ -796,11 +829,11 @@ var Vector = require('../geometry/Vector');
      * Draws body velocity
      * @private
      * @method bodyVelocity
-     * @param {engine} engine
+     * @param {render} render
      * @param {body[]} bodies
      * @param {RenderingContext} context
      */
-    Render.bodyVelocity = function(engine, bodies, context) {
+    Render.bodyVelocity = function(render, bodies, context) {
         var c = context;
 
         c.beginPath();
@@ -824,11 +857,11 @@ var Vector = require('../geometry/Vector');
      * Draws body ids
      * @private
      * @method bodyIds
-     * @param {engine} engine
+     * @param {render} render
      * @param {body[]} bodies
      * @param {RenderingContext} context
      */
-    Render.bodyIds = function(engine, bodies, context) {
+    Render.bodyIds = function(render, bodies, context) {
         var c = context,
             i,
             j;
@@ -851,13 +884,13 @@ var Vector = require('../geometry/Vector');
      * Description
      * @private
      * @method collisions
-     * @param {engine} engine
+     * @param {render} render
      * @param {pair[]} pairs
      * @param {RenderingContext} context
      */
-    Render.collisions = function(engine, pairs, context) {
+    Render.collisions = function(render, pairs, context) {
         var c = context,
-            options = engine.render.options,
+            options = render.options,
             pair,
             collision,
             corrected,
@@ -934,13 +967,13 @@ var Vector = require('../geometry/Vector');
      * Description
      * @private
      * @method separations
-     * @param {engine} engine
+     * @param {render} render
      * @param {pair[]} pairs
      * @param {RenderingContext} context
      */
-    Render.separations = function(engine, pairs, context) {
+    Render.separations = function(render, pairs, context) {
         var c = context,
-            options = engine.render.options,
+            options = render.options,
             pair,
             collision,
             corrected,
@@ -991,13 +1024,13 @@ var Vector = require('../geometry/Vector');
      * Description
      * @private
      * @method grid
-     * @param {engine} engine
+     * @param {render} render
      * @param {grid} grid
      * @param {RenderingContext} context
      */
-    Render.grid = function(engine, grid, context) {
+    Render.grid = function(render, grid, context) {
         var c = context,
-            options = engine.render.options;
+            options = render.options;
 
         if (options.wireframes) {
             c.strokeStyle = 'rgba(255,180,0,0.1)';
@@ -1036,7 +1069,7 @@ var Vector = require('../geometry/Vector');
     Render.inspector = function(inspector, context) {
         var engine = inspector.engine,
             selected = inspector.selected,
-            render = engine.render,
+            render = inspector.render,
             options = render.options,
             bounds;
 
@@ -1220,6 +1253,13 @@ var Vector = require('../geometry/Vector');
      *
      * @property controller
      * @type render
+     */
+
+    /**
+     * A reference to the `Matter.Engine` instance to be used.
+     *
+     * @property engine
+     * @type engine
      */
 
     /**

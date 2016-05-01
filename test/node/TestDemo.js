@@ -50,6 +50,7 @@ var test = function() {
         _demo.engine.render = {};
         _demo.engine.render.options = {};
         _demo.runner = runner;
+        _demo.render = { options: {} };
 
         if (!(demo in Matter.Example)) {
             throw '\'' + demo + '\' is not defined in Matter.Example';

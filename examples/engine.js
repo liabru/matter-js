@@ -11,7 +11,7 @@
             metrics: { extended: true }
         };
 
-        return Engine.create(demo.container, options);
+        return Engine.create(options);
     };
 
 })();

@@ -103,7 +103,6 @@ See how others are using matter.js physics
 - Collision queries (raycasting, region tests)
 - Time scaling (slow-mo, speed-up)
 - Canvas renderer (supports vectors and textures)
-- WebGL renderer (requires [pixi.js](https://github.com/GoodBoyDigital/pixi.js/))
 - [MatterTools](https://github.com/liabru/matter-tools) for creating, testing and debugging worlds
 - World state serialisation (requires [resurrect.js](https://github.com/skeeto/resurrect-js))
 - Cross-browser (Chrome, Firefox, Safari, IE8+)
@@ -173,7 +172,7 @@ The engine uses the following techniques:
 - Constraints solved with the Gauss-Siedel method
 - Semi-variable time step, synced with rendering
 -   A basic sleeping strategy
-- HTML5 Canvas / WebGL renderer
+- HTML5 Canvas rendering
 
 For more information see my post on [Game physics for beginners](http://brm.io/game-physics-for-beginners/).
 

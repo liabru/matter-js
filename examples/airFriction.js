@@ -23,7 +23,7 @@ if (!_isBrowser) {
             Bodies.rectangle(600, 100, 60, 60, { frictionAir: 0.1 })
         ]);
 
-        var renderOptions = engine.render.options;
+        var renderOptions = demo.render.options;
         renderOptions.showAngleIndicator = false;
         renderOptions.showVelocity = true;
     };
