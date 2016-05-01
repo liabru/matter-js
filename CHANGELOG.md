@@ -1,3 +1,18 @@
+<a name="0.10.0"></a>
+# 0.10.0 (2016-05-01)
+
+
+* added release:push:docs task ([04cbd1d](https://github.com/liabru/matter-js/commit/04cbd1d))
+* decouple Matter.Render from Matter.Engine ([de823eb](https://github.com/liabru/matter-js/commit/de823eb))
+* decouple Matter.RenderPixi ([72f90b9](https://github.com/liabru/matter-js/commit/72f90b9))
+* deprecated Matter.RenderPixi ([e8c899a](https://github.com/liabru/matter-js/commit/e8c899a))
+* deprecated Matter.RenderPixi ([a6b97cd](https://github.com/liabru/matter-js/commit/a6b97cd))
+* fix tests ([f59e220](https://github.com/liabru/matter-js/commit/f59e220))
+* fix tests ([c26684e](https://github.com/liabru/matter-js/commit/c26684e))
+* Merge branch 'decouple-renderer' ([31067c9](https://github.com/liabru/matter-js/commit/31067c9))
+
+
+
 <a name="0.9.3"></a>
 ## 0.9.3 (2016-04-19)
 
