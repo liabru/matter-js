@@ -238,6 +238,7 @@ var Body = require('./Body');
      * @return {composite} The original composite with the body removed
      */
     Composite.removeBody = function(composite, body, deep) {
+        Events.trigger(body, 'beforeRemoved', {});
         var position = Common.indexOf(composite.bodies, body);
         if (position !== -1) {
             Composite.removeBodyAt(composite, position);
@@ -250,6 +251,7 @@ var Body = require('./Body');
             }
         }
 
+        Events.trigger(body, 'afterRemoved', {});
         return composite;
     };
 
