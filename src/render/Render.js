@@ -1207,12 +1207,16 @@ var Vector = require('../geometry/Vector');
      */
     var _applyBackground = function(render, background) {
         var cssBackground = background;
+        var backgroundSize = "contain";
 
-        if (/(jpg|gif|png)$/.test(background))
+        if (background === "transparent") {
+            render.canvas.style = "background";
+        } else if (/(jpg|gif|png)$/.test(background)) {
             cssBackground = 'url(' + background + ')';
+            render.canvas.style.background = cssBackground;
+            render.canvas.style.backgroundSize = "contain";
+        }
 
-        render.canvas.style.background = cssBackground;
-        render.canvas.style.backgroundSize = "contain";
         render.currentBackground = background;
     };
 
