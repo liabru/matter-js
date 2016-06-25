@@ -26,6 +26,8 @@ var Common = require('../core/Common');
      * The `Vertices.create` method returns a new array of vertices, which are similar to Matter.Vector objects,
      * but with some additional references required for efficient collision detection routines.
      *
+     * Vertices must be specified in clockwise order.
+     *
      * Note that the `body` argument is not optional, a `Matter.Body` reference must be provided.
      *
      * @method create

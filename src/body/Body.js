@@ -30,6 +30,7 @@ var Axes = require('../geometry/Axes');
     /**
      * Creates a new rigid body model. The options parameter is an object that specifies any properties you wish to override the defaults.
      * All properties have default values, and many are pre-calculated automatically based on other properties.
+     * Vertices must be specified in clockwise order.
      * See the properties section below for detailed information on what you can pass via the `options` object.
      * @method create
      * @param {} options
