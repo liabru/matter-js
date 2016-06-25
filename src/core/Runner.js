@@ -158,7 +158,7 @@ var Common = require('./Common');
             && engine.render
             && engine.render.controller
             && engine.render.controller.clear) {
-            engine.render.controller.clear(engine.render);
+            engine.render.controller.clear(engine.render); // @deprecated
         }
 
         // update

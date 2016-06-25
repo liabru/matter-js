@@ -13,6 +13,7 @@ module.exports = RenderPixi;
 
 var Composite = require('../body/Composite');
 var Common = require('../core/Common');
+var Events = require('../core/Events');
 
 (function() {
 
@@ -97,6 +98,11 @@ var Common = require('../core/Common');
                 y: render.options.height
             }
         };
+
+        // event listeners
+        Events.on(render.engine, 'beforeUpdate', function() {
+            RenderPixi.clear(render);
+        });
 
         // caches
         render.textures = {};
