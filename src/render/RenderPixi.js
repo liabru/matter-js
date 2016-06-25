@@ -11,9 +11,11 @@ var RenderPixi = {};
 
 module.exports = RenderPixi;
 
+var Bounds = require('../geometry/Bounds');
 var Composite = require('../body/Composite');
 var Common = require('../core/Common');
 var Events = require('../core/Events');
+var Vector = require('../geometry/Vector');
 
 (function() {
 
