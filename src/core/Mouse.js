@@ -193,8 +193,8 @@ var Common = require('../core/Common');
         }
 
         return { 
-            x: x / (element.clientWidth / element.width * pixelRatio),
-            y: y / (element.clientHeight / element.height * pixelRatio)
+            x: x / (element.clientWidth / (element.width || element.clientWidth) * pixelRatio),
+            y: y / (element.clientHeight / (element.height || element.clientHeight) * pixelRatio)
         };
     };
 
