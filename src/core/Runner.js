@@ -25,11 +25,24 @@ var Common = require('./Common');
 
     if (typeof window !== 'undefined') {
         _requestAnimationFrame = window.requestAnimationFrame || window.webkitRequestAnimationFrame
-                                      || window.mozRequestAnimationFrame || window.msRequestAnimationFrame 
-                                      || function(callback){ window.setTimeout(function() { callback(Common.now()); }, 1000 / 60); };
+                                      || window.mozRequestAnimationFrame || window.msRequestAnimationFrame;
    
         _cancelAnimationFrame = window.cancelAnimationFrame || window.mozCancelAnimationFrame 
                                       || window.webkitCancelAnimationFrame || window.msCancelAnimationFrame;
+    }
+
+    if (!_requestAnimationFrame) {
+        var _frameTimeout;
+
+        _requestAnimationFrame = function(callback){ 
+            _frameTimeout = setTimeout(function() { 
+                callback(Common.now()); 
+            }, 1000 / 60);
+        };
+
+        _cancelAnimationFrame = function() {
+            clearTimeout(_frameTimeout);
+        };
     }
 
     /**
