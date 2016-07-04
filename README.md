@@ -146,11 +146,7 @@ This will install the required build dependencies, then run
 
 	gulp dev
 
-which is a task that builds the `matter-dev.js` file, spawns a `connect` and `watch` server, then opens `demo/dev.html` in your browser. Any changes you make to the source will automatically rebuild `matter-dev.js` and reload your browser for quick and easy testing.
-
-Contributions are welcome, please ensure they follow the same style and architecture as the rest of the code. You should run `gulp test` to ensure `eslint` gives no errors. Please do not include any changes to the files in the `build` directory. 
-
-If you'd like to contribute but not sure what to work on, feel free to message me. Thanks!
+to spawn a development server. For information on contributing see [CONTRIBUTING.md](https://github.com/liabru/matter-js/blob/master/CONTRIBUTING.md).
 
 ### Changelog
 
@@ -158,22 +154,7 @@ To see what's new or changed in the latest version, see the [changelog](https://
 
 ### References
 
-The engine uses the following techniques:
-
-- Time-corrected position Verlet integrator
-- Adaptive grid broad-phase detection
-- AABB mid-phase detection
-- SAT narrow-phase detection
-- Iterative sequential impulse solver and position solver
-- Resting collisions using resting constraints (Erin Catto, GDC08)
-- Temporal coherence impulse caching and warming
-- Collision pairs, contacts and impulses maintained by a pair manager
-- Approximate Coulomb friction model using friction constraints
-- Constraints solved with the Gauss-Siedel method
-- Fixed or variable time step
-- A basic sleeping strategy
-
-For more information see my post on [Game physics for beginners](http://brm.io/game-physics-for-beginners/).
+See the wiki page on [References](https://github.com/liabru/matter-js/wiki/References).
 
 ### License
 
