@@ -165,16 +165,13 @@ The engine uses the following techniques:
 - AABB mid-phase detection
 - SAT narrow-phase detection
 - Iterative sequential impulse solver and position solver
-- Resting collisions with resting constraints ala Erin Catto's method
-    (GDC08)
+- Resting collisions using resting constraints (Erin Catto, GDC08)
 - Temporal coherence impulse caching and warming
-- Collision pairs, contacts and impulses maintained with a pair
-    manager
+- Collision pairs, contacts and impulses maintained by a pair manager
 - Approximate Coulomb friction model using friction constraints
 - Constraints solved with the Gauss-Siedel method
-- Semi-variable time step, synced with rendering
--   A basic sleeping strategy
-- HTML5 Canvas rendering
+- Fixed or variable time step
+- A basic sleeping strategy
 
 For more information see my post on [Game physics for beginners](http://brm.io/game-physics-for-beginners/).
 
