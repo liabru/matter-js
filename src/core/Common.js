@@ -182,6 +182,26 @@ module.exports = Common;
     Common.isArray = function(obj) {
         return Object.prototype.toString.call(obj) === '[object Array]';
     };
+
+    /**
+     * Returns true if the object is a function.
+     * @method isFunction
+     * @param {object} obj
+     * @return {boolean} True if the object is a function, otherwise false
+     */
+    Common.isFunction = function(obj) {
+        return typeof obj === "function";
+    };
+
+    /**
+     * Returns true if the object is a plain object.
+     * @method isPlainObject
+     * @param {object} obj
+     * @return {boolean} True if the object is a plain object, otherwise false
+     */
+    Common.isPlainObject = function(obj) {
+        return typeof obj === 'object' && obj.constructor === Object;
+    };
     
     /**
      * Returns the given value clamped between a minimum and maximum value.
@@ -231,7 +251,6 @@ module.exports = Common;
               
         return performance.now();
     };
-
     
     /**
      * Returns a random value between a minimum and a maximum value inclusive.
@@ -245,6 +264,12 @@ module.exports = Common;
         min = (typeof min !== "undefined") ? min : 0;
         max = (typeof max !== "undefined") ? max : 1;
         return min + _seededRandom() * (max - min);
+    };
+
+    var _seededRandom = function() {
+        // https://gist.github.com/ngryman/3830489
+        Common._seed = (Common._seed * 9301 + 49297) % 233280;
+        return Common._seed / 233280;
     };
 
     /**
@@ -301,6 +326,7 @@ module.exports = Common;
      * @method indexOf
      * @param {array} haystack
      * @param {object} needle
+     * @return {number} The position of needle in haystack, otherwise -1.
      */
     Common.indexOf = function(haystack, needle) {
         if (haystack.indexOf)
@@ -314,10 +340,109 @@ module.exports = Common;
         return -1;
     };
 
-    var _seededRandom = function() {
-        // https://gist.github.com/ngryman/3830489
-        Common._seed = (Common._seed * 9301 + 49297) % 233280;
-        return Common._seed / 233280;
+    /**
+     * A cross browser compatible array map implementation.
+     * @method map
+     * @param {array} list
+     * @param {function} func
+     * @return {array} Values from list transformed by func.
+     */
+    Common.map = function(list, func) {
+        if (list.map) {
+            return list.map(func);
+        }
+
+        var mapped = [];
+
+        for (var i = 0; i < list.length; i += 1) {
+            mapped.push(func(list[i]));
+        }
+
+        return mapped;
+    };
+
+    /**
+     * Returns the last value in an array.
+     * @method last
+     * @param {array} list
+     * @return {} The last value in list.
+     */
+    Common.last = function(list) {
+        return list[list.length - 1];
+    };
+
+    /**
+     * Takes a directed graph and returns the partially ordered set of vertices in topological order.
+     * Circular dependencies are allowed.
+     * @method topologicalSort
+     * @param {object} graph
+     * @return {array} Partially ordered set of vertices in topological order.
+     */
+    Common.topologicalSort = function(graph) {
+        // https://mgechev.github.io/javascript-algorithms/graphs_others_topological-sort.js.html
+        var result = [],
+            visited = [],
+            temp = [];
+
+        for (var node in graph) {
+            if (!visited[node] && !temp[node]) {
+                _topologicalSort(node, visited, temp, graph, result);
+            }
+        }
+
+        return result;
+    };
+
+    var _topologicalSort = function(node, visited, temp, graph, result) {
+        var neighbors = graph[node] || [];
+        temp[node] = true;
+
+        for (var i = 0; i < neighbors.length; i += 1) {
+            var neighbor = neighbors[i];
+
+            if (temp[neighbor]) {
+                // skip circular dependencies
+                continue;
+            }
+
+            if (!visited[neighbor]) {
+                _topologicalSort(neighbor, visited, temp, graph, result);
+            }
+        }
+
+        temp[node] = false;
+        visited[node] = true;
+
+        result.push(node);
+    };
+
+    /**
+     * Takes _n_ functions as arguments and returns a new function that calls them in order.
+     * The arguments and `this` value applied when calling the new function will be applied to every function passed.
+     * An additional final argument is passed to provide access to the last value returned (that was not `undefined`).
+     * Therefore if a passed function does not return a value, the previously returned value is passed as the final argument.
+     * After all passed functions have been called the new function returns the final value (if any).
+     * @method chain
+     * @param ...funcs {function} The functions to chain.
+     * @return {function} A new function that calls the passed functions in order.
+     */
+    Common.chain = function() {
+        var funcs = Array.prototype.slice.call(arguments);
+
+        return function() {
+            var args = Array.prototype.slice.call(arguments),
+                lastResult;
+
+            for (var i = 0; i < funcs.length; i += 1) {
+                var result = funcs[i].apply(this, lastResult ? args.concat(lastResult) : args);
+
+                if (typeof result !== 'undefined') {
+                    lastResult = result;
+                }
+            }
+
+            return lastResult;
+        };
     };
 
 })();

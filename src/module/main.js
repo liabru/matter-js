@@ -1,5 +1,4 @@
-var Matter = module.exports = {};
-Matter.version = 'master';
+var Matter = module.exports = require('../core/Matter');
 
 Matter.Body = require('../body/Body');
 Matter.Composite = require('../body/Composite');
@@ -23,6 +22,7 @@ Matter.Events = require('../core/Events');
 Matter.Mouse = require('../core/Mouse');
 Matter.Runner = require('../core/Runner');
 Matter.Sleeping = require('../core/Sleeping');
+Matter.Plugin = require('../core/Plugin');
 
 // @if DEBUG
 Matter.Metrics = require('../core/Metrics');
