@@ -1,6 +1,6 @@
 (function() {
 
-    var chain = Matter.Common.chain;
+    var Common = Matter.Common;
 
     var MatterPlugin2 = {
         name: 'matter-plugin-2',
@@ -9,21 +9,23 @@
 
         for: 'matter-js@^0.10.0',
 
-        uses: ['matter-plugin'],
+        uses: ['matter-plugin-fake'],
 
         options: {
             thing: 1
         },
 
         install: function(matter) {
-            matter.Engine.create = chain(
+            matter.Engine.create = Common.chain(
                 matter.Engine.create,
-                MatterPlugin2.engineCreate
+                MatterPlugin2._engineCreate
             );
         },
 
-        engineCreate: function(element, options, engine) {
-            console.log('patched engine create!', arguments);
+        _engineCreate: function(element, options) {
+            var engine = this;
+
+            console.log('patched engine create!', engine);
         }
     };
 

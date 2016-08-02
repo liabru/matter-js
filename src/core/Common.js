@@ -202,6 +202,16 @@ module.exports = Common;
     Common.isPlainObject = function(obj) {
         return typeof obj === 'object' && obj.constructor === Object;
     };
+
+    /**
+     * Returns true if the object is a string.
+     * @method isString
+     * @param {object} obj
+     * @return {boolean} True if the object is a string, otherwise false
+     */
+    Common.isString = function(obj) {
+        return toString.call(obj) === '[object String]';
+    };
     
     /**
      * Returns the given value clamped between a minimum and maximum value.
@@ -362,16 +372,6 @@ module.exports = Common;
     };
 
     /**
-     * Returns the last value in an array.
-     * @method last
-     * @param {array} list
-     * @return {} The last value in list.
-     */
-    Common.last = function(list) {
-        return list[list.length - 1];
-    };
-
-    /**
      * Takes a directed graph and returns the partially ordered set of vertices in topological order.
      * Circular dependencies are allowed.
      * @method topologicalSort
@@ -418,10 +418,10 @@ module.exports = Common;
 
     /**
      * Takes _n_ functions as arguments and returns a new function that calls them in order.
-     * The arguments and `this` value applied when calling the new function will be applied to every function passed.
-     * An additional final argument is passed to provide access to the last value returned (that was not `undefined`).
-     * Therefore if a passed function does not return a value, the previously returned value is passed as the final argument.
-     * After all passed functions have been called the new function returns the final value (if any).
+     * The arguments applied when calling the new function will also be applied to every function passed.
+     * The value of `this` refers to the last value returned in the chain that was not `undefined`.
+     * Therefore if a passed function does not return a value, the previously returned value is maintained.
+     * After all passed functions have been called the new function returns the last returned value (if any).
      * @method chain
      * @param ...funcs {function} The functions to chain.
      * @return {function} A new function that calls the passed functions in order.
@@ -430,11 +430,10 @@ module.exports = Common;
         var funcs = Array.prototype.slice.call(arguments);
 
         return function() {
-            var args = Array.prototype.slice.call(arguments),
-                lastResult;
+            var lastResult;
 
             for (var i = 0; i < funcs.length; i += 1) {
-                var result = funcs[i].apply(this, lastResult ? args.concat(lastResult) : args);
+                var result = funcs[i].apply(lastResult, arguments);
 
                 if (typeof result !== 'undefined') {
                     lastResult = result;

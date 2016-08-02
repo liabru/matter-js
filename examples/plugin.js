@@ -1,7 +1,6 @@
 (function() {
 
-    var chain = Matter.Common.chain,
-        last = Matter.Common.last;
+    var Common = Matter.Common;
 
     var MatterPlugin = {
         name: 'matter-plugin',
@@ -11,12 +10,7 @@
         for: 'matter-js@^0.10.0',
 
         uses: [
-            {
-                plugin: 'matter-plugin-2@^0.0.1',
-                options: {
-                    message: 'hello'
-                }
-            },
+            'matter-plugin-2@^0.1.1',
             'matter-plugin-3@^0.10.0'
         ],
 
@@ -25,25 +19,25 @@
         },
 
         install: function(base) {
-            base.Engine.create = chain(
+            base.Engine.create = Common.chain(
                 Matter.Engine.create,
-                MatterPlugin.engineCreate
+                MatterPlugin._engineCreate
             );
 
-            base.Body.create = chain(
-                MatterPlugin.bodyCreate,
+            base.Body.create = Common.chain(
+                MatterPlugin._bodyCreate,
                 Matter.Body.create
             );
         },
 
-        engineCreate: function(element, options, engine) {
-            engine = last(arguments);
+        _engineCreate: function(element, options) {
+            var engine = this;
 
             console.log('2nd patched engine create!', engine);
         },
 
-        bodyCreate: function(options) {
-            console.log('patched body create!', arguments);
+        _bodyCreate: function(options) {
+            console.log('patched body create!', options);
         }
     };
 

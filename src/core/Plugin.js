@@ -12,27 +12,21 @@ var Common = require('./Common');
 
 (function() {
 
-    //Plugin._anonymousName = 0;
     Plugin._registry = {};
 
-    Plugin.exports = function(options) {
-        var plugin = options;
-
-        /*plugin.uses = plugin.uses || [];
-        plugin.for = plugin.for || 'matter-js@*';
-        plugin.name = plugin.name || Plugin.anonymousName();
-        plugin.version = plugin.version || '0.0.0';*/
-        //plugin.id = plugin.name + '@' + plugin.version;
-
-        if (!Plugin.isPlugin(plugin)) {
-            Common.log('Plugin.exports: ' + plugin.name + ' does not implement all required fields.', 'warn');
+    Plugin.exports = function(plugin) {
+        if (!Plugin.isValid(plugin)) {
+            Common.log('Plugin.exports: ' + Plugin.toString(plugin) + ' does not implement all required fields.', 'warn');
         }
 
         if (plugin.name in Plugin._registry) {
             var registered = Plugin._registry[plugin.name];
 
-            if (Plugin.versionGte(plugin.version, registered.version)) {
+            if (Plugin.versionParse(plugin.version).number >= Plugin.versionParse(registered.version).number) {
+                Common.log('Plugin.exports: ' + Plugin.toString(registered) + ' was upgraded to ' + Plugin.toString(plugin), 'warn');
                 Plugin._registry[plugin.name] = plugin;
+            } else {
+                Common.log('Plugin.exports: ' + Plugin.toString(registered) + ' can not be downgraded to ' + Plugin.toString(plugin), 'warn');
             }
         } else {
             Plugin._registry[plugin.name] = plugin;
@@ -41,27 +35,25 @@ var Common = require('./Common');
         return plugin;
     };
 
-    /**
-     * Returns a unique identifier for anonymous plugins.
-     * @method anonymousName
-     * @return {Number} Unique identifier name
-     */
-    /*Plugin.anonymousName = function() {
-        return 'anonymous-' + Plugin._nextId++;
-    };*/
+    Plugin.resolve = function(dependency) {
+        return Plugin._registry[Plugin.dependencyParse(dependency).name];
+    };
 
-    Plugin.isPlugin = function(obj) {
-        return obj && obj.name && Common.isFunction(obj.install);
+    Plugin.toString = function(plugin) {
+        return (plugin.name || 'anonymous') + '@' + (plugin.version || plugin.range || '0.0.0');
+    };
+
+    Plugin.isValid = function(obj) {
+        return obj && obj.name && obj.version;
     };
 
     Plugin.isUsed = function(base, name) {
         return base.used.indexOf(name) > -1;
-        //return (',' + base.used.join(',')).indexOf(',' + name + '@') > -1;
     };
 
     Plugin.isFor = function(plugin, base) {
-        var parsed = Plugin.versionParse(plugin.for);
-        return base.name === parsed.name && Plugin.versionSatisfies(base.version, parsed.version);
+        var parsed = plugin.for && Plugin.dependencyParse(plugin.for);
+        return !plugin.for || (base.name === parsed.name && Plugin.versionSatisfies(base.version, parsed.range));
     };
 
     /**
@@ -73,208 +65,149 @@ var Common = require('./Common');
      */
     Plugin.installDependencies = function(base) {
         if (!base.uses || base.uses.length === 0) {
-            Common.log('Plugin.installDependencies: ' + base.name + ' does not specify any dependencies to install.', 'warn');
+            Common.log('Plugin.installDependencies: ' + Plugin.toString(base) + ' does not specify any dependencies to install.', 'warn');
             return;
         }
 
         if (base.used && base.used.length > 0) {
-            Common.log('Plugin.installDependencies: ' + base.name + ' has already installed its dependencies.', 'warn');
+            Common.log('Plugin.installDependencies: ' + Plugin.toString(base) + ' has already installed its dependencies.', 'warn');
             return;
         }
 
-        var dependencies = Plugin.dependencies(base),
-            sortedDependencies = Common.topologicalSort(dependencies),
-            warnings = 0;
+        var dependencies = Plugin.trackDependencies(base),
+            sortedDependencies = Common.topologicalSort(dependencies);
 
         console.log(dependencies, sortedDependencies);
         
         for (var i = 0; i < sortedDependencies.length; i += 1) {
-            var plugin = Plugin.resolve(sortedDependencies[i]);
-
             if (sortedDependencies[i] === base.name) {
                 continue;
             }
 
-            if (!plugin) {
-                Common.log('Plugin.installDependencies: ' + sortedDependencies[i] + ' could not be resolved.', 'warn');
-                warnings += 1;
-                continue;
-            }
+            var plugin = Plugin.resolve(sortedDependencies[i]);
 
-            if (Plugin.isUsed(base, plugin.name)) {
+            if (!plugin || Plugin.isUsed(base, plugin.name)) {
                 continue;
             }
 
             if (!Plugin.isFor(plugin, base)) {
-                Common.log('Plugin.installDependencies: ' + plugin.name + '@' + plugin.version + ' is for ' + plugin.for + ' but used on ' + base.name + '@' + base.version + '.', 'warn');
-                warnings += 1;
+                Common.log('Plugin.installDependencies: ' + Plugin.toString(plugin) + ' is for ' + plugin.for + ' but installed on ' + Plugin.toString(base) + '.', 'warn');
             }
 
-            var options = Common.isPlainObject(sortedDependencies[i]) ? sortedDependencies[i].options : null;
-
             if (plugin.install) {
-                plugin.install(base, options);
+                plugin.install(base);
             }
 
             base.used.push(plugin.name);
         }
 
-        if (warnings > 0) {
-            Common.log('Plugin.installDependencies: Some dependencies may not function as expected, see above warnings.', 'warn');
-        }
+        console.log(base.used);
     };
 
-    Plugin.dependencies = function(base, _dependencies) {
-        base = Plugin.resolve(base) || base;
-        _dependencies = _dependencies || {};
+    Plugin.trackDependencies = function(base, tracked) {
+        var parsedBase = Plugin.dependencyParse(base),
+            name = parsedBase.name;
 
-        var name = Plugin.versionParse(Plugin.dependencyName(base)).name;
+        tracked = tracked || {};
 
-        if (name in _dependencies) {
+        if (name in tracked) {
             return;
         }
 
-        _dependencies[name] = Common.map(base.uses || [], function(dependency) {
-            return Plugin.versionParse(Plugin.dependencyName(dependency)).name;
+        base = Plugin.resolve(base) || base;
+
+        tracked[name] = Common.map(base.uses || [], function(dependency) {
+            var parsed = Plugin.dependencyParse(dependency),
+                resolved = Plugin.resolve(dependency);
+
+            if (resolved && !Plugin.versionSatisfies(resolved.version, parsed.range)) {
+                Common.log(
+                    'Plugin.trackDependencies: ' + Plugin.toString(resolved) + ' does not satisfy ' 
+                    + Plugin.toString(parsed) + ' used by ' + Plugin.toString(parsedBase) + '.', 
+                    'warn'
+                );
+            } else if (!resolved) {
+                Common.log(
+                    'Plugin.trackDependencies: ' + dependency + ' used by ' 
+                    + Plugin.toString(parsedBase) + ' could not be resolved.',
+                     'warn'
+                );
+            }
+
+            return parsed.name;
         });
 
-        for (var i = 0; i < _dependencies[name].length; i += 1) {
-            Plugin.dependencies(_dependencies[name][i], _dependencies);
+        for (var i = 0; i < tracked[name].length; i += 1) {
+            Plugin.trackDependencies(tracked[name][i], tracked);
         }
 
-        return _dependencies;
+        return tracked;
     };
 
-    Plugin.dependencyName = function(dependency) {
-        return (dependency.plugin && (dependency.plugin.name || dependency.plugin)) || dependency.name || dependency;
-    };
-
-    Plugin.resolve = function(dependency) {
-        if (Plugin.isPlugin(dependency)) {
-            return dependency;
+    Plugin.dependencyParse = function(dependency) {
+        if (Common.isString(dependency)) {
+            return {
+                name: dependency.split('@')[0],
+                range: dependency.split('@')[1] || '*'
+            };
         }
 
-        var plugin = dependency.plugin && Plugin.resolve(dependency.plugin);
-
-        if (plugin) {
-            return plugin;
-        }
-
-        var parsed = Plugin.versionParse(Plugin.dependencyName(dependency));
-
-        plugin = Plugin._registry[parsed.name];
-
-        if (!plugin) {
-            return null;
-        }
-
-        if (Plugin.versionSatisfies(plugin.version, parsed.version)) {
-            return plugin;
-        }
-    };
-
-    Plugin.versionParse = function(name) {
         return {
-            name: name.split('@')[0],
-            pattern: name.split('@')[1] || '*'
+            name: dependency.name,
+            range: dependency.range || dependency.version
         };
     };
 
-    Plugin.semverParse = function(pattern) {
-        var parsed = {};
+    Plugin.versionParse = function(range) {
+        var isRange = isNaN(Number(range[0])),
+            version = isRange ? range.substr(1) : range,
+            parts = Common.map(version.split('.'), function(part) {
+                return Number(part);
+            });
 
-        parsed.version = pattern;
-
-        if (+parsed.version[0] === NaN) {
-            parsed.operator = parsed.version[0];
-            parsed.version = parsed.version.substr(1);
-        }
-
-        parsed.parts = Common.map(parsed.version.split('.'), function(part) {
-            return +part;
-        });
-
-        return parsed;
+        return {
+            isRange: isRange,
+            version: version,
+            range: range,
+            operator: isRange ? range[0] : '',
+            parts: parts,
+            number: parts[0] * 1e8 + parts[1] * 1e4 + parts[2]
+        };
     };
 
-    Plugin.versionNumber = function(version) {
-        var parts = Plugin.semverParse(version).parts;
-        return parts[0] * 1e8 + parts[1] * 1e4 + parts[2];
-    };
-
-    Plugin.versionLt = function(versionA, versionB) {
-        return Plugin.versionNumber(versionA) < Plugin.versionNumber(versionB);
-    };
-
-    Plugin.versionLte = function(versionA, versionB) {
-        return Plugin.versionNumber(versionA) <= Plugin.versionNumber(versionB);
-    };
-
-    Plugin.versionGt = function(versionA, versionB) {
-        return Plugin.versionNumber(versionA) > Plugin.versionNumber(versionB);
-    };
-
-    Plugin.versionGte = function(versionA, versionB) {
-        return Plugin.versionNumber(versionA) >= Plugin.versionNumber(versionB);
-    };
-
-    Plugin.versionSatisfies = function(version, pattern) {
+    Plugin.versionSatisfies = function(version, range) {
         // https://docs.npmjs.com/misc/semver#advanced-range-syntax
-        var operator;
-        pattern = pattern || '*';
+        
+        range = range || '*';
 
-        if (isNaN(+pattern[0])) {
-            operator = pattern[0];
-            pattern = pattern.substr(1);
-        }
+        var rangeParsed = Plugin.versionParse(range),
+            rangeParts = rangeParsed.parts,
+            versionParsed = Plugin.versionParse(version),
+            versionParts = versionParsed.parts;
 
-        var parts = Common.map(version.split('.'), function(part) {
-            return +part;
-        });
-
-        var patternParts = Common.map(pattern.split('.'), function(part) {
-            return +part;
-        });
-
-        /*var parsed = Plugin.semverParse(pattern);
-
-        if (parsed.operator === '*') {
-            return true;
-        }
-
-        if (parsed.operator === '~') {
-            return Plugin.versionGte(version, parsed.pattern) +
-                Plugin.versionLte(version, parts[0] + '.' + (+parts[1] + 1) + '.0');
-        }
-
-        if (parsed.operator === '^') {
-            return Plugin.versionGte(version, pattern) +
-                Plugin.versionLte(version, parts[0] + '.' + (+parts[1] + 1) + '.0');
-        }*/
-
-        if (operator === '*') {
-            return true;
-        }
-
-        if (operator === '~') {
-            return parts[0] === patternParts[0] && parts[1] === patternParts[1] && parts[2] >= patternParts[2];
-        }
-
-        if (operator === '^') {
-            if (patternParts[0] > 0) {
-                return parts[0] === patternParts[0] && Plugin.versionGte(version, pattern);
+        if (rangeParsed.isRange) {
+            if (rangeParsed.operator === '*') {
+                return true;
             }
 
-            if (patternParts[1] > 0) {
-                return parts[2] >= patternParts[2];
+            if (rangeParsed.operator === '~') {
+                return versionParts[0] === rangeParts[0] && versionParts[1] === rangeParts[1] && versionParts[2] >= rangeParts[2];
             }
 
-            //return parts[0] === patternParts[0] && (parts[1] >= patternParts[1] || parts[2] >= patternParts[2]);
+            if (rangeParsed.operator === '^') {
+                if (rangeParts[0] > 0) {
+                    return versionParts[0] === rangeParts[0] && versionParsed.number >= rangeParsed.number;
+                }
 
-            //return '^' + parts[0] === patternParts[0] && +parts[1] >= +patternParts[1] || +parts[2] >= +patternParts[2];
+                if (rangeParts[1] > 0) {
+                    return versionParts[1] === rangeParts[1] && versionParts[2] >= rangeParts[2];
+                }
+
+                return versionParts[2] === rangeParts[2];
+            }
         }
 
-        return version === pattern;
+        return version === range;
     };
 
 })();
