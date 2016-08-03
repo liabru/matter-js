@@ -85,7 +85,7 @@ var Body = require('./Body');
             case 'body':
                 // skip adding compound parts
                 if (obj.parent !== obj) {
-                    Common.log('Composite.add: skipped adding a compound body part (you must add its parent instead)', 'warn');
+                    Common.warn('Composite.add: skipped adding a compound body part (you must add its parent instead)');
                     break;
                 }
 

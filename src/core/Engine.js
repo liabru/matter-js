@@ -42,7 +42,7 @@ var Body = require('../body/Body');
         options = options || {};
 
         if (element || options.render) {
-            Common.log('Engine.create: engine.render is deprecated (see docs)', 'warn');
+            Common.warn('Engine.create: engine.render is deprecated (see docs)');
         }
 
         var defaults = {

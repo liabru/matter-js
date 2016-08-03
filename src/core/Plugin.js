@@ -16,17 +16,17 @@ var Common = require('./Common');
 
     Plugin.exports = function(plugin) {
         if (!Plugin.isValid(plugin)) {
-            Common.log('Plugin.exports: ' + Plugin.toString(plugin) + ' does not implement all required fields.', 'warn');
+            Common.warn('Plugin.exports:', Plugin.toString(plugin), 'does not implement all required fields.');
         }
 
         if (plugin.name in Plugin._registry) {
             var registered = Plugin._registry[plugin.name];
 
             if (Plugin.versionParse(plugin.version).number >= Plugin.versionParse(registered.version).number) {
-                Common.log('Plugin.exports: ' + Plugin.toString(registered) + ' was upgraded to ' + Plugin.toString(plugin), 'warn');
+                Common.warn('Plugin.exports:', Plugin.toString(registered), 'was upgraded to', Plugin.toString(plugin));
                 Plugin._registry[plugin.name] = plugin;
             } else {
-                Common.log('Plugin.exports: ' + Plugin.toString(registered) + ' can not be downgraded to ' + Plugin.toString(plugin), 'warn');
+                Common.warn('Plugin.exports:', Plugin.toString(registered), 'can not be downgraded to', Plugin.toString(plugin));
             }
         } else {
             Plugin._registry[plugin.name] = plugin;
@@ -65,12 +65,12 @@ var Common = require('./Common');
      */
     Plugin.installDependencies = function(base) {
         if (!base.uses || base.uses.length === 0) {
-            Common.log('Plugin.installDependencies: ' + Plugin.toString(base) + ' does not specify any dependencies to install.', 'warn');
+            Common.warn('Plugin.installDependencies:', Plugin.toString(base), 'does not specify any dependencies to install.');
             return;
         }
 
         if (base.used && base.used.length > 0) {
-            Common.log('Plugin.installDependencies: ' + Plugin.toString(base) + ' has already installed its dependencies.', 'warn');
+            Common.warn('Plugin.installDependencies:', Plugin.toString(base), 'has already installed its dependencies.');
             return;
         }
 
@@ -121,16 +121,14 @@ var Common = require('./Common');
                 resolved = Plugin.resolve(dependency);
 
             if (resolved && !Plugin.versionSatisfies(resolved.version, parsed.range)) {
-                Common.log(
-                    'Plugin.trackDependencies: ' + Plugin.toString(resolved) + ' does not satisfy ' 
-                    + Plugin.toString(parsed) + ' used by ' + Plugin.toString(parsedBase) + '.', 
-                    'warn'
+                Common.warn(
+                    'Plugin.trackDependencies:', Plugin.toString(resolved), 'does not satisfy',
+                    Plugin.toString(parsed), 'used by', Plugin.toString(parsedBase) + '.'
                 );
             } else if (!resolved) {
-                Common.log(
-                    'Plugin.trackDependencies: ' + dependency + ' used by ' 
-                    + Plugin.toString(parsedBase) + ' could not be resolved.',
-                     'warn'
+                Common.warn(
+                    'Plugin.trackDependencies:', dependency, 'used by',
+                    Plugin.toString(parsedBase), 'could not be resolved.'
                 );
             }
 

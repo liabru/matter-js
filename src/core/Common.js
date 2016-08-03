@@ -301,24 +301,53 @@ module.exports = Common;
     };
 
     /**
-     * A wrapper for console.log, for providing errors and warnings.
-     * @method log
-     * @param {string} message
-     * @param {string} type
+     * The console logging level to use, where each level includes all levels above and excludes the levels below.
+     * The default level is 'debug' which shows all console messages.  
+     * Possible level values are:
+     * - 0 = None
+     * - 1 = Debug
+     * - 2 = Info
+     * - 3 = Warn
+     * - 4 = Error
+     * @property Common.logLevel
+     * @type {Number}
+     * @default 1
      */
-    Common.log = function(message, type) {
-        if (!console || !console.log || !console.warn)
-            return;
+    Common.logLevel = 1;
 
-        switch (type) {
+    /**
+     * Shows a `console.log` message only if the current `Common.logLevel` allows it.
+     * The message will be prefixed with 'Matter.js' to make it easily identifiable.
+     * @method log
+     * @param ...objs {} The objects to log.
+     */
+    Common.log = function() {
+        if (console && Common.logLevel > 0 && Common.logLevel <= 3) {
+            console.log.apply(console, [Matter.name + ':'].concat(Array.prototype.slice.call(arguments)));
+        }
+    };
 
-        case 'warn':
-            console.warn('Matter.js:', message);
-            break;
-        case 'error':
-            console.log('Matter.js:', message);
-            break;
+    /**
+     * Shows a `console.info` message only if the current `Common.logLevel` allows it.
+     * The message will be prefixed with 'Matter.js' to make it easily identifiable.
+     * @method info
+     * @param ...objs {} The objects to log.
+     */
+    Common.info = function() {
+        if (console && Common.logLevel > 0 && Common.logLevel <= 2) {
+            console.info.apply(console, [Matter.name + ':'].concat(Array.prototype.slice.call(arguments)));
+        }
+    };
 
+    /**
+     * Shows a `console.warn` message only if the current `Common.logLevel` allows it.
+     * The message will be prefixed with 'Matter.js' to make it easily identifiable.
+     * @method warn
+     * @param ...objs {} The objects to log.
+     */
+    Common.warn = function() {
+        if (console && Common.logLevel > 0 && Common.logLevel <= 3) {
+            console.warn.apply(console, [Matter.name + ':'].concat(Array.prototype.slice.call(arguments)));
         }
     };
 

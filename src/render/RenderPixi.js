@@ -39,7 +39,7 @@ var Vector = require('../geometry/Vector');
      * @deprecated
      */
     RenderPixi.create = function(options) {
-        Common.log('RenderPixi.create: Matter.RenderPixi is deprecated (see docs)', 'warn');
+        Common.warn('RenderPixi.create: Matter.RenderPixi is deprecated (see docs)');
 
         var defaults = {
             controller: RenderPixi,
@@ -118,7 +118,7 @@ var Vector = require('../geometry/Vector');
         if (Common.isElement(render.element)) {
             render.element.appendChild(render.canvas);
         } else {
-            Common.log('No "render.element" passed, "render.canvas" was not inserted into document.', 'warn');
+            Common.warn('No "render.element" passed, "render.canvas" was not inserted into document.');
         }
 
         // prevent menus on canvas
