@@ -75,10 +75,9 @@ var Common = require('./Common');
         }
 
         var dependencies = Plugin.trackDependencies(base),
-            sortedDependencies = Common.topologicalSort(dependencies);
+            sortedDependencies = Common.topologicalSort(dependencies),
+            status = [];
 
-        console.log(dependencies, sortedDependencies);
-        
         for (var i = 0; i < sortedDependencies.length; i += 1) {
             if (sortedDependencies[i] === base.name) {
                 continue;
@@ -86,22 +85,27 @@ var Common = require('./Common');
 
             var plugin = Plugin.resolve(sortedDependencies[i]);
 
+            if (!plugin) {
+                status.push('❌ ' + sortedDependencies[i]);
+            }
+
             if (!plugin || Plugin.isUsed(base, plugin.name)) {
                 continue;
             }
 
             if (!Plugin.isFor(plugin, base)) {
-                Common.log('Plugin.installDependencies: ' + Plugin.toString(plugin) + ' is for ' + plugin.for + ' but installed on ' + Plugin.toString(base) + '.', 'warn');
+                Common.warn('Plugin.installDependencies:', Plugin.toString(plugin), 'is for', plugin.for, 'but installed on', Plugin.toString(base) + '.');
             }
 
             if (plugin.install) {
                 plugin.install(base);
+                status.push('✅ ' + Plugin.toString(plugin));
             }
 
             base.used.push(plugin.name);
         }
 
-        console.log(base.used);
+        Common.info('Plugin status:', status.join(', '));
     };
 
     Plugin.trackDependencies = function(base, tracked) {

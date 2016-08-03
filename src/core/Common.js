@@ -323,7 +323,7 @@ module.exports = Common;
      */
     Common.log = function() {
         if (console && Common.logLevel > 0 && Common.logLevel <= 3) {
-            console.log.apply(console, [Matter.name + ':'].concat(Array.prototype.slice.call(arguments)));
+            console.log.apply(console, ['matter-js:'].concat(Array.prototype.slice.call(arguments)));
         }
     };
 
@@ -335,7 +335,7 @@ module.exports = Common;
      */
     Common.info = function() {
         if (console && Common.logLevel > 0 && Common.logLevel <= 2) {
-            console.info.apply(console, [Matter.name + ':'].concat(Array.prototype.slice.call(arguments)));
+            console.info.apply(console, ['matter-js:'].concat(Array.prototype.slice.call(arguments)));
         }
     };
 
@@ -347,7 +347,7 @@ module.exports = Common;
      */
     Common.warn = function() {
         if (console && Common.logLevel > 0 && Common.logLevel <= 3) {
-            console.warn.apply(console, [Matter.name + ':'].concat(Array.prototype.slice.call(arguments)));
+            console.warn.apply(console, ['matter-js:'].concat(Array.prototype.slice.call(arguments)));
         }
     };
 
