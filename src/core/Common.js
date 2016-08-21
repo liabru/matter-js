@@ -303,6 +303,7 @@ module.exports = Common;
     /**
      * The console logging level to use, where each level includes all levels above and excludes the levels below.
      * The default level is 'debug' which shows all console messages.  
+     *
      * Possible level values are:
      * - 0 = None
      * - 1 = Debug
@@ -317,7 +318,7 @@ module.exports = Common;
 
     /**
      * Shows a `console.log` message only if the current `Common.logLevel` allows it.
-     * The message will be prefixed with 'Matter.js' to make it easily identifiable.
+     * The message will be prefixed with 'matter-js' to make it easily identifiable.
      * @method log
      * @param ...objs {} The objects to log.
      */
@@ -329,7 +330,7 @@ module.exports = Common;
 
     /**
      * Shows a `console.info` message only if the current `Common.logLevel` allows it.
-     * The message will be prefixed with 'Matter.js' to make it easily identifiable.
+     * The message will be prefixed with 'matter-js' to make it easily identifiable.
      * @method info
      * @param ...objs {} The objects to log.
      */
@@ -341,7 +342,7 @@ module.exports = Common;
 
     /**
      * Shows a `console.warn` message only if the current `Common.logLevel` allows it.
-     * The message will be prefixed with 'Matter.js' to make it easily identifiable.
+     * The message will be prefixed with 'matter-js' to make it easily identifiable.
      * @method warn
      * @param ...objs {} The objects to log.
      */
@@ -451,14 +452,27 @@ module.exports = Common;
      * The value of `this` refers to the last value returned in the chain that was not `undefined`.
      * Therefore if a passed function does not return a value, the previously returned value is maintained.
      * After all passed functions have been called the new function returns the last returned value (if any).
+     * If any of the passed functions are a chain, then the chain will be flattened.
      * @method chain
      * @param ...funcs {function} The functions to chain.
      * @return {function} A new function that calls the passed functions in order.
      */
     Common.chain = function() {
-        var funcs = Array.prototype.slice.call(arguments);
+        var args = Array.prototype.slice.call(arguments),
+            funcs = [];
 
-        return function() {
+        for (var i = 0; i < args.length; i += 1) {
+            var func = args[i];
+
+            if (func._chained) {
+                // flatten already chained functions
+                funcs.push.apply(funcs, func._chained);
+            } else {
+                funcs.push(func);
+            }
+        }
+
+        var chain = function() {
             var lastResult;
 
             for (var i = 0; i < funcs.length; i += 1) {
@@ -471,6 +485,10 @@ module.exports = Common;
 
             return lastResult;
         };
+
+        chain._chained = funcs;
+
+        return chain;
     };
 
 })();

@@ -1,5 +1,5 @@
 /**
-* The `Matter` module is the top level namespace and includes functions for extending other modules.
+* The `Matter` module is the top level namespace. It also includes a function for installing plugins on top of the library.
 *
 * @class Matter
 */
@@ -14,47 +14,46 @@ var Plugin = require('./Plugin');
 
     /**
      * The library name.
-     * @property Matter.name
+     * @property name
+     * @readOnly
      * @type {String}
      */
     Matter.name = 'matter-js';
 
     /**
      * The library version.
-     * @property Matter.version
+     * @property version
+     * @readOnly
      * @type {String}
      */
     Matter.version = 'master';
 
     /**
-     * The plugins that have been _installed_ through `Matter.Plugin.install`. Read only.
-     * @property Matter.used
+     * A list of plugin dependencies to be installed. These are normally set and installed through `Matter.use`.
+     * Alternatively you may set `Matter.uses` manually and install them by calling `Plugin.use(Matter)`.
+     * @property uses
+     * @type {Array}
+     */
+    Matter.uses = [];
+
+    /**
+     * The plugins that have been installed through `Matter.Plugin.install`. Read only.
+     * @property used
      * @readOnly
      * @type {Array}
      */
     Matter.used = [];
 
     /**
-     * A list of plugin dependencies to be installed. These are normally set and installed through `Matter.use`.
-     * Alternatively set them and install manually through `Plugin.installDependencies`.
-     * @property Matter.used
-     * @readOnly
-     * @type {Array}
-     */
-    Matter.uses = [];
-
-    /**
-     * Installs plugins on the `Matter` namespace.
-     * Populates `Matter.used` with an array of the plugins in the order they were applied after dependencies were resolved.
-     * See `Common.use` in `Matter.Common` for more information.
-     * TODO: add link to wiki
+     * Installs the given plugins on the `Matter` namespace.
+     * This is a short-hand for `Plugin.use`, see it for more information.
+     * Call this function once at the start of your code, with all of the plugins you wish to install as arguments.
+     * Avoid calling this function multiple times unless you intend to manually control installation order.
      * @method use
-     * @param ...plugins {Function} The plugins to install on `base`.
+     * @param ...plugin {Function} The plugin(s) to install on `base` (multi-argument).
      */
     Matter.use = function() {
-        Matter.uses = Array.prototype.slice.call(arguments);
-
-        Plugin.installDependencies(Matter);
+        Plugin.use(Matter, Array.prototype.slice.call(arguments));
     };
 
 })();

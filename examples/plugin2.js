@@ -29,7 +29,7 @@
         }
     };
 
-    Matter.Plugin.exports(MatterPlugin2);
+    Matter.Plugin.register(MatterPlugin2);
 
     window.MatterPlugin2 = MatterPlugin2;
 

@@ -41,7 +41,7 @@
         }
     };
 
-    Matter.Plugin.exports(MatterPlugin);
+    Matter.Plugin.register(MatterPlugin);
 
     window.MatterPlugin = MatterPlugin;
 
