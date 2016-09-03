@@ -26,7 +26,7 @@ var Plugin = require('./Plugin');
      * @readOnly
      * @type {String}
      */
-    Matter.version = 'master';
+    Matter.version = '@@VERSION@@';
 
     /**
      * A list of plugin dependencies to be installed. These are normally set and installed through `Matter.use`.
