@@ -56,12 +56,6 @@
         var demo = Demo.create();
         Matter.Demo._demo = demo;
 
-        Matter.use(
-            'matter-plugin-fake',
-            'matter-plugin-2',
-            window.MatterPlugin
-        );
-
         // get container element for the canvas
         demo.container = document.getElementById('canvas-container');
 
