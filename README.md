@@ -4,7 +4,7 @@
 
 [brm.io/matter-js](http://brm.io/matter-js)
 
-[Demos](#demos) - [Gallery](#gallery) - [Features](#features) - [Install](#install) - [Usage](#usage) - [Examples](#examples) -  [Docs](#documentation) - [References](#references) - [License](#license)
+[Demos](#demos) - [Gallery](#gallery) - [Features](#features) - [Install](#install) - [Usage](#usage) - [Examples](#examples) -  [Docs](#documentation) - [Wiki](https://github.com/liabru/matter-js/wiki) - [References](#references) - [License](#license)
 
 [![Build Status](https://travis-ci.org/liabru/matter-js.png?branch=master)](https://travis-ci.org/liabru/matter-js)
 
