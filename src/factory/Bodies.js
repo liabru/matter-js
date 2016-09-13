@@ -213,7 +213,9 @@ var Vector = require('../geometry/Vector');
         removeCollinear = typeof removeCollinear !== 'undefined' ? removeCollinear : 0.01;
         minimumArea = typeof minimumArea !== 'undefined' ? minimumArea : 10;
 
-        if (!window.decomp) {
+        var decomp = window.decomp;
+
+        if (!decomp) {
             Common.log('Bodies.fromVertices: poly-decomp.js required. Could not decompose vertices. Fallback to convex hull.', 'warn');
         }
 
@@ -226,7 +228,7 @@ var Vector = require('../geometry/Vector');
             vertices = vertexSets[v];
             isConvex = Vertices.isConvex(vertices);
 
-            if (isConvex || !window.decomp) {
+            if (isConvex || !decomp) {
                 if (isConvex) {
                     vertices = Vertices.clockwiseSort(vertices);
                 } else {
@@ -240,28 +242,29 @@ var Vector = require('../geometry/Vector');
                 });
             } else {
                 // initialise a decomposition
-                var concave = new decomp.Polygon();
-                for (i = 0; i < vertices.length; i++) {
-                    concave.vertices.push([vertices[i].x, vertices[i].y]);
-                }
+                var concave = vertices.map(function(vertex) {
+                    return [vertex.x, vertex.y];
+                });
 
                 // vertices are concave and simple, we can decompose into parts
-                concave.makeCCW();
+                decomp.makeCCW(concave);
                 if (removeCollinear !== false)
-                    concave.removeCollinearPoints(removeCollinear);
+                    decomp.removeCollinearPoints(concave, removeCollinear);
 
                 // use the quick decomposition algorithm (Bayazit)
-                var decomposed = concave.quickDecomp();
+                var decomposed = decomp.quickDecomp(concave);
 
                 // for each decomposed chunk
                 for (i = 0; i < decomposed.length; i++) {
-                    var chunk = decomposed[i],
-                        chunkVertices = [];
+                    var chunk = decomposed[i];
 
                     // convert vertices into the correct structure
-                    for (j = 0; j < chunk.vertices.length; j++) {
-                        chunkVertices.push({ x: chunk.vertices[j][0], y: chunk.vertices[j][1] });
-                    }
+                    var chunkVertices = chunk.map(function(vertices) {
+                        return {
+                            x: vertices[0],
+                            y: vertices[1]
+                        };
+                    });
 
                     // skip small chunks
                     if (minimumArea > 0 && Vertices.area(chunkVertices) < minimumArea)
@@ -327,3 +330,4 @@ var Vector = require('../geometry/Vector');
     };
 
 })();
+
