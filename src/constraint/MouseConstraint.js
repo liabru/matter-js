@@ -42,7 +42,7 @@ var Bounds = require('../geometry/Bounds');
                 mouse = Mouse.create(options.element);
             } else {
                 mouse = Mouse.create();
-                Common.log('MouseConstraint.create: options.mouse was undefined, options.element was undefined, may not function as expected', 'warn');
+                Common.warn('MouseConstraint.create: options.mouse was undefined, options.element was undefined, may not function as expected');
             }
         }
 

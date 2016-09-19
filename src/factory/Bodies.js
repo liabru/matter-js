@@ -214,7 +214,7 @@ var Vector = require('../geometry/Vector');
         minimumArea = typeof minimumArea !== 'undefined' ? minimumArea : 10;
 
         if (!window.decomp) {
-            Common.log('Bodies.fromVertices: poly-decomp.js required. Could not decompose vertices. Fallback to convex hull.', 'warn');
+            Common.warn('Bodies.fromVertices: poly-decomp.js required. Could not decompose vertices. Fallback to convex hull.');
         }
 
         // ensure vertexSets is an array of arrays

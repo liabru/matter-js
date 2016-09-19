@@ -330,6 +330,7 @@
         }
 
         demo.engine.enableSleeping = false;
+        demo.engine.world.gravity.scale = 0.001;
         demo.engine.world.gravity.y = 1;
         demo.engine.world.gravity.x = 0;
         demo.engine.timing.timeScale = 1;

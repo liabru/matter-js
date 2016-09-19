@@ -87,11 +87,11 @@ gulp.task('release:push:docs', function(callback) {
 });
 
 gulp.task('build:dev', function() {
-    return build(extend(extend({}, pkg), { version: 'dev' }));
+    return build(extend(extend({}, pkg), { version: pkg.version + '-dev' }));
 });
 
 gulp.task('build:edge', function() {
-    return build(extend(extend({}, pkg), { version: 'master' }));
+    return build(extend(extend({}, pkg), { version: pkg.version + '-alpha' }));
 });
 
 gulp.task('build:release', function() {
@@ -113,7 +113,14 @@ gulp.task('watch', function() {
 
     var bundle = function() {
         gutil.log('Updated bundle build/matter-dev.js');
-        b.bundle().pipe(fs.createWriteStream('build/matter-dev.js'));
+        b.bundle()
+            .pipe(through2({ objectMode: true }, function(chunk, encoding, callback) {
+                return callback(
+                    null, 
+                    chunk.toString().replace(/@@VERSION@@/g, pkg.version + '-dev')
+                );
+            }))
+            .pipe(fs.createWriteStream('build/matter-dev.js'));
     };
 
     b.on('update', bundle);
@@ -243,7 +250,7 @@ var build = function(options) {
     gutil.log('Building', filename, options.date);
 
     var compiled = gulp.src(['src/module/main.js'])
-        .pipe(replace("version = 'master'", "version = '" + options.version + "'"))
+        .pipe(replace('@@VERSION@@', options.version))
         .pipe(through2.obj(function(file, enc, next){
             browserify(file.path, { standalone: 'Matter' })
                 .bundle(function(err, res){
@@ -252,7 +259,7 @@ var build = function(options) {
                 });
         }));
 
-    if (options.version !== 'dev') {
+    if (!options.version.includes('-')) {
         compiled.pipe(preprocess({ context: { DEBUG: false } }));
     }
 
