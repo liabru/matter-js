@@ -103,6 +103,7 @@ var Common = require('./Common');
 
     /**
      * Installs the plugins by calling `plugin.install` on each plugin specified in `plugins` if passed, otherwise `module.uses`.
+     * For installing plugins on `Matter` see the convenience function `Matter.use`.
      * Plugins may be specified either by their name or a reference to the plugin object.
      * Plugins themselves may specify further dependencies, but each plugin is installed only once.
      * Order is important, a topological sort is performed to find the best resulting order of installation.
@@ -223,7 +224,7 @@ var Common = require('./Common');
     /**
      * Parses a dependency string into its components.
      * The `dependency` is a string of the format `'module-name'` or `'module-name@version'`.
-     * See documentation for `Plugin.versionSatisfies` for more information on the format.
+     * See documentation for `Plugin.versionParse` for a description of the format.
      * This function can also handle dependencies that are already resolved (e.g. a module object).
      * @method dependencyParse
      * @param dependency {string} The dependency of the format `'module-name'` or `'module-name@version'`.
@@ -250,8 +251,15 @@ var Common = require('./Common');
     };
 
     /**
-     * Parses a version string into its components.
-     * See documentation for `Plugin.versionSatisfies` for more information on the format.
+     * Parses a version string into its components.  
+     * Versions are strictly of the format `x.y.z` (as in [semver](http://semver.org/)).
+     * Versions may optionally have a prerelease tag in the format `x.y.z-alpha`.
+     * Ranges are a strict subset of [npm ranges](https://docs.npmjs.com/misc/semver#advanced-range-syntax).
+     * Only the following range types are supported:
+     * - Tilde ranges e.g. `~1.2.3`
+     * - Caret ranges e.g. `^1.2.3`
+     * - Exact version e.g. `1.2.3`
+     * - Any version `*`
      * @method versionParse
      * @param range {string} The version string.
      * @return {object} The version range parsed into its components.
@@ -285,15 +293,7 @@ var Common = require('./Common');
 
     /**
      * Returns `true` if `version` satisfies the given `range`.
-     * Versions are strictly of the format `x.y.z` (as in [semver](http://semver.org/)).
-     * Versions may optionally have a prerelease tag in the format `x.y.z-alpha`.
-     * Ranges are a strict subset of [npm ranges](https://docs.npmjs.com/misc/semver#advanced-range-syntax).
-     * Only the following range types are supported:
-     * - Tilde ranges e.g. `~1.2.3`
-     * - Caret ranges e.g. `^1.2.3`
-     * - Exact version e.g. `1.2.3`
-     * - Any version `*`
-     *
+     * See documentation for `Plugin.versionParse` for a description of the format.
      * If a version or range is not specified, then any version (`*`) is assumed to satisfy.
      * @method versionSatisfies
      * @param version {string} The version string.
