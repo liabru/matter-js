@@ -69,6 +69,7 @@
 
 See how others are using matter.js physics
 
+- [Magic Keyboard](http://magickeyboard.io/) by Feross
 - [Obie Awards](http://www.obieawards.com/2016-splash/) by Athletics
 - [Leg Work Studio](http://www.legworkstudio.com/home/recognition) by Leg Work
 - [Goblins and Grottos](http://store.steampowered.com/app/389190) by Psychic Software
