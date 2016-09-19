@@ -1,5 +1,5 @@
 /**
-* matter-js 0.10.0 by @liabru 2016-05-01
+* matter-js 0.10.0-alpha by @liabru 2016-09-19
 * http://brm.io/matter-js/
 * License MIT
 */
@@ -61,6 +61,7 @@ var Axes = require('../geometry/Axes');
     /**
      * Creates a new rigid body model. The options parameter is an object that specifies any properties you wish to override the defaults.
      * All properties have default values, and many are pre-calculated automatically based on other properties.
+     * Vertices must be specified in clockwise order.
      * See the properties section below for detailed information on what you can pass via the `options` object.
      * @method create
      * @param {} options
@@ -1157,7 +1158,7 @@ var Axes = require('../geometry/Axes');
 
 })();
 
-},{"../core/Common":14,"../core/Sleeping":20,"../geometry/Axes":23,"../geometry/Bounds":24,"../geometry/Vector":26,"../geometry/Vertices":27,"../render/Render":29}],2:[function(require,module,exports){
+},{"../core/Common":14,"../core/Sleeping":22,"../geometry/Axes":25,"../geometry/Bounds":26,"../geometry/Vector":28,"../geometry/Vertices":29,"../render/Render":31}],2:[function(require,module,exports){
 /**
 * The `Matter.Composite` module contains methods for creating and manipulating composite bodies.
 * A composite body is a collection of `Matter.Body`, `Matter.Constraint` and other `Matter.Composite`, therefore composites form a tree structure.
@@ -1245,7 +1246,7 @@ var Body = require('./Body');
             case 'body':
                 // skip adding compound parts
                 if (obj.parent !== obj) {
-                    Common.log('Composite.add: skipped adding a compound body part (you must add its parent instead)', 'warn');
+                    Common.warn('Composite.add: skipped adding a compound body part (you must add its parent instead)');
                     break;
                 }
 
@@ -2084,7 +2085,7 @@ var Bounds = require('../geometry/Bounds');
 
 })();
 
-},{"../geometry/Bounds":24,"./Pair":7,"./SAT":11}],6:[function(require,module,exports){
+},{"../geometry/Bounds":26,"./Pair":7,"./SAT":11}],6:[function(require,module,exports){
 /**
 * The `Matter.Grid` module contains methods for creating and manipulating collision broadphase grid structures.
 *
@@ -2800,7 +2801,7 @@ var Vertices = require('../geometry/Vertices');
 
 })();
 
-},{"../factory/Bodies":21,"../geometry/Bounds":24,"../geometry/Vector":26,"../geometry/Vertices":27,"./SAT":11}],10:[function(require,module,exports){
+},{"../factory/Bodies":23,"../geometry/Bounds":26,"../geometry/Vector":28,"../geometry/Vertices":29,"./SAT":11}],10:[function(require,module,exports){
 /**
 * The `Matter.Resolver` module contains methods for resolving collision pairs.
 *
@@ -3146,7 +3147,7 @@ var Bounds = require('../geometry/Bounds');
 
 })();
 
-},{"../core/Common":14,"../geometry/Bounds":24,"../geometry/Vector":26,"../geometry/Vertices":27}],11:[function(require,module,exports){
+},{"../core/Common":14,"../geometry/Bounds":26,"../geometry/Vector":28,"../geometry/Vertices":29}],11:[function(require,module,exports){
 /**
 * The `Matter.SAT` module contains methods for detecting collisions using the Separating Axis Theorem.
 *
@@ -3413,7 +3414,7 @@ var Vector = require('../geometry/Vector');
 
 })();
 
-},{"../geometry/Vector":26,"../geometry/Vertices":27}],12:[function(require,module,exports){
+},{"../geometry/Vector":28,"../geometry/Vertices":29}],12:[function(require,module,exports){
 /**
 * The `Matter.Constraint` module contains methods for creating and manipulating constraints.
 * Constraints are used for specifying that a fixed distance must be maintained between two bodies (or a body and a fixed world-space position).
@@ -3809,7 +3810,7 @@ var Common = require('../core/Common');
 
 })();
 
-},{"../core/Common":14,"../core/Sleeping":20,"../geometry/Axes":23,"../geometry/Bounds":24,"../geometry/Vector":26,"../geometry/Vertices":27}],13:[function(require,module,exports){
+},{"../core/Common":14,"../core/Sleeping":22,"../geometry/Axes":25,"../geometry/Bounds":26,"../geometry/Vector":28,"../geometry/Vertices":29}],13:[function(require,module,exports){
 /**
 * The `Matter.MouseConstraint` module contains methods for creating mouse constraints.
 * Mouse constraints are used for allowing user interaction, providing the ability to move bodies via the mouse or touch.
@@ -3854,7 +3855,7 @@ var Bounds = require('../geometry/Bounds');
                 mouse = Mouse.create(options.element);
             } else {
                 mouse = Mouse.create();
-                Common.log('MouseConstraint.create: options.mouse was undefined, options.element was undefined, may not function as expected', 'warn');
+                Common.warn('MouseConstraint.create: options.mouse was undefined, options.element was undefined, may not function as expected');
             }
         }
 
@@ -4072,7 +4073,7 @@ var Bounds = require('../geometry/Bounds');
 
 })();
 
-},{"../body/Composite":2,"../collision/Detector":5,"../core/Common":14,"../core/Events":16,"../core/Mouse":18,"../core/Sleeping":20,"../geometry/Bounds":24,"../geometry/Vertices":27,"./Constraint":12}],14:[function(require,module,exports){
+},{"../body/Composite":2,"../collision/Detector":5,"../core/Common":14,"../core/Events":16,"../core/Mouse":19,"../core/Sleeping":22,"../geometry/Bounds":26,"../geometry/Vertices":29,"./Constraint":12}],14:[function(require,module,exports){
 /**
 * The `Matter.Common` module contains utility functions that are common to all modules.
 *
@@ -4257,6 +4258,36 @@ module.exports = Common;
     Common.isArray = function(obj) {
         return Object.prototype.toString.call(obj) === '[object Array]';
     };
+
+    /**
+     * Returns true if the object is a function.
+     * @method isFunction
+     * @param {object} obj
+     * @return {boolean} True if the object is a function, otherwise false
+     */
+    Common.isFunction = function(obj) {
+        return typeof obj === "function";
+    };
+
+    /**
+     * Returns true if the object is a plain object.
+     * @method isPlainObject
+     * @param {object} obj
+     * @return {boolean} True if the object is a plain object, otherwise false
+     */
+    Common.isPlainObject = function(obj) {
+        return typeof obj === 'object' && obj.constructor === Object;
+    };
+
+    /**
+     * Returns true if the object is a string.
+     * @method isString
+     * @param {object} obj
+     * @return {boolean} True if the object is a string, otherwise false
+     */
+    Common.isString = function(obj) {
+        return toString.call(obj) === '[object String]';
+    };
     
     /**
      * Returns the given value clamped between a minimum and maximum value.
@@ -4306,7 +4337,6 @@ module.exports = Common;
               
         return performance.now();
     };
-
     
     /**
      * Returns a random value between a minimum and a maximum value inclusive.
@@ -4320,6 +4350,12 @@ module.exports = Common;
         min = (typeof min !== "undefined") ? min : 0;
         max = (typeof max !== "undefined") ? max : 1;
         return min + _seededRandom() * (max - min);
+    };
+
+    var _seededRandom = function() {
+        // https://gist.github.com/ngryman/3830489
+        Common._seed = (Common._seed * 9301 + 49297) % 233280;
+        return Common._seed / 233280;
     };
 
     /**
@@ -4341,24 +4377,54 @@ module.exports = Common;
     };
 
     /**
-     * A wrapper for console.log, for providing errors and warnings.
-     * @method log
-     * @param {string} message
-     * @param {string} type
+     * The console logging level to use, where each level includes all levels above and excludes the levels below.
+     * The default level is 'debug' which shows all console messages.  
+     *
+     * Possible level values are:
+     * - 0 = None
+     * - 1 = Debug
+     * - 2 = Info
+     * - 3 = Warn
+     * - 4 = Error
+     * @property Common.logLevel
+     * @type {Number}
+     * @default 1
      */
-    Common.log = function(message, type) {
-        if (!console || !console.log || !console.warn)
-            return;
+    Common.logLevel = 1;
 
-        switch (type) {
+    /**
+     * Shows a `console.log` message only if the current `Common.logLevel` allows it.
+     * The message will be prefixed with 'matter-js' to make it easily identifiable.
+     * @method log
+     * @param ...objs {} The objects to log.
+     */
+    Common.log = function() {
+        if (console && Common.logLevel > 0 && Common.logLevel <= 3) {
+            console.log.apply(console, ['matter-js:'].concat(Array.prototype.slice.call(arguments)));
+        }
+    };
 
-        case 'warn':
-            console.warn('Matter.js:', message);
-            break;
-        case 'error':
-            console.log('Matter.js:', message);
-            break;
+    /**
+     * Shows a `console.info` message only if the current `Common.logLevel` allows it.
+     * The message will be prefixed with 'matter-js' to make it easily identifiable.
+     * @method info
+     * @param ...objs {} The objects to log.
+     */
+    Common.info = function() {
+        if (console && Common.logLevel > 0 && Common.logLevel <= 2) {
+            console.info.apply(console, ['matter-js:'].concat(Array.prototype.slice.call(arguments)));
+        }
+    };
 
+    /**
+     * Shows a `console.warn` message only if the current `Common.logLevel` allows it.
+     * The message will be prefixed with 'matter-js' to make it easily identifiable.
+     * @method warn
+     * @param ...objs {} The objects to log.
+     */
+    Common.warn = function() {
+        if (console && Common.logLevel > 0 && Common.logLevel <= 3) {
+            console.warn.apply(console, ['matter-js:'].concat(Array.prototype.slice.call(arguments)));
         }
     };
 
@@ -4376,6 +4442,7 @@ module.exports = Common;
      * @method indexOf
      * @param {array} haystack
      * @param {object} needle
+     * @return {number} The position of needle in haystack, otherwise -1.
      */
     Common.indexOf = function(haystack, needle) {
         if (haystack.indexOf)
@@ -4389,10 +4456,115 @@ module.exports = Common;
         return -1;
     };
 
-    var _seededRandom = function() {
-        // https://gist.github.com/ngryman/3830489
-        Common._seed = (Common._seed * 9301 + 49297) % 233280;
-        return Common._seed / 233280;
+    /**
+     * A cross browser compatible array map implementation.
+     * @method map
+     * @param {array} list
+     * @param {function} func
+     * @return {array} Values from list transformed by func.
+     */
+    Common.map = function(list, func) {
+        if (list.map) {
+            return list.map(func);
+        }
+
+        var mapped = [];
+
+        for (var i = 0; i < list.length; i += 1) {
+            mapped.push(func(list[i]));
+        }
+
+        return mapped;
+    };
+
+    /**
+     * Takes a directed graph and returns the partially ordered set of vertices in topological order.
+     * Circular dependencies are allowed.
+     * @method topologicalSort
+     * @param {object} graph
+     * @return {array} Partially ordered set of vertices in topological order.
+     */
+    Common.topologicalSort = function(graph) {
+        // https://mgechev.github.io/javascript-algorithms/graphs_others_topological-sort.js.html
+        var result = [],
+            visited = [],
+            temp = [];
+
+        for (var node in graph) {
+            if (!visited[node] && !temp[node]) {
+                _topologicalSort(node, visited, temp, graph, result);
+            }
+        }
+
+        return result;
+    };
+
+    var _topologicalSort = function(node, visited, temp, graph, result) {
+        var neighbors = graph[node] || [];
+        temp[node] = true;
+
+        for (var i = 0; i < neighbors.length; i += 1) {
+            var neighbor = neighbors[i];
+
+            if (temp[neighbor]) {
+                // skip circular dependencies
+                continue;
+            }
+
+            if (!visited[neighbor]) {
+                _topologicalSort(neighbor, visited, temp, graph, result);
+            }
+        }
+
+        temp[node] = false;
+        visited[node] = true;
+
+        result.push(node);
+    };
+
+    /**
+     * Takes _n_ functions as arguments and returns a new function that calls them in order.
+     * The arguments applied when calling the new function will also be applied to every function passed.
+     * The value of `this` refers to the last value returned in the chain that was not `undefined`.
+     * Therefore if a passed function does not return a value, the previously returned value is maintained.
+     * After all passed functions have been called the new function returns the last returned value (if any).
+     * If any of the passed functions are a chain, then the chain will be flattened.
+     * @method chain
+     * @param ...funcs {function} The functions to chain.
+     * @return {function} A new function that calls the passed functions in order.
+     */
+    Common.chain = function() {
+        var args = Array.prototype.slice.call(arguments),
+            funcs = [];
+
+        for (var i = 0; i < args.length; i += 1) {
+            var func = args[i];
+
+            if (func._chained) {
+                // flatten already chained functions
+                funcs.push.apply(funcs, func._chained);
+            } else {
+                funcs.push(func);
+            }
+        }
+
+        var chain = function() {
+            var lastResult;
+
+            for (var i = 0; i < funcs.length; i += 1) {
+                var result = funcs[i].apply(lastResult, arguments);
+
+                if (typeof result !== 'undefined') {
+                    lastResult = result;
+                }
+            }
+
+            return lastResult;
+        };
+
+        chain._chained = funcs;
+
+        return chain;
     };
 
 })();
@@ -4442,7 +4614,7 @@ var Body = require('../body/Body');
         options = options || {};
 
         if (element || options.render) {
-            Common.log('Engine.create: engine.render is deprecated (see docs)', 'warn');
+            Common.warn('Engine.create: engine.render is deprecated (see docs)');
         }
 
         var defaults = {
@@ -4882,7 +5054,7 @@ var Body = require('../body/Body');
 
 })();
 
-},{"../body/Body":1,"../body/Composite":2,"../body/World":3,"../collision/Grid":6,"../collision/Pairs":8,"../collision/Resolver":10,"../constraint/Constraint":12,"../render/Render":29,"./Common":14,"./Events":16,"./Metrics":17,"./Sleeping":20}],16:[function(require,module,exports){
+},{"../body/Body":1,"../body/Composite":2,"../body/World":3,"../collision/Grid":6,"../collision/Pairs":8,"../collision/Resolver":10,"../constraint/Constraint":12,"../render/Render":31,"./Common":14,"./Events":16,"./Metrics":18,"./Sleeping":22}],16:[function(require,module,exports){
 /**
 * The `Matter.Events` module contains methods to fire and listen to events on other objects.
 *
@@ -4995,8 +5167,69 @@ var Common = require('./Common');
 })();
 
 },{"./Common":14}],17:[function(require,module,exports){
+/**
+* The `Matter` module is the top level namespace. It also includes a function for installing plugins on top of the library.
+*
+* @class Matter
+*/
 
-},{"../body/Composite":2,"./Common":14}],18:[function(require,module,exports){
+var Matter = {};
+
+module.exports = Matter;
+
+var Plugin = require('./Plugin');
+
+(function() {
+
+    /**
+     * The library name.
+     * @property name
+     * @readOnly
+     * @type {String}
+     */
+    Matter.name = 'matter-js';
+
+    /**
+     * The library version.
+     * @property version
+     * @readOnly
+     * @type {String}
+     */
+    Matter.version = '@@VERSION@@';
+
+    /**
+     * A list of plugin dependencies to be installed. These are normally set and installed through `Matter.use`.
+     * Alternatively you may set `Matter.uses` manually and install them by calling `Plugin.use(Matter)`.
+     * @property uses
+     * @type {Array}
+     */
+    Matter.uses = [];
+
+    /**
+     * The plugins that have been installed through `Matter.Plugin.install`. Read only.
+     * @property used
+     * @readOnly
+     * @type {Array}
+     */
+    Matter.used = [];
+
+    /**
+     * Installs the given plugins on the `Matter` namespace.
+     * This is a short-hand for `Plugin.use`, see it for more information.
+     * Call this function once at the start of your code, with all of the plugins you wish to install as arguments.
+     * Avoid calling this function multiple times unless you intend to manually control installation order.
+     * @method use
+     * @param ...plugin {Function} The plugin(s) to install on `base` (multi-argument).
+     */
+    Matter.use = function() {
+        Plugin.use(Matter, Array.prototype.slice.call(arguments));
+    };
+
+})();
+
+},{"./Plugin":20}],18:[function(require,module,exports){
+
+},{"../body/Composite":2,"./Common":14}],19:[function(require,module,exports){
 /**
 * The `Matter.Mouse` module contains methods for creating and manipulating mouse inputs.
 *
@@ -5192,14 +5425,352 @@ var Common = require('../core/Common');
         }
 
         return { 
-            x: x / (element.clientWidth / element.width * pixelRatio),
-            y: y / (element.clientHeight / element.height * pixelRatio)
+            x: x / (element.clientWidth / (element.width || element.clientWidth) * pixelRatio),
+            y: y / (element.clientHeight / (element.height || element.clientHeight) * pixelRatio)
         };
     };
 
 })();
 
-},{"../core/Common":14}],19:[function(require,module,exports){
+},{"../core/Common":14}],20:[function(require,module,exports){
+/**
+* The `Matter.Plugin` module contains functions for registering and installing plugins on modules.
+*
+* @class Plugin
+*/
+
+var Plugin = {};
+
+module.exports = Plugin;
+
+var Common = require('./Common');
+
+(function() {
+
+    Plugin._registry = {};
+
+    /**
+     * Registers a plugin object so it can be resolved later by name.
+     * @method register
+     * @param plugin {} The plugin to register.
+     * @return {object} The plugin.
+     */
+    Plugin.register = function(plugin) {
+        if (!Plugin.isPlugin(plugin)) {
+            Common.warn('Plugin.register:', Plugin.toString(plugin), 'does not implement all required fields.');
+        }
+
+        if (plugin.name in Plugin._registry) {
+            var registered = Plugin._registry[plugin.name];
+
+            if (Plugin.versionParse(plugin.version).number >= Plugin.versionParse(registered.version).number) {
+                Common.warn('Plugin.register:', Plugin.toString(registered), 'was upgraded to', Plugin.toString(plugin));
+                Plugin._registry[plugin.name] = plugin;
+            } else {
+                Common.warn('Plugin.register:', Plugin.toString(registered), 'can not be downgraded to', Plugin.toString(plugin));
+            }
+        } else {
+            Plugin._registry[plugin.name] = plugin;
+        }
+
+        return plugin;
+    };
+
+    /**
+     * Resolves a dependency to a plugin object from the registry if it exists. 
+     * The `dependency` may contain a version, but only the name matters when resolving.
+     * @method resolve
+     * @param dependency {string} The dependency.
+     * @return {object} The plugin if resolved, otherwise `undefined`.
+     */
+    Plugin.resolve = function(dependency) {
+        return Plugin._registry[Plugin.dependencyParse(dependency).name];
+    };
+
+    /**
+     * Returns a pretty printed plugin name and version.
+     * @method toString
+     * @param plugin {} The plugin.
+     * @return {string} Pretty printed plugin name and version.
+     */
+    Plugin.toString = function(plugin) {
+        return (plugin.name || 'anonymous') + '@' + (plugin.version || plugin.range || '0.0.0');
+    };
+
+    /**
+     * Returns `true` if the object meets the minimum standard to be considered a plugin.
+     * This means it must define the following properties:
+     * - `name`
+     * - `version`
+     * - `install`
+     * @method isPlugin
+     * @param obj {} The obj to test.
+     * @return {boolean} `true` if the object can be considered a plugin otherwise `false`.
+     */
+    Plugin.isPlugin = function(obj) {
+        return obj && obj.name && obj.version && obj.install;
+    };
+
+    /**
+     * Returns `true` if a plugin with the given `name` been installed on `module`.
+     * @method isUsed
+     * @param module {} The module.
+     * @param name {string} The plugin name.
+     * @return {boolean} `true` if a plugin with the given `name` been installed on `module`, otherwise `false`.
+     */
+    Plugin.isUsed = function(module, name) {
+        return module.used.indexOf(name) > -1;
+    };
+
+    /**
+     * Returns `true` if `plugin.for` is applicable to `module` by comparing against `module.name` and `module.version`.
+     * If `plugin.for` is not specified then it is assumed to be applicable.
+     * The value of `plugin.for` is a string of the format `'module-name'` or `'module-name@version'`.
+     * @method isFor
+     * @param plugin {} The plugin.
+     * @param module {} The module.
+     * @return {boolean} `true` if `plugin.for` is applicable to `module`, otherwise `false`.
+     */
+    Plugin.isFor = function(plugin, module) {
+        var parsed = plugin.for && Plugin.dependencyParse(plugin.for);
+        return !plugin.for || (module.name === parsed.name && Plugin.versionSatisfies(module.version, parsed.range));
+    };
+
+    /**
+     * Installs the plugins by calling `plugin.install` on each plugin specified in `plugins` if passed, otherwise `module.uses`.
+     * For installing plugins on `Matter` see the convenience function `Matter.use`.
+     * Plugins may be specified either by their name or a reference to the plugin object.
+     * Plugins themselves may specify further dependencies, but each plugin is installed only once.
+     * Order is important, a topological sort is performed to find the best resulting order of installation.
+     * This sorting attempts to satisfy every dependency's requested ordering, but may not be exact in all cases.
+     * This function logs the resulting status of each dependency in the console, along with any warnings.
+     * - A green tick ✅ indicates a dependency was resolved and installed.
+     * - An orange diamond 🔶 indicates a dependency was resolved but a warning was thrown for it or one if its dependencies.
+     * - A red cross ❌ indicates a dependency could not be resolved.
+     * Avoid calling this function multiple times on the same module unless you intend to manually control installation order.
+     * @method use
+     * @param module {} The module install plugins on.
+     * @param [plugins=module.uses] {} The plugins to install on module (optional, defaults to `module.uses`).
+     */
+    Plugin.use = function(module, plugins) {
+        module.uses = (module.uses || []).concat(plugins || []);
+
+        if (module.uses.length === 0) {
+            Common.warn('Plugin.use:', Plugin.toString(module), 'does not specify any dependencies to install.');
+            return;
+        }
+
+        var dependencies = Plugin.dependencies(module),
+            sortedDependencies = Common.topologicalSort(dependencies),
+            status = [];
+
+        for (var i = 0; i < sortedDependencies.length; i += 1) {
+            if (sortedDependencies[i] === module.name) {
+                continue;
+            }
+
+            var plugin = Plugin.resolve(sortedDependencies[i]);
+
+            if (!plugin) {
+                status.push('❌ ' + sortedDependencies[i]);
+                continue;
+            }
+
+            if (Plugin.isUsed(module, plugin.name)) {
+                continue;
+            }
+
+            if (!Plugin.isFor(plugin, module)) {
+                Common.warn('Plugin.use:', Plugin.toString(plugin), 'is for', plugin.for, 'but installed on', Plugin.toString(module) + '.');
+                plugin._warned = true;
+            }
+
+            if (plugin.install) {
+                plugin.install(module);
+            } else {
+                Common.warn('Plugin.use:', Plugin.toString(plugin), 'does not specify an install function.');
+                plugin._warned = true;
+            }
+
+            if (plugin._warned) {
+                status.push('🔶 ' + Plugin.toString(plugin));
+                delete plugin._warned;
+            } else {
+                status.push('✅ ' + Plugin.toString(plugin));
+            }
+
+            module.used.push(plugin.name);
+        }
+
+        if (status.length > 0) {
+            Common.info(status.join('  '));
+        }
+    };
+
+    /**
+     * Recursively finds all of a module's dependencies and returns a flat dependency graph.
+     * @method dependencies
+     * @param module {} The module.
+     * @return {object} A dependency graph.
+     */
+    Plugin.dependencies = function(module, tracked) {
+        var parsedBase = Plugin.dependencyParse(module),
+            name = parsedBase.name;
+
+        tracked = tracked || {};
+
+        if (name in tracked) {
+            return;
+        }
+
+        module = Plugin.resolve(module) || module;
+
+        tracked[name] = Common.map(module.uses || [], function(dependency) {
+            var parsed = Plugin.dependencyParse(dependency),
+                resolved = Plugin.resolve(dependency);
+
+            if (resolved && !Plugin.versionSatisfies(resolved.version, parsed.range)) {
+                Common.warn(
+                    'Plugin.dependencies:', Plugin.toString(resolved), 'does not satisfy',
+                    Plugin.toString(parsed), 'used by', Plugin.toString(parsedBase) + '.'
+                );
+
+                resolved._warned = true;
+                module._warned = true;
+            } else if (!resolved) {
+                Common.warn(
+                    'Plugin.dependencies:', dependency, 'used by',
+                    Plugin.toString(parsedBase), 'could not be resolved.'
+                );
+
+                module._warned = true;
+            }
+
+            return parsed.name;
+        });
+
+        for (var i = 0; i < tracked[name].length; i += 1) {
+            Plugin.dependencies(tracked[name][i], tracked);
+        }
+
+        return tracked;
+    };
+
+    /**
+     * Parses a dependency string into its components.
+     * The `dependency` is a string of the format `'module-name'` or `'module-name@version'`.
+     * See documentation for `Plugin.versionParse` for a description of the format.
+     * This function can also handle dependencies that are already resolved (e.g. a module object).
+     * @method dependencyParse
+     * @param dependency {string} The dependency of the format `'module-name'` or `'module-name@version'`.
+     * @return {object} The dependency parsed into its components.
+     */
+    Plugin.dependencyParse = function(dependency) {
+        if (Common.isString(dependency)) {
+            var pattern = /^[\w-]+(@(\*|[\^~]?\d+\.\d+\.\d+(-[0-9A-Za-z-]+)?))?$/;
+
+            if (!pattern.test(dependency)) {
+                Common.warn('Plugin.dependencyParse:', dependency, 'is not a valid dependency string.');
+            }
+
+            return {
+                name: dependency.split('@')[0],
+                range: dependency.split('@')[1] || '*'
+            };
+        }
+
+        return {
+            name: dependency.name,
+            range: dependency.range || dependency.version
+        };
+    };
+
+    /**
+     * Parses a version string into its components.  
+     * Versions are strictly of the format `x.y.z` (as in [semver](http://semver.org/)).
+     * Versions may optionally have a prerelease tag in the format `x.y.z-alpha`.
+     * Ranges are a strict subset of [npm ranges](https://docs.npmjs.com/misc/semver#advanced-range-syntax).
+     * Only the following range types are supported:
+     * - Tilde ranges e.g. `~1.2.3`
+     * - Caret ranges e.g. `^1.2.3`
+     * - Exact version e.g. `1.2.3`
+     * - Any version `*`
+     * @method versionParse
+     * @param range {string} The version string.
+     * @return {object} The version range parsed into its components.
+     */
+    Plugin.versionParse = function(range) {
+        var pattern = /^\*|[\^~]?\d+\.\d+\.\d+(-[0-9A-Za-z-]+)?$/;
+
+        if (!pattern.test(range)) {
+            Common.warn('Plugin.versionParse:', range, 'is not a valid version or range.');
+        }
+
+        var identifiers = range.split('-');
+        range = identifiers[0];
+
+        var isRange = isNaN(Number(range[0])),
+            version = isRange ? range.substr(1) : range,
+            parts = Common.map(version.split('.'), function(part) {
+                return Number(part);
+            });
+
+        return {
+            isRange: isRange,
+            version: version,
+            range: range,
+            operator: isRange ? range[0] : '',
+            parts: parts,
+            prerelease: identifiers[1],
+            number: parts[0] * 1e8 + parts[1] * 1e4 + parts[2]
+        };
+    };
+
+    /**
+     * Returns `true` if `version` satisfies the given `range`.
+     * See documentation for `Plugin.versionParse` for a description of the format.
+     * If a version or range is not specified, then any version (`*`) is assumed to satisfy.
+     * @method versionSatisfies
+     * @param version {string} The version string.
+     * @param range {string} The range string.
+     * @return {boolean} `true` if `version` satisfies `range`, otherwise `false`.
+     */
+    Plugin.versionSatisfies = function(version, range) {
+        range = range || '*';
+
+        var rangeParsed = Plugin.versionParse(range),
+            rangeParts = rangeParsed.parts,
+            versionParsed = Plugin.versionParse(version),
+            versionParts = versionParsed.parts;
+
+        if (rangeParsed.isRange) {
+            if (rangeParsed.operator === '*' || version === '*') {
+                return true;
+            }
+
+            if (rangeParsed.operator === '~') {
+                return versionParts[0] === rangeParts[0] && versionParts[1] === rangeParts[1] && versionParts[2] >= rangeParts[2];
+            }
+
+            if (rangeParsed.operator === '^') {
+                if (rangeParts[0] > 0) {
+                    return versionParts[0] === rangeParts[0] && versionParsed.number >= rangeParsed.number;
+                }
+
+                if (rangeParts[1] > 0) {
+                    return versionParts[1] === rangeParts[1] && versionParts[2] >= rangeParts[2];
+                }
+
+                return versionParts[2] === rangeParts[2];
+            }
+        }
+
+        return version === range || version === '*';
+    };
+
+})();
+
+},{"./Common":14}],21:[function(require,module,exports){
 /**
 * The `Matter.Runner` module is an optional utility which provides a game loop, 
 * that handles continuously updating a `Matter.Engine` for you within a browser.
@@ -5227,11 +5798,24 @@ var Common = require('./Common');
 
     if (typeof window !== 'undefined') {
         _requestAnimationFrame = window.requestAnimationFrame || window.webkitRequestAnimationFrame
-                                      || window.mozRequestAnimationFrame || window.msRequestAnimationFrame 
-                                      || function(callback){ window.setTimeout(function() { callback(Common.now()); }, 1000 / 60); };
+                                      || window.mozRequestAnimationFrame || window.msRequestAnimationFrame;
    
         _cancelAnimationFrame = window.cancelAnimationFrame || window.mozCancelAnimationFrame 
                                       || window.webkitCancelAnimationFrame || window.msCancelAnimationFrame;
+    }
+
+    if (!_requestAnimationFrame) {
+        var _frameTimeout;
+
+        _requestAnimationFrame = function(callback){ 
+            _frameTimeout = setTimeout(function() { 
+                callback(Common.now()); 
+            }, 1000 / 60);
+        };
+
+        _cancelAnimationFrame = function() {
+            clearTimeout(_frameTimeout);
+        };
     }
 
     /**
@@ -5360,7 +5944,7 @@ var Common = require('./Common');
             && engine.render
             && engine.render.controller
             && engine.render.controller.clear) {
-            engine.render.controller.clear(engine.render);
+            engine.render.controller.clear(engine.render); // @deprecated
         }
 
         // update
@@ -5518,7 +6102,7 @@ var Common = require('./Common');
 
 })();
 
-},{"./Common":14,"./Engine":15,"./Events":16}],20:[function(require,module,exports){
+},{"./Common":14,"./Engine":15,"./Events":16}],22:[function(require,module,exports){
 /**
 * The `Matter.Sleeping` module contains methods to manage the sleeping state of bodies.
 *
@@ -5649,7 +6233,7 @@ var Events = require('./Events');
 
 })();
 
-},{"./Events":16}],21:[function(require,module,exports){
+},{"./Events":16}],23:[function(require,module,exports){
 /**
 * The `Matter.Bodies` module contains factory methods for creating rigid body models 
 * with commonly used body configurations (such as rectangles, circles and other polygons).
@@ -5866,7 +6450,7 @@ var Vector = require('../geometry/Vector');
         minimumArea = typeof minimumArea !== 'undefined' ? minimumArea : 10;
 
         if (!window.decomp) {
-            Common.log('Bodies.fromVertices: poly-decomp.js required. Could not decompose vertices. Fallback to convex hull.', 'warn');
+            Common.warn('Bodies.fromVertices: poly-decomp.js required. Could not decompose vertices. Fallback to convex hull.');
         }
 
         // ensure vertexSets is an array of arrays
@@ -5979,7 +6563,7 @@ var Vector = require('../geometry/Vector');
     };
 
 })();
-},{"../body/Body":1,"../core/Common":14,"../geometry/Bounds":24,"../geometry/Vector":26,"../geometry/Vertices":27}],22:[function(require,module,exports){
+},{"../body/Body":1,"../core/Common":14,"../geometry/Bounds":26,"../geometry/Vector":28,"../geometry/Vertices":29}],24:[function(require,module,exports){
 /**
 * The `Matter.Composites` module contains factory methods for creating composite bodies
 * with commonly used configurations (such as stacks and chains).
@@ -6308,7 +6892,7 @@ var Bodies = require('./Bodies');
 
 })();
 
-},{"../body/Body":1,"../body/Composite":2,"../constraint/Constraint":12,"../core/Common":14,"./Bodies":21}],23:[function(require,module,exports){
+},{"../body/Body":1,"../body/Composite":2,"../constraint/Constraint":12,"../core/Common":14,"./Bodies":23}],25:[function(require,module,exports){
 /**
 * The `Matter.Axes` module contains methods for creating and manipulating sets of axes.
 *
@@ -6374,7 +6958,7 @@ var Common = require('../core/Common');
 
 })();
 
-},{"../core/Common":14,"../geometry/Vector":26}],24:[function(require,module,exports){
+},{"../core/Common":14,"../geometry/Vector":28}],26:[function(require,module,exports){
 /**
 * The `Matter.Bounds` module contains methods for creating and manipulating axis-aligned bounding boxes (AABB).
 *
@@ -6496,7 +7080,7 @@ module.exports = Bounds;
     
 })();
 
-},{}],25:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 /**
 * The `Matter.Svg` module contains methods for converting SVG images into an array of vector points.
 *
@@ -6714,7 +7298,7 @@ var Bounds = require('../geometry/Bounds');
     };
 
 })();
-},{"../geometry/Bounds":24}],26:[function(require,module,exports){
+},{"../geometry/Bounds":26}],28:[function(require,module,exports){
 /**
 * The `Matter.Vector` module contains methods for creating and manipulating vectors.
 * Vectors are the basis of all the geometry related operations in the engine.
@@ -6950,7 +7534,7 @@ module.exports = Vector;
                     Vector.create(), Vector.create()];
 
 })();
-},{}],27:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 /**
 * The `Matter.Vertices` module contains methods for creating and manipulating sets of vertices.
 * A set of vertices is an array of `Matter.Vector` with additional indexing properties inserted by `Vertices.create`.
@@ -6978,6 +7562,8 @@ var Common = require('../core/Common');
      *
      * The `Vertices.create` method returns a new array of vertices, which are similar to Matter.Vector objects,
      * but with some additional references required for efficient collision detection routines.
+     *
+     * Vertices must be specified in clockwise order.
      *
      * Note that the `body` argument is not optional, a `Matter.Body` reference must be provided.
      *
@@ -7395,9 +7981,8 @@ var Common = require('../core/Common');
 
 })();
 
-},{"../core/Common":14,"../geometry/Vector":26}],28:[function(require,module,exports){
-var Matter = module.exports = {};
-Matter.version = 'master';
+},{"../core/Common":14,"../geometry/Vector":28}],30:[function(require,module,exports){
+var Matter = module.exports = require('../core/Matter');
 
 Matter.Body = require('../body/Body');
 Matter.Composite = require('../body/Composite');
@@ -7421,6 +8006,7 @@ Matter.Events = require('../core/Events');
 Matter.Mouse = require('../core/Mouse');
 Matter.Runner = require('../core/Runner');
 Matter.Sleeping = require('../core/Sleeping');
+Matter.Plugin = require('../core/Plugin');
 
 
 Matter.Bodies = require('../factory/Bodies');
@@ -7445,7 +8031,7 @@ Matter.World.addConstraint = Matter.Composite.addConstraint;
 Matter.World.clear = Matter.Composite.clear;
 Matter.Engine.run = Matter.Runner.run;
 
-},{"../body/Body":1,"../body/Composite":2,"../body/World":3,"../collision/Contact":4,"../collision/Detector":5,"../collision/Grid":6,"../collision/Pair":7,"../collision/Pairs":8,"../collision/Query":9,"../collision/Resolver":10,"../collision/SAT":11,"../constraint/Constraint":12,"../constraint/MouseConstraint":13,"../core/Common":14,"../core/Engine":15,"../core/Events":16,"../core/Metrics":17,"../core/Mouse":18,"../core/Runner":19,"../core/Sleeping":20,"../factory/Bodies":21,"../factory/Composites":22,"../geometry/Axes":23,"../geometry/Bounds":24,"../geometry/Svg":25,"../geometry/Vector":26,"../geometry/Vertices":27,"../render/Render":29,"../render/RenderPixi":30}],29:[function(require,module,exports){
+},{"../body/Body":1,"../body/Composite":2,"../body/World":3,"../collision/Contact":4,"../collision/Detector":5,"../collision/Grid":6,"../collision/Pair":7,"../collision/Pairs":8,"../collision/Query":9,"../collision/Resolver":10,"../collision/SAT":11,"../constraint/Constraint":12,"../constraint/MouseConstraint":13,"../core/Common":14,"../core/Engine":15,"../core/Events":16,"../core/Matter":17,"../core/Metrics":18,"../core/Mouse":19,"../core/Plugin":20,"../core/Runner":21,"../core/Sleeping":22,"../factory/Bodies":23,"../factory/Composites":24,"../geometry/Axes":25,"../geometry/Bounds":26,"../geometry/Svg":27,"../geometry/Vector":28,"../geometry/Vertices":29,"../render/Render":31,"../render/RenderPixi":32}],31:[function(require,module,exports){
 /**
 * The `Matter.Render` module is a simple HTML5 canvas based renderer for visualising instances of `Matter.Engine`.
 * It is intended for development and debugging purposes, but may also be suitable for simple games.
@@ -8762,7 +9348,7 @@ var Vector = require('../geometry/Vector');
 
 })();
 
-},{"../body/Composite":2,"../collision/Grid":6,"../core/Common":14,"../core/Events":16,"../geometry/Bounds":24,"../geometry/Vector":26}],30:[function(require,module,exports){
+},{"../body/Composite":2,"../collision/Grid":6,"../core/Common":14,"../core/Events":16,"../geometry/Bounds":26,"../geometry/Vector":28}],32:[function(require,module,exports){
 /**
 * The `Matter.RenderPixi` module is an example renderer using pixi.js.
 * See also `Matter.Render` for a canvas based renderer.
@@ -8776,8 +9362,11 @@ var RenderPixi = {};
 
 module.exports = RenderPixi;
 
+var Bounds = require('../geometry/Bounds');
 var Composite = require('../body/Composite');
 var Common = require('../core/Common');
+var Events = require('../core/Events');
+var Vector = require('../geometry/Vector');
 
 (function() {
 
@@ -8801,7 +9390,7 @@ var Common = require('../core/Common');
      * @deprecated
      */
     RenderPixi.create = function(options) {
-        Common.log('RenderPixi.create: Matter.RenderPixi is deprecated (see docs)', 'warn');
+        Common.warn('RenderPixi.create: Matter.RenderPixi is deprecated (see docs)');
 
         var defaults = {
             controller: RenderPixi,
@@ -8863,6 +9452,11 @@ var Common = require('../core/Common');
             }
         };
 
+        // event listeners
+        Events.on(render.engine, 'beforeUpdate', function() {
+            RenderPixi.clear(render);
+        });
+
         // caches
         render.textures = {};
         render.sprites = {};
@@ -8875,7 +9469,7 @@ var Common = require('../core/Common');
         if (Common.isElement(render.element)) {
             render.element.appendChild(render.canvas);
         } else {
-            Common.log('No "render.element" passed, "render.canvas" was not inserted into document.', 'warn');
+            Common.warn('No "render.element" passed, "render.canvas" was not inserted into document.');
         }
 
         // prevent menus on canvas
@@ -9271,5 +9865,5 @@ var Common = require('../core/Common');
 
 })();
 
-},{"../body/Composite":2,"../core/Common":14}]},{},[28])(28)
+},{"../body/Composite":2,"../core/Common":14,"../core/Events":16,"../geometry/Bounds":26,"../geometry/Vector":28}]},{},[30])(30)
 });
