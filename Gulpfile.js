@@ -259,7 +259,7 @@ var build = function(options) {
                 });
         }));
 
-    if (!options.version.includes('-dev')) {
+    if (options.version.indexOf('-dev') === -1) {
         compiled.pipe(preprocess({ context: { DEBUG: false } }));
     }
 
