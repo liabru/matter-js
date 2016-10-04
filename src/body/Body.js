@@ -573,6 +573,7 @@ var Axes = require('../geometry/Axes');
                 Vertices.rotate(part.vertices, body.angularVelocity, body.position);
                 Axes.rotate(part.axes, body.angularVelocity);
                 if (i > 0) {
+                    part.angle += body.angularVelocity;
                     Vector.rotateAbout(part.position, body.angularVelocity, body.position, part.position);
                 }
             }
