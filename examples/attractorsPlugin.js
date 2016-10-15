@@ -14,44 +14,49 @@
         install: function(base) {
             base.Body.create = Common.chain(
                 Matter.Body.create,
-                MatterAttractors.init
+                function() {
+                    MatterAttractors.Body.init(this);
+                }
             );
 
             base.Engine.update = Common.chain(
                 Matter.Engine.update,
-                MatterAttractors.update
+                function() {
+                    MatterAttractors.Engine.update(this);
+                }
             );
         },
 
-        init: function(body) {
-            body = this || body;
-            body.attractors = body.attractors || [];
+        Body: {
+            init: function(body) {
+                body.attractors = body.attractors || [];
+            }
         },
 
-        update: function(engine) {
-            engine = this || engine;
+        Engine: {
+            update: function(engine) {
+                var world = engine.world,
+                    bodies = Composite.allBodies(world);
 
-            var world = engine.world,
-                bodies = Composite.allBodies(world);
+                for (var i = 0; i < bodies.length; i += 1) {
+                    var bodyA = bodies[i],
+                        attractors = bodyA.attractors;
 
-            for (var i = 0; i < bodies.length; i += 1) {
-                var bodyA = bodies[i],
-                    attractors = bodyA.attractors;
+                    if (attractors && attractors.length > 0) {
+                        for (var j = i + 1; j < bodies.length; j += 1) {
+                            var bodyB = bodies[j];
 
-                if (attractors && attractors.length > 0) {
-                    for (var j = i + 1; j < bodies.length; j += 1) {
-                        var bodyB = bodies[j];
+                            for (var k = 0; k < attractors.length; k += 1) {
+                                var attractor = attractors[k],
+                                    forceVector = attractor;
 
-                        for (var k = 0; k < attractors.length; k += 1) {
-                            var attractor = attractors[k],
-                                forceVector = attractor;
-
-                            if (Common.isFunction(attractor)) {
-                                forceVector = attractor(bodyA, bodyB);
-                            }
-                            
-                            if (forceVector) {
-                                Body.applyForce(bodyB, bodyB.position, forceVector);
+                                if (Common.isFunction(attractor)) {
+                                    forceVector = attractor(bodyA, bodyB);
+                                }
+                                
+                                if (forceVector) {
+                                    Body.applyForce(bodyB, bodyB.position, forceVector);
+                                }
                             }
                         }
                     }

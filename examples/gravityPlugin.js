@@ -18,27 +18,29 @@
         install: function(base) {
             base.Body.create = Common.chain(
                 Matter.Body.create,
-                MatterGravity.addAttractor
+                function() {
+                    MatterGravity.Body.init(this);
+                }
             );
         },
 
-        addAttractor: function(body) {
-            body = this || body;
+        Body: {
+            init: function(body) {
+                if (body.gravity) {
+                    body.attractors.push(MatterGravity.Body.applyGravity);
+                }
+            },
 
-            if (body.gravity) {
-                body.attractors.push(MatterGravity.applyForce);
+            applyGravity: function(bodyA, bodyB) {
+                var bToA = Vector.sub(bodyB.position, bodyA.position),
+                    distanceSq = Vector.magnitudeSquared(bToA) || 0.0001,
+                    normal = Vector.normalise(bToA),
+                    magnitude = -bodyA.gravity * (bodyA.mass * bodyB.mass / distanceSq),
+                    force = Vector.mult(normal, magnitude);
+
+                Body.applyForce(bodyA, bodyA.position, Vector.neg(force));
+                Body.applyForce(bodyB, bodyB.position, force);
             }
-        },
-
-        applyForce: function(bodyA, bodyB) {
-            var bToA = Vector.sub(bodyB.position, bodyA.position),
-                distanceSq = Vector.magnitudeSquared(bToA) || 0.0001,
-                normal = Vector.normalise(bToA),
-                magnitude = -bodyA.gravity * (bodyA.mass * bodyB.mass / distanceSq),
-                force = Vector.mult(normal, magnitude);
-
-            Body.applyForce(bodyA, bodyA.position, Vector.neg(force));
-            Body.applyForce(bodyB, bodyB.position, force);
         }
     };
 

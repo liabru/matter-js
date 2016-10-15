@@ -11,13 +11,8 @@
 
         Matter.use(
             'matter-gravity', 
-            'matter-world-wrap'
+            'matter-wrap'
         );
-
-        world.bounds = {
-            min: { x: 0, y: 0 },
-            max: { x: 800, y: 600 }
-        };
 
         world.bodies = [];
         world.gravity.scale = 0;
@@ -32,7 +27,11 @@
                 {
                     mass: Common.random(10, 20),
                     gravity: G,
-                    frictionAir: 0
+                    frictionAir: 0,
+                    wrap: {
+                        min: { x: 0, y: 0 },
+                        max: { x: 800, y: 600 }
+                    }
                 }
             );
 
@@ -46,7 +45,6 @@
         
         var renderOptions = demo.render.options;
         renderOptions.showAngleIndicator = false;
-        renderOptions.showPositions = true;
     };
 
 })();
