@@ -109,6 +109,41 @@ module.exports = Common;
     };
 
     /**
+     * Gets a value from `base` relative to the `path` string.
+     * @method get
+     * @param {} obj The base object
+     * @param {string} path The path relative to `base`, e.g. 'Foo.Bar.baz'
+     * @param {number} [begin] Path slice begin
+     * @param {number} [end] Path slice end
+     * @return {} The object at the given path
+     */
+    Common.get = function(obj, path, begin, end) {
+        path = path.split('.').slice(begin, end);
+
+        for (var i = 0; i < path.length; i += 1) {
+            obj = obj[path[i]];
+        }
+
+        return obj;
+    };
+
+    /**
+     * Sets a value on `base` relative to the given `path` string.
+     * @method set
+     * @param {} obj The base object
+     * @param {string} path The path relative to `base`, e.g. 'Foo.Bar.baz'
+     * @param {} val The value to set
+     * @param {number} [begin] Path slice begin
+     * @param {number} [end] Path slice end
+     * @return {} Pass through `val` for chaining
+     */
+    Common.set = function(obj, path, val, begin, end) {
+        var parts = path.split('.').slice(begin, end);
+        Common.get(obj, path, 0, -1)[parts[parts.length - 1]] = val;
+        return val;
+    };
+
+    /**
      * Returns a hex colour string made by lightening or darkening color by percent.
      * @method shadeColor
      * @param {string} color
@@ -489,6 +524,36 @@ module.exports = Common;
         chain._chained = funcs;
 
         return chain;
+    };
+
+    /**
+     * Chains a function to excute before the original function on the given `path` relative to `base`.
+     * @method chainPathBefore
+     * @param {} base The base object
+     * @param {string} path The path relative to `base`
+     * @param {function} func The function to chain before the original
+     * @return {function} The chained function that replaced the original
+     */
+    Common.chainPathBefore = function(base, path, func) {
+        return Common.set(base, path, Common.chain(
+            func,
+            Common.get(base, path)
+        ));
+    };
+
+    /**
+     * Chains a function to excute after the original function on the given `path` relative to `base`.
+     * @method chainPathAfter
+     * @param {} base The base object
+     * @param {string} path The path relative to `base`
+     * @param {function} func The function to chain after the original
+     * @return {function} The chained function that replaced the original
+     */
+    Common.chainPathAfter = function(base, path, func) {
+        return Common.set(base, path, Common.chain(
+            Common.get(base, path),
+            func
+        ));
     };
 
 })();
