@@ -12,12 +12,9 @@
         for: 'matter-js@^0.10.0',
 
         install: function(base) {
-            base.Engine.update = Common.chain(
-                Matter.Engine.update,
-                function() {
-                    MatterWrap.Engine.update(this);
-                }
-            );
+            base.after('Engine.update', function() {
+                MatterWrap.Engine.update(this);
+            });
         },
 
         Engine: {

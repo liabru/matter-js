@@ -1,9 +1,5 @@
 (function() {
 
-    var Body = Matter.Body,
-        Common = Matter.Common,
-        Composite = Matter.Composite;
-
     var MatterAttractors = {
         name: 'matter-attractors',
 
@@ -12,19 +8,13 @@
         for: 'matter-js@^0.10.0',
 
         install: function(base) {
-            base.Body.create = Common.chain(
-                Matter.Body.create,
-                function() {
-                    MatterAttractors.Body.init(this);
-                }
-            );
+            base.after('Body.create', function() {
+                MatterAttractors.Body.init(this);
+            });
 
-            base.Engine.update = Common.chain(
-                Matter.Engine.update,
-                function() {
-                    MatterAttractors.Engine.update(this);
-                }
-            );
+            base.after('Engine.update', function() {
+                MatterAttractors.Engine.update(this);
+            });
         },
 
         Body: {
@@ -36,7 +26,7 @@
         Engine: {
             update: function(engine) {
                 var world = engine.world,
-                    bodies = Composite.allBodies(world);
+                    bodies = Matter.Composite.allBodies(world);
 
                 for (var i = 0; i < bodies.length; i += 1) {
                     var bodyA = bodies[i],
@@ -50,12 +40,12 @@
                                 var attractor = attractors[k],
                                     forceVector = attractor;
 
-                                if (Common.isFunction(attractor)) {
+                                if (Matter.Common.isFunction(attractor)) {
                                     forceVector = attractor(bodyA, bodyB);
                                 }
                                 
                                 if (forceVector) {
-                                    Body.applyForce(bodyB, bodyB.position, forceVector);
+                                    Matter.Body.applyForce(bodyB, bodyB.position, forceVector);
                                 }
                             }
                         }

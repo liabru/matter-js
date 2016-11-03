@@ -1,9 +1,5 @@
 (function() {
 
-    var Body = Matter.Body,
-        Common = Matter.Common,
-        Vector = Matter.Vector;
-
     var MatterGravity = {
         name: 'matter-gravity',
 
@@ -16,12 +12,9 @@
         ],
 
         install: function(base) {
-            base.Body.create = Common.chain(
-                Matter.Body.create,
-                function() {
-                    MatterGravity.Body.init(this);
-                }
-            );
+            base.after('Body.create', function() {
+                MatterGravity.Body.init(this);
+            });
         },
 
         Body: {
@@ -32,7 +25,9 @@
             },
 
             applyGravity: function(bodyA, bodyB) {
-                var bToA = Vector.sub(bodyB.position, bodyA.position),
+                var Vector = Matter.Vector,
+                    Body = Matter.Body,
+                    bToA = Vector.sub(bodyB.position, bodyA.position),
                     distanceSq = Vector.magnitudeSquared(bToA) || 0.0001,
                     normal = Vector.normalise(bToA),
                     magnitude = -bodyA.gravity * (bodyA.mass * bodyB.mass / distanceSq),
