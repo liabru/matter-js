@@ -26,13 +26,17 @@ var Common = require('./Common');
         }
 
         if (plugin.name in Plugin._registry) {
-            var registered = Plugin._registry[plugin.name];
+            var registered = Plugin._registry[plugin.name],
+                pluginVersion = Plugin.versionParse(plugin.version).number,
+                registeredVersion = Plugin.versionParse(registered.version).number;
 
-            if (Plugin.versionParse(plugin.version).number >= Plugin.versionParse(registered.version).number) {
+            if (pluginVersion > registeredVersion) {
                 Common.warn('Plugin.register:', Plugin.toString(registered), 'was upgraded to', Plugin.toString(plugin));
                 Plugin._registry[plugin.name] = plugin;
-            } else {
+            } else if (pluginVersion < registeredVersion) {
                 Common.warn('Plugin.register:', Plugin.toString(registered), 'can not be downgraded to', Plugin.toString(plugin));
+            } else if (plugin !== registered) {
+                Common.warn('Plugin.register:', Plugin.toString(plugin), 'is already registered to different plugin object');
             }
         } else {
             Plugin._registry[plugin.name] = plugin;
@@ -59,7 +63,7 @@ var Common = require('./Common');
      * @return {string} Pretty printed plugin name and version.
      */
     Plugin.toString = function(plugin) {
-        return (plugin.name || 'anonymous') + '@' + (plugin.version || plugin.range || '0.0.0');
+        return typeof plugin === 'string' ? plugin : (plugin.name || 'anonymous') + '@' + (plugin.version || plugin.range || '0.0.0');
     };
 
     /**
@@ -191,6 +195,10 @@ var Common = require('./Common');
         module = Plugin.resolve(module) || module;
 
         tracked[name] = Common.map(module.uses || [], function(dependency) {
+            if (Plugin.isPlugin(dependency)) {
+                Plugin.register(dependency);
+            }
+
             var parsed = Plugin.dependencyParse(dependency),
                 resolved = Plugin.resolve(dependency);
 
@@ -204,7 +212,7 @@ var Common = require('./Common');
                 module._warned = true;
             } else if (!resolved) {
                 Common.warn(
-                    'Plugin.dependencies:', dependency, 'used by',
+                    'Plugin.dependencies:', Plugin.toString(dependency), 'used by',
                     Plugin.toString(parsedBase), 'could not be resolved.'
                 );
 
