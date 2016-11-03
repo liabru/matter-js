@@ -250,14 +250,14 @@ var build = function(options) {
     gutil.log('Building', filename, options.date);
 
     var compiled = gulp.src(['src/module/main.js'])
-        .pipe(replace('@@VERSION@@', options.version))
         .pipe(through2.obj(function(file, enc, next){
             browserify(file.path, { standalone: 'Matter' })
                 .bundle(function(err, res){
                     file.contents = res;
                     next(null, file);
                 });
-        }));
+        }))
+        .pipe(replace('@@VERSION@@', options.version));
 
     if (options.version.indexOf('-dev') === -1) {
         compiled.pipe(preprocess({ context: { DEBUG: false } }));
