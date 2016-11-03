@@ -1,5 +1,5 @@
 /**
-* matter-js 0.10.0-alpha by @liabru 2016-09-19
+* matter-js 0.10.0-alpha by @liabru 2016-11-03
 * http://brm.io/matter-js/
 * License MIT
 */
@@ -153,9 +153,11 @@ var Axes = require('../geometry/Axes');
      * @method _initProperties
      * @private
      * @param {body} body
-     * @param {} options
+     * @param {} [options]
      */
     var _initProperties = function(body, options) {
+        options = options || {};
+
         // init required properties (order is important)
         Body.set(body, {
             bounds: body.bounds || Bounds.create(body.vertices),
@@ -4185,6 +4187,41 @@ module.exports = Common;
     };
 
     /**
+     * Gets a value from `base` relative to the `path` string.
+     * @method get
+     * @param {} obj The base object
+     * @param {string} path The path relative to `base`, e.g. 'Foo.Bar.baz'
+     * @param {number} [begin] Path slice begin
+     * @param {number} [end] Path slice end
+     * @return {} The object at the given path
+     */
+    Common.get = function(obj, path, begin, end) {
+        path = path.split('.').slice(begin, end);
+
+        for (var i = 0; i < path.length; i += 1) {
+            obj = obj[path[i]];
+        }
+
+        return obj;
+    };
+
+    /**
+     * Sets a value on `base` relative to the given `path` string.
+     * @method set
+     * @param {} obj The base object
+     * @param {string} path The path relative to `base`, e.g. 'Foo.Bar.baz'
+     * @param {} val The value to set
+     * @param {number} [begin] Path slice begin
+     * @param {number} [end] Path slice end
+     * @return {} The object passed for `val` (for chaining)
+     */
+    Common.set = function(obj, path, val, begin, end) {
+        var parts = path.split('.').slice(begin, end);
+        Common.get(obj, path, 0, -1)[parts[parts.length - 1]] = val;
+        return val;
+    };
+
+    /**
      * Returns a hex colour string made by lightening or darkening color by percent.
      * @method shadeColor
      * @param {string} color
@@ -4565,6 +4602,36 @@ module.exports = Common;
         chain._chained = funcs;
 
         return chain;
+    };
+
+    /**
+     * Chains a function to excute before the original function on the given `path` relative to `base`.
+     * @method chainPathBefore
+     * @param {} base The base object
+     * @param {string} path The path relative to `base`
+     * @param {function} func The function to chain before the original
+     * @return {function} The chained function that replaced the original
+     */
+    Common.chainPathBefore = function(base, path, func) {
+        return Common.set(base, path, Common.chain(
+            func,
+            Common.get(base, path)
+        ));
+    };
+
+    /**
+     * Chains a function to excute after the original function on the given `path` relative to `base`.
+     * @method chainPathAfter
+     * @param {} base The base object
+     * @param {string} path The path relative to `base`
+     * @param {function} func The function to chain after the original
+     * @return {function} The chained function that replaced the original
+     */
+    Common.chainPathAfter = function(base, path, func) {
+        return Common.set(base, path, Common.chain(
+            Common.get(base, path),
+            func
+        ));
     };
 
 })();
@@ -5178,6 +5245,7 @@ var Matter = {};
 module.exports = Matter;
 
 var Plugin = require('./Plugin');
+var Common = require('./Common');
 
 (function() {
 
@@ -5195,7 +5263,7 @@ var Plugin = require('./Plugin');
      * @readOnly
      * @type {String}
      */
-    Matter.version = '@@VERSION@@';
+    Matter.version = '0.10.0-alpha';
 
     /**
      * A list of plugin dependencies to be installed. These are normally set and installed through `Matter.use`.
@@ -5225,9 +5293,33 @@ var Plugin = require('./Plugin');
         Plugin.use(Matter, Array.prototype.slice.call(arguments));
     };
 
+    /**
+     * Chains a function to excute before the original function on the given `path` relative to `Matter`.
+     * @method before
+     * @param {string} path The path relative to `Matter`
+     * @param {function} func The function to chain before the original
+     * @return {function} The chained function that replaced the original
+     */
+    Matter.before = function(path, func) {
+        path = path.replace(/^Matter./, '');
+        return Common.chainPathBefore(Matter, path, func);
+    };
+
+    /**
+     * Chains a function to excute after the original function on the given `path` relative to `Matter`.
+     * @method after
+     * @param {string} path The path relative to `Matter`
+     * @param {function} func The function to chain after the original
+     * @return {function} The chained function that replaced the original
+     */
+    Matter.after = function(path, func) {
+        path = path.replace(/^Matter./, '');
+        return Common.chainPathAfter(Matter, path, func);
+    };
+
 })();
 
-},{"./Plugin":20}],18:[function(require,module,exports){
+},{"./Common":14,"./Plugin":20}],18:[function(require,module,exports){
 
 },{"../body/Composite":2,"./Common":14}],19:[function(require,module,exports){
 /**
@@ -5461,13 +5553,17 @@ var Common = require('./Common');
         }
 
         if (plugin.name in Plugin._registry) {
-            var registered = Plugin._registry[plugin.name];
+            var registered = Plugin._registry[plugin.name],
+                pluginVersion = Plugin.versionParse(plugin.version).number,
+                registeredVersion = Plugin.versionParse(registered.version).number;
 
-            if (Plugin.versionParse(plugin.version).number >= Plugin.versionParse(registered.version).number) {
+            if (pluginVersion > registeredVersion) {
                 Common.warn('Plugin.register:', Plugin.toString(registered), 'was upgraded to', Plugin.toString(plugin));
                 Plugin._registry[plugin.name] = plugin;
-            } else {
+            } else if (pluginVersion < registeredVersion) {
                 Common.warn('Plugin.register:', Plugin.toString(registered), 'can not be downgraded to', Plugin.toString(plugin));
+            } else if (plugin !== registered) {
+                Common.warn('Plugin.register:', Plugin.toString(plugin), 'is already registered to different plugin object');
             }
         } else {
             Plugin._registry[plugin.name] = plugin;
@@ -5494,7 +5590,7 @@ var Common = require('./Common');
      * @return {string} Pretty printed plugin name and version.
      */
     Plugin.toString = function(plugin) {
-        return (plugin.name || 'anonymous') + '@' + (plugin.version || plugin.range || '0.0.0');
+        return typeof plugin === 'string' ? plugin : (plugin.name || 'anonymous') + '@' + (plugin.version || plugin.range || '0.0.0');
     };
 
     /**
@@ -5626,6 +5722,10 @@ var Common = require('./Common');
         module = Plugin.resolve(module) || module;
 
         tracked[name] = Common.map(module.uses || [], function(dependency) {
+            if (Plugin.isPlugin(dependency)) {
+                Plugin.register(dependency);
+            }
+
             var parsed = Plugin.dependencyParse(dependency),
                 resolved = Plugin.resolve(dependency);
 
@@ -5639,7 +5739,7 @@ var Common = require('./Common');
                 module._warned = true;
             } else if (!resolved) {
                 Common.warn(
-                    'Plugin.dependencies:', dependency, 'used by',
+                    'Plugin.dependencies:', Plugin.toString(dependency), 'used by',
                     Plugin.toString(parsedBase), 'could not be resolved.'
                 );
 
