@@ -1,5 +1,5 @@
 /**
-* matter-js 0.10.0-alpha by @liabru 2016-11-03
+* matter-js 0.11.0 by @liabru 2016-11-04
 * http://brm.io/matter-js/
 * License MIT
 */
@@ -4213,7 +4213,7 @@ module.exports = Common;
      * @param {} val The value to set
      * @param {number} [begin] Path slice begin
      * @param {number} [end] Path slice end
-     * @return {} The object passed for `val` (for chaining)
+     * @return {} Pass through `val` for chaining
      */
     Common.set = function(obj, path, val, begin, end) {
         var parts = path.split('.').slice(begin, end);
@@ -4606,6 +4606,7 @@ module.exports = Common;
 
     /**
      * Chains a function to excute before the original function on the given `path` relative to `base`.
+     * See also docs for `Common.chain`.
      * @method chainPathBefore
      * @param {} base The base object
      * @param {string} path The path relative to `base`
@@ -4621,6 +4622,7 @@ module.exports = Common;
 
     /**
      * Chains a function to excute after the original function on the given `path` relative to `base`.
+     * See also docs for `Common.chain`.
      * @method chainPathAfter
      * @param {} base The base object
      * @param {string} path The path relative to `base`
@@ -5263,7 +5265,7 @@ var Common = require('./Common');
      * @readOnly
      * @type {String}
      */
-    Matter.version = '0.10.0-alpha';
+    Matter.version = '0.11.0';
 
     /**
      * A list of plugin dependencies to be installed. These are normally set and installed through `Matter.use`.
@@ -5295,6 +5297,7 @@ var Common = require('./Common');
 
     /**
      * Chains a function to excute before the original function on the given `path` relative to `Matter`.
+     * See also docs for `Common.chain`.
      * @method before
      * @param {string} path The path relative to `Matter`
      * @param {function} func The function to chain before the original
@@ -5307,6 +5310,7 @@ var Common = require('./Common');
 
     /**
      * Chains a function to excute after the original function on the given `path` relative to `Matter`.
+     * See also docs for `Common.chain`.
      * @method after
      * @param {string} path The path relative to `Matter`
      * @param {function} func The function to chain after the original
