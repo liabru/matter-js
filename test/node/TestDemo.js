@@ -162,7 +162,8 @@ var getDemoNames = function() {
         skip = [
             'terrain', 'svg', 'concave', 
             'slingshot', 'views', 'raycasting', 
-            'events', 'collisionFiltering', 'sleeping'
+            'events', 'collisionFiltering', 'sleeping', 
+            'attractors'
         ];
 
     $('#demo-select option', fs.readFileSync('demo/index.html').toString())

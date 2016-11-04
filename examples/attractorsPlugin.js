@@ -57,6 +57,8 @@
 
     Matter.Plugin.register(MatterAttractors);
 
-    window.MatterAttractors = MatterAttractors;
+    if (typeof window !== 'undefined') {
+        window.MatterAttractors = MatterAttractors;
+    }
 
 })();

@@ -41,6 +41,8 @@
 
     Matter.Plugin.register(MatterGravity);
 
-    window.MatterGravity = MatterGravity;
+    if (typeof window !== 'undefined') {
+        window.MatterGravity = MatterGravity;
+    }
 
 })();

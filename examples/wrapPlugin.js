@@ -65,6 +65,8 @@
 
     Matter.Plugin.register(MatterWrap);
 
-    window.MatterWrap = MatterWrap;
+    if (typeof window !== 'undefined') {
+        window.MatterWrap = MatterWrap;
+    }
 
 })();
