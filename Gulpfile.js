@@ -42,7 +42,7 @@ gulp.task('release', function(callback) {
                 message: 'cannot build release as there are uncomitted changes'
             });
         } else {
-            sequence('build:dev', 'build:examples', 'test', 'bump', 'reload', 'build:edge', 'build:release', 'doc', 'changelog', callback);
+            sequence('build:dev', 'build:examples', 'test', 'bump', 'reload', 'build:release', 'doc', 'changelog', callback);
         }
     });
 });
@@ -55,7 +55,7 @@ gulp.task('release:push', function(callback) {
                 message: 'cannot push release as it has not yet been committed'
             });
         } else {
-            sequence('tag', 'release:push:git', 'release:push:github', 'release:push:npm', 'release:push:docs', callback);
+            sequence('tag', 'release:push:git', 'release:push:npm', callback);
         }
     });
 });
@@ -80,10 +80,6 @@ gulp.task('release:push:git', function(callback) {
 
 gulp.task('release:push:npm', function(callback) {
     shell('npm publish', callback);
-});
-
-gulp.task('release:push:docs', function(callback) {
-    shell('../deploy-docs.sh', callback);
 });
 
 gulp.task('build:dev', function() {
@@ -131,7 +127,7 @@ gulp.task('watch', function() {
 
 gulp.task('bump', function() {
     return gulp.src(['package.json', 'bower.json'])
-        .pipe(bump({ type: process.argv[4] || 'patch' }))
+        .pipe(bump({ type: process.argv[4] || 'minor' }))
         .pipe(gulp.dest('.'));
 });
 
