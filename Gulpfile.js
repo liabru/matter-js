@@ -14,6 +14,7 @@ var webserver = require('gulp-webserver');
 var concat = require('gulp-concat');
 var preprocess = require('gulp-preprocess');
 var browserify = require('browserify');
+var derequire = require('gulp-derequire');
 var transform = require('vinyl-transform');
 var through2 = require('through2');
 var pkg = require('./package.json');
@@ -42,7 +43,7 @@ gulp.task('release', function(callback) {
                 message: 'cannot build release as there are uncomitted changes'
             });
         } else {
-            sequence('build:dev', 'build:examples', 'test', 'bump', 'reload', 'build:release', 'doc', 'changelog', callback);
+            sequence('build:examples', 'test', 'bump', 'reload', 'build:release', 'doc', 'changelog', callback);
         }
     });
 });
@@ -166,7 +167,7 @@ gulp.task('serve:stop', function() {
 });
 
 gulp.task('test', function(callback) {
-    sequence('serve:test', 'lint', 'test:browser', 'test:node', 'serve:stop', callback);
+    sequence('serve:test', 'lint', 'build:dev', 'test:browser', 'test:node', 'serve:stop', callback);
 });
 
 gulp.task('test:browser', function(callback) {
@@ -236,7 +237,8 @@ var serve = function(isTest) {
 };
 
 var build = function(options) {
-    var filename = buildDirectory + '/matter',
+    var isDev = options.version.indexOf('-dev'),
+        filename = buildDirectory + (isDev ? '/matter-dev' : '/matter'),
         dest = filename + '.js',
         destMin = filename + '.min.js';
 
@@ -253,9 +255,10 @@ var build = function(options) {
                     next(null, file);
                 });
         }))
+        .pipe(derequire())
         .pipe(replace('@@VERSION@@', options.version));
 
-    if (options.version.indexOf('-dev') === -1) {
+    if (isDev === -1) {
         compiled.pipe(preprocess({ context: { DEBUG: false } }));
     }
 
