@@ -237,7 +237,7 @@ var serve = function(isTest) {
 };
 
 var build = function(options) {
-    var isDev = options.version.indexOf('-dev'),
+    var isDev = options.version.indexOf('-dev') !== -1,
         filename = buildDirectory + (isDev ? '/matter-dev' : '/matter'),
         dest = filename + '.js',
         destMin = filename + '.min.js';
@@ -258,7 +258,7 @@ var build = function(options) {
         .pipe(derequire())
         .pipe(replace('@@VERSION@@', options.version));
 
-    if (isDev === -1) {
+    if (!isDev) {
         compiled.pipe(preprocess({ context: { DEBUG: false } }));
     }
 

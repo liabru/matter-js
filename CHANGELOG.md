@@ -1,3 +1,11 @@
+<a name="0.11.1"></a>
+## 0.11.1 (2016-11-09)
+
+
+* added derequire to build ([ded796c](https://github.com/liabru/matter-js/commit/ded796c))
+
+
+
 <a name="0.11.0"></a>
 # 0.11.0 (2016-11-04)
 
