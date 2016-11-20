@@ -158,6 +158,105 @@ var Vector = require('../geometry/Vector');
     };
 
     /**
+     * Positions and sizes the viewport around the given object bounds.
+     * Objects must have at least one of the following properties:
+     * - `object.bounds`
+     * - `object.position`
+     * - `object.min` and `object.max`
+     * - `object.x` and `object.y`
+     * @method lookAt
+     * @param {render} render
+     * @param {object[]} objects
+     * @param {vector} [padding]
+     * @param {bool} [center=true]
+     */
+    Render.lookAt = function(render, objects, padding, center) {
+        center = typeof center !== 'undefined' ? center : true;
+        objects = Common.isArray(objects) ? objects : [objects];
+
+        var padding = padding || {
+            x: 0,
+            y: 0
+        };
+
+        // find bounds of all objects
+        var bounds = {
+            min: { x: Infinity, y: Infinity },
+            max: { x: -Infinity, y: -Infinity }
+        };
+
+        for (var i = 0; i < objects.length; i += 1) {
+            var object = objects[i],
+                min = object.bounds ? object.bounds.min : (object.min || object.position || object),
+                max = object.bounds ? object.bounds.max : (object.max || object.position || object); 
+
+            if (min && max) { 
+                if (min.x < bounds.min.x) 
+                    bounds.min.x = min.x;
+                    
+                if (max.x > bounds.max.x) 
+                    bounds.max.x = max.x;
+
+                if (min.y < bounds.min.y) 
+                    bounds.min.y = min.y;
+
+                if (max.y > bounds.max.y) 
+                    bounds.max.y = max.y;
+            }
+        }
+
+        // find ratios
+        var width = (bounds.max.x - bounds.min.x) + 2 * padding.x,
+            height = (bounds.max.y - bounds.min.y) + 2 * padding.y,
+            viewHeight = render.canvas.height,
+            viewWidth = render.canvas.width,
+            outerRatio = viewWidth / viewHeight,
+            innerRatio = width / height,
+            scaleX = 1,
+            scaleY = 1;
+
+        // find scale factor
+        if (innerRatio > outerRatio) {
+            scaleY = innerRatio / outerRatio;
+        } else {
+            scaleX = outerRatio / innerRatio;
+        }
+
+        // enable bounds
+        render.options.hasBounds = true;
+
+        // position and size
+        render.bounds.min.x = bounds.min.x;
+        render.bounds.max.x = bounds.min.x + width * scaleX;
+        render.bounds.min.y = bounds.min.y;
+        render.bounds.max.y = bounds.min.y + height * scaleY;
+
+        // center
+        if (center) {
+            render.bounds.min.x += width * 0.5 - (width * scaleX) * 0.5;
+            render.bounds.max.x += width * 0.5 - (width * scaleX) * 0.5;
+            render.bounds.min.y += height * 0.5 - (height * scaleY) * 0.5;
+            render.bounds.max.y += height * 0.5 - (height * scaleY) * 0.5;
+        }
+
+        // padding
+        render.bounds.min.x -= padding.x;
+        render.bounds.max.x -= padding.x;
+        render.bounds.min.y -= padding.y;
+        render.bounds.max.y -= padding.y;
+
+        // update mouse
+        if (render.mouse) {
+            Mouse.setScale(render.mouse, {
+                x: (render.bounds.max.x - render.bounds.min.x) / render.canvas.width,
+                y: (render.bounds.max.y - render.bounds.min.y) / render.canvas.height
+            });
+
+            Mouse.setOffset(render.mouse, render.bounds.min);
+        }
+    };
+
+    /**
      * Renders the given `engine`'s `Matter.World` object.
      * This is the entry point for all rendering and should be called every time the scene changes.
      * @method world
