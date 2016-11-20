@@ -257,6 +257,30 @@ var Vector = require('../geometry/Vector');
     };
 
     /**
+     * Applies viewport transforms based on `render.bounds` to a render context.
+     * @method startViewTransform
+     * @param {render} render
+     */
+    Render.startViewTransform = function(render) {
+        var boundsWidth = render.bounds.max.x - render.bounds.min.x,
+            boundsHeight = render.bounds.max.y - render.bounds.min.y,
+            boundsScaleX = boundsWidth / render.options.width,
+            boundsScaleY = boundsHeight / render.options.height;
+
+        render.context.scale(1 / boundsScaleX, 1 / boundsScaleY);
+        render.context.translate(-render.bounds.min.x, -render.bounds.min.y);
+    };
+
+    /**
+     * Resets all transforms on the render context.
+     * @method endViewTransform
+     * @param {render} render
+     */
+    Render.endViewTransform = function(render) {
+        render.context.setTransform(render.options.pixelRatio, 0, 0, render.options.pixelRatio, 0, 0);
+    };
+
+    /**
      * Renders the given `engine`'s `Matter.World` object.
      * This is the entry point for all rendering and should be called every time the scene changes.
      * @method world
@@ -293,11 +317,6 @@ var Vector = require('../geometry/Vector');
 
         // handle bounds
         if (options.hasBounds) {
-            var boundsWidth = render.bounds.max.x - render.bounds.min.x,
-                boundsHeight = render.bounds.max.y - render.bounds.min.y,
-                boundsScaleX = boundsWidth / options.width,
-                boundsScaleY = boundsHeight / options.height;
-
             // filter out bodies that are not in view
             for (i = 0; i < allBodies.length; i++) {
                 var body = allBodies[i];
@@ -324,8 +343,7 @@ var Vector = require('../geometry/Vector');
             }
 
             // transform the view
-            context.scale(1 / boundsScaleX, 1 / boundsScaleY);
-            context.translate(-render.bounds.min.x, -render.bounds.min.y);
+            Render.startViewTransform(render);
         } else {
             constraints = allConstraints;
             bodies = allBodies;
@@ -379,7 +397,7 @@ var Vector = require('../geometry/Vector');
 
         if (options.hasBounds) {
             // revert view transforms
-            context.setTransform(options.pixelRatio, 0, 0, options.pixelRatio, 0, 0);
+            Render.endViewTransform(render);
         }
 
         Events.trigger(render, 'afterRender', event);
