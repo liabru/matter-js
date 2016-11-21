@@ -1,97 +1,154 @@
-(function() {
+var Example = Example || {};
 
-    var World = Matter.World,
-        Bodies = Matter.Bodies,
+Example.collisionFiltering = function() {
+    var Engine = Matter.Engine,
+        Render = Matter.Render,
+        Runner = Matter.Runner,
+        Composite = Matter.Composite,
         Composites = Matter.Composites,
-        Common = Matter.Common;
+        Common = Matter.Common,
+        MouseConstraint = Matter.MouseConstraint,
+        Mouse = Matter.Mouse,
+        World = Matter.World,
+        Bodies = Matter.Bodies;
 
-    Example.collisionFiltering = function(demo) {
-        var engine = demo.engine,
-            world = engine.world,
-            mouseConstraint = demo.mouseConstraint;
+    // create engine
+    var engine = Engine.create(),
+        world = engine.world;
 
-        // define our categories (as bit fields, there are up to 32 available)
-        var defaultCategory = 0x0001,
-            redCategory = 0x0002,
-            greenCategory = 0x0004,
-            blueCategory = 0x0008;
+    // create renderer
+    var render = Render.create({
+        element: document.body,
+        engine: engine,
+        options: {
+            width: Math.min(document.body.clientWidth, 1024),
+            height: Math.min(document.body.clientHeight, 1024),
+            wireframes: false,
+            background: '#111'
+        }
+    });
 
-        var redColor = '#C44D58',
-            blueColor = '#4ECDC4',
-            greenColor = '#C7F464';
+    Render.run(render);
 
-        // create a stack with varying body categories (but these bodies can all collide with each other)
-        World.add(world,
-            Composites.stack(275, 150, 5, 10, 10, 10, function(x, y, column, row) {
-                var category = redCategory,
-                    color = redColor;
+    // create runner
+    var runner = Runner.create();
+    Runner.run(runner, engine);
 
-                if (row > 5) {
-                    category = blueCategory;
-                    color = blueColor;
-                } else if (row > 2) {
-                    category = greenCategory;
-                    color = greenColor;
-                }
+    // define our categories (as bit fields, there are up to 32 available)
+    var defaultCategory = 0x0001,
+        redCategory = 0x0002,
+        greenCategory = 0x0004,
+        blueCategory = 0x0008;
 
-                return Bodies.circle(x, y, 20, {
-                    collisionFilter: {
-                        category: category
-                    },
-                    render: {
-                        strokeStyle: color,
-                        fillStyle: 'transparent'
-                    }
-                });
-            })
-        );
+    var redColor = '#C44D58',
+        blueColor = '#4ECDC4',
+        greenColor = '#C7F464';
 
-        // this body will only collide with the walls and the green bodies
-        World.add(world,
-            Bodies.circle(310, 40, 30, {
+    // add floor
+    World.add(world, Bodies.rectangle(400, 800, 900, 50, { 
+        isStatic: true,
+        render: {
+            fillStyle: 'transparent'
+        } 
+    }));
+
+    // create a stack with varying body categories (but these bodies can all collide with each other)
+    World.add(world,
+        Composites.stack(275, 150, 5, 10, 10, 10, function(x, y, column, row) {
+            var category = redCategory,
+                color = redColor;
+
+            if (row > 5) {
+                category = blueCategory;
+                color = blueColor;
+            } else if (row > 2) {
+                category = greenCategory;
+                color = greenColor;
+            }
+
+            return Bodies.circle(x, y, 20, {
                 collisionFilter: {
-                    mask: defaultCategory | greenCategory
+                    category: category
                 },
                 render: {
-                    strokeStyle: Common.shadeColor(greenColor, -20),
-                    fillStyle: greenColor
+                    strokeStyle: color,
+                    fillStyle: 'transparent'
                 }
-            })
-        );
+            });
+        })
+    );
 
-        // this body will only collide with the walls and the red bodies
-        World.add(world,
-            Bodies.circle(400, 40, 30, {
-                collisionFilter: {
-                    mask: defaultCategory | redCategory
-                },
+    // this body will only collide with the walls and the green bodies
+    World.add(world,
+        Bodies.circle(310, 40, 30, {
+            collisionFilter: {
+                mask: defaultCategory | greenCategory
+            },
+            render: {
+                strokeStyle: Common.shadeColor(greenColor, -20),
+                fillStyle: greenColor
+            }
+        })
+    );
+
+    // this body will only collide with the walls and the red bodies
+    World.add(world,
+        Bodies.circle(400, 40, 30, {
+            collisionFilter: {
+                mask: defaultCategory | redCategory
+            },
+            render: {
+                strokeStyle: Common.shadeColor(redColor, -20),
+                fillStyle: redColor
+            }
+        })
+    );
+
+    // this body will only collide with the walls and the blue bodies
+    World.add(world,
+        Bodies.circle(480, 40, 30, {
+            collisionFilter: {
+                mask: defaultCategory | blueCategory
+            },
+            render: {
+                strokeStyle: Common.shadeColor(blueColor, -20),
+                fillStyle: blueColor
+            }
+        })
+    );
+
+    // add mouse control
+    var mouse = Mouse.create(render.canvas),
+        mouseConstraint = MouseConstraint.create(engine, {
+            mouse: mouse,
+            constraint: {
+                stiffness: 0.2,
                 render: {
-                    strokeStyle: Common.shadeColor(redColor, -20),
-                    fillStyle: redColor
+                    visible: false
                 }
-            })
-        );
+            }
+        });
 
-        // this body will only collide with the walls and the blue bodies
-        World.add(world,
-            Bodies.circle(480, 40, 30, {
-                collisionFilter: {
-                    mask: defaultCategory | blueCategory
-                },
-                render: {
-                    strokeStyle: Common.shadeColor(blueColor, -20),
-                    fillStyle: blueColor
-                }
-            })
-        );
+    World.add(world, mouseConstraint);
 
-        // red category objects should not be draggable with the mouse
-        mouseConstraint.collisionFilter.mask = defaultCategory | blueCategory | greenCategory;
+    // keep the mouse in sync with rendering
+    render.mouse = mouse;
 
-        var renderOptions = demo.render.options;
-        renderOptions.wireframes = false;
-        renderOptions.background = '#222';
-        renderOptions.showAngleIndicator = false;
+    // red category objects should not be draggable with the mouse
+    mouseConstraint.collisionFilter.mask = defaultCategory | blueCategory | greenCategory;
+
+    // fit the render viewport to the scene
+    Render.lookAt(render, Composite.allBodies(world));
+
+    // context for MatterTools.Demo
+    return {
+        engine: engine,
+        runner: runner,
+        render: render,
+        canvas: render.canvas,
+        stop: function() {
+            Matter.Render.stop(render);
+            Matter.Runner.stop(runner);
+        }
     };
-
-})();
+};

@@ -16,6 +16,7 @@ var Bounds = require('../geometry/Bounds');
 var Events = require('../core/Events');
 var Grid = require('../collision/Grid');
 var Vector = require('../geometry/Vector');
+var Mouse = require('../core/Mouse');
 
 (function() {
     
@@ -52,7 +53,7 @@ var Vector = require('../geometry/Vector');
                 height: 600,
                 pixelRatio: 1,
                 background: '#fafafa',
-                wireframeBackground: '#222',
+                wireframeBackground: '#0f0f13',
                 hasBounds: !!options.bounds,
                 enabled: true,
                 wireframes: true,
@@ -173,8 +174,7 @@ var Vector = require('../geometry/Vector');
     Render.lookAt = function(render, objects, padding, center) {
         center = typeof center !== 'undefined' ? center : true;
         objects = Common.isArray(objects) ? objects : [objects];
-
-        var padding = padding || {
+        padding = padding || {
             x: 0,
             y: 0
         };
@@ -344,6 +344,16 @@ var Vector = require('../geometry/Vector');
 
             // transform the view
             Render.startViewTransform(render);
+
+            // update mouse
+            if (render.mouse) {
+                Mouse.setScale(render.mouse, {
+                    x: (render.bounds.max.x - render.bounds.min.x) / render.canvas.width,
+                    y: (render.bounds.max.y - render.bounds.min.y) / render.canvas.height
+                });
+
+                Mouse.setOffset(render.mouse, render.bounds.min);
+            }
         } else {
             constraints = allConstraints;
             bodies = allBodies;

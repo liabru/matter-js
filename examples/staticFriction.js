@@ -1,49 +1,102 @@
-(function() {
+var Example = Example || {};
 
-    var World = Matter.World,
-        Bodies = Matter.Bodies,
+Example.staticFriction = function() {
+    var Engine = Matter.Engine,
+        Render = Matter.Render,
+        Runner = Matter.Runner,
         Body = Matter.Body,
+        Composite = Matter.Composite,
         Composites = Matter.Composites,
-        Events = Matter.Events;
+        Common = Matter.Common,
+        Constraint = Matter.Constraint,
+        Events = Matter.Events,
+        MouseConstraint = Matter.MouseConstraint,
+        Mouse = Matter.Mouse,
+        World = Matter.World,
+        Bodies = Matter.Bodies;
 
-    Example.staticFriction = function(demo) {
-        var engine = demo.engine,
-            world = engine.world,
-            sceneEvents = demo.sceneEvents;
+    // create engine
+    var engine = Engine.create(),
+        world = engine.world;
 
-        var body = Bodies.rectangle(400, 500, 200, 60, { isStatic: true, chamfer: 10 }),
-            size = 50,
-            counter = -1;
+    // create renderer
+    var render = Render.create({
+        element: document.body,
+        engine: engine,
+        options: {
+            width: Math.min(document.body.clientWidth, 1024),
+            height: Math.min(document.body.clientHeight, 1024),
+            showVelocity: true
+        }
+    });
 
-        var stack = Composites.stack(350, 470 - 6 * size, 1, 6, 0, 0, function(x, y) {
-            return Bodies.rectangle(x, y, size * 2, size, {
-                slop: 0.5,
-                friction: 1,
-                frictionStatic: Infinity
-            });
+    Render.run(render);
+
+    // create runner
+    var runner = Runner.create();
+    Runner.run(runner, engine);
+
+    // add bodies
+    var body = Bodies.rectangle(400, 500, 200, 60, { isStatic: true, chamfer: 10 }),
+        size = 50,
+        counter = -1;
+
+    var stack = Composites.stack(350, 470 - 6 * size, 1, 6, 0, 0, function(x, y) {
+        return Bodies.rectangle(x, y, size * 2, size, {
+            slop: 0.5,
+            friction: 1,
+            frictionStatic: Infinity
         });
-        
-        World.add(world, [body, stack]);
-
-        sceneEvents.push(
-            Events.on(engine, 'beforeUpdate', function(event) {
-                counter += 0.014;
-
-                if (counter < 0) {
-                    return;
-                }
-
-                var px = 400 + 100 * Math.sin(counter);
-
-                // body is static so must manually update velocity for friction to work
-                Body.setVelocity(body, { x: px - body.position.x, y: 0 });
-                Body.setPosition(body, { x: px, y: body.position.y });
-            })
-        );
-
-        var renderOptions = demo.render.options;
-        renderOptions.showAngleIndicator = false;
-        renderOptions.showVelocity = true;
-    };
+    });
     
-})();
+    World.add(world, [body, stack]);
+
+    Events.on(engine, 'beforeUpdate', function(event) {
+        counter += 0.014;
+
+        if (counter < 0) {
+            return;
+        }
+
+        var px = 400 + 100 * Math.sin(counter);
+
+        // body is static so must manually update velocity for friction to work
+        Body.setVelocity(body, { x: px - body.position.x, y: 0 });
+        Body.setPosition(body, { x: px, y: body.position.y });
+    });
+
+    // add mouse control
+    var mouse = Mouse.create(render.canvas),
+        mouseConstraint = MouseConstraint.create(engine, {
+            mouse: mouse,
+            constraint: {
+                stiffness: 0.2,
+                render: {
+                    visible: false
+                }
+            }
+        });
+
+    World.add(world, mouseConstraint);
+
+    // keep the mouse in sync with rendering
+    render.mouse = mouse;
+
+    // fit the render viewport to the scene
+    Render.lookAt(render, {
+        min: { x: 0, y: 0 },
+        max: { x: 800, y: 600 }
+    });
+
+    // context for MatterTools.Demo
+    return {
+        engine: engine,
+        runner: runner,
+        render: render,
+        canvas: render.canvas,
+        stop: function() {
+            Matter.Render.stop(render);
+            Matter.Runner.stop(runner);
+        }
+    };
+};

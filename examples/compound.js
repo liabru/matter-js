@@ -1,49 +1,109 @@
-(function() {
+var Example = Example || {};
 
-    var World = Matter.World,
-        Bodies = Matter.Bodies,
+Example.compound = function() {
+    var Engine = Matter.Engine,
+        Render = Matter.Render,
+        Runner = Matter.Runner,
         Body = Matter.Body,
-        Constraint = Matter.Constraint;
+        Events = Matter.Events,
+        Composite = Matter.Composite,
+        Composites = Matter.Composites,
+        Common = Matter.Common,
+        Constraint = Matter.Constraint,
+        MouseConstraint = Matter.MouseConstraint,
+        Mouse = Matter.Mouse,
+        World = Matter.World,
+        Bodies = Matter.Bodies;
 
-    Example.compound = function(demo) {
-        var engine = demo.engine,
-            world = engine.world;
+    // create engine
+    var engine = Engine.create(),
+        world = engine.world;
 
-        var size = 200,
-            x = 200,
-            y = 200,
-            partA = Bodies.rectangle(x, y, size, size / 5),
-            partB = Bodies.rectangle(x, y, size / 5, size, { render: partA.render });
+    // create renderer
+    var render = Render.create({
+        element: document.body,
+        engine: engine,
+        options: {
+            width: Math.min(document.body.clientWidth, 1024),
+            height: Math.min(document.body.clientHeight, 1024),
+            showAxes: true,
+            showPositions: true,
+            showConvexHulls: true
+        }
+    });
 
-        var compoundBodyA = Body.create({
-            parts: [partA, partB]
+    Render.run(render);
+
+    // create runner
+    var runner = Runner.create();
+    Runner.run(runner, engine);
+
+    // add bodies
+    var size = 200,
+        x = 200,
+        y = 200,
+        partA = Bodies.rectangle(x, y, size, size / 5),
+        partB = Bodies.rectangle(x, y, size / 5, size, { render: partA.render });
+
+    var compoundBodyA = Body.create({
+        parts: [partA, partB]
+    });
+
+    size = 150;
+    x = 400;
+    y = 300;
+
+    var partC = Bodies.circle(x, y, 30),
+        partD = Bodies.circle(x + size, y, 30),
+        partE = Bodies.circle(x + size, y + size, 30),
+        partF = Bodies.circle(x, y + size, 30);
+
+    var compoundBodyB = Body.create({
+        parts: [partC, partD, partE, partF]
+    });
+
+    var constraint = Constraint.create({
+        pointA: { x: 400, y: 100 },
+        bodyB: compoundBodyB,
+        pointB: { x: 0, y: -50 }
+    });
+
+    World.add(world, [
+        compoundBodyA, 
+        compoundBodyB, 
+        constraint,
+        Bodies.rectangle(400, 600, 800, 50.5, { isStatic: true })
+    ]);
+
+    // add mouse control
+    var mouse = Mouse.create(render.canvas),
+        mouseConstraint = MouseConstraint.create(engine, {
+            mouse: mouse,
+            constraint: {
+                stiffness: 0.2,
+                render: {
+                    visible: false
+                }
+            }
         });
 
-        size = 150;
-        x = 400;
-        y = 300;
+    World.add(world, mouseConstraint);
 
-        var partC = Bodies.circle(x, y, 30),
-            partD = Bodies.circle(x + size, y, 30),
-            partE = Bodies.circle(x + size, y + size, 30),
-            partF = Bodies.circle(x, y + size, 30);
+    // keep the mouse in sync with rendering
+    render.mouse = mouse;
 
-        var compoundBodyB = Body.create({
-            parts: [partC, partD, partE, partF]
-        });
+    // fit the render viewport to the scene
+    Render.lookAt(render, Composite.allBodies(world));
 
-        var constraint = Constraint.create({
-            pointA: { x: 400, y: 100 },
-            bodyB: compoundBodyB,
-            pointB: { x: 0, y: -50 }
-        });
-
-        World.add(world, [compoundBodyA, compoundBodyB, constraint]);
-        
-        var renderOptions = demo.render.options;
-        renderOptions.showAxes = true;
-        renderOptions.showPositions = true;
-        renderOptions.showConvexHulls = true;
+    // context for MatterTools.Demo
+    return {
+        engine: engine,
+        runner: runner,
+        render: render,
+        canvas: render.canvas,
+        stop: function() {
+            Matter.Render.stop(render);
+            Matter.Runner.stop(runner);
+        }
     };
-    
-})();
+};

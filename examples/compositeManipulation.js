@@ -1,51 +1,106 @@
-(function() {
+var Example = Example || {};
 
-    var World = Matter.World,
-        Bodies = Matter.Bodies,
+Example.compositeManipulation = function() {
+    var Engine = Matter.Engine,
+        Render = Matter.Render,
+        Runner = Matter.Runner,
+        Body = Matter.Body,
+        Events = Matter.Events,
         Composite = Matter.Composite,
         Composites = Matter.Composites,
-        Events = Matter.Events;
+        Common = Matter.Common,
+        Constraint = Matter.Constraint,
+        MouseConstraint = Matter.MouseConstraint,
+        Mouse = Matter.Mouse,
+        World = Matter.World,
+        Bodies = Matter.Bodies;
 
-    Example.compositeManipulation = function(demo) {
-        var engine = demo.engine,
-            world = engine.world,
-            sceneEvents = demo.sceneEvents;
+    // create engine
+    var engine = Engine.create(),
+        world = engine.world;
 
-        var stack = Composites.stack(200, 200, 4, 4, 0, 0, function(x, y) {
-            return Bodies.rectangle(x, y, 40, 40);
+    // create renderer
+    var render = Render.create({
+        element: document.body,
+        engine: engine,
+        options: {
+            width: Math.min(document.body.clientWidth, 1024),
+            height: Math.min(document.body.clientHeight, 1024),
+            showAngleIndicator: true
+        }
+    });
+
+    Render.run(render);
+
+    // create runner
+    var runner = Runner.create();
+    Runner.run(runner, engine);
+
+    // add bodies
+    World.add(world, [
+        Bodies.rectangle(400, 600, 800, 50.5, { isStatic: true }),
+        Bodies.rectangle(800, 300, 50, 600, { isStatic: true }),
+        Bodies.rectangle(0, 300, 50, 600, { isStatic: true })
+    ]);
+
+    var stack = Composites.stack(200, 200, 4, 4, 0, 0, function(x, y) {
+        return Bodies.rectangle(x, y, 40, 40);
+    });
+
+    World.add(world, stack);
+
+    world.gravity.y = 0;
+
+    Events.on(engine, 'afterUpdate', function(event) {
+        var time = engine.timing.timestamp;
+
+        Composite.translate(stack, {
+            x: Math.sin(time * 0.001) * 2,
+            y: 0
         });
 
-        World.add(world, stack);
+        Composite.rotate(stack, Math.sin(time * 0.001) * 0.01, {
+            x: 300,
+            y: 300
+        });
 
-        world.gravity.y = 0;
+        var scale = 1 + (Math.sin(time * 0.001) * 0.01);
 
-        sceneEvents.push(
-            Events.on(engine, 'afterUpdate', function(event) {
-                var time = engine.timing.timestamp;
+        Composite.scale(stack, scale, scale, {
+            x: 300,
+            y: 300
+        });
+    });
 
-                Composite.translate(stack, {
-                    x: Math.sin(time * 0.001) * 2,
-                    y: 0
-                });
+    // add mouse control
+    var mouse = Mouse.create(render.canvas),
+        mouseConstraint = MouseConstraint.create(engine, {
+            mouse: mouse,
+            constraint: {
+                stiffness: 0.2,
+                render: {
+                    visible: false
+                }
+            }
+        });
 
-                Composite.rotate(stack, Math.sin(time * 0.001) * 0.01, {
-                    x: 300,
-                    y: 300
-                });
+    World.add(world, mouseConstraint);
 
-                var scale = 1 + (Math.sin(time * 0.001) * 0.01);
+    // keep the mouse in sync with rendering
+    render.mouse = mouse;
 
-                Composite.scale(stack, scale, scale, {
-                    x: 300,
-                    y: 300
-                });
-            })
-        );
+    // fit the render viewport to the scene
+    Render.lookAt(render, Composite.allBodies(world));
 
-        var renderOptions = demo.render.options;
-        renderOptions.wireframes = false;
-        renderOptions.showAxes = true;
-        renderOptions.showCollisions = true;
+    // context for MatterTools.Demo
+    return {
+        engine: engine,
+        runner: runner,
+        render: render,
+        canvas: render.canvas,
+        stop: function() {
+            Matter.Render.stop(render);
+            Matter.Runner.stop(runner);
+        }
     };
-
-})();
+};

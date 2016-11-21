@@ -29,10 +29,10 @@ var exec = require('child_process').exec;
 var buildDirectory = 'build';
 var server;
 
-gulp.task('default', ['build:dev', 'build:examples']);
+gulp.task('default', ['build:dev']);
 
 gulp.task('dev', function(callback) {
-    sequence('build:examples', 'watch', 'serve', callback);
+    sequence('watch', 'serve', callback);
 });
 
 gulp.task('release', function(callback) {
@@ -43,7 +43,7 @@ gulp.task('release', function(callback) {
                 message: 'cannot build release as there are uncomitted changes'
             });
         } else {
-            sequence('build:examples', 'test', 'bump', 'reload', 'build:release', 'doc', 'changelog', callback);
+            sequence('test', 'bump', 'reload', 'build:release', 'doc', 'changelog', callback);
         }
     });
 });
@@ -95,12 +95,6 @@ gulp.task('build:release', function() {
     return build(extend(extend({}, pkg), { version: pkg.version }));
 });
 
-gulp.task('build:examples', function() {
-    return gulp.src('examples/**/*.js')
-        .pipe(concat('Examples.js'))
-        .pipe(gulp.dest('demo/js'));
-});
-
 gulp.task('watch', function() {
     var b = browserify({
         entries: ['src/module/main.js'],
@@ -123,8 +117,6 @@ gulp.task('watch', function() {
 
     b.on('update', bundle);
     bundle();
-
-    gulp.watch('examples/**/*.js', ['build:examples']);
 });
 
 gulp.task('bump', function() {

@@ -1,91 +1,90 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-        <meta name="viewport" content="width=device-width,minimal-ui">
-        <meta name="robots" content="noindex">
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no,minimal-ui">
+    <meta name="theme-color" content="#000000">
+    <meta name="msapplication-navbutton-color" content="#000000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="robots" content="noindex">
 
-        <!-- only required if using Bodies.fromVertices with concave vertices -->
-        <script type="text/javascript" src="./js/lib/decomp.js"></script>
+    <title>Matter.js Demo</title>
+    
+    <!-- libs -->
+    <script type="text/javascript" src="/demo/lib/decomp.js"></script>
+    <script type="text/javascript" src="/demo/lib/pathseg.js"></script>
 
-        <!-- only required if using Matter.RenderPixi -->
-        <script type="text/javascript" src="./js/lib/pixi.js"></script>
+    <!-- Matter -->
+    <script src="../build/matter-dev.js"></script>
 
-        <!-- only required if using Matter.Svg -->
-        <script type="text/javascript" src="./js/lib/pathseg.js"></script>
+    <!-- MatterTools -->
+    <script src="//code.jquery.com/jquery-3.1.1.js"></script>
+    <script src="/demo/lib/matter-tools.gui.js"></script>
+    <script src="/demo/lib/matter-tools.inspector.js"></script>
+    <script src="/demo/lib/matter-tools.demo.js"></script>
 
-        <!-- matterjs dev version -->
-        <script type="text/javascript" src="../build/matter-dev.js"></script>
+    <!-- Plugins -->
+    <script src="../examples/attractorsPlugin.js"></script>
+    <script src="../examples/gravityPlugin.js"></script>
+    <script src="../examples/wrapPlugin.js"></script>
+    
+    <!-- Examples -->
+    <script src="../examples/airFriction.js"></script>
+    <script src="../examples/attractors.js"></script>
+    <script src="../examples/avalanche.js"></script>
+    <script src="../examples/ballPool.js"></script>
+    <script src="../examples/bridge.js"></script>
+    <script src="../examples/broadphase.js"></script>
+    <script src="../examples/car.js"></script>
+    <script src="../examples/catapult.js"></script>
+    <script src="../examples/chains.js"></script>
+    <script src="../examples/circleStack.js"></script>
+    <script src="../examples/cloth.js"></script>
+    <script src="../examples/collisionFiltering.js"></script>
+    <script src="../examples/compositeManipulation.js"></script>
+    <script src="../examples/compound.js"></script>
+    <script src="../examples/compoundStack.js"></script>
+    <script src="../examples/concave.js"></script>
+    <script src="../examples/events.js"></script>
+    <script src="../examples/friction.js"></script>
+    <script src="../examples/gravity.js"></script>
+    <script src="../examples/gyro.js"></script>
+    <script src="../examples/manipulation.js"></script>
+    <script src="../examples/mixed.js"></script>
+    <script src="../examples/newtonsCradle.js"></script>
+    <script src="../examples/pyramid.js"></script>
+    <script src="../examples/raycasting.js"></script>
+    <script src="../examples/restitution.js"></script>
+    <script src="../examples/rounded.js"></script>
+    <script src="../examples/sensors.js"></script>
+    <script src="../examples/sleeping.js"></script>
+    <script src="../examples/slingshot.js"></script>
+    <script src="../examples/softBody.js"></script>
+    <script src="../examples/sprites.js"></script>
+    <script src="../examples/stack.js"></script>
+    <script src="../examples/staticFriction.js"></script>
+    <script src="../examples/stress.js"></script>
+    <script src="../examples/stress2.js"></script>
+    <script src="../examples/svg.js"></script>
+    <script src="../examples/terrain.js"></script>
+    <script src="../examples/timescale.js"></script>
+    <script src="../examples/views.js"></script>
+    <script src="../examples/wreckingBall.js"></script>
 
-        <!-- only required if using MatterTools -->
-        <link rel="stylesheet" href="./js/lib/matter-tools/matter-tools.css" type="text/css">
-        <script type="text/javascript" src="./js/lib/matter-tools/jquery-1.11.0.min.js"></script>
-        <script type="text/javascript" src="./js/lib/matter-tools/gif/gif.js"></script>
-        <script type="text/javascript" src="./js/lib/matter-tools/matter-tools-dev.js"></script>
+    <style type="text/css">
+      * {
+        box-sizing: border-box;
+      }
 
-        <!-- matter demo code -->
-        <link rel="stylesheet" href="./css/style.css" type="text/css">
-        <script type="text/javascript" src="./js/Examples.js"></script>
-        <script type="text/javascript" src="./js/Demo.js"></script>
-
-        <title>Matter.js Demo</title>
-    </head>
-    <body>
-        <div class="container">
-            <h1>Matter.js Demo</h1>
-            <p class="nav nav-links"><a href="./mobile.html">Mobile Demo</a> <span class="nav-sep">&middot;</span> <a href="http://brm.io/matter-js/">Project page</a> <span class="nav-sep">&middot;</span> <a href="https://github.com/liabru/matter-js">GitHub</a> <span class="nav-sep">&middot;</span> <a href="http://twitter.com/liabru">@liabru</a></p>
-            <div class="controls-container">
-                <select id="demo-select">
-                    <option value="mixed">Mixed Shapes</option>
-                    <option value="mixedSolid">Solid Rendering</option>
-                    <option value="svg">Concave SVG Paths</option>
-                    <option value="terrain">Concave Terrain</option>
-                    <option value="concave">Concave Bodies</option>
-                    <option value="compound">Compound Bodies</option>
-                    <option value="newtonsCradle">Newton's Cradle</option>
-                    <option value="wreckingBall">Wrecking Ball</option>
-                    <option value="slingshot">Slingshot Game</option>
-                    <option value="rounded">Rounded Corners (Chamfering)</option>
-                    <option value="views">Views</option>
-                    <option value="timescale">Time Scaling</option>
-                    <option value="manipulation">Body Manipulation</option>
-                    <option value="compositeManipulation">Composite Manipulation</option>
-                    <option value="sprites">Sprites</option>
-                    <option value="pyramid">Pyramid</option>
-                    <option value="raycasting">Raycasting</option>
-                    <option value="car">Car</option>
-                    <option value="catapult">Catapult</option>
-                    <option value="gravity">Reverse Gravity</option>
-                    <option value="bridge">Bridge</option>
-                    <option value="avalanche">Avalanche</option>
-                    <option value="softBody">Basic Soft Bodies</option>
-                    <option value="cloth">Cloth</option>
-                    <option value="attractors">Attractors (Plugin)</option>
-                    <option value="events">Events</option>
-                    <option value="collisionFiltering">Collision Filtering</option>
-                    <option value="sensors">Sensors</option>
-                    <option value="chains">Chains</option>
-                    <option value="ballPool">Ball Pool</option>
-                    <option value="stack">Stack</option>
-                    <option value="circleStack">Circle Stack</option>
-                    <option value="compoundStack">Compound Stack</option>
-                    <option value="restitution">Restitution</option>
-                    <option value="friction">Friction</option>
-                    <option value="airFriction">Air Friction</option>
-                    <option value="staticFriction">Static Friction</option>
-                    <option value="sleeping">Sleeping</option>
-                    <option value="broadphase">Grid Broadphase</option>
-                    <option value="beachBalls">Beach Balls</option>
-                    <option value="stress">Stress 1</option>
-                    <option value="stress2">Stress 2</option>
-                </select>
-                <input id="demo-reset" value="Reset" type="submit">
-                <div class="demo-view-source nav-links">
-                    <a id="demo-view-source" href="https://github.com/liabru/matter-js/blob/master/examples" target="_blank">view source</a>
-                </div>
-            </div>
-            <div id="canvas-container"></div>
-        </div>
-    </body>
+      body {
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <script src="/demo/js/Demo.js"></script>
+  </body>
 </html>

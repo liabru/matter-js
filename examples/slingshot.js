@@ -1,64 +1,104 @@
-(function() {
+var Example = Example || {};
 
-    var World = Matter.World,
-        Bodies = Matter.Bodies,
+Example.slingshot = function() {
+    var Engine = Matter.Engine,
+        Render = Matter.Render,
+        Runner = Matter.Runner,
+        Body = Matter.Body,
+        Composite = Matter.Composite,
         Composites = Matter.Composites,
+        Events = Matter.Events,
+        Common = Matter.Common,
         Constraint = Matter.Constraint,
-        Events = Matter.Events;
+        MouseConstraint = Matter.MouseConstraint,
+        Mouse = Matter.Mouse,
+        World = Matter.World,
+        Bodies = Matter.Bodies;
 
-    Example.slingshot = function(demo) {
-        var engine = demo.engine,
-            world = engine.world,
-            mouseConstraint = demo.mouseConstraint;
+    // create engine
+    var engine = Engine.create(),
+        world = engine.world;
 
-        world.bodies = [];
+    // create renderer
+    var render = Render.create({
+        element: document.body,
+        engine: engine,
+        options: {
+            width: Math.min(document.body.clientWidth, 1024),
+            height: Math.min(document.body.clientHeight, 1024),
+            showAngleIndicator: true
+        }
+    });
 
-        var ground = Bodies.rectangle(395, 600, 815, 50, { isStatic: true, render: { visible: false } }),
-            rockOptions = { density: 0.004, render: { sprite: { texture: './img/rock.png' } } },
-            rock = Bodies.polygon(170, 450, 8, 20, rockOptions),
-            anchor = { x: 170, y: 450 },
-            elastic = Constraint.create({ 
-                pointA: anchor, 
-                bodyB: rock, 
-                stiffness: 0.05, 
-                render: { 
-                    lineWidth: 5, 
-                    strokeStyle: '#dfa417' 
-                } 
-            });
+    Render.run(render);
 
-        var pyramid = Composites.pyramid(500, 300, 9, 10, 0, 0, function(x, y, column) {
-            var texture = column % 2 === 0 ? './img/block.png' : './img/block-2.png';
-            return Bodies.rectangle(x, y, 25, 40, { render: { sprite: { texture: texture } } });
+    // create runner
+    var runner = Runner.create();
+    Runner.run(runner, engine);
+
+    // add bodies
+    var ground = Bodies.rectangle(395, 600, 815, 50, { isStatic: true }),
+        rockOptions = { density: 0.004 },
+        rock = Bodies.polygon(170, 450, 8, 20, rockOptions),
+        anchor = { x: 170, y: 450 },
+        elastic = Constraint.create({ 
+            pointA: anchor, 
+            bodyB: rock, 
+            stiffness: 0.05
         });
 
-        var ground2 = Bodies.rectangle(610, 250, 200, 20, { 
-            isStatic: true, 
-            render: { 
-                fillStyle: '#edc51e', 
-                strokeStyle: '#b5a91c' 
-            } 
-        });
+    var pyramid = Composites.pyramid(500, 300, 9, 10, 0, 0, function(x, y) {
+        return Bodies.rectangle(x, y, 25, 40);
+    });
 
-        var pyramid2 = Composites.pyramid(550, 0, 5, 10, 0, 0, function(x, y, column) {
-            var texture = column % 2 === 0 ? './img/block.png' : './img/block-2.png';
-            return Bodies.rectangle(x, y, 25, 40, { render: { sprite: { texture: texture } } });
-        });
+    var ground2 = Bodies.rectangle(610, 250, 200, 20, { isStatic: true });
 
-        World.add(engine.world, [ground, pyramid, ground2, pyramid2, rock, elastic]);
+    var pyramid2 = Composites.pyramid(550, 0, 5, 10, 0, 0, function(x, y) {
+        return Bodies.rectangle(x, y, 25, 40);
+    });
 
-        Events.on(engine, 'afterUpdate', function() {
-            if (mouseConstraint.mouse.button === -1 && (rock.position.x > 190 || rock.position.y < 430)) {
-                rock = Bodies.polygon(170, 450, 7, 20, rockOptions);
-                World.add(engine.world, rock);
-                elastic.bodyB = rock;
+    World.add(engine.world, [ground, pyramid, ground2, pyramid2, rock, elastic]);
+
+    Events.on(engine, 'afterUpdate', function() {
+        if (mouseConstraint.mouse.button === -1 && (rock.position.x > 190 || rock.position.y < 430)) {
+            rock = Bodies.polygon(170, 450, 7, 20, rockOptions);
+            World.add(engine.world, rock);
+            elastic.bodyB = rock;
+        }
+    });
+
+    // add mouse control
+    var mouse = Mouse.create(render.canvas),
+        mouseConstraint = MouseConstraint.create(engine, {
+            mouse: mouse,
+            constraint: {
+                stiffness: 0.2,
+                render: {
+                    visible: false
+                }
             }
         });
-        
-        var renderOptions = demo.render.options;
-        renderOptions.wireframes = false;
-        renderOptions.showAngleIndicator = false;
-        renderOptions.background = './img/background.png';
-    };
 
-})();
+    World.add(world, mouseConstraint);
+
+    // keep the mouse in sync with rendering
+    render.mouse = mouse;
+
+    // fit the render viewport to the scene
+    Render.lookAt(render, {
+        min: { x: 0, y: 0 },
+        max: { x: 800, y: 600 }
+    });
+
+    // context for MatterTools.Demo
+    return {
+        engine: engine,
+        runner: runner,
+        render: render,
+        canvas: render.canvas,
+        stop: function() {
+            Matter.Render.stop(render);
+            Matter.Runner.stop(runner);
+        }
+    };
+};

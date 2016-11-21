@@ -7,370 +7,276 @@
 */
 
 (function() {
+    var sourceLinkRoot = 'https://github.com/liabru/matter-js/blob/master/examples';
 
-    var _isBrowser = typeof window !== 'undefined' && window.location,
-        _useInspector = _isBrowser && window.location.hash.indexOf('-inspect') !== -1,
-        _isMobile = _isBrowser && /(ipad|iphone|ipod|android)/gi.test(navigator.userAgent),
-        _isAutomatedTest = !_isBrowser || window._phantom;
-
-    var Matter = _isBrowser ? window.Matter : require('../../build/matter-dev.js');
-
-    var Demo = {};
-    Matter.Demo = Demo;
-
-    if (!_isBrowser) {
-        module.exports = Demo;
-        window = {};
-    }
-
-    // Matter aliases
-    var Body = Matter.Body,
-        Example = Matter.Example,
-        Engine = Matter.Engine,
-        World = Matter.World,
-        Common = Matter.Common,
-        Bodies = Matter.Bodies,
-        Events = Matter.Events,
-        Mouse = Matter.Mouse,
-        MouseConstraint = Matter.MouseConstraint,
-        Runner = Matter.Runner,
-        Render = Matter.Render;
-
-    // MatterTools aliases
-    if (window.MatterTools) {
-        var Gui = MatterTools.Gui,
-            Inspector = MatterTools.Inspector;
-    }
-
-    Demo.create = function(options) {
-        var defaults = {
-            isManual: false,
-            sceneName: 'mixed',
-            sceneEvents: []
-        };
-
-        return Common.extend(defaults, options);
-    };
-
-    Demo.init = function() {
-        var demo = Demo.create();
-        Matter.Demo._demo = demo;
-
-        // get container element for the canvas
-        demo.container = document.getElementById('canvas-container');
-
-        // create an example engine (see /examples/engine.js)
-        demo.engine = Example.engine(demo);
-
-        // run the engine
-        demo.runner = Engine.run(demo.engine);
-
-        // create a debug renderer
-        demo.render = Render.create({
-            element: demo.container,
-            engine: demo.engine
-        });
-
-        // run the renderer
-        Render.run(demo.render);
-
-        // add a mouse controlled constraint
-        demo.mouseConstraint = MouseConstraint.create(demo.engine, {
-            element: demo.render.canvas
-        });
-        
-        World.add(demo.engine.world, demo.mouseConstraint);
-
-        // pass mouse to renderer to enable showMousePosition
-        demo.render.mouse = demo.mouseConstraint.mouse;
-
-        // get the scene function name from hash
-        if (window.location.hash.length !== 0) 
-            demo.sceneName = window.location.hash.replace('#', '').replace('-inspect', '');
-
-        // set up a scene with bodies
-        Demo.reset(demo);
-        Demo.setScene(demo, demo.sceneName);
-
-        // set up demo interface (see end of this file)
-        Demo.initControls(demo);
-
-        // pass through runner as timing for debug rendering
-        demo.engine.metrics.timing = demo.runner;
-
-        return demo;
-    };
-
-    // call init when the page has loaded fully
-    if (!_isAutomatedTest) {
-        if (window.addEventListener) {
-            window.addEventListener('load', Demo.init);
-        } else if (window.attachEvent) {
-            window.attachEvent('load', Demo.init);
-        }
-    }
-
-    Demo.setScene = function(demo, sceneName) {
-        Example[sceneName](demo);
-    };
-
-    // the functions for the demo interface and controls below
-    Demo.initControls = function(demo) {
-        var demoSelect = document.getElementById('demo-select'),
-            demoReset = document.getElementById('demo-reset');
-
-        // create a Matter.Gui
-        if (!_isMobile && Gui) {
-            demo.gui = Gui.create(demo.engine, demo.runner, demo.render);
-
-            // need to add mouse constraint back in after gui clear or load is pressed
-            Events.on(demo.gui, 'clear load', function() {
-                demo.mouseConstraint = MouseConstraint.create(demo.engine, {
-                    element: demo.render.canvas
-                });
-
-                World.add(demo.engine.world, demo.mouseConstraint);
-            });
-        }
-
-        // create a Matter.Inspector
-        if (!_isMobile && Inspector && _useInspector) {
-            demo.inspector = Inspector.create(demo.engine, demo.runner, demo.render);
-
-            Events.on(demo.inspector, 'import', function() {
-                demo.mouseConstraint = MouseConstraint.create(demo.engine);
-                World.add(demo.engine.world, demo.mouseConstraint);
-            });
-
-            Events.on(demo.inspector, 'play', function() {
-                demo.mouseConstraint = MouseConstraint.create(demo.engine);
-                World.add(demo.engine.world, demo.mouseConstraint);
-            });
-
-            Events.on(demo.inspector, 'selectStart', function() {
-                demo.mouseConstraint.constraint.render.visible = false;
-            });
-
-            Events.on(demo.inspector, 'selectEnd', function() {
-                demo.mouseConstraint.constraint.render.visible = true;
-            });
-        }
-
-        // go fullscreen when using a mobile device
-        if (_isMobile) {
-            var body = document.body;
-
-            body.className += ' is-mobile';
-            demo.render.canvas.addEventListener('touchstart', Demo.fullscreen);
-
-            var fullscreenChange = function() {
-                var fullscreenEnabled = document.fullscreenEnabled || document.mozFullScreenEnabled || document.webkitFullscreenEnabled;
-
-                // delay fullscreen styles until fullscreen has finished changing
-                setTimeout(function() {
-                    if (fullscreenEnabled) {
-                        body.className += ' is-fullscreen';
-                    } else {
-                        body.className = body.className.replace('is-fullscreen', '');
-                    }
-                }, 2000);
-            };
-
-            document.addEventListener('webkitfullscreenchange', fullscreenChange);
-            document.addEventListener('mozfullscreenchange', fullscreenChange);
-            document.addEventListener('fullscreenchange', fullscreenChange);
-        }
-
-        // keyboard controls
-        document.onkeypress = function(keys) {
-            // shift + a = toggle manual
-            if (keys.shiftKey && keys.keyCode === 65) {
-                Demo.setManualControl(demo, !demo.isManual);
+    var demo = MatterTools.Demo.create({
+        toolbar: {
+            title: 'matter-js',
+            url: 'https://github.com/liabru/matter-js',
+            reset: true,
+            source: true,
+            inspector: true,
+            tools: true,
+            fullscreen: true,
+            exampleSelect: true
+        },
+        tools: {
+            inspector: true,
+            gui: true
+        },
+        inline: false,
+        resetOnOrientation: true,
+        examples: [
+            {
+                name: 'Air Friction',
+                id: 'airFriction',
+                init: Example.airFriction,
+                sourceLink: sourceLinkRoot + '/airFriction.js'
+            },
+            {
+                name: 'Attractors',
+                id: 'attractors',
+                init: Example.attractors,
+                sourceLink: sourceLinkRoot + '/attractors.js'
+            },
+            {
+                name: 'Avalanche',
+                id: 'avalanche',
+                init: Example.avalanche,
+                sourceLink: sourceLinkRoot + '/avalanche.js'
+            },
+            {
+                name: 'Ball Pool',
+                id: 'ballPool',
+                init: Example.ballPool,
+                sourceLink: sourceLinkRoot + '/ballPool.js'
+            },
+            {
+                name: 'Bridge',
+                id: 'bridge',
+                init: Example.bridge,
+                sourceLink: sourceLinkRoot + '/bridge.js'
+            },
+            {
+                name: 'Broadphase',
+                id: 'broadphase',
+                init: Example.broadphase,
+                sourceLink: sourceLinkRoot + '/broadphase.js'
+            },
+            {
+                name: 'Car',
+                id: 'car',
+                init: Example.car,
+                sourceLink: sourceLinkRoot + '/car.js'
+            },
+            {
+                name: 'Catapult',
+                id: 'catapult',
+                init: Example.catapult,
+                sourceLink: sourceLinkRoot + '/catapult.js'
+            },
+            {
+                name: 'Chains',
+                id: 'chains',
+                init: Example.chains,
+                sourceLink: sourceLinkRoot + '/chains.js'
+            },
+            {
+                name: 'Circle Stack',
+                id: 'circleStack',
+                init: Example.circleStack,
+                sourceLink: sourceLinkRoot + '/circleStack.js'
+            },
+            {
+                name: 'Cloth',
+                id: 'cloth',
+                init: Example.cloth,
+                sourceLink: sourceLinkRoot + '/cloth.js'
+            },
+            {
+                name: 'Collision Filtering',
+                id: 'collisionFiltering',
+                init: Example.collisionFiltering,
+                sourceLink: sourceLinkRoot + '/collisionFiltering.js'
+            },
+            {
+                name: 'Composite Manipulation',
+                id: 'compositeManipulation',
+                init: Example.compositeManipulation,
+                sourceLink: sourceLinkRoot + '/compositeManipulation.js'
+            },
+            {
+                name: 'Compound Bodies',
+                id: 'compound',
+                init: Example.compound,
+                sourceLink: sourceLinkRoot + '/compound.js'
+            },
+            {
+                name: 'Compound Stack',
+                id: 'compoundStack',
+                init: Example.compoundStack,
+                sourceLink: sourceLinkRoot + '/compoundStack.js'
+            },
+            {
+                name: 'Concave',
+                id: 'concave',
+                init: Example.concave,
+                sourceLink: sourceLinkRoot + '/concave.js'
+            },
+            {
+                name: 'Events',
+                id: 'events',
+                init: Example.events,
+                sourceLink: sourceLinkRoot + '/events.js'
+            },
+            {
+                name: 'Friction',
+                id: 'friction',
+                init: Example.friction,
+                sourceLink: sourceLinkRoot + '/friction.js'
+            },
+            {
+                name: 'Reverse Gravity',
+                id: 'gravity',
+                init: Example.gravity,
+                sourceLink: sourceLinkRoot + '/gravity.js'
+            },
+            {
+                name: 'Gyroscope',
+                id: 'gyro',
+                init: Example.gyro,
+                sourceLink: sourceLinkRoot + '/gyro.js'
+            },
+            {
+                name: 'Manipulation',
+                id: 'manipulation',
+                init: Example.manipulation,
+                sourceLink: sourceLinkRoot + '/manipulation.js'
+            },
+            {
+                name: 'Mixed Shapes',
+                id: 'mixed',
+                init: Example.mixed,
+                sourceLink: sourceLinkRoot + '/mixed.js'
+            },
+            {
+                name: 'Newton\'s Cradle',
+                id: 'newtonsCradle',
+                init: Example.newtonsCradle,
+                sourceLink: sourceLinkRoot + '/newtonsCradle.js'
+            },
+            {
+                name: 'Pyramid',
+                id: 'pyramid',
+                init: Example.pyramid,
+                sourceLink: sourceLinkRoot + '/pyramid.js'
+            },
+            {
+                name: 'Raycasting',
+                id: 'raycasting',
+                init: Example.raycasting,
+                sourceLink: sourceLinkRoot + '/raycasting.js'
+            },
+            {
+                name: 'Restitution',
+                id: 'restitution',
+                init: Example.restitution,
+                sourceLink: sourceLinkRoot + '/restitution.js'
+            },
+            {
+                name: 'Rounded Corners (Chamfering)',
+                id: 'rounded',
+                init: Example.rounded,
+                sourceLink: sourceLinkRoot + '/rounded.js'
+            },
+            {
+                name: 'Sensors',
+                id: 'sensors',
+                init: Example.sensors,
+                sourceLink: sourceLinkRoot + '/sensors.js'
+            },
+            {
+                name: 'Sleeping',
+                id: 'sleeping',
+                init: Example.sleeping,
+                sourceLink: sourceLinkRoot + '/sleeping.js'
+            },
+            {
+                name: 'Slingshot',
+                id: 'slingshot',
+                init: Example.slingshot,
+                sourceLink: sourceLinkRoot + '/slingshot.js'
+            },
+            {
+                name: 'Soft Body',
+                id: 'softBody',
+                init: Example.softBody,
+                sourceLink: sourceLinkRoot + '/softBody.js'
+            },
+            {
+                name: 'Sprites',
+                id: 'sprites',
+                init: Example.sprites,
+                sourceLink: sourceLinkRoot + '/sprites.js'
+            },
+            {
+                name: 'Stack',
+                id: 'stack',
+                init: Example.stack,
+                sourceLink: sourceLinkRoot + '/stack.js'
+            },
+            {
+                name: 'Static Friction',
+                id: 'staticFriction',
+                init: Example.staticFriction,
+                sourceLink: sourceLinkRoot + '/staticFriction.js'
+            },
+            {
+                name: 'Stress',
+                id: 'stress',
+                init: Example.stress,
+                sourceLink: sourceLinkRoot + '/stress.js'
+            },
+            {
+                name: 'Stress 2',
+                id: 'stress2',
+                init: Example.stress2,
+                sourceLink: sourceLinkRoot + '/stress2.js'
+            },
+            {
+                name: 'Concave SVG Paths',
+                id: 'svg',
+                init: Example.svg,
+                sourceLink: sourceLinkRoot + '/svg.js'
+            },
+            {
+                name: 'Terrain',
+                id: 'terrain',
+                init: Example.terrain,
+                sourceLink: sourceLinkRoot + '/terraing.js'
+            },
+            {
+                name: 'Time Scaling',
+                id: 'timescale',
+                init: Example.timescale,
+                sourceLink: sourceLinkRoot + '/timescale.js'
+            },
+            {
+                name: 'Views',
+                id: 'views',
+                init: Example.views,
+                sourceLink: sourceLinkRoot + '/views.js'
+            },
+            {
+                name: 'Wrecking Ball',
+                id: 'wreckingBall',
+                init: Example.wreckingBall,
+                sourceLink: sourceLinkRoot + '/wreckingBall.js'
             }
+        ]
+    });
 
-            // shift + q = step
-            if (keys.shiftKey && keys.keyCode === 81) {
-                if (!demo.isManual) {
-                    Demo.setManualControl(demo, true);
-                }
+    document.body.appendChild(demo.dom.root);
 
-                Runner.tick(demo.runner, demo.engine);
-            }
-        };
-
-        // initialise demo selector
-        demoSelect.value = demo.sceneName;
-        Demo.setUpdateSourceLink(demo.sceneName);
-        
-        demoSelect.addEventListener('change', function(e) {
-            Demo.reset(demo);
-            Demo.setScene(demo,demo.sceneName = e.target.value);
-
-            if (demo.gui) {
-                Gui.update(demo.gui);
-            }
-            
-            var scrollY = window.scrollY;
-            window.location.hash = demo.sceneName;
-            window.scrollY = scrollY;
-            Demo.setUpdateSourceLink(demo.sceneName);
-        });
-        
-        demoReset.addEventListener('click', function(e) {
-            Demo.reset(demo);
-            Demo.setScene(demo, demo.sceneName);
-
-            if (demo.gui) {
-                Gui.update(demo.gui);
-            }
-
-            Demo.setUpdateSourceLink(demo.sceneName);
-        });
-    };
-
-    Demo.setUpdateSourceLink = function(sceneName) {
-        var demoViewSource = document.getElementById('demo-view-source'),
-            sourceUrl = 'https://github.com/liabru/matter-js/blob/master/examples';
-        demoViewSource.setAttribute('href', sourceUrl + '/' + sceneName + '.js');
-    };
-
-    Demo.setManualControl = function(demo, isManual) {
-        var engine = demo.engine,
-            world = engine.world,
-            runner = demo.runner;
-
-        demo.isManual = isManual;
-
-        if (demo.isManual) {
-            Runner.stop(runner);
-
-            // continue rendering but not updating
-            (function render(time){
-                runner.frameRequestId = window.requestAnimationFrame(render);
-                Events.trigger(engine, 'beforeUpdate');
-                Events.trigger(engine, 'tick');
-                engine.render.controller.world(engine);
-                Events.trigger(engine, 'afterUpdate');
-            })();
-        } else {
-            Runner.stop(runner);
-            Runner.start(runner, engine);
-        }
-    };
-
-    Demo.fullscreen = function(demo) {
-        var _fullscreenElement = demo.render.canvas;
-        
-        if (!document.fullscreenElement && !document.mozFullScreenElement && !document.webkitFullscreenElement) {
-            if (_fullscreenElement.requestFullscreen) {
-                _fullscreenElement.requestFullscreen();
-            } else if (_fullscreenElement.mozRequestFullScreen) {
-                _fullscreenElement.mozRequestFullScreen();
-            } else if (_fullscreenElement.webkitRequestFullscreen) {
-                _fullscreenElement.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
-            }
-        }
-    };
-    
-    Demo.reset = function(demo) {
-        var world = demo.engine.world,
-            i;
-        
-        World.clear(world);
-        Engine.clear(demo.engine);
-
-        // clear scene graph (if defined in controller)
-        if (demo.render) {
-            var renderController = demo.render.controller;
-            if (renderController && renderController.clear)
-                renderController.clear(demo.render);
-        }
-
-        // clear all scene events
-        if (demo.engine.events) {
-            for (i = 0; i < demo.sceneEvents.length; i++)
-                Events.off(demo.engine, demo.sceneEvents[i]);
-        }
-
-        if (demo.mouseConstraint && demo.mouseConstraint.events) {
-            for (i = 0; i < demo.sceneEvents.length; i++)
-                Events.off(demo.mouseConstraint, demo.sceneEvents[i]);
-        }
-
-        if (world.events) {
-            for (i = 0; i < demo.sceneEvents.length; i++)
-                Events.off(world, demo.sceneEvents[i]);
-        }
-
-        if (demo.runner && demo.runner.events) {
-            for (i = 0; i < demo.sceneEvents.length; i++)
-                Events.off(demo.runner, demo.sceneEvents[i]);
-        }
-
-        if (demo.render && demo.render.events) {
-            for (i = 0; i < demo.sceneEvents.length; i++)
-                Events.off(demo.render, demo.sceneEvents[i]);
-        }
-
-        demo.sceneEvents = [];
-
-        // reset id pool
-        Body._nextCollidingGroupId = 1;
-        Body._nextNonCollidingGroupId = -1;
-        Body._nextCategory = 0x0001;
-        Common._nextId = 0;
-
-        // reset random seed
-        Common._seed = 0;
-
-        // reset mouse offset and scale (only required for Demo.views)
-        if (demo.mouseConstraint) {
-            Mouse.setScale(demo.mouseConstraint.mouse, { x: 1, y: 1 });
-            Mouse.setOffset(demo.mouseConstraint.mouse, { x: 0, y: 0 });
-        }
-
-        demo.engine.enableSleeping = false;
-        demo.engine.world.gravity.scale = 0.001;
-        demo.engine.world.gravity.y = 1;
-        demo.engine.world.gravity.x = 0;
-        demo.engine.timing.timeScale = 1;
-
-        var offset = 5;
-        World.add(world, [
-            Bodies.rectangle(400, -offset, 800.5 + 2 * offset, 50.5, { isStatic: true }),
-            Bodies.rectangle(400, 600 + offset, 800.5 + 2 * offset, 50.5, { isStatic: true }),
-            Bodies.rectangle(800 + offset, 300, 50.5, 600.5 + 2 * offset, { isStatic: true }),
-            Bodies.rectangle(-offset, 300, 50.5, 600.5 + 2 * offset, { isStatic: true })
-        ]);
-
-        if (demo.mouseConstraint) {
-            World.add(world, demo.mouseConstraint);
-        }
-        
-        if (demo.render) {
-            var renderOptions = demo.render.options;
-            renderOptions.wireframes = true;
-            renderOptions.hasBounds = false;
-            renderOptions.showDebug = false;
-            renderOptions.showBroadphase = false;
-            renderOptions.showBounds = false;
-            renderOptions.showVelocity = false;
-            renderOptions.showCollisions = false;
-            renderOptions.showAxes = false;
-            renderOptions.showPositions = false;
-            renderOptions.showAngleIndicator = true;
-            renderOptions.showIds = false;
-            renderOptions.showShadows = false;
-            renderOptions.showVertexNumbers = false;
-            renderOptions.showConvexHulls = false;
-            renderOptions.showInternalEdges = false;
-            renderOptions.showSeparations = false;
-            renderOptions.background = '#fff';
-
-            if (_isMobile) {
-                renderOptions.showDebug = true;
-            }
-        }
-    };
-
+    MatterTools.Demo.start(demo);
 })();
