@@ -33,10 +33,8 @@ module.exports = Common;
             deepClone = true;
         }
 
-        args = Array.prototype.slice.call(arguments, argsStart);
-
-        for (var i = 0; i < args.length; i++) {
-            var source = args[i];
+        for (var i = argsStart; i < arguments.length; i++) {
+            var source = arguments[i];
 
             if (source) {
                 for (var prop in source) {
@@ -493,11 +491,10 @@ module.exports = Common;
      * @return {function} A new function that calls the passed functions in order.
      */
     Common.chain = function() {
-        var args = Array.prototype.slice.call(arguments),
-            funcs = [];
+        var funcs = [];
 
-        for (var i = 0; i < args.length; i += 1) {
-            var func = args[i];
+        for (var i = 0; i < arguments.length; i += 1) {
+            var func = arguments[i];
 
             if (func._chained) {
                 // flatten already chained functions
@@ -508,10 +505,16 @@ module.exports = Common;
         }
 
         var chain = function() {
-            var lastResult;
+            // https://github.com/GoogleChrome/devtools-docs/issues/53#issuecomment-51941358
+            var lastResult,
+                args = new Array(arguments.length);
 
-            for (var i = 0; i < funcs.length; i += 1) {
-                var result = funcs[i].apply(lastResult, arguments);
+            for (var i = 0, l = arguments.length; i < l; i++) {
+                args[i] = arguments[i];
+            }
+
+            for (i = 0; i < funcs.length; i += 1) {
+                var result = funcs[i].apply(lastResult, args);
 
                 if (typeof result !== 'undefined') {
                     lastResult = result;

@@ -214,7 +214,7 @@ var Common = require('../core/Common');
      * @return {string} bucket id
      */
     var _getBucketId = function(column, row) {
-        return column + ',' + row;
+        return 'C' + column + 'R' + row;
     };
 
     /**
