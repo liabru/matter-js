@@ -1048,9 +1048,9 @@ var Vector = require('../geometry/Vector');
             if (grid.buckets[bucketId].length < 2)
                 continue;
 
-            var region = bucketId.split(',');
-            c.rect(0.5 + parseInt(region[0], 10) * grid.bucketWidth, 
-                    0.5 + parseInt(region[1], 10) * grid.bucketHeight, 
+            var region = bucketId.split(/C|R/);
+            c.rect(0.5 + parseInt(region[1], 10) * grid.bucketWidth, 
+                    0.5 + parseInt(region[2], 10) * grid.bucketHeight, 
                     grid.bucketWidth, 
                     grid.bucketHeight);
         }
