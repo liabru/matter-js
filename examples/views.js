@@ -4,16 +4,12 @@ Example.views = function() {
     var Engine = Matter.Engine,
         Render = Matter.Render,
         Runner = Matter.Runner,
-        Body = Matter.Body,
         Events = Matter.Events,
-        Composite = Matter.Composite,
         Composites = Matter.Composites,
         Common = Matter.Common,
-        Constraint = Matter.Constraint,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
         World = Matter.World,
-        Vertices = Matter.Vertices,
         Vector = Matter.Vector,
         Bounds = Matter.Bounds,
         Bodies = Matter.Bodies;
@@ -27,8 +23,8 @@ Example.views = function() {
         element: document.body,
         engine: engine,
         options: {
-            width: Math.min(document.body.clientWidth, 1024),
-            height: Math.min(document.body.clientHeight, 1024),
+            width: Math.min(document.documentElement.clientWidth, 800),
+            height: Math.min(document.documentElement.clientHeight, 600),
             hasBounds: true,
             showAngleIndicator: true
         }
@@ -77,6 +73,8 @@ Example.views = function() {
 
     World.add(world, [
         stack,
+        // walls
+        Bodies.rectangle(400, 0, 800, 50, { isStatic: true }),
         Bodies.rectangle(400, 600, 800, 50, { isStatic: true }),
         Bodies.rectangle(800, 300, 50, 600, { isStatic: true }),
         Bodies.rectangle(0, 300, 50, 600, { isStatic: true })

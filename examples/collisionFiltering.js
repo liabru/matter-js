@@ -21,8 +21,8 @@ Example.collisionFiltering = function() {
         element: document.body,
         engine: engine,
         options: {
-            width: Math.min(document.body.clientWidth, 1024),
-            height: Math.min(document.body.clientHeight, 1024),
+            width: Math.min(document.documentElement.clientWidth, 800),
+            height: Math.min(document.documentElement.clientHeight, 600),
             wireframes: false,
             background: '#111'
         }
@@ -45,7 +45,7 @@ Example.collisionFiltering = function() {
         greenColor = '#C7F464';
 
     // add floor
-    World.add(world, Bodies.rectangle(400, 800, 900, 50, { 
+    World.add(world, Bodies.rectangle(400, 600, 900, 50, { 
         isStatic: true,
         render: {
             fillStyle: 'transparent'
@@ -54,7 +54,7 @@ Example.collisionFiltering = function() {
 
     // create a stack with varying body categories (but these bodies can all collide with each other)
     World.add(world,
-        Composites.stack(275, 150, 5, 10, 10, 10, function(x, y, column, row) {
+        Composites.stack(275, 100, 5, 9, 10, 10, function(x, y, column, row) {
             var category = redCategory,
                 color = redColor;
 
@@ -138,7 +138,10 @@ Example.collisionFiltering = function() {
     mouseConstraint.collisionFilter.mask = defaultCategory | blueCategory | greenCategory;
 
     // fit the render viewport to the scene
-    Render.lookAt(render, Composite.allBodies(world));
+    Render.lookAt(render, {
+        min: { x: 0, y: 0 },
+        max: { x: 800, y: 600 }
+    });
 
     // context for MatterTools.Demo
     return {

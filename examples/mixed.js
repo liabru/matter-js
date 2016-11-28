@@ -4,16 +4,11 @@ Example.mixed = function() {
     var Engine = Matter.Engine,
         Render = Matter.Render,
         Runner = Matter.Runner,
-        Body = Matter.Body,
-        Events = Matter.Events,
-        Composite = Matter.Composite,
         Composites = Matter.Composites,
         Common = Matter.Common,
-        Constraint = Matter.Constraint,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
         World = Matter.World,
-        Vertices = Matter.Vertices,
         Bodies = Matter.Bodies;
 
     // create engine
@@ -25,8 +20,8 @@ Example.mixed = function() {
         element: document.body,
         engine: engine,
         options: {
-            width: Math.min(document.body.clientWidth, 1024),
-            height: Math.min(document.body.clientHeight, 1024),
+            width: Math.min(document.documentElement.clientWidth, 800),
+            height: Math.min(document.documentElement.clientHeight, 600),
             showAngleIndicator: true
         }
     });
@@ -68,6 +63,8 @@ Example.mixed = function() {
     World.add(world, stack);
 
     World.add(world, [
+        // walls
+        Bodies.rectangle(400, 0, 800, 50, { isStatic: true }),
         Bodies.rectangle(400, 600, 800, 50, { isStatic: true }),
         Bodies.rectangle(800, 300, 50, 600, { isStatic: true }),
         Bodies.rectangle(0, 300, 50, 600, { isStatic: true })
@@ -91,7 +88,10 @@ Example.mixed = function() {
     render.mouse = mouse;
 
     // fit the render viewport to the scene
-    Render.lookAt(render, Composite.allBodies(world));
+    Render.lookAt(render, {
+        min: { x: 0, y: 0 },
+        max: { x: 800, y: 600 }
+    });
 
     // context for MatterTools.Demo
     return {

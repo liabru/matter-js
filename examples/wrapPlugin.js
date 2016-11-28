@@ -1,7 +1,6 @@
 (function() {
 
     var Body = Matter.Body,
-        Common = Matter.Common,
         Composite = Matter.Composite;
 
     var MatterWrap = {

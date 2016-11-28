@@ -5,10 +5,7 @@ Example.staticFriction = function() {
         Render = Matter.Render,
         Runner = Matter.Runner,
         Body = Matter.Body,
-        Composite = Matter.Composite,
         Composites = Matter.Composites,
-        Common = Matter.Common,
-        Constraint = Matter.Constraint,
         Events = Matter.Events,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
@@ -24,8 +21,8 @@ Example.staticFriction = function() {
         element: document.body,
         engine: engine,
         options: {
-            width: Math.min(document.body.clientWidth, 1024),
-            height: Math.min(document.body.clientHeight, 1024),
+            width: Math.min(document.documentElement.clientWidth, 800),
+            height: Math.min(document.documentElement.clientHeight, 600),
             showVelocity: true
         }
     });
@@ -49,7 +46,15 @@ Example.staticFriction = function() {
         });
     });
     
-    World.add(world, [body, stack]);
+    World.add(world, [
+        body, 
+        stack,
+        // walls
+        Bodies.rectangle(400, 0, 800, 50, { isStatic: true }),
+        Bodies.rectangle(400, 600, 800, 50, { isStatic: true }),
+        Bodies.rectangle(800, 300, 50, 600, { isStatic: true }),
+        Bodies.rectangle(0, 300, 50, 600, { isStatic: true })
+    ]);
 
     Events.on(engine, 'beforeUpdate', function(event) {
         counter += 0.014;

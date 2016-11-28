@@ -29,7 +29,6 @@
         "require": false,
         "PIXI": false,
         "$": false,
-        "Example": false,
         "Image": false,
         "navigator": false,
         "setTimeout": false,

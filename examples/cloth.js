@@ -5,10 +5,7 @@ Example.cloth = function() {
         Render = Matter.Render,
         Runner = Matter.Runner,
         Body = Matter.Body,
-        Composite = Matter.Composite,
         Composites = Matter.Composites,
-        Common = Matter.Common,
-        Constraint = Matter.Constraint,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
         World = Matter.World,
@@ -23,8 +20,8 @@ Example.cloth = function() {
         element: document.body,
         engine: engine,
         options: {
-            width: Math.min(document.body.clientWidth, 1024),
-            height: Math.min(document.body.clientHeight, 1024)
+            width: Math.min(document.documentElement.clientWidth, 800),
+            height: Math.min(document.documentElement.clientHeight, 600)
         }
     });
 
@@ -46,7 +43,8 @@ Example.cloth = function() {
     World.add(world, [
         cloth,
         Bodies.circle(300, 500, 80, { isStatic: true }),
-        Bodies.rectangle(500, 480, 80, 80, { isStatic: true })
+        Bodies.rectangle(500, 480, 80, 80, { isStatic: true }),
+        Bodies.rectangle(400, 609, 800, 50, { isStatic: true })
     ]);
 
     // add mouse control
@@ -66,7 +64,7 @@ Example.cloth = function() {
     // fit the render viewport to the scene
     Render.lookAt(render, {
         min: { x: 0, y: 0 },
-        max: { x: 800, y: 700 }
+        max: { x: 800, y: 600 }
     });
 
     // context for MatterTools.Demo

@@ -9,7 +9,6 @@ Example.attractors = function() {
     var Engine = Matter.Engine,
         Render = Matter.Render,
         Runner = Matter.Runner,
-        Composite = Matter.Composite,
         Body = Matter.Body,
         Common = Matter.Common,
         MouseConstraint = Matter.MouseConstraint,
@@ -26,8 +25,8 @@ Example.attractors = function() {
         element: document.body,
         engine: engine,
         options: {
-            width: Math.min(document.body.clientWidth, 1024),
-            height: Math.min(document.body.clientHeight, 1024)
+            width: Math.min(document.documentElement.clientWidth, 800),
+            height: Math.min(document.documentElement.clientHeight, 600)
         }
     });
 
@@ -83,6 +82,12 @@ Example.attractors = function() {
 
     // keep the mouse in sync with rendering
     render.mouse = mouse;
+
+    // fit the render viewport to the scene
+    Render.lookAt(render, {
+        min: { x: 0, y: 0 },
+        max: { x: 800, y: 600 }
+    });
 
     // context for MatterTools.Demo
     return {
