@@ -237,6 +237,16 @@ var Axes = require('../geometry/Axes');
             part.isStatic = isStatic;
 
             if (isStatic) {
+                part._original = {
+                    restitution: part.restitution,
+                    friction: part.friction,
+                    mass: part.mass,
+                    inertia: part.inertia,
+                    density: part.density,
+                    inverseMass: part.inverseMass,
+                    inverseInertia: part.inverseInertia
+                };
+
                 part.restitution = 0;
                 part.friction = 1;
                 part.mass = part.inertia = part.density = Infinity;
@@ -249,6 +259,16 @@ var Axes = require('../geometry/Axes');
                 part.speed = 0;
                 part.angularSpeed = 0;
                 part.motion = 0;
+            } else if (part._original) {
+                part.restitution = part._original.restitution;
+                part.friction = part._original.friction;
+                part.mass = part._original.mass;
+                part.inertia = part._original.inertia;
+                part.density = part._original.density;
+                part.inverseMass = part._original.inverseMass;
+                part.inverseInertia = part._original.inverseInertia;
+
+                delete part._original;
             }
         }
     };
