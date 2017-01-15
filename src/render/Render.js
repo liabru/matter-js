@@ -385,9 +385,11 @@ var Vector = require('../geometry/Vector');
                 c.lineTo(constraint.pointB.x, constraint.pointB.y);
             }
 
-            c.lineWidth = constraint.render.lineWidth;
-            c.strokeStyle = constraint.render.strokeStyle;
-            c.stroke();
+            if (constraint.render.lineWidth) {
+                c.lineWidth = constraint.render.lineWidth;
+                c.strokeStyle = constraint.render.strokeStyle;
+                c.stroke();
+            }
         }
     };
     
@@ -523,15 +525,19 @@ var Vector = require('../geometry/Vector');
 
                     if (!options.wireframes) {
                         c.fillStyle = part.render.fillStyle;
-                        c.lineWidth = part.render.lineWidth;
-                        c.strokeStyle = part.render.strokeStyle;
+
+                        if (part.render.lineWidth) {
+                            c.lineWidth = part.render.lineWidth;
+                            c.strokeStyle = part.render.strokeStyle;
+                            c.stroke();
+                        }
+
                         c.fill();
                     } else {
                         c.lineWidth = 1;
                         c.strokeStyle = '#bbb';
+                        c.stroke();
                     }
-
-                    c.stroke();
                 }
 
                 c.globalAlpha = 1;
