@@ -52,7 +52,7 @@ var Mouse = require('../core/Mouse');
                 width: 800,
                 height: 600,
                 pixelRatio: 1,
-                background: '#fafafa',
+                background: '#18181d',
                 wireframeBackground: '#0f0f13',
                 hasBounds: !!options.bounds,
                 enabled: true,
@@ -892,12 +892,13 @@ var Mouse = require('../core/Mouse');
 
         if (options.wireframes) {
             c.strokeStyle = 'indianred';
+            c.lineWidth = 1;
         } else {
-            c.strokeStyle = 'rgba(0,0,0,0.8)';
+            c.strokeStyle = 'rgba(255, 255, 255, 0.4)';
             c.globalCompositeOperation = 'overlay';
+            c.lineWidth = 2;
         }
 
-        c.lineWidth = 1;
         c.stroke();
         c.globalCompositeOperation = 'source-over';
     };

@@ -60,7 +60,7 @@ var Common = require('../core/Common');
         var render = {
             visible: true,
             lineWidth: 2,
-            strokeStyle: '#666'
+            strokeStyle: '#ffffff'
         };
         
         constraint.render = Common.extend(render, constraint.render);

@@ -275,14 +275,20 @@ var Bodies = require('./Bodies');
             bodyA: body,
             pointA: { x: wheelAOffset, y: wheelYOffset },
             bodyB: wheelA,
-            stiffness: 0.2
+            stiffness: 0.2,
+            render: {
+                lineWidth: 0
+            }
         });
                         
         var axelB = Constraint.create({
             bodyA: body,
             pointA: { x: wheelBOffset, y: wheelYOffset },
             bodyB: wheelB,
-            stiffness: 0.2
+            stiffness: 0.2,
+            render: {
+                lineWidth: 0
+            }
         });
         
         Composite.addBody(car, body);
