@@ -41,7 +41,8 @@ Example.sensors = function() {
         isStatic: true,
         render: {
             strokeStyle: redColor,
-            fillStyle: 'transparent'
+            fillStyle: 'transparent',
+            lineWidth: 1
         }
     });
 
@@ -50,7 +51,8 @@ Example.sensors = function() {
         Bodies.rectangle(400, 620, 800, 50, { 
             isStatic: true,
             render: {
-                fillStyle: 'transparent'
+                fillStyle: 'transparent',
+                lineWidth: 1
             }
         })
     ]);
@@ -59,7 +61,8 @@ Example.sensors = function() {
         Bodies.circle(400, 40, 30, {
             render: {
                 strokeStyle: greenColor,
-                fillStyle: 'transparent'
+                fillStyle: 'transparent',
+                lineWidth: 1
             }
         })
     );
@@ -108,7 +111,7 @@ Example.sensors = function() {
 
     // keep the mouse in sync with rendering
     render.mouse = mouse;
-
+    
     // fit the render viewport to the scene
     Render.lookAt(render, {
         min: { x: 0, y: 0 },

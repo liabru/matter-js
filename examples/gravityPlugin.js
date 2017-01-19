@@ -25,16 +25,14 @@
             },
 
             applyGravity: function(bodyA, bodyB) {
-                var Vector = Matter.Vector,
-                    Body = Matter.Body,
-                    bToA = Vector.sub(bodyB.position, bodyA.position),
-                    distanceSq = Vector.magnitudeSquared(bToA) || 0.0001,
-                    normal = Vector.normalise(bToA),
+                var bToA = Matter.Vector.sub(bodyB.position, bodyA.position),
+                    distanceSq = Matter.Vector.magnitudeSquared(bToA) || 0.0001,
+                    normal = Matter.Vector.normalise(bToA),
                     magnitude = -bodyA.gravity * (bodyA.mass * bodyB.mass / distanceSq),
-                    force = Vector.mult(normal, magnitude);
+                    force = Matter.Vector.mult(normal, magnitude);
 
-                Body.applyForce(bodyA, bodyA.position, Vector.neg(force));
-                Body.applyForce(bodyB, bodyB.position, force);
+                Matter.Body.applyForce(bodyA, bodyA.position, Matter.Vector.neg(force));
+                Matter.Body.applyForce(bodyB, bodyB.position, force);
             }
         }
     };

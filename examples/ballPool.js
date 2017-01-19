@@ -1,10 +1,10 @@
 var Example = Example || {};
 
-Example.ballPool = function() {
-    Matter.use(
-        'matter-wrap'
-    );
+Matter.use(
+    'matter-wrap'
+);
 
+Example.ballPool = function() {
     var Engine = Matter.Engine,
         Render = Matter.Render,
         Runner = Matter.Runner,

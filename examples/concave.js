@@ -51,7 +51,8 @@ Example.concave = function() {
         return Bodies.fromVertices(x, y, Common.choose([arrow, chevron, star, horseShoe]), {
             render: {
                 fillStyle: color,
-                strokeStyle: color
+                strokeStyle: color,
+                lineWidth: 1
             }
         }, true);
     });

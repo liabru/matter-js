@@ -54,7 +54,8 @@ Example.svg = function() {
                 World.add(world, Bodies.fromVertices(100 + i * 150, 200 + i * 50, vertexSets, {
                     render: {
                         fillStyle: color,
-                        strokeStyle: color
+                        strokeStyle: color,
+                        lineWidth: 1
                     }
                 }, true));
             });
@@ -72,7 +73,8 @@ Example.svg = function() {
         World.add(world, Bodies.fromVertices(400, 80, vertexSets, {
             render: {
                 fillStyle: color,
-                strokeStyle: color
+                strokeStyle: color,
+                lineWidth: 1
             }
         }, true));
     });

@@ -37,8 +37,7 @@ Example.terrain = function() {
     var terrain;
 
     $.get('./svg/terrain.svg').done(function(data) {
-        var vertexSets = [],
-            color = Common.choose(['#556270', '#4ECDC4', '#C7F464', '#FF6B6B', '#C44D58']);
+        var vertexSets = [];
 
         $(data).find('path').each(function(i, path) {
             vertexSets.push(Svg.pathToVertices(path, 30));
@@ -47,8 +46,9 @@ Example.terrain = function() {
         terrain = Bodies.fromVertices(400, 350, vertexSets, {
             isStatic: true,
             render: {
-                fillStyle: color,
-                strokeStyle: color
+                fillStyle: '#2e2b44',
+                strokeStyle: '#2e2b44',
+                lineWidth: 1
             }
         }, true);
 

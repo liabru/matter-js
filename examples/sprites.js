@@ -37,10 +37,7 @@ Example.sprites = function() {
     // add bodies
     var offset = 10,
         options = { 
-            isStatic: true,
-            render: {
-                visible: false
-            }
+            isStatic: true
         };
 
     world.bodies = [];

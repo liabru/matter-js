@@ -1,8 +1,5 @@
 (function() {
 
-    var Body = Matter.Body,
-        Composite = Matter.Composite;
-
     var MatterWrap = {
         name: 'matter-wrap',
 
@@ -19,7 +16,7 @@
         Engine: {
             update: function(engine) {
                 var world = engine.world,
-                    bodies = Composite.allBodies(world);
+                    bodies = Matter.Composite.allBodies(world);
 
                 for (var i = 0; i < bodies.length; i += 1) {
                     var body = bodies[i];
@@ -53,7 +50,7 @@
                 }
 
                 if (x !== null || y !== null) {
-                    Body.setPosition(body, {
+                    Matter.Body.setPosition(body, {
                         x: x || body.position.x,
                         y: y || body.position.y
                     });

@@ -61,7 +61,7 @@ Example.circleStack = function() {
 
     // keep the mouse in sync with rendering
     render.mouse = mouse;
-
+    
     // fit the render viewport to the scene
     Render.lookAt(render, {
         min: { x: 0, y: 0 },

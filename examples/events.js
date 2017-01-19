@@ -56,8 +56,8 @@ Example.events = function() {
         // change object colours to show those starting a collision
         for (var i = 0; i < pairs.length; i++) {
             var pair = pairs[i];
-            pair.bodyA.render.fillStyle = '#bbbbbb';
-            pair.bodyB.render.fillStyle = '#bbbbbb';
+            pair.bodyA.render.fillStyle = '#333';
+            pair.bodyB.render.fillStyle = '#333';
         }
     });
 
@@ -68,8 +68,8 @@ Example.events = function() {
         // change object colours to show those in an active collision (e.g. resting contact)
         for (var i = 0; i < pairs.length; i++) {
             var pair = pairs[i];
-            pair.bodyA.render.fillStyle = '#aaaaaa';
-            pair.bodyB.render.fillStyle = '#aaaaaa';
+            pair.bodyA.render.fillStyle = '#333';
+            pair.bodyB.render.fillStyle = '#333';
         }
     });
 
@@ -80,21 +80,24 @@ Example.events = function() {
         // change object colours to show those ending a collision
         for (var i = 0; i < pairs.length; i++) {
             var pair = pairs[i];
-            pair.bodyA.render.fillStyle = '#999999';
-            pair.bodyB.render.fillStyle = '#999999';
+
+            pair.bodyA.render.fillStyle = '#222';
+            pair.bodyB.render.fillStyle = '#222';
         }
     });
 
+    var bodyStyle = { fillStyle: '#222' };
+
     // scene code
     World.add(world, [
-        Bodies.rectangle(400, 0, 800, 50, { isStatic: true }),
-        Bodies.rectangle(400, 600, 800, 50, { isStatic: true }),
-        Bodies.rectangle(800, 300, 50, 600, { isStatic: true }),
-        Bodies.rectangle(0, 300, 50, 600, { isStatic: true })
+        Bodies.rectangle(400, 0, 800, 50, { isStatic: true, render: bodyStyle }),
+        Bodies.rectangle(400, 600, 800, 50, { isStatic: true, render: bodyStyle }),
+        Bodies.rectangle(800, 300, 50, 600, { isStatic: true, render: bodyStyle }),
+        Bodies.rectangle(0, 300, 50, 600, { isStatic: true, render: bodyStyle })
     ]);
 
     var stack = Composites.stack(70, 100, 9, 4, 50, 50, function(x, y) {
-        return Bodies.circle(x, y, 15, { restitution: 1, render: { strokeStyle: '#777' } });
+        return Bodies.circle(x, y, 15, { restitution: 1, render: bodyStyle });
     });
     
     World.add(world, stack);
@@ -137,14 +140,12 @@ Example.events = function() {
     Events.on(mouseConstraint, 'mousedown', function(event) {
         var mousePosition = event.mouse.position;
         console.log('mousedown at ' + mousePosition.x + ' ' + mousePosition.y);
-        render.options.background = 'cornsilk';
         shakeScene(engine);
     });
 
     // an example of using mouse events on a mouse
     Events.on(mouseConstraint, 'mouseup', function(event) {
         var mousePosition = event.mouse.position;
-        render.options.background = "white";
         console.log('mouseup at ' + mousePosition.x + ' ' + mousePosition.y);
     });
 

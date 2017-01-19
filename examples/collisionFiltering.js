@@ -48,7 +48,8 @@ Example.collisionFiltering = function() {
     World.add(world, Bodies.rectangle(400, 600, 900, 50, { 
         isStatic: true,
         render: {
-            fillStyle: 'transparent'
+            fillStyle: 'transparent',
+            lineWidth: 1
         } 
     }));
 
@@ -72,7 +73,8 @@ Example.collisionFiltering = function() {
                 },
                 render: {
                     strokeStyle: color,
-                    fillStyle: 'transparent'
+                    fillStyle: 'transparent',
+                    lineWidth: 1
                 }
             });
         })

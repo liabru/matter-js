@@ -52,7 +52,10 @@ Example.cloth = function() {
         mouseConstraint = MouseConstraint.create(engine, {
             mouse: mouse,
             constraint: {
-                stiffness: 0.9
+                stiffness: 0.98,
+                render: {
+                    visible: false
+                }
             }
         });
 

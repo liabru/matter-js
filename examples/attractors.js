@@ -1,11 +1,11 @@
 var Example = Example || {};
 
-Example.attractors = function() {
-    Matter.use(
-        'matter-gravity', 
-        'matter-wrap'
-    );
+Matter.use(
+    'matter-gravity', 
+    'matter-wrap'
+);
 
+Example.attractors = function() {
     var Engine = Matter.Engine,
         Render = Matter.Render,
         Runner = Matter.Runner,
@@ -42,13 +42,17 @@ Example.attractors = function() {
 
     var G = 0.001;
 
-    for (var i = 0; i < 200; i += 1) {
+    engine.timing.timeScale = 1.5;
+
+    for (var i = 0; i < 150; i += 1) {
+        var radius = Common.random(6, 10);
+
         var body = Bodies.circle(
             Common.random(10, render.options.width), 
             Common.random(10, render.options.height),
-            Common.random(4, 10),
+            radius,
             {
-                mass: Common.random(10, 20),
+                mass: Common.random(10, 15),
                 gravity: G,
                 frictionAir: 0,
                 wrap: {
@@ -58,9 +62,11 @@ Example.attractors = function() {
             }
         );
 
+        var speed = 5;
+
         Body.setVelocity(body, { 
-            x: Common.random(-2, 2), 
-            y: Common.random(-2, 2)
+            x: Common.random(-speed, speed), 
+            y: Common.random(-speed, speed)
         });
 
         World.add(world, body);
