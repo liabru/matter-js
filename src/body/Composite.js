@@ -35,7 +35,8 @@ var Body = require('./Body');
             bodies: [], 
             constraints: [], 
             composites: [],
-            label: 'Composite'
+            label: 'Composite',
+            plugin: {}
         }, options);
     };
 
@@ -653,6 +654,13 @@ var Body = require('./Body');
      * @property composites
      * @type composite[]
      * @default []
+     */
+
+    /**
+     * An object reserved for storing plugin-specific properties.
+     *
+     * @property plugin
+     * @type {}
      */
 
 })();

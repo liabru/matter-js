@@ -42,6 +42,7 @@ var Axes = require('../geometry/Axes');
             type: 'body',
             label: 'Body',
             parts: [],
+            plugin: {},
             angle: 0,
             vertices: Vertices.fromPath('L 0 0 L 40 0 L 40 40 L 0 40'),
             position: { x: 0, y: 0 },
@@ -717,6 +718,13 @@ var Axes = require('../geometry/Axes');
      *
      * @property parts
      * @type body[]
+     */
+
+    /**
+     * An object reserved for storing plugin-specific properties.
+     *
+     * @property plugin
+     * @type {}
      */
 
     /**

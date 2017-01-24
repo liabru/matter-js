@@ -51,6 +51,7 @@ var Body = require('../body/Body');
             constraintIterations: 2,
             enableSleeping: false,
             events: [],
+            plugin: {},
             timing: {
                 timestamp: 0,
                 timeScale: 1
@@ -489,6 +490,13 @@ var Body = require('../body/Body');
      * @property world
      * @type world
      * @default a Matter.World instance
+     */
+
+    /**
+     * An object reserved for storing plugin-specific properties.
+     *
+     * @property plugin
+     * @type {}
      */
 
 })();

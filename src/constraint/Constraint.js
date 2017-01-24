@@ -73,6 +73,7 @@ var Common = require('../core/Common');
         constraint.angularStiffness = constraint.angularStiffness || 0;
         constraint.angleA = constraint.bodyA ? constraint.bodyA.angle : constraint.angleA;
         constraint.angleB = constraint.bodyB ? constraint.bodyB.angle : constraint.angleB;
+        constraint.plugin = {};
 
         return constraint;
     };
@@ -389,6 +390,13 @@ var Common = require('../core/Common');
      *
      * @property length
      * @type number
+     */
+
+    /**
+     * An object reserved for storing plugin-specific properties.
+     *
+     * @property plugin
+     * @type {}
      */
 
 })();
