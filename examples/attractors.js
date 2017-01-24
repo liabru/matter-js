@@ -53,11 +53,13 @@ Example.attractors = function() {
             radius,
             {
                 mass: Common.random(10, 15),
-                gravity: G,
                 frictionAir: 0,
-                wrap: {
-                    min: { x: 0, y: 0 },
-                    max: { x: render.options.width, y: render.options.height }
+                plugin: {
+                    gravity: G,
+                    wrap: {
+                        min: { x: 0, y: 0 },
+                        max: { x: render.options.width, y: render.options.height }
+                    }
                 }
             }
         );

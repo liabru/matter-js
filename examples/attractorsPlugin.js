@@ -1,3 +1,5 @@
+// NOTE: this plugin will be moved to its own repo
+
 (function() {
 
     var MatterAttractors = {

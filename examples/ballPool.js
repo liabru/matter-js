@@ -80,7 +80,7 @@ Example.ballPool = function() {
     var allBodies = Composite.allBodies(world);
 
     for (var i = 0; i < allBodies.length; i += 1) {
-        allBodies[i].wrap = {
+        allBodies[i].plugin.wrap = {
             min: { x: render.bounds.min.x - 100, y: render.bounds.min.y },
             max: { x: render.bounds.max.x + 100, y: render.bounds.max.y }
         };

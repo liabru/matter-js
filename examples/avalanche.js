@@ -72,7 +72,7 @@ Example.avalanche = function() {
 
     // wrapping using matter-wrap plugin
     for (var i = 0; i < stack.bodies.length; i += 1) {
-        stack.bodies[i].wrap = {
+        stack.bodies[i].plugin.wrap = {
             min: { x: render.bounds.min.x, y: render.bounds.min.y },
             max: { x: render.bounds.max.x, y: render.bounds.max.y }
         };

@@ -1,3 +1,5 @@
+// NOTE: this plugin will be moved to its own repo
+
 (function() {
 
     var MatterWrap = {
@@ -21,8 +23,8 @@
                 for (var i = 0; i < bodies.length; i += 1) {
                     var body = bodies[i];
 
-                    if (body.wrap) {
-                        MatterWrap.Body.wrap(body, body.wrap);
+                    if (body.plugin.wrap) {
+                        MatterWrap.Body.wrap(body, body.plugin.wrap);
                     }
                 }
             }

@@ -1,3 +1,5 @@
+// NOTE: this plugin will be moved to its own repo
+
 (function() {
 
     var MatterGravity = {
@@ -19,7 +21,7 @@
 
         Body: {
             init: function(body) {
-                if (body.gravity) {
+                if (body.plugin.gravity) {
                     body.attractors.push(MatterGravity.Body.applyGravity);
                 }
             },
@@ -28,7 +30,7 @@
                 var bToA = Matter.Vector.sub(bodyB.position, bodyA.position),
                     distanceSq = Matter.Vector.magnitudeSquared(bToA) || 0.0001,
                     normal = Matter.Vector.normalise(bToA),
-                    magnitude = -bodyA.gravity * (bodyA.mass * bodyB.mass / distanceSq),
+                    magnitude = -bodyA.plugin.gravity * (bodyA.mass * bodyB.mass / distanceSq),
                     force = Matter.Vector.mult(normal, magnitude);
 
                 Matter.Body.applyForce(bodyA, bodyA.position, Matter.Vector.neg(force));
