@@ -25,6 +25,7 @@
             gui: true
         },
         inline: false,
+        preventZoom: true,
         resetOnOrientation: true,
         examples: [
             {
