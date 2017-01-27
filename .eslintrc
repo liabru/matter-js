@@ -62,7 +62,8 @@
         "Query": false,
         "Runner": false,
         "Svg": false,
-        "Metrics": false
+        "Metrics": false,
+        "Example": false
     },
     "extends": "eslint:recommended"
 }
