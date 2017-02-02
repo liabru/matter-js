@@ -54,7 +54,6 @@ Example.mixed = function() {
             } else {
                 return Bodies.rectangle(x, y, Common.random(80, 120), Common.random(25, 30), { chamfer: chamfer });
             }
-            break;
         case 1:
             return Bodies.polygon(x, y, sides, Common.random(25, 50), { chamfer: chamfer });
         }

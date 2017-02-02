@@ -228,8 +228,10 @@ module.exports = Vector;
      * @type {vector[]}
      * @private
      */
-    Vector._temp = [Vector.create(), Vector.create(), 
-                    Vector.create(), Vector.create(), 
-                    Vector.create(), Vector.create()];
+    Vector._temp = [
+        Vector.create(), Vector.create(), 
+        Vector.create(), Vector.create(), 
+        Vector.create(), Vector.create()
+    ];
 
 })();

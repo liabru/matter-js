@@ -52,7 +52,6 @@ Example.gravity = function() {
             } else {
                 return Bodies.rectangle(x, y, Common.random(80, 120), Common.random(20, 30));
             }
-            break;
         case 1:
             return Bodies.polygon(x, y, Math.round(Common.random(1, 8)), Common.random(20, 50));
 

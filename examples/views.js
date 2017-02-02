@@ -63,7 +63,6 @@ Example.views = function() {
             } else {
                 return Bodies.rectangle(x, y, Common.random(80, 120), Common.random(20, 30));
             }
-            break;
         case 1:
             var sides = Math.round(Common.random(1, 8));
             sides = (sides === 3) ? 4 : sides;

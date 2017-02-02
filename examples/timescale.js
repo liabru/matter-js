@@ -109,7 +109,6 @@ Example.timescale = function() {
             } else {
                 return Bodies.rectangle(x, y, Common.random(80, 120), Common.random(20, 30), bodyOptions);
             }
-            break;
         case 1:
             return Bodies.polygon(x, y, Math.round(Common.random(4, 8)), Common.random(20, 50), bodyOptions);
 
