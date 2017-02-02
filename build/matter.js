@@ -1,5 +1,5 @@
 /**
-* matter-js 0.11.1-alpha by @liabru 2017-01-26
+* matter-js 0.12.0 by @liabru 2017-02-02
 * http://brm.io/matter-js/
 * License MIT
 */
@@ -5325,7 +5325,7 @@ var Common = _dereq_('./Common');
      * @readOnly
      * @type {String}
      */
-    Matter.version = '0.11.1-alpha';
+    Matter.version = '0.12.0';
 
     /**
      * A list of plugin dependencies to be installed. These are normally set and installed through `Matter.use`.
@@ -7704,9 +7704,11 @@ module.exports = Vector;
      * @type {vector[]}
      * @private
      */
-    Vector._temp = [Vector.create(), Vector.create(), 
-                    Vector.create(), Vector.create(), 
-                    Vector.create(), Vector.create()];
+    Vector._temp = [
+        Vector.create(), Vector.create(), 
+        Vector.create(), Vector.create(), 
+        Vector.create(), Vector.create()
+    ];
 
 })();
 },{}],29:[function(_dereq_,module,exports){

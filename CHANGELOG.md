@@ -1,3 +1,31 @@
+<a name="0.12.0"></a>
+# 0.12.0 (2017-02-02)
+
+* add poly-decamp require shim ([c72a9d0](https://github.com/liabru/matter-js/commit/c72a9d0))
+* added body.plugin, composite.plugin, constraint.plugin, engine.plugin properties ([b353393](https://github.com/liabru/matter-js/commit/b353393))
+* added Render.lookAt ([47443b3](https://github.com/liabru/matter-js/commit/47443b3))
+* added Render.startViewTransform and Render.endViewTransform ([c8e5d5c](https://github.com/liabru/matter-js/commit/c8e5d5c))
+* change Matter.MouseConstraint to use engine beforeUpdate event, closes #73 ([ffb128c](https://github.com/liabru/matter-js/commit/ffb128c)), closes [#73](https://github.com/liabru/matter-js/issues/73)
+* changed default render styles ([719ad64](https://github.com/liabru/matter-js/commit/719ad64))
+* changed plugins to use body.plugin ([3fdf343](https://github.com/liabru/matter-js/commit/3fdf343))
+* fix Body.setStatic(body, false), closes #187 ([a815ce4](https://github.com/liabru/matter-js/commit/a815ce4)), closes [#187](https://github.com/liabru/matter-js/issues/187)
+* fix build temporarily ([805ff2a](https://github.com/liabru/matter-js/commit/805ff2a))
+* fix lint ([0ce686d](https://github.com/liabru/matter-js/commit/0ce686d))
+* fix lint ([714b8ae](https://github.com/liabru/matter-js/commit/714b8ae))
+* fix Render.grid ([dd83386](https://github.com/liabru/matter-js/commit/dd83386))
+* fix test npm script ([6285df9](https://github.com/liabru/matter-js/commit/6285df9))
+* fix v8 optimisation issues ([86c4a61](https://github.com/liabru/matter-js/commit/86c4a61))
+* Fixes #220 ([74de894](https://github.com/liabru/matter-js/commit/74de894)), closes [#220](https://github.com/liabru/matter-js/issues/220)
+* improved demo and examples ([1a40f27](https://github.com/liabru/matter-js/commit/1a40f27))
+* improved demo and examples ([ace1a9f](https://github.com/liabru/matter-js/commit/ace1a9f))
+* improved demo and examples ([8cdbb38](https://github.com/liabru/matter-js/commit/8cdbb38))
+* Update to latest poly-decomp.js API ([3d8f88e](https://github.com/liabru/matter-js/commit/3d8f88e))
+* updated alpha build ([6c19f0b](https://github.com/liabru/matter-js/commit/6c19f0b))
+* updated dependencies ([8c140bd](https://github.com/liabru/matter-js/commit/8c140bd))
+* updated matter-tools ([def8d22](https://github.com/liabru/matter-js/commit/def8d22))
+
+
+
 <a name="0.11.1"></a>
 ## 0.11.1 (2016-11-09)
 
