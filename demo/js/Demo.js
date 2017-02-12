@@ -35,12 +35,6 @@
                 sourceLink: sourceLinkRoot + '/airFriction.js'
             },
             {
-                name: 'Attractors',
-                id: 'attractors',
-                init: Example.attractors,
-                sourceLink: sourceLinkRoot + '/attractors.js'
-            },
-            {
                 name: 'Avalanche',
                 id: 'avalanche',
                 init: Example.avalanche,

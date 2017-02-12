@@ -4,7 +4,7 @@
 
 [brm.io/matter-js](http://brm.io/matter-js/)
 
-[Demos](#demos) - [Gallery](#gallery) - [Features](#features) - [Install](#install) - [Usage](#usage) - [Examples](#examples) -  [Docs](#documentation) - [Wiki](https://github.com/liabru/matter-js/wiki) - [References](#references) - [License](#license)
+[Demos](#demos) - [Gallery](#gallery) - [Features](#features) - [Plugins](#plugins) - [Install](#install) - [Usage](#usage) - [Examples](#examples) -  [Docs](#documentation) - [Wiki](https://github.com/liabru/matter-js/wiki) - [References](#references) - [License](#license)
 
 [![Build Status](https://travis-ci.org/liabru/matter-js.png?branch=master)](https://travis-ci.org/liabru/matter-js)
 
@@ -97,6 +97,7 @@ See how others are using matter.js physics
 - Constraints
 - Gravity
 - Sleeping and static bodies
+- Plugins
 - Rounded corners (chamfering)
 - Views (translate, zoom)
 - Collision queries (raycasting, region tests)
@@ -128,6 +129,15 @@ Also see the [Rendering](https://github.com/liabru/matter-js/wiki/Rendering) wik
 
 See the [examples](https://github.com/liabru/matter-js/tree/master/examples) directory which contains the source for all [demos](#demos).  
 There are even more examples on [codepen](http://codepen.io/collection/Fuagy/).
+
+### Plugins
+
+The engine can be extended through plugins, see these resources:
+
+- [Using plugins](https://github.com/liabru/matter-js/wiki/Using-plugins)
+- [Creating plugins](https://github.com/liabru/matter-js/wiki/Creating-plugins)
+- [List of plugins](https://github.com/liabru/matter-js/wiki/List-of-plugins)
+- [matter-plugin-boilerplate](https://github.com/liabru/matter-plugin-boilerplate)
 
 ### Documentation
 
