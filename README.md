@@ -125,6 +125,10 @@ You can also install using the package managers [Bower](http://bower.io/search/?
 Visit the [Getting started](https://github.com/liabru/matter-js/wiki/Getting-started) wiki page for a minimal usage example.  
 Also see the [Rendering](https://github.com/liabru/matter-js/wiki/Rendering) wiki page, which also shows how to use your own game loop.
 
+### Tutorials
+
+See the list of [tutorials](https://github.com/liabru/matter-js/wiki/Tutorials).
+
 ### Examples
 
 See the [examples](https://github.com/liabru/matter-js/tree/master/examples) directory which contains the source for all [demos](#demos).  
