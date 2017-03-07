@@ -105,7 +105,7 @@ See how others are using matter.js physics
 - Canvas renderer (supports vectors and textures)
 - [MatterTools](https://github.com/liabru/matter-tools) for creating, testing and debugging worlds
 - World state serialisation (requires [resurrect.js](https://github.com/skeeto/resurrect-js))
-- Cross-browser (Chrome, Firefox, Safari, IE8+)
+- Cross-browser and Node.js support (Chrome, Firefox, Safari, IE8+)
 - Mobile-compatible (touch, responsive)
 - An original JavaScript physics implementation (not a port)
 
@@ -122,8 +122,8 @@ You can also install using the package managers [Bower](http://bower.io/search/?
 
 ### Usage
 
-Visit the [Getting started](https://github.com/liabru/matter-js/wiki/Getting-started) wiki page for a minimal usage example.  
-Also see the [Rendering](https://github.com/liabru/matter-js/wiki/Rendering) wiki page, which also shows how to use your own game loop.
+Visit the [Getting started](https://github.com/liabru/matter-js/wiki/Getting-started) wiki page for a minimal usage example which should work in both browsers and Node.js.  
+Also see the [Running](https://github.com/liabru/matter-js/wiki/Running) and [Rendering](https://github.com/liabru/matter-js/wiki/Rendering) wiki pages, which show how to use your own game and rendering loops.
 
 ### Tutorials
 
