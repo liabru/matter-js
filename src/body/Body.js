@@ -179,10 +179,10 @@ var Axes = require('../geometry/Axes');
         }
 
         for (property in settings) {
-            value = settings[property];
-
             if (!settings.hasOwnProperty(property))
                 continue;
+            
+            value = settings[property];
 
             switch (property) {
 
