@@ -148,9 +148,10 @@ var Axes = require('../geometry/Axes');
         Body.set(body, {
             axes: options.axes || body.axes,
             area: options.area || body.area,
-            mass: options.mass || body.mass,
-            inertia: options.inertia || body.inertia
+            mass: options.mass || body.mass
         });
+        // Custom inertia must be set after mass because mass affects inertia.
+        Body.setInertia(body, options.inertia || body.inertia);
 
         // render properties
         var defaultFillStyle = (body.isStatic ? '#2e2b44' : Common.choose(['#006BA6', '#0496FF', '#FFBC42', '#D81159', '#8F2D56'])),
@@ -281,6 +282,11 @@ var Axes = require('../geometry/Axes');
      * @param {number} mass
      */
     Body.setMass = function(body, mass) {
+        // body.inertia is undefined when creating the body
+        // body.inertia is Infinity when body is static or sleeping
+        if (body.inertia !== undefined && body.inertia !== Infinity)
+            Body.setInertia(body, body.inertia * mass / body.mass);
+        
         body.mass = mass;
         body.inverseMass = 1 / body.mass;
         body.density = body.mass / body.area;
