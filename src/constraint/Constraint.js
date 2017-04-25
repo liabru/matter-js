@@ -8,14 +8,6 @@
 * @class Constraint
 */
 
-// TODO: fix instability issues with torque
-// TODO: linked constraints
-// TODO: breakable constraints
-// TODO: collision constraints
-// TODO: allow constrained bodies to sleep
-// TODO: handle 0 length constraints properly
-// TODO: impulse caching and warming
-
 var Constraint = {};
 
 module.exports = Constraint;
@@ -29,8 +21,10 @@ var Common = require('../core/Common');
 
 (function() {
 
-    var _minLength = 0.000001,
-        _minDifference = 0.001;
+    var _zeroVector = { x: 0, y: 0 };
+
+    Constraint._warming = 0.4;
+    Constraint._minLength = 0.000001;
 
     /**
      * Creates a new constraint.
@@ -54,7 +48,7 @@ var Common = require('../core/Common');
             initialPointB = constraint.bodyB ? Vector.add(constraint.bodyB.position, constraint.pointB) : constraint.pointB,
             length = Vector.magnitude(Vector.sub(initialPointA, initialPointB));
     
-        constraint.length = constraint.length || length || _minLength;
+        constraint.length = typeof constraint.length !== 'undefined' ? constraint.length : length;
 
         // render
         var render = {
@@ -106,13 +100,13 @@ var Common = require('../core/Common');
 
         // update reference angle
         if (bodyA && !bodyA.isStatic) {
-            constraint.pointA = Vector.rotate(pointA, bodyA.angle - constraint.angleA);
+            Vector.rotate(pointA, bodyA.angle - constraint.angleA, pointA);
             constraint.angleA = bodyA.angle;
         }
         
         // update reference angle
         if (bodyB && !bodyB.isStatic) {
-            constraint.pointB = Vector.rotate(pointB, bodyB.angle - constraint.angleB);
+            Vector.rotate(pointB, bodyB.angle - constraint.angleB, pointB);
             constraint.angleB = bodyB.angle;
         }
 
@@ -125,111 +119,91 @@ var Common = require('../core/Common');
         if (!pointAWorld || !pointBWorld)
             return;
 
-        var delta = Vector.sub(pointAWorld, pointBWorld),
-            currentLength = Vector.magnitude(delta);
-
-        // prevent singularity
-        if (currentLength === 0)
-            currentLength = _minLength;
-
-        // solve distance constraint with Gauss-Siedel method
-        var difference = (currentLength - constraint.length) / currentLength,
-            normal = Vector.div(delta, currentLength),
-            force = Vector.mult(delta, difference * 0.5 * constraint.stiffness * timeScale * timeScale);
-        
-        // if difference is very small, we can skip
-        if (Math.abs(1 - (currentLength / constraint.length)) < _minDifference * timeScale)
-            return;
-
-        var velocityPointA,
-            velocityPointB,
-            offsetA,
-            offsetB,
-            oAn,
-            oBn,
-            bodyADenom,
-            bodyBDenom;
+        var velocityPointA = _zeroVector,
+            velocityPointB = _zeroVector;
     
         if (bodyA && !bodyA.isStatic) {
-            // point body offset
-            offsetA = { 
-                x: pointAWorld.x - bodyA.position.x + force.x, 
-                y: pointAWorld.y - bodyA.position.y + force.y
-            };
-            
             // update velocity
             bodyA.velocity.x = bodyA.position.x - bodyA.positionPrev.x;
             bodyA.velocity.y = bodyA.position.y - bodyA.positionPrev.y;
             bodyA.angularVelocity = bodyA.angle - bodyA.anglePrev;
             
             // find point velocity and body mass
-            velocityPointA = Vector.add(bodyA.velocity, Vector.mult(Vector.perp(offsetA), bodyA.angularVelocity));
-            oAn = Vector.dot(offsetA, normal);
-            bodyADenom = bodyA.inverseMass + bodyA.inverseInertia * oAn * oAn;
-        } else {
-            velocityPointA = { x: 0, y: 0 };
-            bodyADenom = bodyA ? bodyA.inverseMass : 0;
+            velocityPointA = Vector.add(bodyA.velocity, Vector.mult(Vector.perp(pointA), bodyA.angularVelocity));
         }
             
         if (bodyB && !bodyB.isStatic) {
-            // point body offset
-            offsetB = { 
-                x: pointBWorld.x - bodyB.position.x - force.x, 
-                y: pointBWorld.y - bodyB.position.y - force.y 
-            };
-            
             // update velocity
             bodyB.velocity.x = bodyB.position.x - bodyB.positionPrev.x;
             bodyB.velocity.y = bodyB.position.y - bodyB.positionPrev.y;
             bodyB.angularVelocity = bodyB.angle - bodyB.anglePrev;
 
             // find point velocity and body mass
-            velocityPointB = Vector.add(bodyB.velocity, Vector.mult(Vector.perp(offsetB), bodyB.angularVelocity));
-            oBn = Vector.dot(offsetB, normal);
-            bodyBDenom = bodyB.inverseMass + bodyB.inverseInertia * oBn * oBn;
-        } else {
-            velocityPointB = { x: 0, y: 0 };
-            bodyBDenom = bodyB ? bodyB.inverseMass : 0;
+            velocityPointB = Vector.add(bodyB.velocity, Vector.mult(Vector.perp(pointB), bodyB.angularVelocity));
         }
-        
-        var relativeVelocity = Vector.sub(velocityPointB, velocityPointA),
-            normalImpulse = Vector.dot(normal, relativeVelocity) / (bodyADenom + bodyBDenom);
-    
-        if (normalImpulse > 0) normalImpulse = 0;
-    
-        var normalVelocity = {
-            x: normal.x * normalImpulse, 
-            y: normal.y * normalImpulse
-        };
 
-        var torque;
- 
+        var delta = Vector.sub(pointAWorld, pointBWorld),
+            currentLength = Vector.magnitude(delta);
+
+        // prevent singularity
+        if (currentLength === 0) {
+            currentLength = Constraint._minLength;
+            delta.x = Constraint._minLength;
+        }
+
+        // solve distance constraint with Gauss-Siedel method
+        var difference = (currentLength - constraint.length) / currentLength,
+            normal = Vector.div(delta, currentLength),
+            force = Vector.mult(delta, difference * constraint.stiffness * timeScale * timeScale),
+            relativeVelocity = Vector.sub(velocityPointB, velocityPointA),
+            massTotal = (bodyA ? bodyA.inverseMass : 0) + (bodyB ? bodyB.inverseMass : 0),
+            inertiaTotal = (bodyA ? bodyA.inverseInertia : 0) + (bodyB ? bodyB.inverseInertia : 0),
+            normalImpulse = Vector.dot(normal, relativeVelocity) / (massTotal + inertiaTotal),
+            normalVelocity,
+            torque,
+            share;
+
+        if (normalImpulse < 0) {
+            normalVelocity = {
+                x: normal.x * normalImpulse, 
+                y: normal.y * normalImpulse
+            };
+        }
+
         if (bodyA && !bodyA.isStatic) {
-            torque = Vector.cross(offsetA, normalVelocity) * bodyA.inverseInertia * (1 - constraint.angularStiffness);
+            share = bodyA.inverseMass / massTotal;
 
             // keep track of applied impulses for post solving
-            bodyA.constraintImpulse.x -= force.x;
-            bodyA.constraintImpulse.y -= force.y;
-            bodyA.constraintImpulse.angle += torque;
+            bodyA.constraintImpulse.x -= force.x * share;
+            bodyA.constraintImpulse.y -= force.y * share;
 
             // apply forces
-            bodyA.position.x -= force.x;
-            bodyA.position.y -= force.y;
-            bodyA.angle += torque;
+            bodyA.position.x -= force.x * share;
+            bodyA.position.y -= force.y * share;
+
+            if (normalVelocity) {
+                torque = Vector.cross(pointA, normalVelocity) * bodyA.inverseInertia * (1 - constraint.angularStiffness);
+                bodyA.constraintImpulse.angle += torque;
+                bodyA.angle += torque;
+            }
         }
 
         if (bodyB && !bodyB.isStatic) {
-            torque = Vector.cross(offsetB, normalVelocity) * bodyB.inverseInertia * (1 - constraint.angularStiffness);
+            share = bodyB.inverseMass / massTotal;
 
             // keep track of applied impulses for post solving
-            bodyB.constraintImpulse.x += force.x;
-            bodyB.constraintImpulse.y += force.y;
-            bodyB.constraintImpulse.angle -= torque;
+            bodyB.constraintImpulse.x += force.x * share;
+            bodyB.constraintImpulse.y += force.y * share;
             
             // apply forces
-            bodyB.position.x += force.x;
-            bodyB.position.y += force.y;
-            bodyB.angle -= torque;
+            bodyB.position.x += force.x * share;
+            bodyB.position.y += force.y * share;
+
+            if (normalVelocity) {
+                torque = Vector.cross(pointB, normalVelocity) * bodyB.inverseInertia * (1 - constraint.angularStiffness);
+                bodyB.constraintImpulse.angle -= torque;
+                bodyB.angle -= torque;
+            }
         }
 
     };
@@ -245,7 +219,7 @@ var Common = require('../core/Common');
             var body = bodies[i],
                 impulse = body.constraintImpulse;
 
-            if (impulse.x === 0 && impulse.y === 0 && impulse.angle === 0) {
+            if (body.isStatic || (impulse.x === 0 && impulse.y === 0 && impulse.angle === 0)) {
                 continue;
             }
 
