@@ -73,6 +73,27 @@ var Common = require('../core/Common');
     };
 
     /**
+     * Prepares for solving by constraint warming.
+     * @private
+     * @method preSolveAll
+     * @param {body[]} bodies
+     */
+    Constraint.preSolveAll = function(bodies) {
+        for (var i = 0; i < bodies.length; i += 1) {
+            var body = bodies[i],
+                impulse = body.constraintImpulse;
+
+            if (body.isStatic || (impulse.x === 0 && impulse.y === 0 && impulse.angle === 0)) {
+                continue;
+            }
+
+            body.position.x += impulse.x;
+            body.position.y += impulse.y;
+            body.angle += impulse.angle;
+        }
+    };
+
+    /**
      * Solves all constraints in a list of collisions.
      * @private
      * @method solveAll
@@ -247,9 +268,10 @@ var Common = require('../core/Common');
                 Bounds.update(part.bounds, part.vertices, body.velocity);
             }
 
-            impulse.angle = 0;
-            impulse.x = 0;
-            impulse.y = 0;
+            // dampen the cached impulse for warming next step
+            impulse.angle *= Constraint._warming;
+            impulse.x *= Constraint._warming;
+            impulse.y *= Constraint._warming;
         }
     };
 

@@ -150,6 +150,7 @@ var Body = require('../body/Body');
         _bodiesUpdate(allBodies, delta, timing.timeScale, correction, world.bounds);
 
         // update all constraints
+        Constraint.preSolveAll(allBodies);
         for (i = 0; i < engine.constraintIterations; i++) {
             Constraint.solveAll(allConstraints, timing.timeScale);
         }
