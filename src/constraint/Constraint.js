@@ -29,6 +29,7 @@ var Common = require('../core/Common');
     /**
      * Creates a new constraint.
      * All properties have default values, and many are pre-calculated automatically based on other properties.
+     * To simulate a revolute constraint (or pin joint) set `length: 0` and `stiffness: 1`.
      * See the properties section below for detailed information on what you can pass via the `options` object.
      * @method create
      * @param {} options
@@ -179,12 +180,13 @@ var Common = require('../core/Common');
             relativeVelocity = Vector.sub(velocityPointB, velocityPointA),
             massTotal = (bodyA ? bodyA.inverseMass : 0) + (bodyB ? bodyB.inverseMass : 0),
             inertiaTotal = (bodyA ? bodyA.inverseInertia : 0) + (bodyB ? bodyB.inverseInertia : 0),
-            normalImpulse = Vector.dot(normal, relativeVelocity) / (massTotal + inertiaTotal),
+            resistanceTotal = massTotal + inertiaTotal,
+            normalImpulse = Vector.dot(normal, relativeVelocity) / resistanceTotal,
             normalVelocity,
             torque,
             share;
 
-        if (normalImpulse < 0) {
+        if (normalImpulse < 0 && constraint.angularStiffness < 1) {
             normalVelocity = {
                 x: normal.x * normalImpulse, 
                 y: normal.y * normalImpulse
@@ -203,7 +205,8 @@ var Common = require('../core/Common');
             bodyA.position.y -= force.y * share;
 
             if (normalVelocity) {
-                torque = Vector.cross(pointA, normalVelocity) * bodyA.inverseInertia * (1 - constraint.angularStiffness);
+                share = (bodyA.inverseInertia + bodyA.inverseMass) / resistanceTotal;
+                torque = Vector.cross(pointA, normalVelocity) * share * bodyA.inverseInertia * constraint.stiffness * (1 - constraint.angularStiffness);
                 bodyA.constraintImpulse.angle += torque;
                 bodyA.angle += torque;
             }
@@ -221,7 +224,8 @@ var Common = require('../core/Common');
             bodyB.position.y += force.y * share;
 
             if (normalVelocity) {
-                torque = Vector.cross(pointB, normalVelocity) * bodyB.inverseInertia * (1 - constraint.angularStiffness);
+                share = (bodyB.inverseInertia + bodyB.inverseMass) / resistanceTotal;
+                torque = Vector.cross(pointB, normalVelocity) * share * bodyB.inverseInertia * constraint.stiffness * (1 - constraint.angularStiffness);
                 bodyB.constraintImpulse.angle -= torque;
                 bodyB.angle -= torque;
             }
