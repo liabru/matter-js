@@ -41,6 +41,8 @@ Example.bridge = function() {
         return Bodies.rectangle(x - 20, y, 53, 20, { 
             collisionFilter: { group: group },
             chamfer: 5,
+            density: 0.005,
+            frictionAir: 0.05,
             render: {
                 fillStyle: '#575375'
             }
@@ -48,15 +50,15 @@ Example.bridge = function() {
     });
     
     Composites.chain(bridge, 0.3, 0, -0.3, 0, { 
-        stiffness: 1.2,
+        stiffness: 1,
         length: 0,
         render: {
             visible: false
         }
     });
     
-    var stack = Composites.stack(250, 50, 4, 3, 0, 0, function(x, y) {
-        return Bodies.polygon(x, y, 1, Common.random(20, 40));
+    var stack = Composites.stack(250, 50, 6, 3, 0, 0, function(x, y) {
+        return Bodies.rectangle(x, y, 50, 50, Common.random(20, 40));
     });
 
     World.add(world, [
@@ -75,14 +77,14 @@ Example.bridge = function() {
             bodyB: bridge.bodies[0], 
             pointB: { x: -25, y: 0 },
             length: 2,
-            stiffness: 0.5
+            stiffness: 0.9
         }),
         Constraint.create({ 
             pointA: { x: 660, y: 300 }, 
-            bodyB: bridge.bodies[14], 
+            bodyB: bridge.bodies[bridge.bodies.length - 1], 
             pointB: { x: 25, y: 0 },
             length: 2,
-            stiffness: 0.5
+            stiffness: 0.9
         })
     ]);
 
