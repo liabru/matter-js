@@ -191,7 +191,7 @@ var Common = require('../core/Common');
             bodyA.position.y -= force.y * share;
 
             // apply torque
-            torque = (Vector.cross(pointA, force) / resistanceTotal) * Constraint._torqueDampen * bodyA.inverseInertia;
+            torque = (Vector.cross(pointA, force) / resistanceTotal) * Constraint._torqueDampen * bodyA.inverseInertia * (1 - constraint.angularStiffness);
             bodyA.constraintImpulse.angle -= torque;
             bodyA.angle -= torque;
         }
@@ -208,7 +208,7 @@ var Common = require('../core/Common');
             bodyB.position.y += force.y * share;
 
             // apply torque
-            torque = (Vector.cross(pointB, force) / resistanceTotal) * Constraint._torqueDampen * bodyB.inverseInertia;
+            torque = (Vector.cross(pointB, force) / resistanceTotal) * Constraint._torqueDampen * bodyB.inverseInertia * (1 - constraint.angularStiffness);
             bodyB.constraintImpulse.angle += torque;
             bodyB.angle += torque;
         }
