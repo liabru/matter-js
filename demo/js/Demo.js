@@ -119,6 +119,12 @@
                 sourceLink: sourceLinkRoot + '/concave.js'
             },
             {
+                name: 'Double Pendulum',
+                id: 'doublePendulum',
+                init: Example.doublePendulum,
+                sourceLink: sourceLinkRoot + '/doublePendulum.js'
+            },
+            {
                 name: 'Events',
                 id: 'events',
                 init: Example.events,
