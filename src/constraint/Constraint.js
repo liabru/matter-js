@@ -103,8 +103,26 @@ var Common = require('../core/Common');
      * @param {number} timeScale
      */
     Constraint.solveAll = function(constraints, timeScale) {
-        for (var i = 0; i < constraints.length; i++) {
+        // Solve fixed constraints first.
+        for (var i = 0; i < constraints.length; i += 1) {
+            var constraint = constraints[i],
+                fixedA = !constraint.bodyA || (constraint.bodyA && constraint.bodyA.isStatic),
+                fixedB = !constraint.bodyB || (constraint.bodyB && constraint.bodyB.isStatic);
+
+            if (fixedA || fixedB) {
+                Constraint.solve(constraints[i], timeScale);
+            }
+        }
+
+        // Solve free constraints last.
+        for (i = 0; i < constraints.length; i += 1) {
+            constraint = constraints[i];
+            fixedA = !constraint.bodyA || (constraint.bodyA && constraint.bodyA.isStatic);
+            fixedB = !constraint.bodyB || (constraint.bodyB && constraint.bodyB.isStatic);
+
+            if (!fixedA && !fixedB) {
             Constraint.solve(constraints[i], timeScale);
+        }
         }
     };
 
