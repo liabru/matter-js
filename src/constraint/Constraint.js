@@ -21,10 +21,8 @@ var Common = require('../core/Common');
 
 (function() {
 
-    var _zeroVector = { x: 0, y: 0 };
-
     Constraint._warming = 0.4;
-    Constraint._torqueDampen = 0.8;
+    Constraint._torqueDampen = 1;
     Constraint._minLength = 0.000001;
 
     /**
@@ -121,8 +119,8 @@ var Common = require('../core/Common');
             fixedB = !constraint.bodyB || (constraint.bodyB && constraint.bodyB.isStatic);
 
             if (!fixedA && !fixedB) {
-            Constraint.solve(constraints[i], timeScale);
-        }
+                Constraint.solve(constraints[i], timeScale);
+            }
         }
     };
 
