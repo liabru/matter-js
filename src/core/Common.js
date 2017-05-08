@@ -12,6 +12,7 @@ module.exports = Common;
 
     Common._nextId = 0;
     Common._seed = 0;
+    Common._nowStartTime = +(new Date());
 
     /**
      * Extends the object in the first argument using the object in the second argument.
@@ -197,7 +198,7 @@ module.exports = Common;
     Common.isElement = function(obj) {
         // http://stackoverflow.com/questions/384286/javascript-isdom-how-do-you-check-if-a-javascript-object-is-a-dom-object
         try {
-            return obj instanceof HTMLElement;
+        return obj instanceof HTMLElement;
         }
         catch(e){
             return (typeof obj==="object") &&
@@ -273,26 +274,21 @@ module.exports = Common;
     };
     
     /**
-     * Returns the current timestamp (high-res if available).
+     * Returns the current timestamp since the time origin (e.g. from page load).
+     * The result will be high-resolution including decimal places if available.
      * @method now
-     * @return {number} the current timestamp (high-res if available)
+     * @return {number} the current timestamp
      */
     Common.now = function() {
-        // http://stackoverflow.com/questions/221294/how-do-you-get-a-timestamp-in-javascript
-        // https://gist.github.com/davidwaterston/2982531
+        if (window.performance) {
+            if (window.performance.now) {
+                return window.performance.now();
+            } else if (window.performance.webkitNow) {
+                return window.performance.webkitNow();
+            }
+        }
 
-        var performance = window.performance || {};
-
-        performance.now = (function() {
-            return performance.now    ||
-            performance.webkitNow     ||
-            performance.msNow         ||
-            performance.oNow          ||
-            performance.mozNow        ||
-            function() { return +(new Date()); };
-        })();
-              
-        return performance.now();
+        return (new Date()) - Common._nowStartTime;
     };
     
     /**
