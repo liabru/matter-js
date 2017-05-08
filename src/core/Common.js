@@ -177,15 +177,7 @@ module.exports = Common;
      * @return {boolean} True if the object is a HTMLElement, otherwise false
      */
     Common.isElement = function(obj) {
-        // http://stackoverflow.com/questions/384286/javascript-isdom-how-do-you-check-if-a-javascript-object-is-a-dom-object
-        try {
         return obj instanceof HTMLElement;
-        }
-        catch(e){
-            return (typeof obj==="object") &&
-              (obj.nodeType===1) && (typeof obj.style === "object") &&
-              (typeof obj.ownerDocument ==="object");
-        }
     };
 
     /**
