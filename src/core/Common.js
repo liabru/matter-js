@@ -279,7 +279,7 @@ module.exports = Common;
     };
 
     var _seededRandom = function() {
-        // https://gist.github.com/ngryman/3830489
+        // https://en.wikipedia.org/wiki/Linear_congruential_generator
         Common._seed = (Common._seed * 9301 + 49297) % 233280;
         return Common._seed / 233280;
     };
@@ -411,7 +411,9 @@ module.exports = Common;
      * @return {array} Partially ordered set of vertices in topological order.
      */
     Common.topologicalSort = function(graph) {
-        // https://mgechev.github.io/javascript-algorithms/graphs_others_topological-sort.js.html
+        // https://github.com/mgechev/javascript-algorithms
+        // Copyright (c) Minko Gechev (MIT license)
+        // Modifications: tidy formatting and naming
         var result = [],
             visited = [],
             temp = [];

@@ -626,6 +626,7 @@ var Axes = require('../geometry/Axes');
      * @return {}
      */
     var _totalProperties = function(body) {
+        // from equations at:
         // https://ecourses.ou.edu/cgi-bin/ebook.cgi?doc=&topic=st&chap_sec=07.2&page=theory
         // http://output.to/sideway/default.asp?qno=121100087
 
