@@ -556,7 +556,7 @@ var Axes = require('../geometry/Axes');
      * @param {number} correction
      */
     Body.update = function(body, deltaTime, timeScale, correction) {
-        var deltaTimeSquared = Math.pow(deltaTime * timeScale * body.timeScale, 2);
+        var deltaTimeLarger = deltaTime * timeScale * body.timeScale * 1000 / 60;
 
         // from the previous step
         var frictionAir = 1 - body.frictionAir * timeScale * body.timeScale,
@@ -564,8 +564,8 @@ var Axes = require('../geometry/Axes');
             velocityPrevY = body.position.y - body.positionPrev.y;
 
         // update velocity with Verlet integration
-        body.velocity.x = (velocityPrevX * frictionAir * correction) + (body.force.x / body.mass) * deltaTimeSquared;
-        body.velocity.y = (velocityPrevY * frictionAir * correction) + (body.force.y / body.mass) * deltaTimeSquared;
+        body.velocity.x = (velocityPrevX * frictionAir * correction) + (body.force.x / body.mass) * deltaTimeLarger;
+        body.velocity.y = (velocityPrevY * frictionAir * correction) + (body.force.y / body.mass) * deltaTimeLarger;
 
         body.positionPrev.x = body.position.x;
         body.positionPrev.y = body.position.y;
@@ -573,7 +573,7 @@ var Axes = require('../geometry/Axes');
         body.position.y += body.velocity.y;
 
         // update angular velocity with Verlet integration
-        body.angularVelocity = ((body.angle - body.anglePrev) * frictionAir * correction) + (body.torque / body.inertia) * deltaTimeSquared;
+        body.angularVelocity = ((body.angle - body.anglePrev) * frictionAir * correction) + (body.torque / body.inertia) * deltaTimeLarger;
         body.anglePrev = body.angle;
         body.angle += body.angularVelocity;
 
