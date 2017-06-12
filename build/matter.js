@@ -1,5 +1,5 @@
 /**
-* matter-js 0.12.0-alpha by @liabru 2017-05-03
+* matter-js 0.12.0-alpha by @liabru 2017-06-12
 * http://brm.io/matter-js/
 * License MIT
 */
@@ -3503,7 +3503,8 @@ var Common = _dereq_('../core/Common');
     /**
      * Creates a new constraint.
      * All properties have default values, and many are pre-calculated automatically based on other properties.
-     * To simulate a revolute constraint (or pin joint) set `length: 0` and `stiffness: 1`.
+     * To simulate a revolute constraint (or pin joint) set `length: 0` and a high `stiffness` value (e.g. `0.7` or above).
+     * If the constraint is unstable, try lowering the `stiffness` value and / or increasing `engine.constraintIterations`.
      * See the properties section below for detailed information on what you can pass via the `options` object.
      * @method create
      * @param {} options
@@ -3538,7 +3539,8 @@ var Common = _dereq_('../core/Common');
         constraint.id = constraint.id || Common.nextId();
         constraint.label = constraint.label || 'Constraint';
         constraint.type = 'constraint';
-        constraint.stiffness = constraint.stiffness || 1;
+        constraint.stiffness = constraint.stiffness || (constraint.length > 0 ? 1 : 0.7);
+        constraint.damping = constraint.damping || 0;
         constraint.angularStiffness = constraint.angularStiffness || 0;
         constraint.angleA = constraint.bodyA ? constraint.bodyA.angle : constraint.angleA;
         constraint.angleB = constraint.bodyB ? constraint.bodyB.angle : constraint.angleB;
@@ -3652,7 +3654,22 @@ var Common = _dereq_('../core/Common');
             inertiaTotal = (bodyA ? bodyA.inverseInertia : 0) + (bodyB ? bodyB.inverseInertia : 0),
             resistanceTotal = massTotal + inertiaTotal,
             torque,
-            share;
+            share,
+            normal,
+            normalVelocity,
+            relativeVelocity;
+
+        if (constraint.damping) {
+            var zero = Vector.create();
+            normal = Vector.div(delta, currentLength);
+
+            relativeVelocity = Vector.sub(
+                bodyB && Vector.sub(bodyB.position, bodyB.positionPrev) || zero,
+                bodyA && Vector.sub(bodyA.position, bodyA.positionPrev) || zero
+            );
+
+            normalVelocity = Vector.dot(normal, relativeVelocity);
+        }
 
         if (bodyA && !bodyA.isStatic) {
             share = bodyA.inverseMass / massTotal;
@@ -3664,6 +3681,12 @@ var Common = _dereq_('../core/Common');
             // apply forces
             bodyA.position.x -= force.x * share;
             bodyA.position.y -= force.y * share;
+
+            // apply damping
+            if (constraint.damping) {
+                bodyA.positionPrev.x -= constraint.damping * normal.x * normalVelocity * share;
+                bodyA.positionPrev.y -= constraint.damping * normal.y * normalVelocity * share;
+            }
 
             // apply torque
             torque = (Vector.cross(pointA, force) / resistanceTotal) * Constraint._torqueDampen * bodyA.inverseInertia * (1 - constraint.angularStiffness);
@@ -3681,6 +3704,12 @@ var Common = _dereq_('../core/Common');
             // apply forces
             bodyB.position.x += force.x * share;
             bodyB.position.y += force.y * share;
+
+            // apply damping
+            if (constraint.damping) {
+                bodyB.positionPrev.x += constraint.damping * normal.x * normalVelocity * share;
+                bodyB.positionPrev.y += constraint.damping * normal.y * normalVelocity * share;
+            }
 
             // apply torque
             torque = (Vector.cross(pointB, force) / resistanceTotal) * Constraint._torqueDampen * bodyB.inverseInertia * (1 - constraint.angularStiffness);
@@ -3839,6 +3868,18 @@ var Common = _dereq_('../core/Common');
      * @property stiffness
      * @type number
      * @default 1
+     */
+
+    /**
+     * A `Number` that specifies the damping of the constraint, 
+     * i.e. the amount of resistance applied to each body based on their velocities to limit the amount of oscillation.
+     * Damping will only be apparent when the constraint also has a very low `stiffness`.
+     * A value of `0.1` means the constraint will apply heavy damping, resulting in little to no oscillation.
+     * A value of `0` means the constraint will apply no damping.
+     *
+     * @property damping
+     * @type number
+     * @default 0
      */
 
     /**
