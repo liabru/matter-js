@@ -57,6 +57,7 @@ var Mouse = require('../core/Mouse');
                 hasBounds: !!options.bounds,
                 enabled: true,
                 wireframes: true,
+                clearCanvas: true,
                 showSleeping: true,
                 showDebug: false,
                 showBroadphase: false,
@@ -310,9 +311,13 @@ var Mouse = require('../core/Mouse');
             _applyBackground(render, background);
 
         // clear the canvas with a transparent fill, to allow the canvas background to show
-        context.globalCompositeOperation = 'source-in';
-        context.fillStyle = "transparent";
-        context.fillRect(0, 0, canvas.width, canvas.height);
+        if (options.clearCanvas) {
+            context.globalCompositeOperation = 'source-in';
+            context.fillStyle = "transparent";
+            context.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        // set the canvas composition for rendering the the world
         context.globalCompositeOperation = 'source-over';
 
         // handle bounds
