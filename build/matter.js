@@ -1,5 +1,5 @@
 /**
-* matter-js 0.12.0-alpha by @liabru 2017-06-12
+* matter-js 0.12.0-alpha by @liabru 2017-06-26
 * http://brm.io/matter-js/
 * License MIT
 */
@@ -3526,15 +3526,6 @@ var Common = _dereq_('../core/Common');
     
         constraint.length = typeof constraint.length !== 'undefined' ? constraint.length : length;
 
-        // render
-        var render = {
-            visible: true,
-            lineWidth: 2,
-            strokeStyle: '#ffffff'
-        };
-        
-        constraint.render = Common.extend(render, constraint.render);
-
         // option defaults
         constraint.id = constraint.id || Common.nextId();
         constraint.label = constraint.label || 'Constraint';
@@ -3545,6 +3536,24 @@ var Common = _dereq_('../core/Common');
         constraint.angleA = constraint.bodyA ? constraint.bodyA.angle : constraint.angleA;
         constraint.angleB = constraint.bodyB ? constraint.bodyB.angle : constraint.angleB;
         constraint.plugin = {};
+
+        // render
+        var render = {
+            visible: true,
+            lineWidth: 2,
+            strokeStyle: '#ffffff',
+            type: 'line',
+            anchors: true
+        };
+
+        if (constraint.length === 0) {
+            render.type = 'pin';
+            render.anchors = false;
+        } else if (constraint.stiffness < 0.9) {
+            render.type = 'spring';
+        }
+
+        constraint.render = Common.extend(render, constraint.render);
 
         return constraint;
     };
@@ -3826,6 +3835,24 @@ var Common = _dereq_('../core/Common');
      * @property render.strokeStyle
      * @type string
      * @default a random colour
+     */
+
+    /**
+     * A `String` that defines the constraint rendering type. 
+     * The possible values are 'line', 'pin', 'spring'.
+     * An appropriate render type will be automatically chosen unless one is given in options.
+     *
+     * @property render.type
+     * @type string
+     * @default 'line'
+     */
+
+    /**
+     * A `Boolean` that defines if the constraint's anchor points should be rendered.
+     *
+     * @property render.anchors
+     * @type boolean
+     * @default true
      */
 
     /**
@@ -8732,26 +8759,62 @@ var Mouse = _dereq_('../core/Mouse');
                 continue;
 
             var bodyA = constraint.bodyA,
-                bodyB = constraint.bodyB;
+                bodyB = constraint.bodyB,
+                start,
+                end;
 
             if (bodyA) {
-                c.beginPath();
-                c.moveTo(bodyA.position.x + constraint.pointA.x, bodyA.position.y + constraint.pointA.y);
+                start = Vector.add(bodyA.position, constraint.pointA);
             } else {
-                c.beginPath();
-                c.moveTo(constraint.pointA.x, constraint.pointA.y);
+                start = constraint.pointA;
             }
 
-            if (bodyB) {
-                c.lineTo(bodyB.position.x + constraint.pointB.x, bodyB.position.y + constraint.pointB.y);
+            if (constraint.render.type === 'pin') {
+                c.beginPath();
+                c.arc(start.x, start.y, 4, 0, 2 * Math.PI);
+                c.closePath();
             } else {
-                c.lineTo(constraint.pointB.x, constraint.pointB.y);
+                if (bodyB) {
+                    end = Vector.add(bodyB.position, constraint.pointB);
+                } else {
+                    end = constraint.pointB;
+                }
+
+                c.beginPath();
+                c.moveTo(start.x, start.y);
+
+                if (constraint.render.type === 'spring') {
+                    var delta = Vector.sub(end, start),
+                        normal = Vector.perp(Vector.normalise(delta)),
+                        coils = Math.ceil(Common.clamp(constraint.length / 5, 12, 20)),
+                        offset;
+
+                    for (var j = 0; j < coils; j += 1) {
+                        offset = j % 2 === 0 ? 1 : -1;
+
+                        c.lineTo(
+                            start.x + delta.x * (j / coils) + normal.x * offset * 4,
+                            start.y + delta.y * (j / coils) + normal.y * offset * 4
+                        );
+                    }
+                }
+
+                c.lineTo(end.x, end.y);
             }
 
             if (constraint.render.lineWidth) {
                 c.lineWidth = constraint.render.lineWidth;
                 c.strokeStyle = constraint.render.strokeStyle;
                 c.stroke();
+            }
+
+            if (constraint.render.anchors) {
+                c.fillStyle = constraint.render.strokeStyle;
+                c.beginPath();
+                c.arc(start.x, start.y, 3, 0, 2 * Math.PI);
+                c.arc(end.x, end.y, 3, 0, 2 * Math.PI);
+                c.closePath();
+                c.fill();
             }
         }
     };
