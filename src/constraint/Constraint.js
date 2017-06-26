@@ -51,15 +51,6 @@ var Common = require('../core/Common');
     
         constraint.length = typeof constraint.length !== 'undefined' ? constraint.length : length;
 
-        // render
-        var render = {
-            visible: true,
-            lineWidth: 2,
-            strokeStyle: '#ffffff'
-        };
-        
-        constraint.render = Common.extend(render, constraint.render);
-
         // option defaults
         constraint.id = constraint.id || Common.nextId();
         constraint.label = constraint.label || 'Constraint';
@@ -70,6 +61,24 @@ var Common = require('../core/Common');
         constraint.angleA = constraint.bodyA ? constraint.bodyA.angle : constraint.angleA;
         constraint.angleB = constraint.bodyB ? constraint.bodyB.angle : constraint.angleB;
         constraint.plugin = {};
+
+        // render
+        var render = {
+            visible: true,
+            lineWidth: 2,
+            strokeStyle: '#ffffff',
+            type: 'line',
+            anchors: true
+        };
+
+        if (constraint.length === 0) {
+            render.type = 'pin';
+            render.anchors = false;
+        } else if (constraint.stiffness < 0.9) {
+            render.type = 'spring';
+        }
+
+        constraint.render = Common.extend(render, constraint.render);
 
         return constraint;
     };
@@ -351,6 +360,24 @@ var Common = require('../core/Common');
      * @property render.strokeStyle
      * @type string
      * @default a random colour
+     */
+
+    /**
+     * A `String` that defines the constraint rendering type. 
+     * The possible values are 'line', 'pin', 'spring'.
+     * An appropriate render type will be automatically chosen unless one is given in options.
+     *
+     * @property render.type
+     * @type string
+     * @default 'line'
+     */
+
+    /**
+     * A `Boolean` that defines if the constraint's anchor points should be rendered.
+     *
+     * @property render.anchors
+     * @type boolean
+     * @default true
      */
 
     /**
