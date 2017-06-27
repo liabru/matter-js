@@ -508,7 +508,7 @@ var Mouse = require('../core/Mouse');
 
             if (constraint.render.type === 'pin') {
                 c.beginPath();
-                c.arc(start.x, start.y, 4, 0, 2 * Math.PI);
+                c.arc(start.x, start.y, 3, 0, 2 * Math.PI);
                 c.closePath();
             } else {
                 if (bodyB) {
@@ -526,7 +526,7 @@ var Mouse = require('../core/Mouse');
                         coils = Math.ceil(Common.clamp(constraint.length / 5, 12, 20)),
                         offset;
 
-                    for (var j = 0; j < coils; j += 1) {
+                    for (var j = 1; j < coils; j += 1) {
                         offset = j % 2 === 0 ? 1 : -1;
 
                         c.lineTo(

@@ -71,7 +71,7 @@ var Common = require('../core/Common');
             anchors: true
         };
 
-        if (constraint.length === 0) {
+        if (constraint.length === 0 && constraint.stiffness > 0.1) {
             render.type = 'pin';
             render.anchors = false;
         } else if (constraint.stiffness < 0.9) {
