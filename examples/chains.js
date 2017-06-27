@@ -43,7 +43,7 @@ Example.chains = function() {
         return Bodies.rectangle(x, y, 50, 20, { collisionFilter: { group: group } });
     });
     
-    Composites.chain(ropeA, 0.5, 0, -0.5, 0, { stiffness: 0.8, length: 2 });
+    Composites.chain(ropeA, 0.5, 0, -0.5, 0, { stiffness: 0.8, length: 2, render: { type: 'line' } });
     Composite.add(ropeA, Constraint.create({ 
         bodyB: ropeA.bodies[0],
         pointB: { x: -25, y: 0 },
@@ -57,7 +57,7 @@ Example.chains = function() {
         return Bodies.circle(x, y, 20, { collisionFilter: { group: group } });
     });
     
-    Composites.chain(ropeB, 0.5, 0, -0.5, 0, { stiffness: 0.8, length: 2 });
+    Composites.chain(ropeB, 0.5, 0, -0.5, 0, { stiffness: 0.8, length: 2, render: { type: 'line' } });
     Composite.add(ropeB, Constraint.create({ 
         bodyB: ropeB.bodies[0],
         pointB: { x: -20, y: 0 },

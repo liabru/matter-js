@@ -274,10 +274,7 @@ var Bodies = require('./Bodies');
             pointB: { x: wheelAOffset, y: wheelYOffset },
             bodyA: wheelA,
             stiffness: 1,
-            length: 0,
-            render: {
-                lineWidth: 0
-            }
+            length: 0
         });
                         
         var axelB = Constraint.create({
@@ -285,10 +282,7 @@ var Bodies = require('./Bodies');
             pointB: { x: wheelBOffset, y: wheelYOffset },
             bodyA: wheelB,
             stiffness: 1,
-            length: 0,
-            render: {
-                lineWidth: 0
-            }
+            length: 0
         });
         
         Composite.addBody(car, body);
@@ -317,7 +311,7 @@ var Bodies = require('./Bodies');
      */
     Composites.softBody = function(xx, yy, columns, rows, columnGap, rowGap, crossBrace, particleRadius, particleOptions, constraintOptions) {
         particleOptions = Common.extend({ inertia: Infinity }, particleOptions);
-        constraintOptions = Common.extend({ stiffness: 0.2 }, constraintOptions);
+        constraintOptions = Common.extend({ stiffness: 0.2, render: { type: 'line', anchors: false } }, constraintOptions);
 
         var softBody = Composites.stack(xx, yy, columns, rows, columnGap, rowGap, function(x, y) {
             return Bodies.circle(x, y, particleRadius, particleOptions);
