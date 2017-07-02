@@ -1,15 +1,15 @@
 /*!
- * matter-tools 0.9.1 by Liam Brummitt 2017-01-26
+ * matter-tools 0.11.1 by Liam Brummitt 2017-07-02
  * https://github.com/liabru/matter-tools
  * License MIT
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
-		module.exports = factory(require("Matter"), require("MatterTools"));
+		module.exports = factory(require("matter-js"), require("matter-tools"));
 	else if(typeof define === 'function' && define.amd)
-		define(["Matter", "MatterTools"], factory);
+		define(["matter-js", "matter-tools"], factory);
 	else if(typeof exports === 'object')
-		exports["Gui"] = factory(require("Matter"), require("MatterTools"));
+		exports["Gui"] = factory(require("matter-js"), require("matter-tools"));
 	else
 		root["MatterTools"] = root["MatterTools"] || {}, root["MatterTools"]["Gui"] = factory(root["Matter"], root["MatterTools"]);
 })(this, function(__WEBPACK_EXTERNAL_MODULE_1__, __WEBPACK_EXTERNAL_MODULE_2__) {
@@ -92,7 +92,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  dat.GUI.TEXT_CLOSED = '▲';
 	  dat.GUI.TEXT_OPEN = '▼';
 
-	  var datGui = new dat.GUI();
+	  var datGui = new dat.GUI({ autoPlace: false });
 
 	  var gui = {
 	    engine: engine,
@@ -170,6 +170,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * @param {gui} gui
 	 */
 	Gui.destroy = function (gui) {
+	  gui.datGui.domElement.parentElement.removeChild(gui.datGui.domElement);
 	  gui.datGui.destroy();
 	};
 
@@ -291,6 +292,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    render.add(gui.render.options, 'enabled');
 	    render.open();
 	  }
+
+	  document.body.appendChild(gui.datGui.domElement);
 	};
 
 	var _addBody = function _addBody(gui) {
@@ -416,7 +419,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	  root.innerHTML = '<style id="' + id + '" type="text/css">' + styles + '</style>';
 
 	  var lastStyle = document.head.querySelector('style:last-of-type');
-	  Common.domInsertBefore(root.firstElementChild, lastStyle);
+
+	  if (lastStyle) {
+	    Common.domInsertBefore(root.firstElementChild, lastStyle);
+	  } else {
+	    document.head.appendChild(root.firstElementChild);
+	  }
 	};
 
 	Common.injectScript = function (url, id, callback) {
@@ -454,7 +462,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 6 */
 /***/ function(module, exports) {
 
-	module.exports = "/*\n*\tMatterTools.Gui\n*/\n\nbody .dg .c,\nbody .dg .cr.function,\nbody .dg .c select,\nbody .dg .property-name,\nbody .dg .title {\n  -webkit-touch-callout: none;\n  -webkit-user-select: none;\n  -khtml-user-select: none;\n  -moz-user-select: none;\n  -ms-user-select: none;\n  user-select: none;\n}\n\nbody .dg.main {\n  z-index: 10;\n  box-shadow: 0 0 30px rgba(0,0,0,0.2);\n  height: 100%;\n  background: rgb(28, 29, 47);\n  position: fixed;\n  top: 0;\n  right: 0;\n}\n\nbody .dg.ac {\n  position: static;\n  top: inherit;\n  left: inherit;\n  bottom: inherit;\n  right: inherit;\n}\n\n@media only screen and (max-width : 1500px) {\n  body .dg.main {\n    transform: translate(230px, 0);\n  }\n\n  body .dg.main:hover {\n    transform: translate(0, 0);\n  }\n\n  body .dg.main {\n    -webkit-transition: transform 500ms cubic-bezier(0.965, 0.025, 0.735, 0.415); \n        -moz-transition: transform 500ms cubic-bezier(0.965, 0.025, 0.735, 0.415); \n        -o-transition: transform 500ms cubic-bezier(0.965, 0.025, 0.735, 0.415); \n        transition: transform 500ms cubic-bezier(0.965, 0.025, 0.735, 0.415);\n\n    -webkit-transition-timing-function: cubic-bezier(0.965, 0.025, 0.735, 0.415); \n        -moz-transition-timing-function: cubic-bezier(0.965, 0.025, 0.735, 0.415); \n        -o-transition-timing-function: cubic-bezier(0.965, 0.025, 0.735, 0.415); \n        transition-timing-function: cubic-bezier(0.965, 0.025, 0.735, 0.415);\n    \n    transition-delay: 2s;\n    -webkit-transition-delay: 2s;\n  }\n\n  body .dg.main:hover {\n    -webkit-transition: transform 500ms cubic-bezier(0.095, 0.665, 0.400, 0.835); \n        -moz-transition: transform 500ms cubic-bezier(0.095, 0.665, 0.400, 0.835); \n        -o-transition: transform 500ms cubic-bezier(0.095, 0.665, 0.400, 0.835); \n        transition: transform 500ms cubic-bezier(0.095, 0.665, 0.400, 0.835);\n\n    -webkit-transition-timing-function: cubic-bezier(0.095, 0.665, 0.400, 0.835); \n        -moz-transition-timing-function: cubic-bezier(0.095, 0.665, 0.400, 0.835); \n        -o-transition-timing-function: cubic-bezier(0.095, 0.665, 0.400, 0.835); \n        transition-timing-function: cubic-bezier(0.095, 0.665, 0.400, 0.835);\n\n    transition-delay: 0;\n    -webkit-transition-delay: 0;\n  }\n}\n\nbody .dg.main .close-button {\n  display: none;\n}\n\nbody .dg.main::-webkit-scrollbar {\n  background: #1c1c25;\n  width: 12px;\n}\n\nbody .dg.main::-webkit-scrollbar-thumb {\n  background: transparent;\n  width: 5px;\n  border-left: 5px solid transparent;\n  border-right: 6px solid #2a2a31;\n  border-radius: 0;\n}\n \nbody .dg {\n  color: #9196ad;\n  text-shadow: none !important;\n}\n\nbody .dg li:not(.folder) {\n  height: 28px;\n  background: #1c1c25;\n  border-bottom: 0px;\n  padding: 0 0 0 12px;\n}\n \nbody .dg li.save-row .button {\n  text-shadow: none !important;\n}\n\nbody .dg li.title {\n  padding-left: 22px;\n  color: #6f7388;\n  border-bottom: 1px solid #29292d;\n  background: #0d0f1b url(data:image/gif;base64,R0lGODlhBQAFAJEAAP////Pz8////////yH5BAEAAAIALAAAAAAFAAUAAAIIlI+hKgFxoCgAOw==) 10px 10px no-repeat;\n}\n\nbody .dg .cr.boolean:hover {\n  background: #232431;\n}\n\nbody .dg .cr.function {\n  background: #262731;\n  color: #6d7082;\n  border-bottom: 1px solid #222535;\n  border-top: 1px solid #3c3e48;\n}\n\nbody .dg .cr.function:hover {\n  background: #30313e;\n}\n\nbody .dg .cr.function:active {\n  transform: translateY(1px);\n}\n\nbody .dg .c,\nbody .dg .property-name {\n  width: 50%;\n}\n\nbody .dg .c select {\n  margin-top: 2px;\n  margin-left: -5px;\n  padding: 3px 5px;\n}\n\nbody .dg .c select,\nbody .dg .c input[type=text],\nbody .dg .cr.number input[type=text] {\n  text-align: right;\n  background: #191a23;\n  color: #686c7b;\n  border: 0;\n  font-size: 10px;\n}\n\nbody .dg .cr.number,\nbody .dg .cr.boolean,\nbody .dg .cr.function {\n  border-left: 0;\n}\n\nbody .dg .c select,\nbody .dg .c select:focus {\n  width: 88px;\n  outline: 0;\n}\n \nbody .dg .c input[type=text]:hover {\n  background: #1c1d2f;\n}\n \nbody .dg .c input[type=text]:focus {\n  background: #1c1d2f;\n  color: #fff;\n}\n\nbody .dg .c input[type=checkbox] {\n  margin-top: 9px;\n  border: none;\n  border-radius: 3px;\n  appearance: none;\n  -webkit-appearance: none;\n  -moz-appearance: none;\n  background: #35363e;\n  display: block;\n  width: 10px;\n  height: 10px;\n  float: right;\n}\n\nbody .dg .c input[type=checkbox]:checked {\n  background: #5b5e6b;\n}\n\nbody .dg .c input[type=checkbox]:focus {\n  outline: none;\n}\n \nbody .dg .c .slider {\n  background: #252731;\n  border-radius: 0;\n  box-shadow: none;\n  padding: 0;\n}\n\nbody .dg .c .slider:hover {\n  background: #282b3a;\n}\n\nbody .dg .c .slider-fg {\n  background: #32364a;\n  border-radius: 0;\n  margin-left: 0;\n  padding-right: 0;\n}\n\nbody .dg .c .slider-fg:after {\n  display: none;\n}\n\nbody .dg .c .slider:hover .slider-fg {\n  background: #4d526b;\n}\n\nbody .dg li.folder {\n  border-left: 0;\n}\n\nbody .dg.a {\n  margin-right: 0;\n}"
+	module.exports = "/*\n*\tMatterTools.Gui\n*/\n\nbody .dg .c,\nbody .dg .cr.function,\nbody .dg .c select,\nbody .dg .property-name,\nbody .dg .title {\n  -webkit-touch-callout: none;\n  -webkit-user-select: none;\n  -moz-user-select: none;\n  -ms-user-select: none;\n  user-select: none;\n}\n\nbody .dg.main {\n  z-index: 10;\n  -webkit-box-shadow: 0 0 30px rgba(0,0,0,0.2);\n          box-shadow: 0 0 30px rgba(0,0,0,0.2);\n  height: 100%;\n  background: rgb(28, 29, 47);\n  position: fixed;\n  overflow-y: scroll;\n  top: 0;\n  right: 0;\n  padding: 50px 0 0 0;\n}\n\nbody .dg.ac {\n  position: static;\n  top: inherit;\n  left: inherit;\n  bottom: inherit;\n  right: inherit;\n}\n\n@media only screen and (max-width : 1500px) {\n  body .dg.main {\n    -webkit-transform: translate(230px, 0);\n        -ms-transform: translate(230px, 0);\n            transform: translate(230px, 0);\n  }\n\n  body .dg.main:hover {\n    -webkit-transform: translate(0, 0);\n        -ms-transform: translate(0, 0);\n            transform: translate(0, 0);\n  }\n\n  body .dg.main {\n    -webkit-transition: transform 500ms cubic-bezier(0.965, 0.025, 0.735, 0.415); \n        -o-transition: transform 500ms cubic-bezier(0.965, 0.025, 0.735, 0.415); \n        -webkit-transition: -webkit-transform 500ms cubic-bezier(0.965, 0.025, 0.735, 0.415); \n        transition: -webkit-transform 500ms cubic-bezier(0.965, 0.025, 0.735, 0.415); \n        transition: transform 500ms cubic-bezier(0.965, 0.025, 0.735, 0.415); \n        transition: transform 500ms cubic-bezier(0.965, 0.025, 0.735, 0.415), -webkit-transform 500ms cubic-bezier(0.965, 0.025, 0.735, 0.415);\n\n    -webkit-transition-timing-function: cubic-bezier(0.965, 0.025, 0.735, 0.415); \n        -o-transition-timing-function: cubic-bezier(0.965, 0.025, 0.735, 0.415); \n        transition-timing-function: cubic-bezier(0.965, 0.025, 0.735, 0.415);\n    \n    -o-transition-delay: 2s;\n    \n       transition-delay: 2s;\n    -webkit-transition-delay: 2s;\n  }\n\n  body .dg.main:hover {\n    -webkit-transition: transform 500ms cubic-bezier(0.095, 0.665, 0.400, 0.835); \n        -o-transition: transform 500ms cubic-bezier(0.095, 0.665, 0.400, 0.835); \n        -webkit-transition: -webkit-transform 500ms cubic-bezier(0.095, 0.665, 0.400, 0.835); \n        transition: -webkit-transform 500ms cubic-bezier(0.095, 0.665, 0.400, 0.835); \n        transition: transform 500ms cubic-bezier(0.095, 0.665, 0.400, 0.835); \n        transition: transform 500ms cubic-bezier(0.095, 0.665, 0.400, 0.835), -webkit-transform 500ms cubic-bezier(0.095, 0.665, 0.400, 0.835);\n\n    -webkit-transition-timing-function: cubic-bezier(0.095, 0.665, 0.400, 0.835); \n        -o-transition-timing-function: cubic-bezier(0.095, 0.665, 0.400, 0.835); \n        transition-timing-function: cubic-bezier(0.095, 0.665, 0.400, 0.835);\n\n    -o-transition-delay: 0;\n\n       transition-delay: 0;\n    -webkit-transition-delay: 0;\n  }\n}\n\nbody .dg.main .close-button {\n  display: none;\n}\n\nbody .dg.main::-webkit-scrollbar {\n  background: #1c1c25;\n  width: 12px;\n}\n\nbody .dg.main::-webkit-scrollbar-thumb {\n  background: transparent;\n  width: 5px;\n  border-left: 5px solid transparent;\n  border-right: 6px solid #2a2a31;\n  border-radius: 0;\n}\n \nbody .dg {\n  color: #9196ad;\n  text-shadow: none !important;\n}\n\nbody .dg li:not(.folder) {\n  height: 28px;\n  background: #1c1c25;\n  border-bottom: 0px;\n  padding: 0 0 0 12px;\n}\n \nbody .dg li.save-row .button {\n  text-shadow: none !important;\n}\n\nbody .dg li.title {\n  padding-left: 22px;\n  color: #6f7388;\n  border-bottom: 1px solid #29292d;\n  background: #0d0f1b url(data:image/gif;base64,R0lGODlhBQAFAJEAAP////Pz8////////yH5BAEAAAIALAAAAAAFAAUAAAIIlI+hKgFxoCgAOw==) 10px 10px no-repeat;\n}\n\nbody .dg .cr.boolean:hover {\n  background: #232431;\n}\n\nbody .dg .cr.function {\n  background: #262731;\n  color: #6d7082;\n  border-bottom: 1px solid #222535;\n  border-top: 1px solid #3c3e48;\n}\n\nbody .dg .cr.function:hover {\n  background: #30313e;\n}\n\nbody .dg .cr.function:active {\n  -webkit-transform: translateY(1px);\n      -ms-transform: translateY(1px);\n          transform: translateY(1px);\n}\n\nbody .dg .c,\nbody .dg .property-name {\n  width: 50%;\n}\n\nbody .dg .c select {\n  margin-top: 2px;\n  margin-left: -5px;\n  padding: 3px 5px;\n}\n\nbody .dg .c select,\nbody .dg .c input[type=text],\nbody .dg .cr.number input[type=text] {\n  text-align: right;\n  background: #191a23;\n  color: #686c7b;\n  border: 0;\n  font-size: 10px;\n}\n\nbody .dg .cr.number,\nbody .dg .cr.boolean,\nbody .dg .cr.function {\n  border-left: 0;\n}\n\nbody .dg .c select,\nbody .dg .c select:focus {\n  width: 88px;\n  outline: 0;\n}\n \nbody .dg .c input[type=text]:hover {\n  background: #1c1d2f;\n}\n \nbody .dg .c input[type=text]:focus {\n  background: #1c1d2f;\n  color: #fff;\n}\n\nbody .dg .c input[type=checkbox] {\n  margin-top: 9px;\n  border: none;\n  border-radius: 3px;\n  appearance: none;\n  -webkit-appearance: none;\n  -moz-appearance: none;\n  background: #35363e;\n  display: block;\n  width: 10px;\n  height: 10px;\n  float: right;\n}\n\nbody .dg .c input[type=checkbox]:checked {\n  background: #5b5e6b;\n}\n\nbody .dg .c input[type=checkbox]:focus {\n  outline: none;\n}\n \nbody .dg .c .slider {\n  background: #252731;\n  border-radius: 0;\n  -webkit-box-shadow: none;\n          box-shadow: none;\n  padding: 0;\n}\n\nbody .dg .c .slider:hover {\n  background: #282b3a;\n}\n\nbody .dg .c .slider-fg {\n  background: #32364a;\n  border-radius: 0;\n  margin-left: 0;\n  padding-right: 0;\n}\n\nbody .dg .c .slider-fg:after {\n  display: none;\n}\n\nbody .dg .c .slider:hover .slider-fg {\n  background: #4d526b;\n}\n\nbody .dg li.folder {\n  border-left: 0;\n}\n\nbody .dg.a {\n  margin-right: 0;\n}"
 
 /***/ }
 /******/ ])
