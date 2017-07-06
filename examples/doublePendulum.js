@@ -60,7 +60,7 @@ Example.doublePendulum = function() {
     world.gravity.scale = 0.002;
     
     Composites.chain(pendulum, 0.45, 0, -0.45, 0, { 
-        stiffness: 1, 
+        stiffness: 0.9, 
         length: 0,
         angularStiffness: 0.7,
         render: {
@@ -72,7 +72,7 @@ Example.doublePendulum = function() {
         bodyB: pendulum.bodies[0],
         pointB: { x: -length * 0.42, y: 0 },
         pointA: { x: pendulum.bodies[0].position.x - length * 0.42, y: pendulum.bodies[0].position.y },
-        stiffness: 1,
+        stiffness: 0.9,
         length: 0,
         render: {
             strokeStyle: '#4a485b'
