@@ -539,15 +539,15 @@ var Body = require('./Body');
      * @returns {bounds} The composite bounds.
      */
     Composite.bounds = function(composite) {
-      var bodies = Matter.Composite.allBodies(composite),
-          vertices = [];
-      
-      for (var i = 0; i < bodies.length; i += 1) {
-        var body = bodies[i];
-        vertices.push(body.bounds.min, body.bounds.max);
-      }
+        var bodies = Matter.Composite.allBodies(composite),
+            vertices = [];
 
-      return Matter.Bounds.create(vertices);
+        for (var i = 0; i < bodies.length; i += 1) {
+            var body = bodies[i];
+            vertices.push(body.bounds.min, body.bounds.max);
+        }
+
+        return Matter.Bounds.create(vertices);
     };
 
     /*
