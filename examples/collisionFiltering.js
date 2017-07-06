@@ -87,7 +87,6 @@ Example.collisionFiltering = function() {
                 mask: defaultCategory | greenCategory
             },
             render: {
-                strokeStyle: Common.shadeColor(greenColor, -20),
                 fillStyle: greenColor
             }
         })
@@ -100,7 +99,6 @@ Example.collisionFiltering = function() {
                 mask: defaultCategory | redCategory
             },
             render: {
-                strokeStyle: Common.shadeColor(redColor, -20),
                 fillStyle: redColor
             }
         })
@@ -113,7 +111,6 @@ Example.collisionFiltering = function() {
                 mask: defaultCategory | blueCategory
             },
             render: {
-                strokeStyle: Common.shadeColor(blueColor, -20),
                 fillStyle: blueColor
             }
         })
