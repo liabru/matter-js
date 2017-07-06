@@ -492,9 +492,24 @@ var Axes = require('../geometry/Axes');
      * @method rotate
      * @param {body} body
      * @param {number} rotation
+     * @param {vector} [point]
      */
-    Body.rotate = function(body, rotation) {
-        Body.setAngle(body, body.angle + rotation);
+    Body.rotate = function(body, rotation, point) {
+        if (!point) {
+            Body.setAngle(body, body.angle + rotation);
+        } else {
+            var cos = Math.cos(rotation),
+                sin = Math.sin(rotation),
+                dx = body.position.x - point.x,
+                dy = body.position.y - point.y;
+                
+            Body.setPosition(body, {
+                x: point.x + (dx * cos - dy * sin),
+                y: point.y + (dx * sin + dy * cos)
+            });
+
+            Body.setAngle(body, body.angle + rotation);
+        }
     };
 
     /**

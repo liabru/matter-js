@@ -9,7 +9,9 @@ Example.catapult = function() {
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
         World = Matter.World,
-        Bodies = Matter.Bodies;
+        Bodies = Matter.Bodies,
+        Body = Matter.Body,
+        Vector = Matter.Vector;
 
     // create engine
     var engine = Engine.create(),
@@ -35,20 +37,27 @@ Example.catapult = function() {
     Runner.run(runner, engine);
 
     // add bodies
+    var group = Body.nextGroup(true);
+
     var stack = Composites.stack(250, 255, 1, 6, 0, 0, function(x, y) {
         return Bodies.rectangle(x, y, 30, 30);
     });
 
-    var catapult = Bodies.rectangle(400, 520, 320, 20);
+    var catapult = Bodies.rectangle(400, 520, 320, 20, { collisionFilter: { group: group } });
 
     World.add(world, [
         stack,
         catapult,
         Bodies.rectangle(400, 600, 800, 50.5, { isStatic: true }),
         Bodies.rectangle(250, 555, 20, 50, { isStatic: true }),
+        Bodies.rectangle(400, 535, 20, 80, { isStatic: true, collisionFilter: { group: group } }),
         Bodies.circle(560, 100, 50, { density: 0.005 }),
-        Constraint.create({ bodyA: catapult, pointB: { x: 390, y: 580 } }),
-        Constraint.create({ bodyA: catapult, pointB: { x: 410, y: 580 } })
+        Constraint.create({ 
+            bodyA: catapult, 
+            pointB: Vector.clone(catapult.position),
+            stiffness: 1,
+            length: 0
+        })
     ]);
 
     // add mouse control

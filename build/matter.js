@@ -1,5 +1,5 @@
 /**
-* matter-js 0.12.0 by @liabru 2017-02-02
+* matter-js 0.12.0-alpha by @liabru 2017-06-26
 * http://brm.io/matter-js/
 * License MIT
 */
@@ -523,9 +523,24 @@ var Axes = _dereq_('../geometry/Axes');
      * @method rotate
      * @param {body} body
      * @param {number} rotation
+     * @param {vector} [point]
      */
-    Body.rotate = function(body, rotation) {
-        Body.setAngle(body, body.angle + rotation);
+    Body.rotate = function(body, rotation, point) {
+        if (!point) {
+            Body.setAngle(body, body.angle + rotation);
+        } else {
+            var cos = Math.cos(rotation),
+                sin = Math.sin(rotation),
+                dx = body.position.x - point.x,
+                dy = body.position.y - point.y;
+                
+            Body.setPosition(body, {
+                x: point.x + (dx * cos - dy * sin),
+                y: point.y + (dx * sin + dy * cos)
+            });
+
+            Body.setAngle(body, body.angle + rotation);
+        }
     };
 
     /**
@@ -3468,14 +3483,6 @@ var Vector = _dereq_('../geometry/Vector');
 * @class Constraint
 */
 
-// TODO: fix instability issues with torque
-// TODO: linked constraints
-// TODO: breakable constraints
-// TODO: collision constraints
-// TODO: allow constrained bodies to sleep
-// TODO: handle 0 length constraints properly
-// TODO: impulse caching and warming
-
 var Constraint = {};
 
 module.exports = Constraint;
@@ -3489,12 +3496,15 @@ var Common = _dereq_('../core/Common');
 
 (function() {
 
-    var _minLength = 0.000001,
-        _minDifference = 0.001;
+    Constraint._warming = 0.4;
+    Constraint._torqueDampen = 1;
+    Constraint._minLength = 0.000001;
 
     /**
      * Creates a new constraint.
      * All properties have default values, and many are pre-calculated automatically based on other properties.
+     * To simulate a revolute constraint (or pin joint) set `length: 0` and a high `stiffness` value (e.g. `0.7` or above).
+     * If the constraint is unstable, try lowering the `stiffness` value and / or increasing `engine.constraintIterations`.
      * See the properties section below for detailed information on what you can pass via the `options` object.
      * @method create
      * @param {} options
@@ -3514,28 +3524,59 @@ var Common = _dereq_('../core/Common');
             initialPointB = constraint.bodyB ? Vector.add(constraint.bodyB.position, constraint.pointB) : constraint.pointB,
             length = Vector.magnitude(Vector.sub(initialPointA, initialPointB));
     
-        constraint.length = constraint.length || length || _minLength;
-
-        // render
-        var render = {
-            visible: true,
-            lineWidth: 2,
-            strokeStyle: '#ffffff'
-        };
-        
-        constraint.render = Common.extend(render, constraint.render);
+        constraint.length = typeof constraint.length !== 'undefined' ? constraint.length : length;
 
         // option defaults
         constraint.id = constraint.id || Common.nextId();
         constraint.label = constraint.label || 'Constraint';
         constraint.type = 'constraint';
-        constraint.stiffness = constraint.stiffness || 1;
+        constraint.stiffness = constraint.stiffness || (constraint.length > 0 ? 1 : 0.7);
+        constraint.damping = constraint.damping || 0;
         constraint.angularStiffness = constraint.angularStiffness || 0;
         constraint.angleA = constraint.bodyA ? constraint.bodyA.angle : constraint.angleA;
         constraint.angleB = constraint.bodyB ? constraint.bodyB.angle : constraint.angleB;
         constraint.plugin = {};
 
+        // render
+        var render = {
+            visible: true,
+            lineWidth: 2,
+            strokeStyle: '#ffffff',
+            type: 'line',
+            anchors: true
+        };
+
+        if (constraint.length === 0) {
+            render.type = 'pin';
+            render.anchors = false;
+        } else if (constraint.stiffness < 0.9) {
+            render.type = 'spring';
+        }
+
+        constraint.render = Common.extend(render, constraint.render);
+
         return constraint;
+    };
+
+    /**
+     * Prepares for solving by constraint warming.
+     * @private
+     * @method preSolveAll
+     * @param {body[]} bodies
+     */
+    Constraint.preSolveAll = function(bodies) {
+        for (var i = 0; i < bodies.length; i += 1) {
+            var body = bodies[i],
+                impulse = body.constraintImpulse;
+
+            if (body.isStatic || (impulse.x === 0 && impulse.y === 0 && impulse.angle === 0)) {
+                continue;
+            }
+
+            body.position.x += impulse.x;
+            body.position.y += impulse.y;
+            body.angle += impulse.angle;
+        }
     };
 
     /**
@@ -3546,8 +3587,26 @@ var Common = _dereq_('../core/Common');
      * @param {number} timeScale
      */
     Constraint.solveAll = function(constraints, timeScale) {
-        for (var i = 0; i < constraints.length; i++) {
-            Constraint.solve(constraints[i], timeScale);
+        // Solve fixed constraints first.
+        for (var i = 0; i < constraints.length; i += 1) {
+            var constraint = constraints[i],
+                fixedA = !constraint.bodyA || (constraint.bodyA && constraint.bodyA.isStatic),
+                fixedB = !constraint.bodyB || (constraint.bodyB && constraint.bodyB.isStatic);
+
+            if (fixedA || fixedB) {
+                Constraint.solve(constraints[i], timeScale);
+            }
+        }
+
+        // Solve free constraints last.
+        for (i = 0; i < constraints.length; i += 1) {
+            constraint = constraints[i];
+            fixedA = !constraint.bodyA || (constraint.bodyA && constraint.bodyA.isStatic);
+            fixedB = !constraint.bodyB || (constraint.bodyB && constraint.bodyB.isStatic);
+
+            if (!fixedA && !fixedB) {
+                Constraint.solve(constraints[i], timeScale);
+            }
         }
     };
 
@@ -3564,15 +3623,18 @@ var Common = _dereq_('../core/Common');
             pointA = constraint.pointA,
             pointB = constraint.pointB;
 
+        if (!bodyA && !bodyB)
+            return;
+
         // update reference angle
         if (bodyA && !bodyA.isStatic) {
-            constraint.pointA = Vector.rotate(pointA, bodyA.angle - constraint.angleA);
+            Vector.rotate(pointA, bodyA.angle - constraint.angleA, pointA);
             constraint.angleA = bodyA.angle;
         }
         
         // update reference angle
         if (bodyB && !bodyB.isStatic) {
-            constraint.pointB = Vector.rotate(pointB, bodyB.angle - constraint.angleB);
+            Vector.rotate(pointB, bodyB.angle - constraint.angleB, pointB);
             constraint.angleB = bodyB.angle;
         }
 
@@ -3589,107 +3651,79 @@ var Common = _dereq_('../core/Common');
             currentLength = Vector.magnitude(delta);
 
         // prevent singularity
-        if (currentLength === 0)
-            currentLength = _minLength;
+        if (currentLength < Constraint._minLength) {
+            currentLength = Constraint._minLength;
+        }
 
         // solve distance constraint with Gauss-Siedel method
         var difference = (currentLength - constraint.length) / currentLength,
-            normal = Vector.div(delta, currentLength),
-            force = Vector.mult(delta, difference * 0.5 * constraint.stiffness * timeScale * timeScale);
-        
-        // if difference is very small, we can skip
-        if (Math.abs(1 - (currentLength / constraint.length)) < _minDifference * timeScale)
-            return;
+            stiffness = constraint.stiffness < 1 ? constraint.stiffness * timeScale : constraint.stiffness,
+            force = Vector.mult(delta, difference * stiffness),
+            massTotal = (bodyA ? bodyA.inverseMass : 0) + (bodyB ? bodyB.inverseMass : 0),
+            inertiaTotal = (bodyA ? bodyA.inverseInertia : 0) + (bodyB ? bodyB.inverseInertia : 0),
+            resistanceTotal = massTotal + inertiaTotal,
+            torque,
+            share,
+            normal,
+            normalVelocity,
+            relativeVelocity;
 
-        var velocityPointA,
-            velocityPointB,
-            offsetA,
-            offsetB,
-            oAn,
-            oBn,
-            bodyADenom,
-            bodyBDenom;
-    
-        if (bodyA && !bodyA.isStatic) {
-            // point body offset
-            offsetA = { 
-                x: pointAWorld.x - bodyA.position.x + force.x, 
-                y: pointAWorld.y - bodyA.position.y + force.y
-            };
-            
-            // update velocity
-            bodyA.velocity.x = bodyA.position.x - bodyA.positionPrev.x;
-            bodyA.velocity.y = bodyA.position.y - bodyA.positionPrev.y;
-            bodyA.angularVelocity = bodyA.angle - bodyA.anglePrev;
-            
-            // find point velocity and body mass
-            velocityPointA = Vector.add(bodyA.velocity, Vector.mult(Vector.perp(offsetA), bodyA.angularVelocity));
-            oAn = Vector.dot(offsetA, normal);
-            bodyADenom = bodyA.inverseMass + bodyA.inverseInertia * oAn * oAn;
-        } else {
-            velocityPointA = { x: 0, y: 0 };
-            bodyADenom = bodyA ? bodyA.inverseMass : 0;
+        if (constraint.damping) {
+            var zero = Vector.create();
+            normal = Vector.div(delta, currentLength);
+
+            relativeVelocity = Vector.sub(
+                bodyB && Vector.sub(bodyB.position, bodyB.positionPrev) || zero,
+                bodyA && Vector.sub(bodyA.position, bodyA.positionPrev) || zero
+            );
+
+            normalVelocity = Vector.dot(normal, relativeVelocity);
         }
-            
-        if (bodyB && !bodyB.isStatic) {
-            // point body offset
-            offsetB = { 
-                x: pointBWorld.x - bodyB.position.x - force.x, 
-                y: pointBWorld.y - bodyB.position.y - force.y 
-            };
-            
-            // update velocity
-            bodyB.velocity.x = bodyB.position.x - bodyB.positionPrev.x;
-            bodyB.velocity.y = bodyB.position.y - bodyB.positionPrev.y;
-            bodyB.angularVelocity = bodyB.angle - bodyB.anglePrev;
 
-            // find point velocity and body mass
-            velocityPointB = Vector.add(bodyB.velocity, Vector.mult(Vector.perp(offsetB), bodyB.angularVelocity));
-            oBn = Vector.dot(offsetB, normal);
-            bodyBDenom = bodyB.inverseMass + bodyB.inverseInertia * oBn * oBn;
-        } else {
-            velocityPointB = { x: 0, y: 0 };
-            bodyBDenom = bodyB ? bodyB.inverseMass : 0;
-        }
-        
-        var relativeVelocity = Vector.sub(velocityPointB, velocityPointA),
-            normalImpulse = Vector.dot(normal, relativeVelocity) / (bodyADenom + bodyBDenom);
-    
-        if (normalImpulse > 0) normalImpulse = 0;
-    
-        var normalVelocity = {
-            x: normal.x * normalImpulse, 
-            y: normal.y * normalImpulse
-        };
-
-        var torque;
- 
         if (bodyA && !bodyA.isStatic) {
-            torque = Vector.cross(offsetA, normalVelocity) * bodyA.inverseInertia * (1 - constraint.angularStiffness);
+            share = bodyA.inverseMass / massTotal;
 
             // keep track of applied impulses for post solving
-            bodyA.constraintImpulse.x -= force.x;
-            bodyA.constraintImpulse.y -= force.y;
-            bodyA.constraintImpulse.angle += torque;
+            bodyA.constraintImpulse.x -= force.x * share;
+            bodyA.constraintImpulse.y -= force.y * share;
 
             // apply forces
-            bodyA.position.x -= force.x;
-            bodyA.position.y -= force.y;
-            bodyA.angle += torque;
+            bodyA.position.x -= force.x * share;
+            bodyA.position.y -= force.y * share;
+
+            // apply damping
+            if (constraint.damping) {
+                bodyA.positionPrev.x -= constraint.damping * normal.x * normalVelocity * share;
+                bodyA.positionPrev.y -= constraint.damping * normal.y * normalVelocity * share;
+            }
+
+            // apply torque
+            torque = (Vector.cross(pointA, force) / resistanceTotal) * Constraint._torqueDampen * bodyA.inverseInertia * (1 - constraint.angularStiffness);
+            bodyA.constraintImpulse.angle -= torque;
+            bodyA.angle -= torque;
         }
 
         if (bodyB && !bodyB.isStatic) {
-            torque = Vector.cross(offsetB, normalVelocity) * bodyB.inverseInertia * (1 - constraint.angularStiffness);
+            share = bodyB.inverseMass / massTotal;
 
             // keep track of applied impulses for post solving
-            bodyB.constraintImpulse.x += force.x;
-            bodyB.constraintImpulse.y += force.y;
-            bodyB.constraintImpulse.angle -= torque;
+            bodyB.constraintImpulse.x += force.x * share;
+            bodyB.constraintImpulse.y += force.y * share;
             
             // apply forces
-            bodyB.position.x += force.x;
-            bodyB.position.y += force.y;
-            bodyB.angle -= torque;
+            bodyB.position.x += force.x * share;
+            bodyB.position.y += force.y * share;
+
+            // apply damping
+            if (constraint.damping) {
+                bodyB.positionPrev.x += constraint.damping * normal.x * normalVelocity * share;
+                bodyB.positionPrev.y += constraint.damping * normal.y * normalVelocity * share;
+            }
+
+            // apply torque
+            torque = (Vector.cross(pointB, force) / resistanceTotal) * Constraint._torqueDampen * bodyB.inverseInertia * (1 - constraint.angularStiffness);
+            bodyB.constraintImpulse.angle += torque;
+            bodyB.angle += torque;
         }
 
     };
@@ -3705,7 +3739,7 @@ var Common = _dereq_('../core/Common');
             var body = bodies[i],
                 impulse = body.constraintImpulse;
 
-            if (impulse.x === 0 && impulse.y === 0 && impulse.angle === 0) {
+            if (body.isStatic || (impulse.x === 0 && impulse.y === 0 && impulse.angle === 0)) {
                 continue;
             }
 
@@ -3733,9 +3767,10 @@ var Common = _dereq_('../core/Common');
                 Bounds.update(part.bounds, part.vertices, body.velocity);
             }
 
-            impulse.angle = 0;
-            impulse.x = 0;
-            impulse.y = 0;
+            // dampen the cached impulse for warming next step
+            impulse.angle *= Constraint._warming;
+            impulse.x *= Constraint._warming;
+            impulse.y *= Constraint._warming;
         }
     };
 
@@ -3803,6 +3838,24 @@ var Common = _dereq_('../core/Common');
      */
 
     /**
+     * A `String` that defines the constraint rendering type. 
+     * The possible values are 'line', 'pin', 'spring'.
+     * An appropriate render type will be automatically chosen unless one is given in options.
+     *
+     * @property render.type
+     * @type string
+     * @default 'line'
+     */
+
+    /**
+     * A `Boolean` that defines if the constraint's anchor points should be rendered.
+     *
+     * @property render.anchors
+     * @type boolean
+     * @default true
+     */
+
+    /**
      * The first possible `Body` that this constraint is attached to.
      *
      * @property bodyA
@@ -3842,6 +3895,18 @@ var Common = _dereq_('../core/Common');
      * @property stiffness
      * @type number
      * @default 1
+     */
+
+    /**
+     * A `Number` that specifies the damping of the constraint, 
+     * i.e. the amount of resistance applied to each body based on their velocities to limit the amount of oscillation.
+     * Damping will only be apparent when the constraint also has a very low `stiffness`.
+     * A value of `0.1` means the constraint will apply heavy damping, resulting in little to no oscillation.
+     * A value of `0` means the constraint will apply no damping.
+     *
+     * @property damping
+     * @type number
+     * @default 0
      */
 
     /**
@@ -4835,7 +4900,8 @@ var Body = _dereq_('../body/Body');
         // update all body position and rotation by integration
         _bodiesUpdate(allBodies, delta, timing.timeScale, correction, world.bounds);
 
-        // update all constraints
+        // update all constraints (first pass)
+        Constraint.preSolveAll(allBodies);
         for (i = 0; i < engine.constraintIterations; i++) {
             Constraint.solveAll(allConstraints, timing.timeScale);
         }
@@ -4843,7 +4909,6 @@ var Body = _dereq_('../body/Body');
 
         // broadphase pass: find potential collision pairs
         if (broadphase.controller) {
-
             // if world is dirty, we must flush the whole grid
             if (world.isModified)
                 broadphase.controller.clear(broadphase);
@@ -4852,7 +4917,6 @@ var Body = _dereq_('../body/Body');
             broadphase.controller.update(broadphase, allBodies, engine, world.isModified);
             broadphasePairs = broadphase.pairsList;
         } else {
-
             // if no broadphase set, we just pass all bodies
             broadphasePairs = allBodies;
         }
@@ -4885,6 +4949,13 @@ var Body = _dereq_('../body/Body');
             Resolver.solvePosition(pairs.list, timing.timeScale);
         }
         Resolver.postSolvePosition(allBodies);
+
+        // update all constraints (second pass)
+        Constraint.preSolveAll(allBodies);
+        for (i = 0; i < engine.constraintIterations; i++) {
+            Constraint.solveAll(allConstraints, timing.timeScale);
+        }
+        Constraint.postSolveAll(allBodies);
 
         // iteratively resolve velocity between collisions
         Resolver.preSolveVelocity(pairs.list);
@@ -5325,7 +5396,7 @@ var Common = _dereq_('./Common');
      * @readOnly
      * @type {String}
      */
-    Matter.version = '0.12.0';
+    Matter.version = '0.12.0-alpha';
 
     /**
      * A list of plugin dependencies to be installed. These are normally set and installed through `Matter.use`.
@@ -6974,53 +7045,53 @@ var Bodies = _dereq_('./Bodies');
      */
     Composites.car = function(xx, yy, width, height, wheelSize) {
         var group = Body.nextGroup(true),
-            wheelBase = -20,
+            wheelBase = 20,
             wheelAOffset = -width * 0.5 + wheelBase,
             wheelBOffset = width * 0.5 - wheelBase,
             wheelYOffset = 0;
     
         var car = Composite.create({ label: 'Car' }),
-            body = Bodies.trapezoid(xx, yy, width, height, 0.3, { 
+            body = Bodies.rectangle(xx, yy, width, height, { 
                 collisionFilter: {
                     group: group
                 },
-                friction: 0.01,
                 chamfer: {
-                    radius: 10
-                }
+                    radius: height * 0.5
+                },
+                density: 0.0002
             });
     
         var wheelA = Bodies.circle(xx + wheelAOffset, yy + wheelYOffset, wheelSize, { 
             collisionFilter: {
                 group: group
             },
-            friction: 0.8,
-            density: 0.01
+            friction: 0.8
         });
                     
         var wheelB = Bodies.circle(xx + wheelBOffset, yy + wheelYOffset, wheelSize, { 
             collisionFilter: {
                 group: group
             },
-            friction: 0.8,
-            density: 0.01
+            friction: 0.8
         });
                     
         var axelA = Constraint.create({
-            bodyA: body,
-            pointA: { x: wheelAOffset, y: wheelYOffset },
-            bodyB: wheelA,
-            stiffness: 0.2,
+            bodyB: body,
+            pointB: { x: wheelAOffset, y: wheelYOffset },
+            bodyA: wheelA,
+            stiffness: 1,
+            length: 0,
             render: {
                 lineWidth: 0
             }
         });
                         
         var axelB = Constraint.create({
-            bodyA: body,
-            pointA: { x: wheelBOffset, y: wheelYOffset },
-            bodyB: wheelB,
-            stiffness: 0.2,
+            bodyB: body,
+            pointB: { x: wheelBOffset, y: wheelYOffset },
+            bodyA: wheelB,
+            stiffness: 1,
+            length: 0,
             render: {
                 lineWidth: 0
             }
@@ -7052,7 +7123,7 @@ var Bodies = _dereq_('./Bodies');
      */
     Composites.softBody = function(xx, yy, columns, rows, columnGap, rowGap, crossBrace, particleRadius, particleOptions, constraintOptions) {
         particleOptions = Common.extend({ inertia: Infinity }, particleOptions);
-        constraintOptions = Common.extend({ stiffness: 0.4 }, constraintOptions);
+        constraintOptions = Common.extend({ stiffness: 0.2 }, constraintOptions);
 
         var softBody = Composites.stack(xx, yy, columns, rows, columnGap, rowGap, function(x, y) {
             return Bodies.circle(x, y, particleRadius, particleOptions);
@@ -7538,14 +7609,16 @@ module.exports = Vector;
      * @method rotate
      * @param {vector} vector
      * @param {number} angle
-     * @return {vector} A new vector rotated about (0, 0)
+     * @param {vector} [output]
+     * @return {vector} The vector rotated about (0, 0)
      */
-    Vector.rotate = function(vector, angle) {
+    Vector.rotate = function(vector, angle, output) {
         var cos = Math.cos(angle), sin = Math.sin(angle);
-        return {
-            x: vector.x * cos - vector.y * sin,
-            y: vector.x * sin + vector.y * cos
-        };
+        if (!output) output = {};
+        var x = vector.x * cos - vector.y * sin;
+        output.y = vector.x * sin + vector.y * cos;
+        output.x = x;
+        return output;
     };
 
     /**
@@ -8686,26 +8759,62 @@ var Mouse = _dereq_('../core/Mouse');
                 continue;
 
             var bodyA = constraint.bodyA,
-                bodyB = constraint.bodyB;
+                bodyB = constraint.bodyB,
+                start,
+                end;
 
             if (bodyA) {
-                c.beginPath();
-                c.moveTo(bodyA.position.x + constraint.pointA.x, bodyA.position.y + constraint.pointA.y);
+                start = Vector.add(bodyA.position, constraint.pointA);
             } else {
-                c.beginPath();
-                c.moveTo(constraint.pointA.x, constraint.pointA.y);
+                start = constraint.pointA;
             }
 
-            if (bodyB) {
-                c.lineTo(bodyB.position.x + constraint.pointB.x, bodyB.position.y + constraint.pointB.y);
+            if (constraint.render.type === 'pin') {
+                c.beginPath();
+                c.arc(start.x, start.y, 4, 0, 2 * Math.PI);
+                c.closePath();
             } else {
-                c.lineTo(constraint.pointB.x, constraint.pointB.y);
+                if (bodyB) {
+                    end = Vector.add(bodyB.position, constraint.pointB);
+                } else {
+                    end = constraint.pointB;
+                }
+
+                c.beginPath();
+                c.moveTo(start.x, start.y);
+
+                if (constraint.render.type === 'spring') {
+                    var delta = Vector.sub(end, start),
+                        normal = Vector.perp(Vector.normalise(delta)),
+                        coils = Math.ceil(Common.clamp(constraint.length / 5, 12, 20)),
+                        offset;
+
+                    for (var j = 0; j < coils; j += 1) {
+                        offset = j % 2 === 0 ? 1 : -1;
+
+                        c.lineTo(
+                            start.x + delta.x * (j / coils) + normal.x * offset * 4,
+                            start.y + delta.y * (j / coils) + normal.y * offset * 4
+                        );
+                    }
+                }
+
+                c.lineTo(end.x, end.y);
             }
 
             if (constraint.render.lineWidth) {
                 c.lineWidth = constraint.render.lineWidth;
                 c.strokeStyle = constraint.render.strokeStyle;
                 c.stroke();
+            }
+
+            if (constraint.render.anchors) {
+                c.fillStyle = constraint.render.strokeStyle;
+                c.beginPath();
+                c.arc(start.x, start.y, 3, 0, 2 * Math.PI);
+                c.arc(end.x, end.y, 3, 0, 2 * Math.PI);
+                c.closePath();
+                c.fill();
             }
         }
     };
