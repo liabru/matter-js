@@ -173,6 +173,12 @@
                 sourceLink: sourceLinkRoot + '/newtonsCradle.js'
             },
             {
+                name: 'Ragdoll',
+                id: 'ragdoll',
+                init: Example.ragdoll,
+                sourceLink: sourceLinkRoot + '/ragdoll.js'
+            },
+            {
                 name: 'Pyramid',
                 id: 'pyramid',
                 init: Example.pyramid,
