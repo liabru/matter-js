@@ -21,8 +21,8 @@ Example.slingshot = function() {
         element: document.body,
         engine: engine,
         options: {
-            width: Math.min(document.documentElement.clientWidth, 800),
-            height: Math.min(document.documentElement.clientHeight, 600),
+            width: 800,
+            height: 600,
             showAngleIndicator: true
         }
     });

@@ -27,6 +27,8 @@
         inline: false,
         preventZoom: true,
         resetOnOrientation: true,
+        routing: true,
+        startExample: 'mixed',
         examples: [
             {
                 name: 'Air Friction',
