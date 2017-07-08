@@ -95,6 +95,18 @@ gulp.task('build:release', function() {
     return build(extend(extend({}, pkg), { version: pkg.version }));
 });
 
+gulp.task('build:examples', function() {
+    var options = extend(extend({}, pkg), { version: pkg.version + '-dev' });
+    options.name = options.name + '-examples';
+    options.date = options.date || new Date().toISOString().slice(0, 10);
+    options.author = '@liabru';
+
+    return gulp.src('examples/**/*.js')
+        .pipe(concat('examples.js'))
+        .pipe(header(banner, { context: options }))
+        .pipe(gulp.dest('examples/build'));
+});
+
 gulp.task('watch', function() {
     var b = browserify({
         entries: ['src/module/main.js'],
