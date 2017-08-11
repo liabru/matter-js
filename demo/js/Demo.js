@@ -268,7 +268,7 @@
                 name: 'Terrain',
                 id: 'terrain',
                 init: Example.terrain,
-                sourceLink: sourceLinkRoot + '/terraing.js'
+                sourceLink: sourceLinkRoot + '/terrain.js'
             },
             {
                 name: 'Time Scaling',
