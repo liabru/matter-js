@@ -56,7 +56,7 @@ var Common = require('../core/Common');
         collisionActive.length = 0;
 
         for (i = 0; i < pairsList.length; i++) {
-          pairsList[i].confirmedActive = false;
+            pairsList[i].confirmedActive = false;
         }
 
         for (i = 0; i < collisions.length; i++) {
