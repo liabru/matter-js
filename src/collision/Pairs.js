@@ -44,7 +44,6 @@ var Common = require('../core/Common');
             collisionStart = pairs.collisionStart,
             collisionEnd = pairs.collisionEnd,
             collisionActive = pairs.collisionActive,
-            activePairIds = [],
             collision,
             pairId,
             pair,
