@@ -144,10 +144,10 @@ var Body = require('../body/Body');
             Sleeping.update(allBodies, timing.timeScale);
 
         // applies gravity to all bodies
-        _bodiesApplyGravity(allBodies, world.gravity);
+        Engine._bodiesApplyGravity(allBodies, world.gravity);
 
         // update all body position and rotation by integration
-        _bodiesUpdate(allBodies, delta, timing.timeScale, correction, world.bounds);
+        Engine._bodiesUpdate(allBodies, delta, timing.timeScale, correction, world.bounds);
 
         // update all constraints (first pass)
         Constraint.preSolveAll(allBodies);
@@ -225,7 +225,7 @@ var Body = require('../body/Body');
         // @endif
 
         // clear force buffers
-        _bodiesClearForces(allBodies);
+        Engine._bodiesClearForces(allBodies);
 
         Events.trigger(engine, 'afterUpdate', event);
 
@@ -276,11 +276,11 @@ var Body = require('../body/Body');
 
     /**
      * Zeroes the `body.force` and `body.torque` force buffers.
-     * @method bodiesClearForces
+     * @method _bodiesClearForces
      * @private
      * @param {body[]} bodies
      */
-    var _bodiesClearForces = function(bodies) {
+    Engine._bodiesClearForces = function(bodies) {
         for (var i = 0; i < bodies.length; i++) {
             var body = bodies[i];
 
@@ -293,12 +293,12 @@ var Body = require('../body/Body');
 
     /**
      * Applys a mass dependant force to all given bodies.
-     * @method bodiesApplyGravity
+     * @method _bodiesApplyGravity
      * @private
      * @param {body[]} bodies
      * @param {vector} gravity
      */
-    var _bodiesApplyGravity = function(bodies, gravity) {
+    Engine._bodiesApplyGravity = function(bodies, gravity) {
         var gravityScale = typeof gravity.scale !== 'undefined' ? gravity.scale : 0.001;
 
         if ((gravity.x === 0 && gravity.y === 0) || gravityScale === 0) {
@@ -319,7 +319,7 @@ var Body = require('../body/Body');
 
     /**
      * Applys `Body.update` to all given `bodies`.
-     * @method updateAll
+     * @method _bodiesUpdate
      * @private
      * @param {body[]} bodies
      * @param {number} deltaTime 
@@ -329,7 +329,7 @@ var Body = require('../body/Body');
      * The Verlet correction factor (deltaTime / lastDeltaTime)
      * @param {bounds} worldBounds
      */
-    var _bodiesUpdate = function(bodies, deltaTime, timeScale, correction, worldBounds) {
+    Engine._bodiesUpdate = function(bodies, deltaTime, timeScale, correction, worldBounds) {
         for (var i = 0; i < bodies.length; i++) {
             var body = bodies[i];
 
