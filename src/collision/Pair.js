@@ -56,7 +56,7 @@ module.exports = Pair;
 
         if (collision.collided) {
             var supports = collision.supports,
-                activeContacts = pair.activeContacts;
+                activeContacts = pair.activeContacts,
                 parentA = collision.parentA,
                 parentB = collision.parentB;
 
@@ -74,7 +74,7 @@ module.exports = Pair;
             // Most likely unnecessary
             var supportCount = supports.length;
             if (supportCount < activeContacts.length) {
-              activeContacts.length = supportCount;
+                activeContacts.length = supportCount;
             }
 
             pair.separation = collision.depth;
