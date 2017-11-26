@@ -399,7 +399,7 @@ var Axes = require('../geometry/Axes');
         }
 
         // sum the properties of all compound parts of the parent body
-        var total = _totalProperties(body);
+        var total = Body._totalProperties(body);
 
         body.area = total.area;
         body.parent = body;
@@ -658,7 +658,7 @@ var Axes = require('../geometry/Axes');
      * @param {body} body
      * @return {}
      */
-    var _totalProperties = function(body) {
+    Body._totalProperties = function(body) {
         // from equations at:
         // https://ecourses.ou.edu/cgi-bin/ebook.cgi?doc=&topic=st&chap_sec=07.2&page=theory
         // http://output.to/sideway/default.asp?qno=121100087

@@ -424,14 +424,14 @@ module.exports = Common;
 
         for (var node in graph) {
             if (!visited[node] && !temp[node]) {
-                _topologicalSort(node, visited, temp, graph, result);
+                Common._topologicalSort(node, visited, temp, graph, result);
             }
         }
 
         return result;
     };
 
-    var _topologicalSort = function(node, visited, temp, graph, result) {
+    Common._topologicalSort = function(node, visited, temp, graph, result) {
         var neighbors = graph[node] || [];
         temp[node] = true;
 
@@ -444,7 +444,7 @@ module.exports = Common;
             }
 
             if (!visited[neighbor]) {
-                _topologicalSort(neighbor, visited, temp, graph, result);
+                Common._topologicalSort(neighbor, visited, temp, graph, result);
             }
         }
 
