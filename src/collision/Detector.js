@@ -12,6 +12,7 @@ module.exports = Detector;
 
 var SAT = require('./SAT');
 var Pair = require('./Pair');
+var Pairs = require('./Pairs');
 var Bounds = require('../geometry/Bounds');
 
 (function() {
@@ -23,9 +24,10 @@ var Bounds = require('../geometry/Bounds');
      * @param {engine} engine
      * @return {array} collisions
      */
-    Detector.collisions = function(broadphasePairs, engine) {
-        var collisions = [],
-            pairsTable = engine.pairs.table;
+    Detector.collisions = function(broadphasePairs, engine, timestamp) {
+        var pairs = engine.pairs,
+            pairsList = pairs.list,
+            pairsTable = pairs.table;
 
         // @if DEBUG
         var metrics = engine.metrics;
@@ -75,7 +77,17 @@ var Bounds = require('../geometry/Bounds');
                             // @endif
 
                             if (collision.collided) {
-                                collisions.push(collision);
+                                if (!pair) {
+                                    pair = Pair.create(pairId, collision, timestamp);
+                                    pairsTable[pairId] = pair;
+                                    pairsList.push(pair);
+                                } else if (!pair.isActive) {
+                                    // New collision was computed
+                                    pair.collision = collision;
+                                }
+
+                                Pair.update(pair, timestamp);
+
                                 // @if DEBUG
                                 metrics.narrowDetections += 1;
                                 // @endif
@@ -85,8 +97,6 @@ var Bounds = require('../geometry/Bounds');
                 }
             }
         }
-
-        return collisions;
     };
 
     /**
