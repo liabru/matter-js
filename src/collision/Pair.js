@@ -17,50 +17,32 @@ module.exports = Pair;
      * @param {number} timestamp
      * @return {pair} A new pair
      */
-    Pair.create = function(id, collision, timestamp) {
+    Pair.create = function(collision, timestamp) {
         var bodyA = collision.bodyA,
-            bodyB = collision.bodyB;
-
-        var pair = {
-            id: id,
-            bodyA: bodyA,
-            bodyB: bodyB,
-            activeContacts: [],
-            separation: 0,
-            isActive: true,
-            isSensor: bodyA.isSensor || bodyB.isSensor,
-            timeStarted: timestamp,
-            timeUpdated: 0,
-            collision: collision,
-            inverseMass: 0,
-            friction: 0,
-            frictionStatic: 0,
-            restitution: 0,
-            slop: 0
-        };
-
-        return pair;
-    };
-
-    /**
-     * Updates a pair given a collision.
-     * @method update
-     * @param {pair} pair
-     * @param {collision} collision
-     * @param {number} timestamp
-     */
-    Pair.update = function(pair, timestamp) {
-        var collision = pair.collision,
-            activeContacts = pair.activeContacts,
+            bodyB = collision.bodyB,
+            activeContacts = [],
             supports = collision.supports,
             parentA = collision.parentA,
             parentB = collision.parentB;
 
-        pair.inverseMass = parentA.inverseMass + parentB.inverseMass;
-        pair.friction = Math.min(parentA.friction, parentB.friction);
-        pair.frictionStatic = Math.max(parentA.frictionStatic, parentB.frictionStatic);
-        pair.restitution = Math.max(parentA.restitution, parentB.restitution);
-        pair.slop = Math.max(parentA.slop, parentB.slop);
+        var pair = {
+            id: bodyA.id * 1000000 + bodyB.id,
+            // idB: bodyB.id,
+            bodyA: bodyA,
+            bodyB: bodyB,
+            activeContacts: activeContacts,
+            separation: collision.depth,
+            isActive: true,
+            isSensor: bodyA.isSensor || bodyB.isSensor,
+            timeStarted: timestamp,
+            timeUpdated: timestamp,
+            collision: collision,
+            inverseMass: parentA.inverseMass + parentB.inverseMass,
+            friction: Math.min(parentA.friction, parentB.friction),
+            frictionStatic: Math.max(parentA.frictionStatic, parentB.frictionStatic),
+            restitution: Math.max(parentA.restitution, parentB.restitution),
+            slop: Math.max(parentA.slop, parentB.slop)
+        };
 
         for (var i = 0; i < supports.length; i++) {
             activeContacts[i] = supports[i].contact;
@@ -73,9 +55,7 @@ module.exports = Pair;
             activeContacts.length = supportCount;
         }
 
-        pair.separation = collision.depth;
-        pair.timeUpdated = timestamp;
-        pair.isActive = true;
+        return pair;
     };
 
     /**

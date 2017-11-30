@@ -23,76 +23,38 @@ var Vector = require('../geometry/Vector');
      * @param {collision} previousCollision
      * @return {collision} collision
      */
-    SAT.collides = function(bodyA, bodyB, previousCollision) {
+    SAT.collides = function(bodyA, bodyB) {
         var overlapAB,
             overlapBA, 
-            minOverlap,
-            collision,
-            canReusePrevCol = false;
+            minOverlap;
 
-        if (previousCollision) {
-            // estimate total motion
-            var parentA = bodyA.parent,
-                parentB = bodyB.parent,
-                motion = parentA.speed * parentA.speed + parentA.angularSpeed * parentA.angularSpeed
-                       + parentB.speed * parentB.speed + parentB.angularSpeed * parentB.angularSpeed;
+        overlapAB = _overlapAxes(bodyA.vertices, bodyB.vertices, bodyA.axes);
 
-            // we may be able to (partially) reuse collision result 
-            // but only safe if collision was resting
-            canReusePrevCol = previousCollision && previousCollision.collided && motion < 0.2;
-
-            // reuse collision object
-            collision = previousCollision;
-        } else {
-            collision = { collided: false, bodyA: bodyA, bodyB: bodyB };
+        if (overlapAB.overlap <= 0) {
+            return null;
         }
 
-        if (previousCollision && canReusePrevCol) {
-            // if we can reuse the collision result
-            // we only need to test the previously found axis
-            var axisBodyA = collision.axisBody,
-                axisBodyB = axisBodyA === bodyA ? bodyB : bodyA,
-                axes = [axisBodyA.axes[previousCollision.axisNumber]];
+        overlapBA = _overlapAxes(bodyB.vertices, bodyA.vertices, bodyB.axes);
 
-            minOverlap = _overlapAxes(axisBodyA.vertices, axisBodyB.vertices, axes);
-            collision.reused = true;
-
-            if (minOverlap.overlap <= 0) {
-                collision.collided = false;
-                return collision;
-            }
-        } else {
-            // if we can't reuse a result, perform a full SAT test
-
-            overlapAB = _overlapAxes(bodyA.vertices, bodyB.vertices, bodyA.axes);
-
-            if (overlapAB.overlap <= 0) {
-                collision.collided = false;
-                return collision;
-            }
-
-            overlapBA = _overlapAxes(bodyB.vertices, bodyA.vertices, bodyB.axes);
-
-            if (overlapBA.overlap <= 0) {
-                collision.collided = false;
-                return collision;
-            }
-
-            if (overlapAB.overlap < overlapBA.overlap) {
-                minOverlap = overlapAB;
-                collision.axisBody = bodyA;
-            } else {
-                minOverlap = overlapBA;
-                collision.axisBody = bodyB;
-            }
-
-            // important for reuse later
-            collision.axisNumber = minOverlap.axisNumber;
+        if (overlapBA.overlap <= 0) {
+            return null;
         }
+
+        var collision = {};
+
+        if (overlapAB.overlap < overlapBA.overlap) {
+            minOverlap = overlapAB;
+            collision.axisBody = bodyA;
+        } else {
+            minOverlap = overlapBA;
+            collision.axisBody = bodyB;
+        }
+
+        // important for reuse later
+        collision.axisNumber = minOverlap.axisNumber;
 
         collision.bodyA = bodyA.id < bodyB.id ? bodyA : bodyB;
         collision.bodyB = bodyA.id < bodyB.id ? bodyB : bodyA;
-        collision.collided = true;
         collision.depth = minOverlap.overlap;
         collision.parentA = collision.bodyA.parent;
         collision.parentB = collision.bodyB.parent;
@@ -115,9 +77,10 @@ var Vector = require('../geometry/Vector');
 
         collision.tangent = Vector.perp(collision.normal);
 
-        collision.penetration = collision.penetration || {};
-        collision.penetration.x = collision.normal.x * collision.depth;
-        collision.penetration.y = collision.normal.y * collision.depth; 
+        collision.penetration = {
+            x: collision.normal.x * collision.depth,
+            y: collision.normal.y * collision.depth
+        };
 
         // find support points, there is always either exactly one or two
         var verticesB = _findSupports(bodyA, bodyB, collision.normal),

@@ -29,6 +29,8 @@ var Bounds = require('../geometry/Bounds');
             pairsList = pairs.list,
             pairsTable = pairs.table;
 
+        // pairsList = [];
+
         // @if DEBUG
         var metrics = engine.metrics;
         // @endif
@@ -56,38 +58,18 @@ var Bounds = require('../geometry/Bounds');
                         var partB = bodyB.parts[k];
 
                         if ((partA === bodyA && partB === bodyB) || Bounds.overlaps(partA.bounds, partB.bounds)) {
-                            // find a previous collision we could reuse
-                            var pairId = Pair.id(partA, partB),
-                                pair = pairsTable[pairId],
-                                previousCollision;
-
-                            if (pair && pair.isActive) {
-                                previousCollision = pair.collision;
-                            } else {
-                                previousCollision = null;
-                            }
-
                             // narrow phase
-                            var collision = SAT.collides(partA, partB, previousCollision);
+                            var collision = SAT.collides(partA, partB);
 
-                            // @if DEBUG
-                            metrics.narrowphaseTests += 1;
-                            if (collision.reused)
-                                metrics.narrowReuseCount += 1;
-                            // @endif
+                            // // @if DEBUG
+                            // metrics.narrowphaseTests += 1;
+                            // if (collision.reused)
+                            //     metrics.narrowReuseCount += 1;
+                            // // @endif
 
-                            if (collision.collided) {
-                                if (!pair) {
-                                    pair = Pair.create(pairId, collision, timestamp);
-                                    pairsTable[pairId] = pair;
-                                    pairsList.push(pair);
-                                } else if (!pair.isActive) {
-                                    // New collision was computed
-                                    pair.timeStarted = timestamp;
-                                    pair.collision = collision;
-                                }
-
-                                Pair.update(pair, timestamp);
+                            if (collision) {
+                                pair = Pair.create(collision, timestamp);
+                                pairsList.push(pair);
 
                                 // @if DEBUG
                                 metrics.narrowDetections += 1;
