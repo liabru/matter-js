@@ -17,30 +17,27 @@ module.exports = Pair;
      * @param {number} timestamp
      * @return {pair} A new pair
      */
-    Pair.create = function(collision, timestamp) {
+    Pair.create = function(id, collision, timestamp) {
         var bodyA = collision.bodyA,
             bodyB = collision.bodyB;
 
         var pair = {
-            id: Pair.id(bodyA, bodyB),
+            id: id,
             bodyA: bodyA,
             bodyB: bodyB,
             activeContacts: [],
             separation: 0,
             isActive: true,
-            confirmedActive: true,
             isSensor: bodyA.isSensor || bodyB.isSensor,
             timeCreated: timestamp,
-            timeUpdated: timestamp,
-            collision: null,
+            timeUpdated: 0,
+            collision: collision,
             inverseMass: 0,
             friction: 0,
             frictionStatic: 0,
             restitution: 0,
             slop: 0
         };
-
-        Pair.update(pair, collision, timestamp);
 
         return pair;
     };
@@ -52,55 +49,33 @@ module.exports = Pair;
      * @param {collision} collision
      * @param {number} timestamp
      */
-    Pair.update = function(pair, collision, timestamp) {
-        pair.collision = collision;
+    Pair.update = function(pair, timestamp) {
+        var collision = pair.collision,
+            activeContacts = pair.activeContacts,
+            supports = collision.supports,
+            parentA = collision.parentA,
+            parentB = collision.parentB;
 
-        if (collision.collided) {
-            var supports = collision.supports,
-                activeContacts = pair.activeContacts,
-                parentA = collision.parentA,
-                parentB = collision.parentB;
+        pair.inverseMass = parentA.inverseMass + parentB.inverseMass;
+        pair.friction = Math.min(parentA.friction, parentB.friction);
+        pair.frictionStatic = Math.max(parentA.frictionStatic, parentB.frictionStatic);
+        pair.restitution = Math.max(parentA.restitution, parentB.restitution);
+        pair.slop = Math.max(parentA.slop, parentB.slop);
 
-            pair.inverseMass = parentA.inverseMass + parentB.inverseMass;
-            pair.friction = Math.min(parentA.friction, parentB.friction);
-            pair.frictionStatic = Math.max(parentA.frictionStatic, parentB.frictionStatic);
-            pair.restitution = Math.max(parentA.restitution, parentB.restitution);
-            pair.slop = Math.max(parentA.slop, parentB.slop);
-
-            for (var i = 0; i < supports.length; i++) {
-                activeContacts[i] = supports[i].contact;
-            }
-
-            // Optimizing out resizing of the array
-            // Most likely unnecessary
-            var supportCount = supports.length;
-            if (supportCount < activeContacts.length) {
-                activeContacts.length = supportCount;
-            }
-
-            pair.separation = collision.depth;
-            Pair.setActive(pair, true, timestamp);
-        } else {
-            if (pair.isActive === true)
-                Pair.setActive(pair, false, timestamp);
+        for (var i = 0; i < supports.length; i++) {
+            activeContacts[i] = supports[i].contact;
         }
-    };
-    
-    /**
-     * Set a pair as active or inactive.
-     * @method setActive
-     * @param {pair} pair
-     * @param {bool} isActive
-     * @param {number} timestamp
-     */
-    Pair.setActive = function(pair, isActive, timestamp) {
-        if (isActive) {
-            pair.isActive = true;
-            pair.timeUpdated = timestamp;
-        } else {
-            pair.isActive = false;
-            pair.activeContacts.length = 0;
+
+        // Optimizing out resizing of the array
+        // Most likely unnecessary
+        var supportCount = supports.length;
+        if (supportCount < activeContacts.length) {
+            activeContacts.length = supportCount;
         }
+
+        pair.separation = collision.depth;
+        pair.timeUpdated = timestamp;
+        pair.isActive = true;
     };
 
     /**
