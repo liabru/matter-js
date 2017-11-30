@@ -29,7 +29,7 @@ module.exports = Pair;
             separation: 0,
             isActive: true,
             isSensor: bodyA.isSensor || bodyB.isSensor,
-            timeCreated: timestamp,
+            timeStarted: timestamp,
             timeUpdated: 0,
             collision: collision,
             inverseMass: 0,

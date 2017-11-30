@@ -61,7 +61,7 @@ var Common = require('../core/Common');
             timeUpdated = pair.timeUpdated;
             if (timeUpdated === timestamp) {
                 // collision active or started
-                if (pair.timeCreated === timestamp) {
+                if (pair.timeStarted === timestamp) {
                     collisionStart.push(pair);
                 } else {
                     collisionActive.push(pair);

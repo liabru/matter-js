@@ -32,7 +32,7 @@ var Bounds = require('../geometry/Bounds');
         // @if DEBUG
         var metrics = engine.metrics;
         // @endif
-        
+
         for (var i = 0; i < broadphasePairs.length; i++) {
             var bodyA = broadphasePairs[i][0], 
                 bodyB = broadphasePairs[i][1];
@@ -83,6 +83,7 @@ var Bounds = require('../geometry/Bounds');
                                     pairsList.push(pair);
                                 } else if (!pair.isActive) {
                                     // New collision was computed
+                                    pair.timeStarted = timestamp;
                                     pair.collision = collision;
                                 }
 
