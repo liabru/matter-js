@@ -26,7 +26,8 @@ var Bounds = require('../geometry/Bounds');
      */
     Detector.collisions = function(broadphasePairs, engine) {
         var pairs = engine.pairs,
-            pairsList = [],
+            oldPairs = pairs.list,
+            newPairs = [],
             collisionStart = [],            
             collisionActive = [],           
             collisionEnd = [];
@@ -58,6 +59,9 @@ var Bounds = require('../geometry/Bounds');
                         var partB = bodyB.parts[k];
 
                         if ((partA === bodyA && partB === bodyB) || Bounds.overlaps(partA.bounds, partB.bounds)) {
+                            // TODO: check old pairs to determine which ones can be reused
+                            // oldPairs
+
                             // narrow phase
                             var collision = SAT.collides(partA, partB);
 
@@ -69,7 +73,7 @@ var Bounds = require('../geometry/Bounds');
 
                             if (collision) {
                                 pair = Pair.create(collision);
-                                pairsList.push(pair);
+                                newPairs.push(pair);
 
                                 // @if DEBUG
                                 metrics.narrowDetections += 1;
@@ -80,7 +84,8 @@ var Bounds = require('../geometry/Bounds');
                 }
             }
         }
-        pairs.list = pairsList;
+
+        pairs.list = newPairs;
         pairs.collisionStart = collisionStart;
         pairs.collisionActive = collisionActive;
         pairs.collisionEnd = collisionEnd;

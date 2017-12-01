@@ -71,6 +71,10 @@ var Common = require('../core/Common');
         metrics.broadphaseTests = 0;
         // @endif
 
+        // bodies.sort(function (bodyA, bodyB) {
+        //     return bodyA.id - bodyB.id;
+        // });
+
         for (i = 0; i < bodies.length; i++) {
             var body = bodies[i];
 
@@ -111,10 +115,8 @@ var Common = require('../core/Common');
 
                         // remove from old region buckets
                         if (!isInsideNewRegion && isInsideOldRegion) {
-                            if (isInsideOldRegion) {
-                                if (bucket)
-                                    _bucketRemoveBody(grid, bucket, body);
-                            }
+                            if (bucket)
+                                _bucketRemoveBody(grid, bucket, body);
                         }
 
                         // add to new region buckets
