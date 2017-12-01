@@ -17,7 +17,7 @@ module.exports = Pair;
      * @param {number} timestamp
      * @return {pair} A new pair
      */
-    Pair.create = function(collision, timestamp) {
+    Pair.create = function(collision) {
         var bodyA = collision.bodyA,
             bodyB = collision.bodyB,
             activeContacts = [],
@@ -25,17 +25,17 @@ module.exports = Pair;
             parentA = collision.parentA,
             parentB = collision.parentB;
 
+        for (var i = 0; i < supports.length; i++) {
+            activeContacts[i] = supports[i].contact;
+        }
+
         var pair = {
-            id: bodyA.id * 1000000 + bodyB.id,
-            // idB: bodyB.id,
             bodyA: bodyA,
             bodyB: bodyB,
             activeContacts: activeContacts,
             separation: collision.depth,
             isActive: true,
             isSensor: bodyA.isSensor || bodyB.isSensor,
-            timeStarted: timestamp,
-            timeUpdated: timestamp,
             collision: collision,
             inverseMass: parentA.inverseMass + parentB.inverseMass,
             friction: Math.min(parentA.friction, parentB.friction),
@@ -43,17 +43,6 @@ module.exports = Pair;
             restitution: Math.max(parentA.restitution, parentB.restitution),
             slop: Math.max(parentA.slop, parentB.slop)
         };
-
-        for (var i = 0; i < supports.length; i++) {
-            activeContacts[i] = supports[i].contact;
-        }
-
-        // Optimizing out resizing of the array
-        // Most likely unnecessary
-        var supportCount = supports.length;
-        if (supportCount < activeContacts.length) {
-            activeContacts.length = supportCount;
-        }
 
         return pair;
     };

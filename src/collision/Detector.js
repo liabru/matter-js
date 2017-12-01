@@ -24,12 +24,12 @@ var Bounds = require('../geometry/Bounds');
      * @param {engine} engine
      * @return {array} collisions
      */
-    Detector.collisions = function(broadphasePairs, engine, timestamp) {
+    Detector.collisions = function(broadphasePairs, engine) {
         var pairs = engine.pairs,
-            pairsList = pairs.list,
-            pairsTable = pairs.table;
-
-        // pairsList = [];
+            pairsList = [],
+            collisionStart = [],            
+            collisionActive = [],           
+            collisionEnd = [];
 
         // @if DEBUG
         var metrics = engine.metrics;
@@ -68,7 +68,7 @@ var Bounds = require('../geometry/Bounds');
                             // // @endif
 
                             if (collision) {
-                                pair = Pair.create(collision, timestamp);
+                                pair = Pair.create(collision);
                                 pairsList.push(pair);
 
                                 // @if DEBUG
@@ -80,6 +80,10 @@ var Bounds = require('../geometry/Bounds');
                 }
             }
         }
+        pairs.list = pairsList;
+        pairs.collisionStart = collisionStart;
+        pairs.collisionActive = collisionActive;
+        pairs.collisionEnd = collisionEnd;
     };
 
     /**

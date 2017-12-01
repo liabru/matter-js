@@ -176,12 +176,11 @@ var Body = require('../body/Body');
         }
 
         // narrowphase pass: find actual collisions, then create or update collision pairs
-        var timestamp = timing.timestamp;
-        broadphase.detector(broadphasePairs, engine, timestamp);
+        // var timestamp = timing.timestamp;
+        broadphase.detector(broadphasePairs, engine);
 
         // update collision pairs
         var pairs = engine.pairs;
-        Pairs.update(pairs, timestamp);
 
         // wake up bodies involved in collisions
         if (engine.enableSleeping)
