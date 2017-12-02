@@ -71,9 +71,12 @@ var Common = require('../core/Common');
         metrics.broadphaseTests = 0;
         // @endif
 
-        // bodies.sort(function (bodyA, bodyB) {
-        //     return bodyA.id - bodyB.id;
-        // });
+        var pairsList = [];
+
+        // TODO: maintain a list of bodies sorted by id
+        bodies.sort(function (bodyA, bodyB) {
+            return bodyA.id - bodyB.id;
+        });
 
         for (i = 0; i < bodies.length; i++) {
             var body = bodies[i];
@@ -134,11 +137,13 @@ var Common = require('../core/Common');
                 // flag changes so we can update pairs
                 gridChanged = true;
             }
+
+            var pairs = body.pairs;
+            for (var p = 0; p < pairs.length; p += 1)
+                pairsList.push(pairs[p]);
         }
 
-        // update pairs list only if pairs changed (i.e. a body changed region)
-        if (gridChanged)
-            grid.pairsList = _createActivePairsList(grid);
+        grid.pairsList = pairsList;
     };
 
     /**
@@ -242,6 +247,8 @@ var Common = require('../core/Common');
      */
     var _bucketAddBody = function(grid, bucket, body) {
         // add new pairs
+
+        var bodyA;
         for (var i = 0; i < bucket.length; i++) {
             var bodyB = bucket[i];
 
@@ -250,14 +257,28 @@ var Common = require('../core/Common');
 
             // keep track of the number of buckets the pair exists in
             // important for Grid.update to work
-            var pairId = Pair.id(body, bodyB),
-                pair = grid.pairs[pairId];
-
-            if (pair) {
-                pair[2] += 1;
+            if (body.id < bodyB.id) {
+                bodyA = body
             } else {
-                grid.pairs[pairId] = [body, bodyB, 1];
+                bodyA = bodyB;
+                bodyB = body;
             }
+
+            // TODO: work with linked list for improved performance?
+            var pairs = bodyA.pairs;
+            for (var p = 0; p < pairs.length; p += 1) {
+                var pair = pairs[p];
+                if (pair[1] === bodyB) {
+                    pair[2] += 1;
+                    break;
+                } else if (pair[1].id > bodyB.id) {
+                    pairs.splice(p, 0, [bodyA, bodyB, 1]);
+                    break;
+                }
+            }
+
+            if (p === pairs.length)
+                pairs.push([bodyA, bodyB, 1]);
         }
 
         // add to bodies (after pairs, otherwise pairs with self)
@@ -277,47 +298,31 @@ var Common = require('../core/Common');
         bucket.splice(Common.indexOf(bucket, body), 1);
 
         // update pair counts
+        var bodyA;
         for (var i = 0; i < bucket.length; i++) {
             // keep track of the number of buckets the pair exists in
-            // important for _createActivePairsList to work
-            var bodyB = bucket[i],
-                pairId = Pair.id(body, bodyB),
-                pair = grid.pairs[pairId];
-
-            if (pair)
-                pair[2] -= 1;
-        }
-    };
-
-    /**
-     * Generates a list of the active pairs in the grid.
-     * @method _createActivePairsList
-     * @private
-     * @param {} grid
-     * @return [] pairs
-     */
-    var _createActivePairsList = function(grid) {
-        var pairKeys,
-            pair,
-            pairs = [];
-
-        // grid.pairs is used as a hashmap
-        pairKeys = Common.keys(grid.pairs);
-
-        // iterate over grid.pairs
-        for (var k = 0; k < pairKeys.length; k++) {
-            pair = grid.pairs[pairKeys[k]];
-
-            // if pair exists in at least one bucket
-            // it is a pair that needs further collision testing so push it
-            if (pair[2] > 0) {
-                pairs.push(pair);
+            // important for Grid.update to work
+            var bodyB = bucket[i];
+            if (body.id < bodyB.id) {
+                bodyA = body
             } else {
-                delete grid.pairs[pairKeys[k]];
+                bodyA = bodyB;
+                bodyB = body;
+            }
+
+            var pairs = bodyA.pairs;
+            for (var p = 0; p < pairs.length; p += 1) {
+                var pair = pairs[p];
+                if (pair[1] === bodyB) {
+                    if (pair[2] === 1) {
+                        pairs.splice(p, 1);
+                    } else {
+                        pair[2] -= 1;
+                    }
+                    break;
+                }
             }
         }
-
-        return pairs;
     };
     
 })();
