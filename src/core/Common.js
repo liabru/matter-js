@@ -360,6 +360,7 @@ module.exports = Common;
      * @return {Number} Unique sequential ID
      */
     Common.nextId = function() {
+        // return Math.floor(Math.random() * 1000);
         return Common._nextId++;
     };
 

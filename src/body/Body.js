@@ -94,6 +94,7 @@ var Axes = require('../geometry/Axes');
             positionPrev: null,
             anglePrev: 0,
             parent: null,
+            composite: null,
 
             axes: null,
             area: 0,

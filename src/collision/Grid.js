@@ -73,11 +73,6 @@ var Common = require('../core/Common');
 
         var pairsList = [];
 
-        // TODO: maintain a list of bodies sorted by id
-        bodies.sort(function (bodyA, bodyB) {
-            return bodyA.id - bodyB.id;
-        });
-
         for (i = 0; i < bodies.length; i++) {
             var body = bodies[i];
 
@@ -92,7 +87,14 @@ var Common = require('../core/Common');
             var newRegion = _getRegion(grid, body);
 
             // if the body has changed grid region
-            if (!body.region || newRegion.id !== body.region.id || forceUpdate) {
+            if (
+                !body.region ||
+                newRegion.startCol !== body.region.startCol ||
+                newRegion.endCol !== body.region.endCol ||
+                newRegion.startRow !== body.region.startRow ||
+                newRegion.endRow !== body.region.endRow ||
+                forceUpdate
+            ) {
 
                 // @if DEBUG
                 metrics.broadphaseTests += 1;
@@ -204,7 +206,7 @@ var Common = require('../core/Common');
      */
     var _createRegion = function(startCol, endCol, startRow, endRow) {
         return { 
-            id: startCol + ',' + endCol + ',' + startRow + ',' + endRow,
+            // id: startCol + ',' + endCol + ',' + startRow + ',' + endRow,
             startCol: startCol, 
             endCol: endCol, 
             startRow: startRow, 

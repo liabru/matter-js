@@ -34,16 +34,27 @@ var dummyPair = { idA: 1 << 30, idB: (1 << 30) + 1 };
             collisionActive,
             collisionEnd;
 
-        var hasCollisionEvent = engine.hasCollisionEvent;
+        // @if DEBUG
+        var metrics = engine.metrics;
+        // @endif
+
+        var engineEvents = engine.events;
+        var hasCollisionEvent = !!(
+            engineEvents.collisionStart ||
+            engineEvents.collisionActive ||
+            engineEvents.collisionEnd
+        );
+
         if (hasCollisionEvent) {
             collisionStart = [];
             collisionActive = [];
             collisionEnd = [];
+            pairs.collisionStart = collisionStart;
+            pairs.collisionActive = collisionActive;
+            pairs.collisionEnd = collisionEnd;
         }
 
-        // @if DEBUG
-        var metrics = engine.metrics;
-        // @endif
+        pairs.list = newPairs;
 
         var pairIndex = 1;
         oldPairs.push(dummyPair);
@@ -113,14 +124,6 @@ var dummyPair = { idA: 1 << 30, idB: (1 << 30) + 1 };
                     }
                 }
             }
-        }
-
-        pairs.list = newPairs;
-
-        if (hasCollisionEvent) {
-            pairs.collisionStart = collisionStart;
-            pairs.collisionActive = collisionActive;
-            pairs.collisionEnd = collisionEnd;
         }
     };
 

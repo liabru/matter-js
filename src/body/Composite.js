@@ -32,9 +32,10 @@ var Body = require('./Body');
             type: 'composite',
             parent: null,
             isModified: false,
-            bodies: [], 
-            constraints: [], 
+            bodies: [],
+            constraints: [],
             composites: [],
+            allBodies: [],
             label: 'Composite',
             plugin: {}
         }, options);
@@ -163,7 +164,32 @@ var Body = require('./Body');
         compositeA.composites.push(compositeB);
         compositeB.parent = compositeA;
         Composite.setModified(compositeA, true, true, false);
+        Composite.addBodies(compositeA, compositeB.allBodies);
         return compositeA;
+    };
+
+    Composite.addBodies = function (composite, bodies) {
+        Array.prototype.push.apply(composite.allBodies, bodies);
+        composite.allBodies.sort(function (bodyA, bodyB) {
+            return bodyA.id - bodyB.id;
+        });
+
+        if (composite.parent && composite.parent.type === 'composite') {
+            composite.parent.addBodies(composite.parent, bodies);
+        }
+    };
+
+    Composite.removeBodies = function (composite, bodies) {
+        var allBodies = composite.allBodies;
+        for (var i = 0; i < bodies.length; i += 1) {
+            var position = allBodies.indexOf(bodies[i]);
+            if (position !== -1)
+                allBodies.splice(position, 1);
+        }
+
+        if (composite.parent && composite.parent.type === 'composite') {
+            composite.parent.removeBodies(composite.parent, bodies);
+        }
     };
 
     /**
@@ -178,8 +204,9 @@ var Body = require('./Body');
     Composite.removeComposite = function(compositeA, compositeB, deep) {
         var position = Common.indexOf(compositeA.composites, compositeB);
         if (position !== -1) {
-            Composite.removeCompositeAt(compositeA, position);
+            compositeA.composites.splice(position, 1);
             Composite.setModified(compositeA, true, true, false);
+            Composite.removeBodies(compositeA, compositeB.allBodies);
         }
 
         if (deep) {
@@ -189,20 +216,6 @@ var Body = require('./Body');
         }
 
         return compositeA;
-    };
-
-    /**
-     * Removes a composite from the given composite.
-     * @private
-     * @method removeCompositeAt
-     * @param {composite} composite
-     * @param {number} position
-     * @return {composite} The original composite with the composite removed
-     */
-    Composite.removeCompositeAt = function(composite, position) {
-        composite.composites.splice(position, 1);
-        Composite.setModified(composite, true, true, false);
-        return composite;
     };
 
     /**
@@ -216,8 +229,10 @@ var Body = require('./Body');
     Composite.addBody = function(composite, body) {
         composite.bodies.push(body);
         Composite.setModified(composite, true, true, false);
+        Composite.addBodies(composite, [body]);
         return composite;
     };
+// console.error('addBody', composite, composite.allBodies.length, composite.parent)
 
     /**
      * Removes a body from the given composite, and optionally searching its children recursively.
@@ -231,8 +246,9 @@ var Body = require('./Body');
     Composite.removeBody = function(composite, body, deep) {
         var position = Common.indexOf(composite.bodies, body);
         if (position !== -1) {
-            Composite.removeBodyAt(composite, position);
+            composite.bodies.splice(position, 1);
             Composite.setModified(composite, true, true, false);
+            Composite.removeBodies(composite, [body]);
         }
 
         if (deep) {
@@ -241,20 +257,6 @@ var Body = require('./Body');
             }
         }
 
-        return composite;
-    };
-
-    /**
-     * Removes a body from the given composite.
-     * @private
-     * @method removeBodyAt
-     * @param {composite} composite
-     * @param {number} position
-     * @return {composite} The original composite with the body removed
-     */
-    Composite.removeBodyAt = function(composite, position) {
-        composite.bodies.splice(position, 1);
-        Composite.setModified(composite, true, true, false);
         return composite;
     };
 
@@ -345,12 +347,13 @@ var Body = require('./Body');
      * @return {body[]} All the bodies
      */
     Composite.allBodies = function(composite) {
-        var bodies = [].concat(composite.bodies);
+        return composite.allBodies;
+        // var bodies = [].concat(composite.bodies);
 
-        for (var i = 0; i < composite.composites.length; i++)
-            bodies = bodies.concat(Composite.allBodies(composite.composites[i]));
+        // for (var i = 0; i < composite.composites.length; i++)
+        //     bodies = bodies.concat(Composite.allBodies(composite.composites[i]));
 
-        return bodies;
+        // return bodies;
     };
 
     /**
