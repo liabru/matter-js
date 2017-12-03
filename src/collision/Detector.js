@@ -34,7 +34,7 @@ var dummyPair = { idA: 1 << 30, idB: (1 << 30) + 1 };
             collisionActive,
             collisionEnd;
 
-        var hasCollisionEvent = engine.hasCollisionEvent || true;
+        var hasCollisionEvent = engine.hasCollisionEvent;
         if (hasCollisionEvent) {
             collisionStart = [];
             collisionActive = [];
