@@ -30,11 +30,12 @@ module.exports = Pair;
         }
 
         var pair = {
+            idA: bodyA.id,
+            idB: bodyB.id,
             bodyA: bodyA,
             bodyB: bodyB,
             activeContacts: activeContacts,
             separation: collision.depth,
-            isActive: true,
             isSensor: bodyA.isSensor || bodyB.isSensor,
             collision: collision,
             inverseMass: parentA.inverseMass + parentB.inverseMass,

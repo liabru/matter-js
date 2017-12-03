@@ -35,9 +35,6 @@ var Bounds = require('../geometry/Bounds');
         for (i = 0; i < pairs.length; i++) {
             pair = pairs[i];
             
-            if (!pair.isActive)
-                continue;
-            
             activeCount = pair.activeContacts.length;
             pair.collision.parentA.totalContacts += activeCount;
             pair.collision.parentB.totalContacts += activeCount;
@@ -80,7 +77,7 @@ var Bounds = require('../geometry/Bounds');
         for (i = 0; i < pairs.length; i++) {
             pair = pairs[i];
             
-            if (!pair.isActive || pair.isSensor)
+            if (pair.isSensor)
                 continue;
 
             collision = pair.collision;
@@ -189,7 +186,7 @@ var Bounds = require('../geometry/Bounds');
         for (i = 0; i < pairs.length; i++) {
             pair = pairs[i];
             
-            if (!pair.isActive || pair.isSensor)
+            if (pair.isSensor)
                 continue;
             
             contacts = pair.activeContacts;
@@ -245,7 +242,7 @@ var Bounds = require('../geometry/Bounds');
         for (var i = 0; i < pairs.length; i++) {
             var pair = pairs[i];
             
-            if (!pair.isActive || pair.isSensor)
+            if (pair.isSensor)
                 continue;
             
             var collision = pair.collision,

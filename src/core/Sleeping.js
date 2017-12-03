@@ -65,10 +65,6 @@ var Events = require('./Events');
         // wake up bodies involved in collisions
         for (var i = 0; i < pairs.length; i++) {
             var pair = pairs[i];
-            
-            // don't wake inactive pairs
-            if (!pair.isActive)
-                continue;
 
             var collision = pair.collision,
                 bodyA = collision.bodyA.parent, 

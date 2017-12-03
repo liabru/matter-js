@@ -1075,9 +1075,6 @@ var Mouse = require('../core/Mouse');
         for (i = 0; i < pairs.length; i++) {
             pair = pairs[i];
 
-            if (!pair.isActive)
-                continue;
-
             collision = pair.collision;
             for (j = 0; j < pair.activeContacts.length; j++) {
                 var contact = pair.activeContacts[j],
@@ -1098,10 +1095,6 @@ var Mouse = require('../core/Mouse');
         // render collision normals
         for (i = 0; i < pairs.length; i++) {
             pair = pairs[i];
-
-            if (!pair.isActive)
-                continue;
-
             collision = pair.collision;
 
             if (pair.activeContacts.length > 0) {
@@ -1157,9 +1150,6 @@ var Mouse = require('../core/Mouse');
         // render separations
         for (i = 0; i < pairs.length; i++) {
             pair = pairs[i];
-
-            if (!pair.isActive)
-                continue;
 
             collision = pair.collision;
             bodyA = collision.bodyA;

@@ -50,12 +50,14 @@ var Vector = require('../geometry/Vector');
             collision.axisBody = bodyB;
         }
 
+        var depth = minOverlap.overlap;
+
         // important for reuse later
         collision.axisNumber = minOverlap.axisNumber;
 
         collision.bodyA = bodyA.id < bodyB.id ? bodyA : bodyB;
         collision.bodyB = bodyA.id < bodyB.id ? bodyB : bodyA;
-        collision.depth = minOverlap.overlap;
+        collision.depth = depth;
         collision.parentA = collision.bodyA.parent;
         collision.parentB = collision.bodyB.parent;
         
@@ -63,27 +65,36 @@ var Vector = require('../geometry/Vector');
         bodyB = collision.bodyB;
 
         // ensure normal is facing away from bodyA
-        if (Vector.dot(minOverlap.axis, Vector.sub(bodyB.position, bodyA.position)) < 0) {
-            collision.normal = {
-                x: minOverlap.axis.x,
-                y: minOverlap.axis.y
+        var normal;
+        var positionA = bodyA.position;
+        var positionB = bodyB.position;
+        var axis = minOverlap.axis;
+        if (axis.x * (positionB.x - positionA.x) + axis.y * (positionB.y - positionA.y) < 0) {
+            normal = {
+                x: axis.x,
+                y: axis.y
             };
         } else {
-            collision.normal = {
-                x: -minOverlap.axis.x,
-                y: -minOverlap.axis.y
+            normal = {
+                x: -axis.x,
+                y: -axis.y
             };
         }
 
-        collision.tangent = Vector.perp(collision.normal);
+        collision.normal = normal;
+
+        collision.tangent = {
+            x: -normal.y,
+            y: normal.x
+        };
 
         collision.penetration = {
-            x: collision.normal.x * collision.depth,
-            y: collision.normal.y * collision.depth
+            x: normal.x * depth,
+            y: normal.y * depth
         };
 
         // find support points, there is always either exactly one or two
-        var verticesB = _findSupports(bodyA, bodyB, collision.normal),
+        var verticesB = _findSupports(bodyA, bodyB, normal),
             supports = [];
 
         // find the supports from bodyB that are inside bodyA
@@ -95,7 +106,7 @@ var Vector = require('../geometry/Vector');
 
         // find the supports from bodyA that are inside bodyB
         if (supports.length < 2) {
-            var verticesA = _findSupports(bodyB, bodyA, Vector.neg(collision.normal));
+            var verticesA = _findSupports(bodyB, bodyA, Vector.neg(normal));
                 
             if (Vertices.contains(bodyB.vertices, verticesA[0]))
                 supports.push(verticesA[0]);
@@ -189,9 +200,12 @@ var Vector = require('../geometry/Vector');
      */
     var _findSupports = function(bodyA, bodyB, normal) {
         var nearestDistance = Number.MAX_VALUE,
-            vertexToBody = Vector._temp[0],
+            vertexToBodyX,
+            vertexToBodyY,
             vertices = bodyB.vertices,
             bodyAPosition = bodyA.position,
+            bodyAPositionX = bodyAPosition.x,
+            bodyAPositionY = bodyAPosition.y,
             distance,
             vertex,
             vertexA,
@@ -200,9 +214,9 @@ var Vector = require('../geometry/Vector');
         // find closest vertex on bodyB
         for (var i = 0; i < vertices.length; i++) {
             vertex = vertices[i];
-            vertexToBody.x = vertex.x - bodyAPosition.x;
-            vertexToBody.y = vertex.y - bodyAPosition.y;
-            distance = -Vector.dot(normal, vertexToBody);
+            vertexToBodyX = vertex.x - bodyAPositionX;
+            vertexToBodyY = vertex.y - bodyAPositionY;
+            distance = -(normal.x * vertexToBodyX + normal.y * vertexToBodyY);
 
             if (distance < nearestDistance) {
                 nearestDistance = distance;
@@ -213,16 +227,16 @@ var Vector = require('../geometry/Vector');
         // find next closest vertex using the two connected to it
         var prevIndex = vertexA.index - 1 >= 0 ? vertexA.index - 1 : vertices.length - 1;
         vertex = vertices[prevIndex];
-        vertexToBody.x = vertex.x - bodyAPosition.x;
-        vertexToBody.y = vertex.y - bodyAPosition.y;
-        nearestDistance = -Vector.dot(normal, vertexToBody);
+        vertexToBodyX = vertex.x - bodyAPositionX;
+        vertexToBodyY = vertex.y - bodyAPositionY;
+        nearestDistance = -(normal.x * vertexToBodyX + normal.y * vertexToBodyY);
         vertexB = vertex;
 
         var nextIndex = (vertexA.index + 1) % vertices.length;
         vertex = vertices[nextIndex];
-        vertexToBody.x = vertex.x - bodyAPosition.x;
-        vertexToBody.y = vertex.y - bodyAPosition.y;
-        distance = -Vector.dot(normal, vertexToBody);
+        vertexToBodyX = vertex.x - bodyAPositionX;
+        vertexToBodyY = vertex.y - bodyAPositionY;
+        distance = -(normal.x * vertexToBodyX + normal.y * vertexToBodyY);
         if (distance < nearestDistance) {
             vertexB = vertex;
         }
