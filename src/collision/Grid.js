@@ -76,68 +76,70 @@ var Common = require('../core/Common');
         for (i = 0; i < bodies.length; i++) {
             var body = bodies[i];
 
-            if (body.isSleeping && !forceUpdate)
-                continue;
+            if (!body.isSleeping || forceUpdate) {
 
-            // don't update out of world bodies
-            if (body.bounds.max.x < world.bounds.min.x || body.bounds.min.x > world.bounds.max.x
-                || body.bounds.max.y < world.bounds.min.y || body.bounds.min.y > world.bounds.max.y)
-                continue;
+                // don't update out of world bodies
+                var bounds = body.bounds;
+                if (bounds.max.x < world.bounds.min.x || bounds.min.x > world.bounds.max.x
+                    || bounds.max.y < world.bounds.min.y || bounds.min.y > world.bounds.max.y)
+                    continue;
 
-            var newRegion = _getRegion(grid, body);
+                var newRegion = _getRegion(grid, bounds);
+                var oldRegion = body.region;
 
-            // if the body has changed grid region
-            if (
-                !body.region ||
-                newRegion.startCol !== body.region.startCol ||
-                newRegion.endCol !== body.region.endCol ||
-                newRegion.startRow !== body.region.startRow ||
-                newRegion.endRow !== body.region.endRow ||
-                forceUpdate
-            ) {
+                // if the body has changed grid region
+                if (
+                    !oldRegion ||
+                    newRegion.startCol !== oldRegion.startCol ||
+                    newRegion.endCol !== oldRegion.endCol ||
+                    newRegion.startRow !== oldRegion.startRow ||
+                    newRegion.endRow !== oldRegion.endRow ||
+                    forceUpdate
+                ) {
 
-                // @if DEBUG
-                metrics.broadphaseTests += 1;
-                // @endif
+                    // @if DEBUG
+                    metrics.broadphaseTests += 1;
+                    // @endif
 
-                if (!body.region || forceUpdate)
-                    body.region = newRegion;
+                    if (!oldRegion || forceUpdate)
+                        oldRegion = newRegion;
 
-                var union = _regionUnion(newRegion, body.region);
+                    var union = _regionUnion(newRegion, oldRegion);
 
-                // update grid buckets affected by region change
-                // iterate over the union of both regions
-                for (col = union.startCol; col <= union.endCol; col++) {
-                    for (row = union.startRow; row <= union.endRow; row++) {
-                        bucketId = _getBucketId(col, row);
-                        bucket = buckets[bucketId];
+                    // update grid buckets affected by region change
+                    // iterate over the union of both regions
+                    for (col = union.startCol; col <= union.endCol; col++) {
+                        for (row = union.startRow; row <= union.endRow; row++) {
+                            bucketId = _getBucketId(col, row);
+                            bucket = buckets[bucketId];
 
-                        var isInsideNewRegion = (col >= newRegion.startCol && col <= newRegion.endCol
-                                                && row >= newRegion.startRow && row <= newRegion.endRow);
+                            var isInsideNewRegion = (col >= newRegion.startCol && col <= newRegion.endCol
+                                                    && row >= newRegion.startRow && row <= newRegion.endRow);
 
-                        var isInsideOldRegion = (col >= body.region.startCol && col <= body.region.endCol
-                                                && row >= body.region.startRow && row <= body.region.endRow);
+                            var isInsideOldRegion = (col >= oldRegion.startCol && col <= oldRegion.endCol
+                                                    && row >= oldRegion.startRow && row <= oldRegion.endRow);
 
-                        // remove from old region buckets
-                        if (!isInsideNewRegion && isInsideOldRegion) {
-                            if (bucket)
-                                _bucketRemoveBody(grid, bucket, body);
-                        }
+                            // remove from old region buckets
+                            if (!isInsideNewRegion && isInsideOldRegion) {
+                                if (bucket)
+                                    _bucketRemoveBody(grid, bucket, body);
+                            }
 
-                        // add to new region buckets
-                        if (body.region === newRegion || (isInsideNewRegion && !isInsideOldRegion) || forceUpdate) {
-                            if (!bucket)
-                                bucket = _createBucket(buckets, bucketId);
-                            _bucketAddBody(grid, bucket, body);
+                            // add to new region buckets
+                            if (oldRegion === newRegion || (isInsideNewRegion && !isInsideOldRegion) || forceUpdate) {
+                                if (!bucket)
+                                    bucket = _createBucket(buckets, bucketId);
+                                _bucketAddBody(grid, bucket, body);
+                            }
                         }
                     }
+
+                    // set the new region
+                    body.region = newRegion;
+
+                    // flag changes so we can update pairs
+                    gridChanged = true;
                 }
-
-                // set the new region
-                body.region = newRegion;
-
-                // flag changes so we can update pairs
-                gridChanged = true;
             }
 
             var pairs = body.pairs;
@@ -184,9 +186,8 @@ var Common = require('../core/Common');
      * @param {} body
      * @return {} region
      */
-    var _getRegion = function(grid, body) {
-        var bounds = body.bounds,
-            startCol = Math.floor(bounds.min.x / grid.bucketWidth),
+    var _getRegion = function(grid, bounds) {
+        var startCol = Math.floor(bounds.min.x / grid.bucketWidth),
             endCol = Math.floor(bounds.max.x / grid.bucketWidth),
             startRow = Math.floor(bounds.min.y / grid.bucketHeight),
             endRow = Math.floor(bounds.max.y / grid.bucketHeight);
@@ -206,7 +207,6 @@ var Common = require('../core/Common');
      */
     var _createRegion = function(startCol, endCol, startRow, endRow) {
         return { 
-            // id: startCol + ',' + endCol + ',' + startRow + ',' + endRow,
             startCol: startCol, 
             endCol: endCol, 
             startRow: startRow, 
