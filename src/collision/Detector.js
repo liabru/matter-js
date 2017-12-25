@@ -13,6 +13,7 @@ module.exports = Detector;
 var SAT = require('./SAT');
 var Pair = require('./Pair');
 var Pairs = require('./Pairs');
+var Sleeping = require('../core/Sleeping');
 var Bounds = require('../geometry/Bounds');
 
 var dummyPair = { idA: 1 << 30, idB: (1 << 30) + 1 };
@@ -84,6 +85,7 @@ var dummyPair = { idA: 1 << 30, idB: (1 << 30) + 1 };
                         if ((partA === bodyA && partB === bodyB) || Bounds.overlaps(partA.bounds, partB.bounds)) {
                             // narrow phase
                             var collision = SAT.collides(partA, partB);
+
                             // @if DEBUG
                             metrics.narrowphaseTests += 1;
                             // @endif
@@ -114,8 +116,6 @@ var dummyPair = { idA: 1 << 30, idB: (1 << 30) + 1 };
 
                                 // @if DEBUG
                                 metrics.narrowDetections += 1;
-                                if (collision.reused)
-                                    metrics.narrowReuseCount += 1;
                                 // @endif
                             }
                         }

@@ -260,7 +260,7 @@ var Common = require('../core/Common');
             // keep track of the number of buckets the pair exists in
             // important for Grid.update to work
             if (body.id < bodyB.id) {
-                bodyA = body
+                bodyA = body;
             } else {
                 bodyA = bodyB;
                 bodyB = body;
@@ -306,7 +306,7 @@ var Common = require('../core/Common');
             // important for Grid.update to work
             var bodyB = bucket[i];
             if (body.id < bodyB.id) {
-                bodyA = body
+                bodyA = body;
             } else {
                 bodyA = bodyB;
                 bodyB = body;
