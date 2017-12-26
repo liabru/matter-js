@@ -1,3 +1,25 @@
+<a name="0.14.0"></a>
+# 0.14.0 (2017-11-30)
+
+* added .eslintignore ([2279e15](https://github.com/liabru/matter-js/commit/2279e15))
+* added examples build task ([6108a31](https://github.com/liabru/matter-js/commit/6108a31))
+* added missing docs for Matter.World aliases ([841bf97](https://github.com/liabru/matter-js/commit/841bf97))
+* added Query.collides, closes #478 ([6593a72](https://github.com/liabru/matter-js/commit/6593a72)), closes [#478](https://github.com/liabru/matter-js/issues/478)
+* change examples to render using a fixed resolution ([0895d81](https://github.com/liabru/matter-js/commit/0895d81))
+* Do not warn on missing render.element if the canvas is already parented (because it was passed in at ([a529ec9](https://github.com/liabru/matter-js/commit/a529ec9))
+* fix `point` argument of Body.scale, closes #428 ([894c1ef](https://github.com/liabru/matter-js/commit/894c1ef)), closes [#428](https://github.com/liabru/matter-js/issues/428)
+* fix Body.scale for compound bodies ([50a89d0](https://github.com/liabru/matter-js/commit/50a89d0))
+* fix centroid for static compound bodies, closes #483 ([ece66e6](https://github.com/liabru/matter-js/commit/ece66e6)), closes [#483](https://github.com/liabru/matter-js/issues/483)
+* fix Common.isElement, closes #501, closes #507, closes #459, closes #468, closes #517 ([18a0845](https://github.com/liabru/matter-js/commit/18a0845)), closes [#501](https://github.com/liabru/matter-js/issues/501) [#507](https://github.com/liabru/matter-js/issues/507) [#459](https://github.com/liabru/matter-js/issues/459) [#468](https://github.com/liabru/matter-js/issues/468) [#517](https://github.com/liabru/matter-js/issues/517)
+* fix inertia change in Body.setMass, closes #378 ([f7d1877](https://github.com/liabru/matter-js/commit/f7d1877)), closes [#378](https://github.com/liabru/matter-js/issues/378)
+* fix Vertices.chamfer radius argument, closes #467 ([3bceef4](https://github.com/liabru/matter-js/commit/3bceef4)), closes [#467](https://github.com/liabru/matter-js/issues/467)
+* improved docs for constraints on compound bodies, closes #442 ([3307760](https://github.com/liabru/matter-js/commit/3307760)), closes [#442](https://github.com/liabru/matter-js/issues/442)
+* moved all private functions to module namespaces ([64be5a5](https://github.com/liabru/matter-js/commit/64be5a5))
+* moved private Matter.Engine functions on to namespace, closes #523 ([9eae36f](https://github.com/liabru/matter-js/commit/9eae36f)), closes [#523](https://github.com/liabru/matter-js/issues/523)
+* remove spelling mistake ([e5c4b47](https://github.com/liabru/matter-js/commit/e5c4b47))
+
+
+
 <a name="0.13.0"></a>
 # 0.13.0 (2017-07-06)
 

@@ -12,7 +12,7 @@ var Common = require('../core/Common');
 
 (function() {
     
-    var _pairMaxIdleLife = 1000;
+    Pairs._pairMaxIdleLife = 1000;
 
     /**
      * Creates a new pairs structure.

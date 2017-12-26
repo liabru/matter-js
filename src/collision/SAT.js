@@ -20,55 +20,27 @@ var Vector = require('../geometry/Vector');
      * @method collides
      * @param {body} bodyA
      * @param {body} bodyB
-     * @param {collision} previousCollision
      * @return {collision} collision
      */
     SAT.collides = function(bodyA, bodyB) {
-        var overlapAB,
-            overlapBA, 
-            minOverlap;
-
-        overlapAB = _overlapAxes(bodyA.vertices, bodyB.vertices, bodyA.axes);
-
+        var overlapAB =  SAT._overlapAxes(bodyA.vertices, bodyB.vertices, bodyA.axes);
         if (overlapAB.overlap <= 0) {
             return null;
         }
 
-        overlapBA = _overlapAxes(bodyB.vertices, bodyA.vertices, bodyB.axes);
-
+        var overlapBA =  SAT._overlapAxes(bodyB.vertices, bodyA.vertices, bodyB.axes);
         if (overlapBA.overlap <= 0) {
             return null;
         }
 
-        var collision = {};
-
-        if (overlapAB.overlap < overlapBA.overlap) {
-            minOverlap = overlapAB;
-            collision.axisBody = bodyA;
-        } else {
-            minOverlap = overlapBA;
-            collision.axisBody = bodyB;
-        }
-
-        var depth = minOverlap.overlap;
-
-        // important for reuse later
-        collision.axisNumber = minOverlap.axisNumber;
-
-        collision.bodyA = bodyA.id < bodyB.id ? bodyA : bodyB;
-        collision.bodyB = bodyA.id < bodyB.id ? bodyB : bodyA;
-        collision.depth = depth;
-        collision.parentA = collision.bodyA.parent;
-        collision.parentB = collision.bodyB.parent;
-        
-        bodyA = collision.bodyA;
-        bodyB = collision.bodyB;
+        var minOverlap = (overlapAB.overlap < overlapBA.overlap) ? overlapAB : overlapBA;
 
         // ensure normal is facing away from bodyA
-        var normal;
-        var positionA = bodyA.position;
-        var positionB = bodyB.position;
-        var axis = minOverlap.axis;
+        var positionA = bodyA.position,
+            positionB = bodyB.position,
+            axis = minOverlap.axis,
+            normal;
+
         if (axis.x * (positionB.x - positionA.x) + axis.y * (positionB.y - positionA.y) < 0) {
             normal = {
                 x: axis.x,
@@ -81,47 +53,66 @@ var Vector = require('../geometry/Vector');
             };
         }
 
-        collision.normal = normal;
-
-        collision.tangent = {
-            x: -normal.y,
-            y: normal.x
-        };
-
-        collision.penetration = {
-            x: normal.x * depth,
-            y: normal.y * depth
-        };
-
         // find support points, there is always either exactly one or two
-        var verticesB = _findSupports(bodyA, bodyB, normal),
+        var verticesA = bodyA.vertices,
+            verticesB = bodyB.vertices,
+            potentialSupportsB = SAT._findSupports(bodyA, verticesB, normal),
             supports = [];
 
         // find the supports from bodyB that are inside bodyA
-        if (Vertices.contains(bodyA.vertices, verticesB[0]))
-            supports.push(verticesB[0]);
+        if (Vertices.contains(verticesA, potentialSupportsB[0]))
+            supports.push(potentialSupportsB[0]);
 
-        if (Vertices.contains(bodyA.vertices, verticesB[1]))
-            supports.push(verticesB[1]);
+        if (Vertices.contains(verticesA, potentialSupportsB[1]))
+            supports.push(potentialSupportsB[1]);
 
         // find the supports from bodyA that are inside bodyB
         if (supports.length < 2) {
-            var verticesA = _findSupports(bodyB, bodyA, Vector.neg(normal));
+            var potentialSupportsA =  SAT._findSupports(bodyB, verticesA, Vector.neg(normal));
                 
-            if (Vertices.contains(bodyB.vertices, verticesA[0]))
-                supports.push(verticesA[0]);
+            if (Vertices.contains(verticesB, potentialSupportsA[0]))
+                supports.push(potentialSupportsA[0]);
 
-            if (supports.length < 2 && Vertices.contains(bodyB.vertices, verticesA[1]))
-                supports.push(verticesA[1]);
+            if (supports.length < 2 && Vertices.contains(verticesB, potentialSupportsA[1]))
+                supports.push(potentialSupportsA[1]);
         }
 
         // account for the edge case of overlapping but no vertex containment
         if (supports.length < 1)
-            supports = [verticesB[0]];
-        
-        collision.supports = supports;
+            supports = [potentialSupportsB[0]];
 
-        return collision;
+        return SAT._createCollision(bodyA, bodyB, minOverlap.overlap, normal, supports);
+    };
+
+    /**
+     * Creates a collision object
+     * @method _createCollision
+     * @private
+     * @param {body} bodyA
+     * @param {body} bodyB
+     * @param {depth} depth
+     * @param {normal} normal
+     * @param {supports} support vertices
+     * @return result
+     */
+    SAT._createCollision = function(bodyA, bodyB, depth, normal, supports) {
+        return {
+            bodyA: bodyA,
+            bodyB: bodyB,
+            depth: depth,
+            parentA: bodyA.parent,
+            parentB: bodyB.parent,
+            normal: normal,
+            tangent: {
+                x: -normal.y,
+                y: normal.x
+            },
+            penetration: {
+                x: normal.x * depth,
+                y: normal.y * depth
+            },
+            supports: supports
+        };
     };
 
     /**
@@ -133,7 +124,7 @@ var Vector = require('../geometry/Vector');
      * @param {} axes
      * @return result
      */
-    var _overlapAxes = function(verticesA, verticesB, axes) {
+    SAT._overlapAxes = function(verticesA, verticesB, axes) {
         var projectionA = Vector._temp[0], 
             projectionB = Vector._temp[1],
             result = { overlap: Number.MAX_VALUE },
@@ -143,8 +134,8 @@ var Vector = require('../geometry/Vector');
         for (var i = 0; i < axes.length; i++) {
             axis = axes[i];
 
-            _projectToAxis(projectionA, verticesA, axis);
-            _projectToAxis(projectionB, verticesB, axis);
+            SAT._projectToAxis(projectionA, verticesA, axis);
+            SAT._projectToAxis(projectionB, verticesB, axis);
 
             overlap = Math.min(projectionA.max - projectionB.min, projectionB.max - projectionA.min);
 
@@ -156,7 +147,6 @@ var Vector = require('../geometry/Vector');
             if (overlap < result.overlap) {
                 result.overlap = overlap;
                 result.axis = axis;
-                result.axisNumber = i;
             }
         }
 
@@ -171,7 +161,7 @@ var Vector = require('../geometry/Vector');
      * @param {} vertices
      * @param {} axis
      */
-    var _projectToAxis = function(projection, vertices, axis) {
+    SAT._projectToAxis = function(projection, vertices, axis) {
         var min = Vector.dot(vertices[0], axis),
             max = min;
 
@@ -190,32 +180,31 @@ var Vector = require('../geometry/Vector');
     };
     
     /**
-     * Finds supporting vertices given two bodies along a given direction using hill-climbing.
+     * Finds supporting vertices given a body and a set of vertices along a given direction using hill-climbing.
      * @method _findSupports
      * @private
-     * @param {} bodyA
-     * @param {} bodyB
+     * @param {} body
+     * @param {} vertices
      * @param {} normal
      * @return [vector]
      */
-    var _findSupports = function(bodyA, bodyB, normal) {
+    SAT._findSupports = function(body, vertices, normal) {
         var nearestDistance = Number.MAX_VALUE,
             vertexToBodyX,
             vertexToBodyY,
-            vertices = bodyB.vertices,
-            bodyAPosition = bodyA.position,
-            bodyAPositionX = bodyAPosition.x,
-            bodyAPositionY = bodyAPosition.y,
+            position = body.position,
+            positionX = position.x,
+            positionY = position.y,
             distance,
             vertex,
             vertexA,
             vertexB;
 
-        // find closest vertex on bodyB
+        // find closest vertex
         for (var i = 0; i < vertices.length; i++) {
             vertex = vertices[i];
-            vertexToBodyX = vertex.x - bodyAPositionX;
-            vertexToBodyY = vertex.y - bodyAPositionY;
+            vertexToBodyX = vertex.x - positionX;
+            vertexToBodyY = vertex.y - positionY;
             distance = -(normal.x * vertexToBodyX + normal.y * vertexToBodyY);
 
             if (distance < nearestDistance) {
@@ -227,15 +216,15 @@ var Vector = require('../geometry/Vector');
         // find next closest vertex using the two connected to it
         var prevIndex = vertexA.index - 1 >= 0 ? vertexA.index - 1 : vertices.length - 1;
         vertex = vertices[prevIndex];
-        vertexToBodyX = vertex.x - bodyAPositionX;
-        vertexToBodyY = vertex.y - bodyAPositionY;
+        vertexToBodyX = vertex.x - positionX;
+        vertexToBodyY = vertex.y - positionY;
         nearestDistance = -(normal.x * vertexToBodyX + normal.y * vertexToBodyY);
         vertexB = vertex;
 
         var nextIndex = (vertexA.index + 1) % vertices.length;
         vertex = vertices[nextIndex];
-        vertexToBodyX = vertex.x - bodyAPositionX;
-        vertexToBodyY = vertex.y - bodyAPositionY;
+        vertexToBodyX = vertex.x - positionX;
+        vertexToBodyY = vertex.y - positionY;
         distance = -(normal.x * vertexToBodyX + normal.y * vertexToBodyY);
         if (distance < nearestDistance) {
             vertexB = vertex;

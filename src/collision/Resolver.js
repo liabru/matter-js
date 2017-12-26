@@ -176,7 +176,6 @@ var Bounds = require('../geometry/Bounds');
             normal,
             tangent,
             contact,
-            contactVertex,
             normalImpulse,
             tangentImpulse,
             offset,
@@ -199,7 +198,6 @@ var Bounds = require('../geometry/Bounds');
             // resolve each contact
             for (j = 0; j < contacts.length; j++) {
                 contact = contacts[j];
-                contactVertex = contact.vertex;
                 normalImpulse = contact.normalImpulse;
                 tangentImpulse = contact.tangentImpulse;
 
@@ -210,14 +208,14 @@ var Bounds = require('../geometry/Bounds');
                     
                     // apply impulse from contact
                     if (!(bodyA.isStatic || bodyA.isSleeping)) {
-                        offset = Vector.sub(contactVertex, bodyA.position, tempA);
+                        offset = Vector.sub(contact, bodyA.position, tempA);
                         bodyA.positionPrev.x += impulse.x * bodyA.inverseMass;
                         bodyA.positionPrev.y += impulse.y * bodyA.inverseMass;
                         bodyA.anglePrev += Vector.cross(offset, impulse) * bodyA.inverseInertia;
                     }
 
                     if (!(bodyB.isStatic || bodyB.isSleeping)) {
-                        offset = Vector.sub(contactVertex, bodyB.position, tempA);
+                        offset = Vector.sub(contact, bodyB.position, tempA);
                         bodyB.positionPrev.x -= impulse.x * bodyB.inverseMass;
                         bodyB.positionPrev.y -= impulse.y * bodyB.inverseMass;
                         bodyB.anglePrev -= Vector.cross(offset, impulse) * bodyB.inverseInertia;
@@ -287,11 +285,10 @@ var Bounds = require('../geometry/Bounds');
             // resolve each contact
             for (var j = 0; j < contacts.length; j++) {
                 var contact = contacts[j],
-                    contactVertex = contact.vertex,
-                    offsetAX = contactVertex.x - positionAX,
-                    offsetAY = contactVertex.y - positionAY,
-                    offsetBX = contactVertex.x - positionBX,
-                    offsetBY = contactVertex.y - positionBY,
+                    offsetAX = contact.x - positionAX,
+                    offsetAY = contact.y - positionAY,
+                    offsetBX = contact.x - positionBX,
+                    offsetBY = contact.y - positionBY,
                     relativeVelocityX = (velocityAX - offsetAY * angularVelocityA) - (velocityBX - offsetBY * angularVelocityB),
                     relativeVelocityY = (velocityAY + offsetAX * angularVelocityA) - (velocityBY + offsetBX * angularVelocityB),
                     normalVelocity = normalX * relativeVelocityX + normalY * relativeVelocityY;

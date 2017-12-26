@@ -26,7 +26,7 @@ module.exports = Pair;
             parentB = collision.parentB;
 
         for (var i = 0; i < supports.length; i++) {
-            activeContacts[i] = supports[i].contact;
+            activeContacts[i] = supports[i];
         }
 
         var pair = {
