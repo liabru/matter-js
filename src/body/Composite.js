@@ -168,30 +168,6 @@ var Body = require('./Body');
         return compositeA;
     };
 
-    Composite.addBodies = function (composite, bodies) {
-        Array.prototype.push.apply(composite.allBodies, bodies);
-        composite.allBodies.sort(function (bodyA, bodyB) {
-            return bodyA.id - bodyB.id;
-        });
-
-        if (composite.parent && composite.parent.type === 'composite') {
-            composite.parent.addBodies(composite.parent, bodies);
-        }
-    };
-
-    Composite.removeBodies = function (composite, bodies) {
-        var allBodies = composite.allBodies;
-        for (var i = 0; i < bodies.length; i += 1) {
-            var position = allBodies.indexOf(bodies[i]);
-            if (position !== -1)
-                allBodies.splice(position, 1);
-        }
-
-        if (composite.parent && composite.parent.type === 'composite') {
-            composite.parent.removeBodies(composite.parent, bodies);
-        }
-    };
-
     /**
      * Removes a composite from the given composite, and optionally searching its children recursively.
      * @private
@@ -232,7 +208,6 @@ var Body = require('./Body');
         Composite.addBodies(composite, [body]);
         return composite;
     };
-// console.error('addBody', composite, composite.allBodies.length, composite.parent)
 
     /**
      * Removes a body from the given composite, and optionally searching its children recursively.
@@ -258,6 +233,44 @@ var Body = require('./Body');
         }
 
         return composite;
+    };
+
+    /**
+     * Adds a list of bodies directly or indirectly belonging to the composite
+     * @private
+     * @method addBodies
+     * @param {composite} composite
+     * @param {bodies} bodies
+     */
+    Composite.addBodies = function (composite, bodies) {
+        Array.prototype.push.apply(composite.allBodies, bodies);
+        composite.allBodies.sort(function (bodyA, bodyB) {
+            return bodyA.id - bodyB.id;
+        });
+
+        if (composite.parent && composite.parent.type === 'composite') {
+            composite.parent.addBodies(composite.parent, bodies);
+        }
+    };
+
+    /**
+     * Removes a list of bodies directly or indirectly belonging to the composite
+     * @private
+     * @method removeBodies
+     * @param {composite} composite
+     * @param {bodies} bodies
+     */
+    Composite.removeBodies = function (composite, bodies) {
+        var allBodies = composite.allBodies;
+        for (var i = 0; i < bodies.length; i += 1) {
+            var position = allBodies.indexOf(bodies[i]);
+            if (position !== -1)
+                allBodies.splice(position, 1);
+        }
+
+        if (composite.parent && composite.parent.type === 'composite') {
+            composite.parent.removeBodies(composite.parent, bodies);
+        }
     };
 
     /**
@@ -348,12 +361,6 @@ var Body = require('./Body');
      */
     Composite.allBodies = function(composite) {
         return composite.allBodies;
-        // var bodies = [].concat(composite.bodies);
-
-        // for (var i = 0; i < composite.composites.length; i++)
-        //     bodies = bodies.concat(Composite.allBodies(composite.composites[i]));
-
-        // return bodies;
     };
 
     /**

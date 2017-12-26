@@ -45,8 +45,8 @@ Example.events = function() {
         var engine = event.source;
 
         // apply random forces every 5 secs
-        // if (event.timestamp % 5000 < 50)
-            // shakeScene(engine);
+        if (event.timestamp % 5000 < 50)
+            shakeScene(engine);
     });
 
     // an example of using collisionStart event on an engine
@@ -56,8 +56,8 @@ Example.events = function() {
         // change object colours to show those starting a collision
         for (var i = 0; i < pairs.length; i++) {
             var pair = pairs[i];
-            pair.bodyA.render.fillStyle = '#3f3';
-            pair.bodyB.render.fillStyle = '#3f3';
+            pair.bodyA.render.fillStyle = '#333';
+            pair.bodyB.render.fillStyle = '#333';
         }
     });
 
@@ -68,8 +68,8 @@ Example.events = function() {
         // change object colours to show those in an active collision (e.g. resting contact)
         for (var i = 0; i < pairs.length; i++) {
             var pair = pairs[i];
-            pair.bodyA.render.fillStyle = '#33f';
-            pair.bodyB.render.fillStyle = '#33f';
+            pair.bodyA.render.fillStyle = '#333';
+            pair.bodyB.render.fillStyle = '#333';
         }
     });
 
@@ -81,8 +81,8 @@ Example.events = function() {
         for (var i = 0; i < pairs.length; i++) {
             var pair = pairs[i];
 
-            pair.bodyA.render.fillStyle = '#f22';
-            pair.bodyB.render.fillStyle = '#f22';
+            pair.bodyA.render.fillStyle = '#222';
+            pair.bodyB.render.fillStyle = '#222';
         }
     });
 
