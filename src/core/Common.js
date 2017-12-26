@@ -181,7 +181,7 @@ module.exports = Common;
             return obj instanceof HTMLElement;
         }
 
-        return !!(obj.nodeType && obj.nodeName);
+        return !!(obj && obj.nodeType && obj.nodeName);
     };
 
     /**
