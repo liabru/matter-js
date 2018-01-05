@@ -160,10 +160,10 @@ var Body = require('../body/Body');
         if (broadphase.controller) {
             // if world is dirty, we must flush the whole grid
             if (world.isModified)
-                broadphase.controller.clear(broadphase);
+                broadphase.controller.reset(broadphase, allBodies, engine);
 
             // update the grid buckets based on current bodies
-            broadphase.controller.update(broadphase, allBodies, engine, world.isModified);
+            broadphase.controller.update(broadphase, allBodies, engine);
             broadphasePairs = broadphase.pairsList;
         } else {
             // if no broadphase set, we just pass all bodies
@@ -267,8 +267,8 @@ var Body = require('../body/Body');
         var broadphase = engine.broadphase;
         if (broadphase.controller) {
             var bodies = Composite.allBodies(world);
-            broadphase.controller.clear(broadphase);
-            broadphase.controller.update(broadphase, bodies, engine, true);
+            broadphase.controller.reset(broadphase, bodies, engine);
+            broadphase.controller.update(broadphase, bodies, engine);
         }
     };
 

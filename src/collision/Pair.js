@@ -20,21 +20,16 @@ module.exports = Pair;
     Pair.create = function(collision) {
         var bodyA = collision.bodyA,
             bodyB = collision.bodyB,
-            activeContacts = [],
-            supports = collision.supports,
             parentA = collision.parentA,
             parentB = collision.parentB;
-
-        for (var i = 0; i < supports.length; i++) {
-            activeContacts[i] = supports[i];
-        }
 
         var pair = {
             idA: bodyA.id,
             idB: bodyB.id,
             bodyA: bodyA,
             bodyB: bodyB,
-            activeContacts: activeContacts,
+            activeContacts: collision.supports,
+            activeContactsCount: collision.supportCount,
             separation: collision.depth,
             isSensor: bodyA.isSensor || bodyB.isSensor,
             collision: collision,
