@@ -57,45 +57,40 @@ var Vector = require('../geometry/Vector');
         var verticesA = bodyA.vertices,
             verticesB = bodyB.vertices,
             potentialSupportsB = SAT._findSupports(bodyA, verticesB, normal),
-            supports = [];
+            supportCount = 0,
+            supports = new Array(2);
 
         // find the supports from bodyB that are inside bodyA
-        if (Vertices.contains(verticesA, potentialSupportsB[0]))
-            supports.push(potentialSupportsB[0]);
+        if (Vertices.contains(verticesA, potentialSupportsB[0])) {
+            supports[supportCount++] = potentialSupportsB[0];
+        }
 
         if (Vertices.contains(verticesA, potentialSupportsB[1]))
-            supports.push(potentialSupportsB[1]);
+            supports[supportCount++] = potentialSupportsB[1];
 
         // find the supports from bodyA that are inside bodyB
-        if (supports.length < 2) {
+        if (supportCount < 2) {
             var potentialSupportsA =  SAT._findSupports(bodyB, verticesA, Vector.neg(normal));
                 
             if (Vertices.contains(verticesB, potentialSupportsA[0]))
-                supports.push(potentialSupportsA[0]);
+                supports[supportCount++] = potentialSupportsA[0];
 
-            if (supports.length < 2 && Vertices.contains(verticesB, potentialSupportsA[1]))
-                supports.push(potentialSupportsA[1]);
+            if (supportCount < 2) {
+                if (Vertices.contains(verticesB, potentialSupportsA[1]))
+                    supports[supportCount++] = potentialSupportsA[1];
+
+                if (supportCount < 2) {
+                    supports[1] = null;
+
+                    // account for the edge case of overlapping but no vertex containment
+                    if (supportCount < 1)
+                        supports[supportCount++] = potentialSupportsB[0];
+                }
+
+            }
         }
 
-        // account for the edge case of overlapping but no vertex containment
-        if (supports.length < 1)
-            supports = [potentialSupportsB[0]];
-
-        return SAT._createCollision(bodyA, bodyB, minOverlap.overlap, normal, supports);
-    };
-
-    /**
-     * Creates a collision object
-     * @method _createCollision
-     * @private
-     * @param {body} bodyA
-     * @param {body} bodyB
-     * @param {depth} depth
-     * @param {normal} normal
-     * @param {supports} support vertices
-     * @return result
-     */
-    SAT._createCollision = function(bodyA, bodyB, depth, normal, supports) {
+        var depth = minOverlap.overlap;
         return {
             bodyA: bodyA,
             bodyB: bodyB,
@@ -111,7 +106,8 @@ var Vector = require('../geometry/Vector');
                 x: normal.x * depth,
                 y: normal.y * depth
             },
-            supports: supports
+            supports: supports,
+            supportCount: supportCount
         };
     };
 

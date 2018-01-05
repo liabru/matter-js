@@ -1076,7 +1076,7 @@ var Mouse = require('../core/Mouse');
             pair = pairs[i];
 
             collision = pair.collision;
-            for (j = 0; j < pair.activeContacts.length; j++) {
+            for (j = 0; j < pair.activeContactsCount; j++) {
                 var contact = pair.activeContacts[j];
                 c.rect(contact.x - 1.5, contact.y - 1.5, 3.5, 3.5);
             }
@@ -1096,11 +1096,11 @@ var Mouse = require('../core/Mouse');
             pair = pairs[i];
             collision = pair.collision;
 
-            if (pair.activeContacts.length > 0) {
+            if (pair.activeContactsCount > 0) {
                 var normalPosX = pair.activeContacts[0].x,
                     normalPosY = pair.activeContacts[0].y;
 
-                if (pair.activeContacts.length === 2) {
+                if (pair.activeContactsCount === 2) {
                     normalPosX = (pair.activeContacts[0].x + pair.activeContacts[1].x) / 2;
                     normalPosY = (pair.activeContacts[0].y + pair.activeContacts[1].y) / 2;
                 }
@@ -1199,19 +1199,25 @@ var Mouse = require('../core/Mouse');
 
         c.beginPath();
 
-        var bucketKeys = Common.keys(grid.buckets);
+        var buckets = grid.buckets;
+        var columnKeys = Common.keys(buckets);
 
-        for (var i = 0; i < bucketKeys.length; i++) {
-            var bucketId = bucketKeys[i];
+        for (var i = 0; i < columnKeys.length; i += 1) {
+            var columnKey = columnKeys[i];
+            var column = buckets[columnKey];
+            var rowKeys = Object.keys(column);
+            for (var j = 0; j < rowKeys.length; j += 1) {
+                var rowKey = rowKeys[j];
+                var bucket = column[rowKey];
 
-            if (grid.buckets[bucketId].length < 2)
-                continue;
+                if (bucket.length < 2)
+                    continue;
 
-            var region = bucketId.split(/C|R/);
-            c.rect(0.5 + parseInt(region[1], 10) * grid.bucketWidth,
-                    0.5 + parseInt(region[2], 10) * grid.bucketHeight,
-                    grid.bucketWidth,
-                    grid.bucketHeight);
+                c.rect(0.5 + parseInt(columnKey, 10) * grid.bucketWidth,
+                        0.5 + parseInt(rowKey, 10) * grid.bucketHeight,
+                        grid.bucketWidth,
+                        grid.bucketHeight);
+            }
         }
 
         c.lineWidth = 1;
