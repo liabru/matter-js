@@ -34,8 +34,8 @@ var Bounds = require('../geometry/Bounds');
         // find total contacts on each body
         for (i = 0; i < pairs.length; i++) {
             pair = pairs[i];
-            
-            activeCount = pair.activeContacts.length;
+
+            activeCount = pair.activeContactsCount;
             pair.collision.parentA.totalContacts += activeCount;
             pair.collision.parentB.totalContacts += activeCount;
         }
@@ -170,6 +170,7 @@ var Bounds = require('../geometry/Bounds');
             j,
             pair,
             contacts,
+            contactsCount,
             collision,
             bodyA,
             bodyB,
@@ -189,6 +190,7 @@ var Bounds = require('../geometry/Bounds');
                 continue;
             
             contacts = pair.activeContacts;
+            contactsCount = pair.activeContactsCount;
             collision = pair.collision;
             bodyA = collision.parentA;
             bodyB = collision.parentB;
@@ -196,7 +198,7 @@ var Bounds = require('../geometry/Bounds');
             tangent = collision.tangent;
 
             // resolve each contact
-            for (j = 0; j < contacts.length; j++) {
+            for (j = 0; j < contactsCount; j++) {
                 contact = contacts[j];
                 normalImpulse = contact.normalImpulse;
                 tangentImpulse = contact.tangentImpulse;
@@ -253,6 +255,7 @@ var Bounds = require('../geometry/Bounds');
                 tangentX = tangent.x,
                 tangentY = tangent.y,
                 contacts = pair.activeContacts,
+                contactsCount = pair.activeContactsCount,
                 contactShare = 1 / contacts.length;
 
             // update body velocities
@@ -283,7 +286,7 @@ var Bounds = require('../geometry/Bounds');
                 inverseInertiaB = bodyB.inverseInertia;
 
             // resolve each contact
-            for (var j = 0; j < contacts.length; j++) {
+            for (var j = 0; j < contactsCount; j++) {
                 var contact = contacts[j],
                     offsetAX = contact.x - positionAX,
                     offsetAY = contact.y - positionAY,

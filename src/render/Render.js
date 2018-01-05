@@ -1076,7 +1076,7 @@ var Mouse = require('../core/Mouse');
             pair = pairs[i];
 
             collision = pair.collision;
-            for (j = 0; j < pair.activeContacts.length; j++) {
+            for (j = 0; j < pair.activeContactsCount; j++) {
                 var contact = pair.activeContacts[j];
                 c.rect(contact.x - 1.5, contact.y - 1.5, 3.5, 3.5);
             }
@@ -1096,11 +1096,11 @@ var Mouse = require('../core/Mouse');
             pair = pairs[i];
             collision = pair.collision;
 
-            if (pair.activeContacts.length > 0) {
+            if (pair.activeContactsCount > 0) {
                 var normalPosX = pair.activeContacts[0].x,
                     normalPosY = pair.activeContacts[0].y;
 
-                if (pair.activeContacts.length === 2) {
+                if (pair.activeContactsCount === 2) {
                     normalPosX = (pair.activeContacts[0].x + pair.activeContacts[1].x) / 2;
                     normalPosY = (pair.activeContacts[0].y + pair.activeContacts[1].y) / 2;
                 }
