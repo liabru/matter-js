@@ -9,6 +9,7 @@ var Grid = {};
 module.exports = Grid;
 
 var Detector = require('./Detector');
+var Projections = require('../geometry/Projections');
 var Common = require('../core/Common');
 
 (function() {
@@ -134,6 +135,16 @@ var Common = require('../core/Common');
             var pairs = body.pairs;
             for (var p = 0; p < pairs.length; p += 1)
                 pairsList.push(pairs[p]);
+
+
+            if (!body.isStatic) {
+                // updating body projection
+                var parts = body.parts;
+                for (var j = parts.length > 1 ? 1 : 0; j < parts.length; j++) {
+                    var part = parts[j];
+                    Projections.verticesOntoAxes(part.projections, part.vertices, part.axes);
+                }
+            }
         }
 
         grid.pairsList = pairsList;

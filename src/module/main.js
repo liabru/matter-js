@@ -34,6 +34,7 @@ Matter.Bounds = require('../geometry/Bounds');
 Matter.Svg = require('../geometry/Svg');
 Matter.Vector = require('../geometry/Vector');
 Matter.Vertices = require('../geometry/Vertices');
+Matter.Projections = require('../geometry/Projections');
 
 Matter.Render = require('../render/Render');
 Matter.RenderPixi = require('../render/RenderPixi');

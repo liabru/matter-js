@@ -35,13 +35,11 @@ var Common = require('../core/Common');
      * @param {body} body
      */
     Vertices.create = function(points, body) {
-        var vertices = [];
+        var vertices = new Array(points.length);
 
         for (var i = 0; i < points.length; i++) {
-            var point = points[i],
-                vertex = Vertices.createVertex(body, i, point.x, point.y);
-
-            vertices.push(vertex);
+            var point = points[i];
+            vertices[i] = Vertices.createVertex(body, i, point.x, point.y);
         }
 
         return vertices;

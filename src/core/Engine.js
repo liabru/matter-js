@@ -154,7 +154,7 @@ var Body = require('../body/Body');
         for (i = 0; i < engine.constraintIterations; i++) {
             Constraint.solveAll(allConstraints, timing.timeScale);
         }
-        Constraint.postSolveAll(allBodies);
+        Constraint.postSolveAll(allBodies, true);
 
         // broadphase pass: find potential collision pairs
         if (broadphase.controller) {
