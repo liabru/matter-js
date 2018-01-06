@@ -94,6 +94,8 @@ var Vector = require('../geometry/Vector');
         var parentA = bodyA.parent;
         var parentB = bodyB.parent;
         return {
+            idA: bodyA.id,
+            idB: bodyB.id,
             bodyA: bodyA,
             bodyB: bodyB,
             parentA: parentA,

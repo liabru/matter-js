@@ -28,8 +28,8 @@ var dummyPair = { idA: 1 << 30, idB: (1 << 30) + 1 };
      */
     Detector.collisions = function(broadphasePairs, engine) {
         var pairs = engine.pairs,
-            oldPairs = pairs.list,
-            newPairs = [],
+            oldCollisions = pairs.list,
+            newCollisions = [],
             collisionStart,
             collisionActive,
             collisionEnd;
@@ -54,10 +54,10 @@ var dummyPair = { idA: 1 << 30, idB: (1 << 30) + 1 };
             pairs.collisionEnd = collisionEnd;
         }
 
-        oldPairs.push(dummyPair);
+        oldCollisions.push(dummyPair);
 
         var pairIndex = 0,
-            oldPair = oldPairs[pairIndex++];
+            oldCollision = oldCollisions[pairIndex++];
 
         for (var i = 0; i < broadphasePairs.length; i++) {
             var bodyA = broadphasePairs[i][0], 
@@ -90,25 +90,26 @@ var dummyPair = { idA: 1 << 30, idB: (1 << 30) + 1 };
                             // @endif
 
                             if (collision) {
-                                newPairs.push(collision);
+                                newCollisions.push(collision);
 
                                 if (hasCollisionEvent) {
                                     // Check old pairs to determine which collisions are new
                                     // and which collisions are not active anymore
-                                    var idA = collision.bodyA.id;
-                                    var idB = collision.bodyB.id;
-                                    while (oldPair.bodyA.id < idA || (oldPair.bodyA.id === idA && oldPair.bodyB.id < idB)) {
-                                        collisionEnd.push(oldPair);
-                                        oldPair = oldPairs[pairIndex++];
+                                    var idA = partA.id;
+                                    var idB = partB.id;
+                                    while (oldCollision.idA < idA
+                                        || (oldCollision.idA === idA && oldCollision.idB < idB)) {
+                                        collisionEnd.push(oldCollision);
+                                        oldCollision = oldCollisions[pairIndex++];
                                     }
 
-                                    if (oldPair.bodyA.id === idA && oldPair.bodyB.id === idB) {
+                                    if (oldCollision.idA === idA && oldCollision.idB === idB) {
                                         // Pair was already active
-                                        collisionActive.push(newPair);
-                                        oldPair = oldPairs[pairIndex++];
+                                        collisionActive.push(collision);
+                                        oldCollision = oldCollisions[pairIndex++];
                                     } else {
                                         // Pair could not be found, collision is new
-                                        collisionStart.push(newPair);
+                                        collisionStart.push(collision);
                                     }
                                 }
 
@@ -124,12 +125,12 @@ var dummyPair = { idA: 1 << 30, idB: (1 << 30) + 1 };
 
         if (hasCollisionEvent) {
             pairIndex -= 1;
-            while (pairIndex < oldPairs.length - 1) {
-                collisionEnd.push(oldPairs[pairIndex++]);
+            while (pairIndex < oldCollisions.length - 1) {
+                collisionEnd.push(oldCollisions[pairIndex++]);
             }
         }
 
-        pairs.list = newPairs;
+        pairs.list = newCollisions;
     };
 
     /**
