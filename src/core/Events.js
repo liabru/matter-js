@@ -84,7 +84,8 @@ var Common = require('./Common');
             callbacks,
             eventClone;
 
-        if (object.events) {
+        var events = object.events;
+        if (events && Object.keys(events).length > 0) {
             if (!event)
                 event = {};
 
@@ -92,7 +93,7 @@ var Common = require('./Common');
 
             for (var i = 0; i < names.length; i++) {
                 name = names[i];
-                callbacks = object.events[name];
+                callbacks = events[name];
 
                 if (callbacks) {
                     eventClone = Common.clone(event, false);

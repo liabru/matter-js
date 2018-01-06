@@ -94,7 +94,7 @@ var Vector = require('../geometry/Vector');
         return {
             bodyA: bodyA,
             bodyB: bodyB,
-            depth: depth,
+            separation: depth,
             parentA: bodyA.parent,
             parentB: bodyB.parent,
             normal: normal,
@@ -106,8 +106,8 @@ var Vector = require('../geometry/Vector');
                 x: normal.x * depth,
                 y: normal.y * depth
             },
-            supports: supports,
-            supportCount: supportCount
+            contacts: supports,
+            contactCount: supportCount
         };
     };
 

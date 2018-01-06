@@ -29,15 +29,17 @@ var Bounds = require('../geometry/Bounds');
     Resolver.preSolvePosition = function(pairs) {
         var i,
             pair,
+            collision,
             activeCount;
 
         // find total contacts on each body
         for (i = 0; i < pairs.length; i++) {
             pair = pairs[i];
+            collision = pair.collision;
 
-            activeCount = pair.activeContactsCount;
-            pair.collision.parentA.totalContacts += activeCount;
-            pair.collision.parentB.totalContacts += activeCount;
+            activeCount = collision.contactCount;
+            collision.parentA.totalContacts += activeCount;
+            collision.parentB.totalContacts += activeCount;
         }
     };
 
@@ -99,7 +101,7 @@ var Bounds = require('../geometry/Bounds');
 
             // separation = dot(normal, bodyBtoA)
             separation = normalX * bodyBtoAX + normalY * bodyBtoAY;
-            pair.separation = separation;
+            collision.separation = separation;
 
             positionImpulse = (separation - pair.slop) * impulseCoefficient;
 
@@ -170,7 +172,7 @@ var Bounds = require('../geometry/Bounds');
             j,
             pair,
             contacts,
-            contactsCount,
+            contactCount,
             collision,
             bodyA,
             bodyB,
@@ -189,16 +191,16 @@ var Bounds = require('../geometry/Bounds');
             if (pair.isSensor)
                 continue;
             
-            contacts = pair.activeContacts;
-            contactsCount = pair.activeContactsCount;
             collision = pair.collision;
+            contacts = collision.contacts;
+            contactCount = collision.contactCount;
             bodyA = collision.parentA;
             bodyB = collision.parentB;
             normal = collision.normal;
             tangent = collision.tangent;
 
             // resolve each contact
-            for (j = 0; j < contactsCount; j++) {
+            for (j = 0; j < contactCount; j++) {
                 contact = contacts[j];
                 normalImpulse = contact.normalImpulse;
                 tangentImpulse = contact.tangentImpulse;
@@ -254,8 +256,8 @@ var Bounds = require('../geometry/Bounds');
                 tangent = collision.tangent,
                 tangentX = tangent.x,
                 tangentY = tangent.y,
-                contacts = pair.activeContacts,
-                contactsCount = pair.activeContactsCount,
+                contacts = collision.contacts,
+                contactCount = collision.contactCount,
                 contactShare = 1 / contacts.length;
 
             // update body velocities
@@ -286,7 +288,7 @@ var Bounds = require('../geometry/Bounds');
                 inverseInertiaB = bodyB.inverseInertia;
 
             // resolve each contact
-            for (var j = 0; j < contactsCount; j++) {
+            for (var j = 0; j < contactCount; j++) {
                 var contact = contacts[j],
                     offsetAX = contact.x - positionAX,
                     offsetAY = contact.y - positionAY,
@@ -302,7 +304,7 @@ var Bounds = require('../geometry/Bounds');
 
                 // raw impulses
                 var normalImpulse = (1 + pair.restitution) * normalVelocity,
-                    normalForce = Common.clamp(pair.separation + normalVelocity, 0, 1) * frictionNormalMultiplier;
+                    normalForce = Common.clamp(collision.separation + normalVelocity, 0, 1) * frictionNormalMultiplier;
 
                 // coulomb friction
                 var tangentImpulse = tangentVelocity,
