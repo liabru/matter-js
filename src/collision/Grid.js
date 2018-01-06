@@ -176,7 +176,7 @@ var Common = require('../core/Common');
                 }
             }
         }
-    }
+    };
 
     /**
      * Gets the region a given body falls in for a given grid.
