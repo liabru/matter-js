@@ -11,7 +11,6 @@ var Detector = {};
 module.exports = Detector;
 
 var SAT = require('./SAT');
-var Pair = require('./Pair');
 var Pairs = require('./Pairs');
 var Sleeping = require('../core/Sleeping');
 var Bounds = require('../geometry/Bounds');
@@ -91,20 +90,19 @@ var dummyPair = { idA: 1 << 30, idB: (1 << 30) + 1 };
                             // @endif
 
                             if (collision) {
-                                var newPair = Pair.create(collision);
-                                newPairs.push(newPair);
+                                newPairs.push(collision);
 
                                 if (hasCollisionEvent) {
                                     // Check old pairs to determine which collisions are new
                                     // and which collisions are not active anymore
                                     var idA = collision.bodyA.id;
                                     var idB = collision.bodyB.id;
-                                    while (oldPair.idA < idA || (oldPair.idA === idA && oldPair.idB < idB)) {
+                                    while (oldPair.bodyA.id < idA || (oldPair.bodyA.id === idA && oldPair.bodyB.id < idB)) {
                                         collisionEnd.push(oldPair);
                                         oldPair = oldPairs[pairIndex++];
                                     }
 
-                                    if (oldPair.idA === idA && oldPair.idB === idB) {
+                                    if (oldPair.bodyA.id === idA && oldPair.bodyB.id === idB) {
                                         // Pair was already active
                                         collisionActive.push(newPair);
                                         oldPair = oldPairs[pairIndex++];

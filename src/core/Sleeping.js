@@ -64,11 +64,10 @@ var Events = require('./Events');
 
         // wake up bodies involved in collisions
         for (var i = 0; i < pairs.length; i++) {
-            var pair = pairs[i];
+            var collision = pairs[i];
 
-            var collision = pair.collision,
-                bodyA = collision.bodyA.parent, 
-                bodyB = collision.bodyB.parent;
+            var bodyA = collision.parentA, 
+                bodyB = collision.parentB;
 
             // don't wake if at least one body is static
             if ((bodyA.isSleeping && bodyB.isSleeping) || bodyA.isStatic || bodyB.isStatic)

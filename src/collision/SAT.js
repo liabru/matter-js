@@ -91,12 +91,14 @@ var Vector = require('../geometry/Vector');
         }
 
         var depth = minOverlap.overlap;
+        var parentA = bodyA.parent;
+        var parentB = bodyB.parent;
         return {
             bodyA: bodyA,
             bodyB: bodyB,
+            parentA: parentA,
+            parentB: parentB,
             separation: depth,
-            parentA: bodyA.parent,
-            parentB: bodyB.parent,
             normal: normal,
             tangent: {
                 x: -normal.y,
@@ -107,7 +109,13 @@ var Vector = require('../geometry/Vector');
                 y: normal.y * depth
             },
             contacts: supports,
-            contactCount: supportCount
+            contactCount: supportCount,
+            isSensor: bodyA.isSensor || bodyB.isSensor,
+            inverseMass: parentA.inverseMass + parentB.inverseMass,
+            friction: Math.min(parentA.friction, parentB.friction),
+            frictionStatic: Math.max(parentA.frictionStatic, parentB.frictionStatic),
+            restitution: Math.max(parentA.restitution, parentB.restitution),
+            slop: Math.max(parentA.slop, parentB.slop)
         };
     };
 

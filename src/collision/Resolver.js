@@ -28,14 +28,12 @@ var Bounds = require('../geometry/Bounds');
      */
     Resolver.preSolvePosition = function(pairs) {
         var i,
-            pair,
             collision,
             activeCount;
 
         // find total contacts on each body
         for (i = 0; i < pairs.length; i++) {
-            pair = pairs[i];
-            collision = pair.collision;
+            collision = pairs[i];
 
             activeCount = collision.contactCount;
             collision.parentA.totalContacts += activeCount;
@@ -53,7 +51,6 @@ var Bounds = require('../geometry/Bounds');
         var i,
             normalX,
             normalY,
-            pair,
             collision,
             bodyA,
             bodyB,
@@ -77,12 +74,11 @@ var Bounds = require('../geometry/Bounds');
 
         // find impulses required to resolve penetration
         for (i = 0; i < pairs.length; i++) {
-            pair = pairs[i];
+            collision = pairs[i];
             
-            if (pair.isSensor)
+            if (collision.isSensor)
                 continue;
 
-            collision = pair.collision;
             bodyA = collision.parentA;
             bodyB = collision.parentB;
             normal = collision.normal;
@@ -103,7 +99,7 @@ var Bounds = require('../geometry/Bounds');
             separation = normalX * bodyBtoAX + normalY * bodyBtoAY;
             collision.separation = separation;
 
-            positionImpulse = (separation - pair.slop) * impulseCoefficient;
+            positionImpulse = (separation - collision.slop) * impulseCoefficient;
 
             if (bodyA.isStatic || bodyB.isStatic)
                 positionImpulse *= 2;
@@ -170,7 +166,6 @@ var Bounds = require('../geometry/Bounds');
     Resolver.preSolveVelocity = function(pairs) {
         var i,
             j,
-            pair,
             contacts,
             contactCount,
             collision,
@@ -186,12 +181,11 @@ var Bounds = require('../geometry/Bounds');
             tempA = Vector._temp[1];
         
         for (i = 0; i < pairs.length; i++) {
-            pair = pairs[i];
+            collision = pairs[i];
             
-            if (pair.isSensor)
+            if (collision.isSensor)
                 continue;
             
-            collision = pair.collision;
             contacts = collision.contacts;
             contactCount = collision.contactCount;
             bodyA = collision.parentA;
@@ -242,13 +236,12 @@ var Bounds = require('../geometry/Bounds');
             frictionNormalMultiplier = Resolver._frictionNormalMultiplier;
         
         for (var i = 0; i < pairs.length; i++) {
-            var pair = pairs[i];
+            var collision = pairs[i];
             
-            if (pair.isSensor)
+            if (collision.isSensor)
                 continue;
             
-            var collision = pair.collision,
-                bodyA = collision.parentA,
+            var bodyA = collision.parentA,
                 bodyB = collision.parentB,
                 normal = collision.normal,
                 normalX = normal.x,
@@ -303,17 +296,17 @@ var Bounds = require('../geometry/Bounds');
                     tangentVelocityDirection = Common.sign(tangentVelocity);
 
                 // raw impulses
-                var normalImpulse = (1 + pair.restitution) * normalVelocity,
+                var normalImpulse = (1 + collision.restitution) * normalVelocity,
                     normalForce = Common.clamp(collision.separation + normalVelocity, 0, 1) * frictionNormalMultiplier;
 
                 // coulomb friction
                 var tangentImpulse = tangentVelocity,
                     maxFriction = Infinity;
 
-                if (tangentSpeed > pair.friction * pair.frictionStatic * normalForce * timeScaleSquared) {
+                if (tangentSpeed > collision.friction * collision.frictionStatic * normalForce * timeScaleSquared) {
                     maxFriction = tangentSpeed;
                     tangentImpulse = Common.clamp(
-                        pair.friction * tangentVelocityDirection * timeScaleSquared,
+                        collision.friction * tangentVelocityDirection * timeScaleSquared,
                         -maxFriction, maxFriction
                     );
                 }

@@ -1061,7 +1061,6 @@ var Mouse = require('../core/Mouse');
     Render.collisions = function(render, pairs, context) {
         var c = context,
             options = render.options,
-            pair,
             collision,
             corrected,
             bodyA,
@@ -1073,9 +1072,8 @@ var Mouse = require('../core/Mouse');
 
         // render collision positions
         for (i = 0; i < pairs.length; i++) {
-            pair = pairs[i];
+            collision = pairs[i];
 
-            collision = pair.collision;
             for (j = 0; j < collision.contactCount; j++) {
                 var contact = collision.contacts[j];
                 c.rect(contact.x - 1.5, contact.y - 1.5, 3.5, 3.5);
@@ -1093,8 +1091,7 @@ var Mouse = require('../core/Mouse');
 
         // render collision normals
         for (i = 0; i < pairs.length; i++) {
-            pair = pairs[i];
-            collision = pair.collision;
+            collision = pairs[i];
 
             if (collision.contactCount > 0) {
                 var normalPosX = collision.contacts[0].x,
@@ -1148,9 +1145,8 @@ var Mouse = require('../core/Mouse');
 
         // render separations
         for (i = 0; i < pairs.length; i++) {
-            pair = pairs[i];
+            collision = pairs[i];
 
-            collision = pair.collision;
             bodyA = collision.bodyA;
             bodyB = collision.bodyB;
 
