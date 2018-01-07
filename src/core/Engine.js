@@ -164,10 +164,6 @@ var Body = require('../body/Body');
 
             // update the grid buckets based on current bodies
             broadphase.controller.update(broadphase, allBodies, engine);
-            broadphasePairs = broadphase.pairsList;
-        } else {
-            // if no broadphase set, we just pass all bodies
-            broadphasePairs = allBodies;
         }
 
         // clear all composite modified flags
@@ -177,7 +173,7 @@ var Body = require('../body/Body');
 
         // narrowphase pass: find actual collisions, then create or update collision pairs
         // var timestamp = timing.timestamp;
-        broadphase.detector(broadphasePairs, engine);
+        broadphase.detector(allBodies, engine);
 
         // update collision pairs
         var pairs = engine.pairs;
