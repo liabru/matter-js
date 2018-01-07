@@ -20,9 +20,9 @@ var dummyPair = { idA: 1 << 30, idB: (1 << 30) + 1 };
 (function() {
 
     /**
-     * Finds all collisions given a list of pairs.
+     * Finds all collisions given a list of bodies and their potential collision pairs
      * @method collisions
-     * @param {pair[]} broadphasePairs
+     * @param {bodies[]} bodies
      * @param {engine} engine
      * @return {array} collisions
      */
@@ -65,31 +65,31 @@ var dummyPair = { idA: 1 << 30, idB: (1 << 30) + 1 };
                 firstPartsA = bodyA.parts.length > 1 ? 1 : 0,
                 pairs = bodyA.pairs;
 
-                for (var j = 0; j < pairs.length; j++) {
-                    var bodyB = pairs[j][0];
+            for (var j = 0; j < pairs.length; j++) {
+                var bodyB = pairs[j][0];
 
-                    if ((bodyA.isStatic || bodyA.isSleeping) && (bodyB.isStatic || bodyB.isSleeping))
-                        continue;
-                    
-                    if (!Detector.canCollide(bodyA.collisionFilter, bodyB.collisionFilter))
-                        continue;
+                if ((bodyA.isStatic || bodyA.isSleeping) && (bodyB.isStatic || bodyB.isSleeping))
+                    continue;
+                
+                if (!Detector.canCollide(bodyA.collisionFilter, bodyB.collisionFilter))
+                    continue;
 
-                    // @if DEBUG
-                    metrics.midphaseTests += 1;
-                    // @endif
+                // @if DEBUG
+                metrics.midphaseTests += 1;
+                // @endif
 
-                    // mid phase
-                    if (Bounds.overlaps(bodyA.bounds, bodyB.bounds)) {
-                        for (var l = firstPartsA; l < partsA.length; l++) {
-                            var partA = partsA[l];
+                // mid phase
+                if (Bounds.overlaps(bodyA.bounds, bodyB.bounds)) {
+                    for (var l = firstPartsA; l < partsA.length; l++) {
+                        var partA = partsA[l];
 
-                            var partsB = bodyB.parts;
-                            for (var k = partsB.length > 1 ? 1 : 0; k < partsB.length; k++) {
-                                var partB = partsB[k];
+                        var partsB = bodyB.parts;
+                        for (var k = partsB.length > 1 ? 1 : 0; k < partsB.length; k++) {
+                            var partB = partsB[k];
 
-                                if ((partA === bodyA && partB === bodyB) || Bounds.overlaps(partA.bounds, partB.bounds)) {
-                                    // narrow phase
-                                    var collision = SAT.collides(partA, partB);
+                            if ((partA === bodyA && partB === bodyB) || Bounds.overlaps(partA.bounds, partB.bounds)) {
+                                // narrow phase
+                                var collision = SAT.collides(partA, partB);
 
                                 // @if DEBUG
                                 metrics.narrowphaseTests += 1;
