@@ -24,7 +24,6 @@ var Common = require('../core/Common');
             controller: Grid,
             detector: Detector.collisions,
             buckets: [],
-            pairsList: [],
             bucketWidth: 48,
             bucketHeight: 48
         };
@@ -73,70 +72,64 @@ var Common = require('../core/Common');
         metrics.broadphaseTests = 0;
         // @endif
 
-        var pairsList = [];
         for (i = 0; i < bodies.length; i++) {
             var body = bodies[i];
 
-            if (!body.isSleeping) {
+            if (body.isSleeping)
+                continue;
 
-                // don't update out of world bodies
-                var bounds = body.bounds;
-                if (worldBounded && (bounds.max.x < worldMinX || bounds.min.x > worldMaxX
-                    || bounds.max.y < worldMinY || bounds.min.y > worldMaxY))
-                    continue;
+            // don't update out of world bodies
+            var bounds = body.bounds;
+            if (worldBounded && (bounds.max.x < worldMinX || bounds.min.x > worldMaxX
+                || bounds.max.y < worldMinY || bounds.min.y > worldMaxY))
+                continue;
 
-                var newRegion = Grid._getRegion(grid, bounds);
-                var oldRegion = body.region;
+            var newRegion = Grid._getRegion(grid, bounds);
+            var oldRegion = body.region;
 
-                // set the new region
-                body.region = newRegion;
+            // set the new region
+            body.region = newRegion;
 
-                // if the body has changed grid region
-                if (
-                    newRegion.startCol !== oldRegion.startCol ||
-                    newRegion.endCol !== oldRegion.endCol ||
-                    newRegion.startRow !== oldRegion.startRow ||
-                    newRegion.endRow !== oldRegion.endRow
-                ) {
+            // if the body has changed grid region
+            if (
+                newRegion.startCol === oldRegion.startCol &&
+                newRegion.endCol === oldRegion.endCol &&
+                newRegion.startRow === oldRegion.startRow &&
+                newRegion.endRow === oldRegion.endRow
+            ) {
+                continue;
+            }
 
-                    // @if DEBUG
-                    metrics.broadphaseTests += 1;
-                    // @endif
+            // @if DEBUG
+            metrics.broadphaseTests += 1;
+            // @endif
 
-                    var startCol = Math.min(newRegion.startCol, oldRegion.startCol),
-                        endCol = Math.max(newRegion.endCol, oldRegion.endCol),
-                        startRow = Math.min(newRegion.startRow, oldRegion.startRow),
-                        endRow = Math.max(newRegion.endRow, oldRegion.endRow);
+            var startCol = Math.min(newRegion.startCol, oldRegion.startCol),
+                endCol = Math.max(newRegion.endCol, oldRegion.endCol),
+                startRow = Math.min(newRegion.startRow, oldRegion.startRow),
+                endRow = Math.max(newRegion.endRow, oldRegion.endRow);
 
-                    // update grid buckets affected by region change
-                    // iterate over the union of both regions
-                    for (col = startCol; col <= endCol; col++) {
-                        var isInsideNewColumn = (col >= newRegion.startCol && col <= newRegion.endCol);
-                        var isInsideOldColumn = (col >= oldRegion.startCol && col <= oldRegion.endCol);
+            // update grid buckets affected by region change
+            // iterate over the union of both regions
+            for (col = startCol; col <= endCol; col++) {
+                var isInsideNewColumn = (col >= newRegion.startCol && col <= newRegion.endCol);
+                var isInsideOldColumn = (col >= oldRegion.startCol && col <= oldRegion.endCol);
 
-                        for (row = startRow; row <= endRow; row++) {
-                            var isInsideNewRegion = isInsideNewColumn && (row >= newRegion.startRow && row <= newRegion.endRow);
-                            var isInsideOldRegion = isInsideOldColumn && (row >= oldRegion.startRow && row <= oldRegion.endRow);
+                for (row = startRow; row <= endRow; row++) {
+                    var isInsideNewRegion = isInsideNewColumn && (row >= newRegion.startRow && row <= newRegion.endRow);
+                    var isInsideOldRegion = isInsideOldColumn && (row >= oldRegion.startRow && row <= oldRegion.endRow);
 
-                            // remove from old region buckets
-                            if (isInsideOldRegion) {
-                                if (!isInsideNewRegion) {
-                                    Grid._bucketRemoveBody(grid, body, buckets[col][row]);
-                                }
-                            } else if (isInsideNewRegion) {
-                                Grid._bucketAddBody(grid, body, buckets, col, row);
-                            }
+                    // remove from old region buckets
+                    if (isInsideOldRegion) {
+                        if (!isInsideNewRegion) {
+                            Grid._bucketRemoveBody(grid, body, buckets[col][row]);
                         }
+                    } else if (isInsideNewRegion) {
+                        Grid._bucketAddBody(grid, body, buckets, col, row);
                     }
                 }
             }
-
-            var pairs = body.pairs;
-            for (var p = 0; p < pairs.length; p += 1)
-                pairsList.push(pairs[p]);
         }
-
-        grid.pairsList = pairsList;
     };
 
     Grid.reset = function(grid, bodies, engine) {
@@ -228,17 +221,17 @@ var Common = require('../core/Common');
             var pairs = bodyA.pairs;
             for (var p = 0; p < pairs.length; p += 1) {
                 var pair = pairs[p];
-                if (pair[1] === bodyB) {
-                    pair[2] += 1;
+                if (pair[0] === bodyB) {
+                    pair[1] += 1;
                     break;
                 } else if (pair[1].id > bodyB.id) {
-                    pairs.splice(p, 0, [bodyA, bodyB, 1]);
+                    pairs.splice(p, 0, [bodyB, 1]);
                     break;
                 }
             }
 
             if (p === pairs.length)
-                pairs.push([bodyA, bodyB, 1]);
+                pairs.push([bodyB, 1]);
         }
 
         // add to bodies (after pairs, otherwise pairs with self)
@@ -273,11 +266,11 @@ var Common = require('../core/Common');
             var pairs = bodyA.pairs;
             for (var p = 0; p < pairs.length; p += 1) {
                 var pair = pairs[p];
-                if (pair[1] === bodyB) {
-                    if (pair[2] === 1) {
+                if (pair[0] === bodyB) {
+                    if (pair[1] === 1) {
                         pairs.splice(p, 1);
                     } else {
-                        pair[2] -= 1;
+                        pair[1] -= 1;
                     }
                     break;
                 }
