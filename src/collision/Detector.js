@@ -20,9 +20,9 @@ var dummyPair = { idA: 1 << 30, idB: (1 << 30) + 1 };
 (function() {
 
     /**
-     * Finds all collisions given a list of pairs.
+     * Finds all collisions given a list of bodies and their potential collision pairs
      * @method collisions
-     * @param {pair[]} broadphasePairs
+     * @param {bodies[]} bodies
      * @param {engine} engine
      * @return {array} collisions
      */
