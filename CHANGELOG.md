@@ -1,3 +1,10 @@
+<a name="0.14.1"></a>
+## 0.14.1 (2018-01-10)
+
+* fix Common.isElement on node, closes #535 ([ec38eeb](https://github.com/liabru/matter-js/commit/ec38eeb)), closes [#535](https://github.com/liabru/matter-js/issues/535)
+
+
+
 <a name="0.14.0"></a>
 # 0.14.0 (2017-11-30)
 

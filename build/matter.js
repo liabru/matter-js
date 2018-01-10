@@ -1,5 +1,5 @@
 /**
-* matter-js 0.14.0 by @liabru 2017-11-30
+* matter-js 0.14.1 by @liabru 2018-01-10
 * http://brm.io/matter-js/
 * License MIT
 */
@@ -4446,7 +4446,7 @@ module.exports = Common;
             return obj instanceof HTMLElement;
         }
 
-        return !!(obj.nodeType && obj.nodeName);
+        return !!(obj && obj.nodeType && obj.nodeName);
     };
 
     /**
@@ -5444,7 +5444,7 @@ var Common = _dereq_('./Common');
      * @readOnly
      * @type {String}
      */
-    Matter.version = '0.14.0';
+    Matter.version = '0.14.1';
 
     /**
      * A list of plugin dependencies to be installed. These are normally set and installed through `Matter.use`.
