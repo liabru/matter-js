@@ -17,7 +17,8 @@
         "node": true,
         "browser": true,
         "jquery": true,
-        "amd": true
+        "amd": true,
+        "es6": true
     },
     "globals": {
         "Matter": false,
