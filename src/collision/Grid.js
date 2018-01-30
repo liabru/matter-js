@@ -76,15 +76,6 @@ var Common = require('../core/Common');
 
             if (body.isSleeping)
                 continue;
-            
-            if (!body.isStatic) {
-                // updating body projection
-                var parts = body.parts;
-                for (var j = parts.length > 1 ? 1 : 0; j < parts.length; j++) {
-                    var part = parts[j];
-                    Projections.verticesOntoAxes(part.projections, part.vertices, part.axes);
-                }
-            }
 
             // don't update out of world bodies
             var bounds = body.bounds;

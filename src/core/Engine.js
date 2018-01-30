@@ -161,10 +161,6 @@ var Body = require('../body/Body');
 
         // broadphase pass: find potential collision pairs
         if (broadphase.controller) {
-            // if world is dirty, we must flush the whole grid
-            // if (world.isModified)
-            //     broadphase.controller.reset(broadphase, allBodies, engine);
-
             // update the grid buckets based on current bodies
             broadphase.controller.update(broadphase, allBodies, engine);
         }

@@ -43,8 +43,6 @@ var Projections = require('../geometry/Projections');
             id: Common.nextId(),
             type: 'body',
             label: 'Body',
-            pairs: [],
-            region: null,
             parts: [],
             plugin: {},
             angle: 0,
@@ -89,6 +87,9 @@ var Projections = require('../geometry/Projections');
                 lineWidth: 0
             },
 
+            pairs: [],
+            region: null,
+
             events: null,
             bounds: null,
             chamfer: null,
@@ -110,8 +111,6 @@ var Projections = require('../geometry/Projections');
         var body = Common.extend(defaults, options);
 
         _initProperties(body, options);
-
-        Projections.verticesOntoAxes(body.projections, body.vertices, body.axes);
 
         return body;
     };
@@ -167,6 +166,7 @@ var Projections = require('../geometry/Projections');
         Vertices.rotate(body.vertices, body.angle, body.position);
         Axes.rotate(body.axes, body.angle);
         Bounds.update(body.bounds, body.vertices, body.velocity);
+        Projections.verticesOntoAxes(body.projections, body.vertices, body.axes);
 
         // allow options to override the automatically calculated properties
         var properties = {};
@@ -370,6 +370,7 @@ var Projections = require('../geometry/Projections');
         Vertices.translate(body.vertices, body.position);
         Body.setAxes(body, Axes.fromVertices(body.vertices));
         Bounds.update(body.bounds, body.vertices, body.velocity);
+        Projections.verticesOntoAxes(body.projections, body.vertices, body.axes);
     };
 
     Body.setAxes = function (body, axes) {
@@ -457,6 +458,7 @@ var Projections = require('../geometry/Projections');
             part.position.y += delta.y;
             Vertices.translate(part.vertices, delta);
             Bounds.update(part.bounds, part.vertices, body.velocity);
+            Projections.verticesOntoAxes(part.projections, part.vertices, part.axes);
         }
     };
 
@@ -476,6 +478,7 @@ var Projections = require('../geometry/Projections');
             Vertices.rotate(part.vertices, delta, body.position);
             Axes.rotate(part.axes, delta);
             Bounds.update(part.bounds, part.vertices, body.velocity);
+            Projections.verticesOntoAxes(part.projections, part.vertices, part.axes);
             if (i > 0) {
                 Vector.rotateAbout(part.position, delta, body.position, part.position);
             }
@@ -584,6 +587,7 @@ var Projections = require('../geometry/Projections');
 
             // update bounds
             Bounds.update(part.bounds, part.vertices, body.velocity);
+            Projections.verticesOntoAxes(part.projections, part.vertices, part.axes);
         }
 
         // handle parent body
@@ -670,6 +674,7 @@ var Projections = require('../geometry/Projections');
             }
 
             Bounds.update(part.bounds, partVertices, velocity);
+            Projections.verticesOntoAxes(part.projections, part.vertices, part.axes);
         }
     };
 
