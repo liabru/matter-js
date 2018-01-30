@@ -28,7 +28,7 @@ var Grid = require('../collision/Grid');
      * @return {composite} A new composite
      */
     Composite.create = function(options) {
-        return Common.extend({ 
+        var composite = Common.extend({ 
             id: Common.nextId(),
             type: 'composite',
             parent: null,
@@ -40,6 +40,10 @@ var Grid = require('../collision/Grid');
             label: 'Composite',
             plugin: {}
         }, options);
+
+        composite.allBodies = composite.bodies.slice();
+
+        return composite;
     };
 
     /**
