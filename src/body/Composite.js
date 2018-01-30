@@ -16,6 +16,7 @@ module.exports = Composite;
 var Events = require('../core/Events');
 var Common = require('../core/Common');
 var Body = require('./Body');
+var Grid = require('../collision/Grid');
 
 (function() {
 
@@ -206,6 +207,7 @@ var Body = require('./Body');
         composite.bodies.push(body);
         Composite.setModified(composite, true, true, false);
         Composite.addBodies(composite, [body]);
+
         return composite;
     };
 
@@ -248,6 +250,10 @@ var Body = require('./Body');
             return bodyA.id - bodyB.id;
         });
 
+        if (composite.grid) {
+            Grid.addBodies(composite.grid, bodies, composite);
+        }
+
         if (composite.parent && composite.parent.type === 'composite') {
             composite.parent.addBodies(composite.parent, bodies);
         }
@@ -266,6 +272,10 @@ var Body = require('./Body');
             var position = allBodies.indexOf(bodies[i]);
             if (position !== -1)
                 allBodies.splice(position, 1);
+        }
+
+        if (composite.grid) {
+            Grid.removeBodies(composite.grid, bodies);
         }
 
         if (composite.parent && composite.parent.type === 'composite') {

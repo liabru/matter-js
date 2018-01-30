@@ -8,7 +8,6 @@ var Grid = {};
 
 module.exports = Grid;
 
-var Detector = require('./Detector');
 var Common = require('../core/Common');
 
 (function() {
@@ -22,7 +21,6 @@ var Common = require('../core/Common');
     Grid.create = function(options) {
         var defaults = {
             controller: Grid,
-            detector: Detector.collisions,
             buckets: [],
             bucketWidth: 48,
             bucketHeight: 48
@@ -132,12 +130,39 @@ var Common = require('../core/Common');
         }
     };
 
-    Grid.reset = function(grid, bodies, engine) {
+    Grid.clear = function(grid, bodies) {
         grid.buckets = [];
+        for (var i = 0; i < bodies.length; i++) {
+            bodies.pairs.length = 0;
+        }
+    };
 
+    Grid.removeBodies = function (grid, bodies) {
+        var i, col, row,
+            buckets = grid.buckets;
+
+        for (i = 0; i < bodies.length; i++) {
+            var body = bodies[i],
+                region = body.region,
+                startCol = region.startCol,
+                endCol = region.endCol,
+                startRow = region.startRow,
+                endRow = region.endRow;
+
+            for (col = startCol; col <= endCol; col++) {
+                for (row = startRow; row <= endRow; row++) {
+                    Grid._bucketRemoveBody(grid, body, buckets[col][row]);
+                }
+            }
+
+            body.region = null;
+            body.pairs.length = 0;
+        }
+    };
+
+    Grid.addBodies = function(grid, bodies, world) {
         var i, col, row,
             buckets = grid.buckets,
-            world = engine.world,
             worldMinX = world.bounds.min.x,
             worldMaxX = world.bounds.max.x,
             worldMinY = world.bounds.min.y,
@@ -149,7 +174,6 @@ var Common = require('../core/Common');
 
         for (i = 0; i < bodies.length; i++) {
             var body = bodies[i];
-
             // don't update out of world bodies
             var bounds = body.bounds;
             if (worldBounded && (bounds.max.x < worldMinX || bounds.min.x > worldMaxX
