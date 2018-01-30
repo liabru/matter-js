@@ -38,7 +38,7 @@ var Vertices = require('../geometry/Vertices');
                     if (Bounds.overlaps(part.bounds, body.bounds)) {
                         var collision = SAT.collides(part, body);
 
-                        if (collision.collided) {
+                        if (collision) {
                             collisions.push(collision);
                             break;
                         }
