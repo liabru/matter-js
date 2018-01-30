@@ -19,6 +19,7 @@ var Render = require('../render/Render');
 var Pairs = require('../collision/Pairs');
 var Metrics = require('./Metrics');
 var Grid = require('../collision/Grid');
+var Detector = require('../collision/Detector');
 var Events = require('./Events');
 var Composite = require('../body/Composite');
 var Constraint = require('../constraint/Constraint');
@@ -87,6 +88,8 @@ var Body = require('../body/Body');
         engine.pairs = Pairs.create();
         engine.broadphase = engine.broadphase.controller.create(engine.broadphase);
         engine.metrics = engine.metrics || { extended: false };
+
+        engine.world.grid = engine.broadphase;
 
         // @if DEBUG
         engine.metrics = Metrics.create(engine.metrics);
@@ -159,8 +162,8 @@ var Body = require('../body/Body');
         // broadphase pass: find potential collision pairs
         if (broadphase.controller) {
             // if world is dirty, we must flush the whole grid
-            if (world.isModified)
-                broadphase.controller.reset(broadphase, allBodies, engine);
+            // if (world.isModified)
+            //     broadphase.controller.reset(broadphase, allBodies, engine);
 
             // update the grid buckets based on current bodies
             broadphase.controller.update(broadphase, allBodies, engine);
@@ -173,7 +176,7 @@ var Body = require('../body/Body');
 
         // narrowphase pass: find actual collisions, then create or update collision pairs
         // var timestamp = timing.timestamp;
-        broadphase.detector(allBodies, engine);
+        Detector.collisions(allBodies, engine);
 
         // update collision pairs
         var pairs = engine.pairs;
@@ -263,8 +266,7 @@ var Body = require('../body/Body');
         var broadphase = engine.broadphase;
         if (broadphase.controller) {
             var bodies = Composite.allBodies(world);
-            broadphase.controller.reset(broadphase, bodies, engine);
-            broadphase.controller.update(broadphase, bodies, engine);
+            broadphase.controller.clear(broadphase, bodies);
         }
     };
 

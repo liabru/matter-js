@@ -44,6 +44,7 @@ var Projections = require('../geometry/Projections');
             type: 'body',
             label: 'Body',
             pairs: [],
+            region: null,
             parts: [],
             plugin: {},
             angle: 0,
