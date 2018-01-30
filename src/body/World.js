@@ -34,6 +34,7 @@ var Common = require('../core/Common');
 
         var defaults = {
             label: 'World',
+            grid: null,
             gravity: {
                 x: 0,
                 y: 1,

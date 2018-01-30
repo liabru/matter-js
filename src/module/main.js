@@ -4,11 +4,9 @@ Matter.Body = require('../body/Body');
 Matter.Composite = require('../body/Composite');
 Matter.World = require('../body/World');
 
-Matter.Contact = require('../collision/Contact');
 Matter.Detector = require('../collision/Detector');
 Matter.Grid = require('../collision/Grid');
 Matter.Pairs = require('../collision/Pairs');
-Matter.Pair = require('../collision/Pair');
 Matter.Query = require('../collision/Query');
 Matter.Resolver = require('../collision/Resolver');
 Matter.SAT = require('../collision/SAT');

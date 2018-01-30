@@ -64,25 +64,26 @@ var Events = require('./Events');
 
         // wake up bodies involved in collisions
         for (var i = 0; i < pairs.length; i++) {
-            var pair = pairs[i];
-            
-            // don't wake inactive pairs
-            if (!pair.isActive)
-                continue;
+            var collision = pairs[i];
 
-            var collision = pair.collision,
-                bodyA = collision.bodyA.parent, 
-                bodyB = collision.bodyB.parent;
-        
+            var bodyA = collision.parentA, 
+                bodyB = collision.parentB;
+
             // don't wake if at least one body is static
             if ((bodyA.isSleeping && bodyB.isSleeping) || bodyA.isStatic || bodyB.isStatic)
                 continue;
-        
-            if (bodyA.isSleeping || bodyB.isSleeping) {
-                var sleepingBody = (bodyA.isSleeping && !bodyA.isStatic) ? bodyA : bodyB,
-                    movingBody = sleepingBody === bodyA ? bodyB : bodyA;
 
-                if (!sleepingBody.isStatic && movingBody.motion > Sleeping._motionWakeThreshold * timeFactor) {
+            if (bodyA.isSleeping || bodyB.isSleeping) {
+                var sleepingBody, movingBody;
+                if (bodyA.isSleeping) {
+                    sleepingBody = bodyA;
+                    movingBody = bodyB;
+                } else {
+                    sleepingBody = bodyB;
+                    movingBody = bodyA;
+                }
+
+                if (movingBody.motion > Sleeping._motionWakeThreshold * timeFactor) {
                     Sleeping.set(sleepingBody, false);
                 }
             }
