@@ -135,7 +135,8 @@ var Body = require('../body/Body');
 
         // get lists of all bodies and constraints, no matter what composites they are in
         var allBodies = Composite.allBodies(world),
-            allConstraints = Composite.allConstraints(world);
+            allConstraints = Composite.allConstraints(world),
+            hasConstraints = allConstraints.length > 0;
 
         // @if DEBUG
         // reset metrics logging
@@ -152,12 +153,14 @@ var Body = require('../body/Body');
         // update all body position and rotation by integration
         Engine._bodiesUpdate(allBodies, delta, timing.timeScale, correction, world.bounds);
 
-        // update all constraints (first pass)
-        Constraint.preSolveAll(allBodies);
-        for (i = 0; i < engine.constraintIterations; i++) {
-            Constraint.solveAll(allConstraints, timing.timeScale);
+        if (hasConstraints) {
+            // update all constraints (first pass)
+            Constraint.preSolveAll(allBodies);
+            for (i = 0; i < engine.constraintIterations; i++) {
+                Constraint.solveAll(allConstraints, timing.timeScale);
+            }
+            Constraint.postSolveAll(allBodies, true);
         }
-        Constraint.postSolveAll(allBodies, true);
 
         // broadphase pass: find potential collision pairs
         if (broadphase.controller) {
@@ -192,12 +195,14 @@ var Body = require('../body/Body');
         }
         Resolver.postSolvePosition(allBodies);
 
-        // update all constraints (second pass)
-        Constraint.preSolveAll(allBodies);
-        for (i = 0; i < engine.constraintIterations; i++) {
-            Constraint.solveAll(allConstraints, timing.timeScale);
+        if (hasConstraints) {
+            // update all constraints (second pass)
+            Constraint.preSolveAll(allBodies);
+            for (i = 0; i < engine.constraintIterations; i++) {
+                Constraint.solveAll(allConstraints, timing.timeScale);
+            }
+            Constraint.postSolveAll(allBodies);
         }
-        Constraint.postSolveAll(allBodies);
 
         // iteratively resolve velocity between collisions
         Resolver.preSolveVelocity(pairs.list);
