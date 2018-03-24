@@ -182,11 +182,17 @@ var Axes = require('../geometry/Axes');
      * Prefer to use the actual setter functions in performance critical situations.
      * @method set
      * @param {body} body
-     * @param {object} settings A map of properties and values to set on the body.
+     * @param {} settings A property name (or map of properties and values) to set on the body.
+     * @param {} value The value to set if `settings` is a single property name.
      */
-    Body.set = function(body, settings) {
-        var property,
-            value;
+    Body.set = function(body, settings, value) {
+        var property;
+
+        if (typeof settings === 'string') {
+            property = settings;
+            settings = {};
+            settings[property] = value;
+        }
 
         for (property in settings) {
 
