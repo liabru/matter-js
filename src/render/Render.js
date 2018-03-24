@@ -1199,19 +1199,25 @@ var Mouse = require('../core/Mouse');
 
         c.beginPath();
 
-        var bucketKeys = Common.keys(grid.buckets);
+        var buckets = grid.buckets;
+        var columnKeys = Common.keys(buckets);
 
-        for (var i = 0; i < bucketKeys.length; i++) {
-            var bucketId = bucketKeys[i];
+        for (var i = 0; i < columnKeys.length; i += 1) {
+            var columnKey = columnKeys[i];
+            var column = buckets[columnKey];
+            var rowKeys = Object.keys(column);
+            for (var j = 0; j < rowKeys.length; j += 1) {
+                var rowKey = rowKeys[j];
+                var bucket = column[rowKey];
 
-            if (grid.buckets[bucketId].length < 2)
-                continue;
+                if (bucket.length < 2)
+                    continue;
 
-            var region = bucketId.split(/C|R/);
-            c.rect(0.5 + parseInt(region[1], 10) * grid.bucketWidth,
-                    0.5 + parseInt(region[2], 10) * grid.bucketHeight,
-                    grid.bucketWidth,
-                    grid.bucketHeight);
+                c.rect(0.5 + parseInt(columnKey, 10) * grid.bucketWidth,
+                        0.5 + parseInt(rowKey, 10) * grid.bucketHeight,
+                        grid.bucketWidth,
+                        grid.bucketHeight);
+            }
         }
 
         c.lineWidth = 1;

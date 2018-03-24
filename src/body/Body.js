@@ -43,6 +43,7 @@ var Axes = require('../geometry/Axes');
             type: 'body',
             label: 'Body',
             pairs: [],
+            region: null,
             parts: [],
             plugin: {},
             angle: 0,

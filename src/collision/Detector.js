@@ -21,15 +21,15 @@ var dummyPair = { idA: 1 << 30, idB: (1 << 30) + 1 };
 (function() {
 
     /**
-     * Finds all collisions given a list of pairs.
+     * Finds all collisions given a list of bodies and their potential collision pairs
      * @method collisions
-     * @param {pair[]} broadphasePairs
+     * @param {bodies[]} bodies
      * @param {engine} engine
      * @return {array} collisions
      */
-    Detector.collisions = function(broadphasePairs, engine) {
-        var pairs = engine.pairs,
-            oldPairs = pairs.list,
+    Detector.collisions = function(bodies, engine) {
+        var allPairs = engine.pairs,
+            oldPairs = allPairs.list,
             newPairs = [],
             collisionStart,
             collisionActive,
@@ -50,9 +50,9 @@ var dummyPair = { idA: 1 << 30, idB: (1 << 30) + 1 };
             collisionStart = [];
             collisionActive = [];
             collisionEnd = [];
-            pairs.collisionStart = collisionStart;
-            pairs.collisionActive = collisionActive;
-            pairs.collisionEnd = collisionEnd;
+            allPairs.collisionStart = collisionStart;
+            allPairs.collisionActive = collisionActive;
+            allPairs.collisionEnd = collisionEnd;
         }
 
         oldPairs.push(dummyPair);
@@ -60,63 +60,70 @@ var dummyPair = { idA: 1 << 30, idB: (1 << 30) + 1 };
         var pairIndex = 0,
             oldPair = oldPairs[pairIndex++];
 
-        for (var i = 0; i < broadphasePairs.length; i++) {
-            var bodyA = broadphasePairs[i][0], 
-                bodyB = broadphasePairs[i][1];
+        for (var i = 0; i < bodies.length; i++) {
+            var bodyA = bodies[i],
+                partsA = bodyA.parts,
+                firstPartsA = bodyA.parts.length > 1 ? 1 : 0,
+                pairs = bodyA.pairs;
 
-            if ((bodyA.isStatic || bodyA.isSleeping) && (bodyB.isStatic || bodyB.isSleeping))
-                continue;
-            
-            if (!Detector.canCollide(bodyA.collisionFilter, bodyB.collisionFilter))
-                continue;
+            for (var j = 0; j < pairs.length; j++) {
+                var bodyB = pairs[j][0];
 
-            // @if DEBUG
-            metrics.midphaseTests += 1;
-            // @endif
+                if ((bodyA.isStatic || bodyA.isSleeping) && (bodyB.isStatic || bodyB.isSleeping))
+                    continue;
+                
+                if (!Detector.canCollide(bodyA.collisionFilter, bodyB.collisionFilter))
+                    continue;
 
-            // mid phase
-            if (Bounds.overlaps(bodyA.bounds, bodyB.bounds)) {
-                for (var j = bodyA.parts.length > 1 ? 1 : 0; j < bodyA.parts.length; j++) {
-                    var partA = bodyA.parts[j];
+                // @if DEBUG
+                metrics.midphaseTests += 1;
+                // @endif
 
-                    for (var k = bodyB.parts.length > 1 ? 1 : 0; k < bodyB.parts.length; k++) {
-                        var partB = bodyB.parts[k];
+                // mid phase
+                if (Bounds.overlaps(bodyA.bounds, bodyB.bounds)) {
+                    for (var l = firstPartsA; l < partsA.length; l++) {
+                        var partA = partsA[l];
 
-                        if ((partA === bodyA && partB === bodyB) || Bounds.overlaps(partA.bounds, partB.bounds)) {
-                            // narrow phase
-                            var collision = SAT.collides(partA, partB);
+                        var partsB = bodyB.parts;
+                        for (var k = partsB.length > 1 ? 1 : 0; k < partsB.length; k++) {
+                            var partB = partsB[k];
 
-                            // @if DEBUG
-                            metrics.narrowphaseTests += 1;
-                            // @endif
-
-                            if (collision) {
-                                var newPair = Pair.create(collision);
-                                newPairs.push(newPair);
-
-                                if (hasCollisionEvent) {
-                                    // Check old pairs to determine which collisions are new
-                                    // and which collisions are not active anymore
-                                    var idA = collision.bodyA.id;
-                                    var idB = collision.bodyB.id;
-                                    while (oldPair.idA < idA || (oldPair.idA === idA && oldPair.idB < idB)) {
-                                        collisionEnd.push(oldPair);
-                                        oldPair = oldPairs[pairIndex++];
-                                    }
-
-                                    if (oldPair.idA === idA && oldPair.idB === idB) {
-                                        // Pair was already active
-                                        collisionActive.push(newPair);
-                                        oldPair = oldPairs[pairIndex++];
-                                    } else {
-                                        // Pair could not be found, collision is new
-                                        collisionStart.push(newPair);
-                                    }
-                                }
+                            if ((partA === bodyA && partB === bodyB) || Bounds.overlaps(partA.bounds, partB.bounds)) {
+                                // narrow phase
+                                var collision = SAT.collides(partA, partB);
 
                                 // @if DEBUG
-                                metrics.narrowDetections += 1;
+                                metrics.narrowphaseTests += 1;
                                 // @endif
+
+                                if (collision) {
+                                    var newPair = Pair.create(collision);
+                                    newPairs.push(newPair);
+
+                                    if (hasCollisionEvent) {
+                                        // Check old pairs to determine which collisions are new
+                                        // and which collisions are not active anymore
+                                        var idA = collision.bodyA.id;
+                                        var idB = collision.bodyB.id;
+                                        while (oldPair.idA < idA || (oldPair.idA === idA && oldPair.idB < idB)) {
+                                            collisionEnd.push(oldPair);
+                                            oldPair = oldPairs[pairIndex++];
+                                        }
+
+                                        if (oldPair.idA === idA && oldPair.idB === idB) {
+                                            // Pair was already active
+                                            collisionActive.push(newPair);
+                                            oldPair = oldPairs[pairIndex++];
+                                        } else {
+                                            // Pair could not be found, collision is new
+                                            collisionStart.push(newPair);
+                                        }
+                                    }
+
+                                    // @if DEBUG
+                                    metrics.narrowDetections += 1;
+                                    // @endif
+                                }
                             }
                         }
                     }
@@ -131,7 +138,7 @@ var dummyPair = { idA: 1 << 30, idB: (1 << 30) + 1 };
             }
         }
 
-        pairs.list = newPairs;
+        allPairs.list = newPairs;
     };
 
     /**
