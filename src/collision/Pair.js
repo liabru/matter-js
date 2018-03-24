@@ -28,6 +28,7 @@ module.exports = Pair;
             activeContacts: [],
             separation: 0,
             isActive: true,
+            confirmedActive: true,
             isSensor: bodyA.isSensor || bodyB.isSensor,
             timeCreated: timestamp,
             timeUpdated: timestamp,
