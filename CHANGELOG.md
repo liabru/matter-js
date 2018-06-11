@@ -1,3 +1,16 @@
+<a name="0.14.2"></a>
+## <small>0.14.2 (2018-06-11)</small>
+
+* added missing polyfill warning to Svg.pathToVertices ([511de5b](https://github.com/liabru/matter-js/commit/511de5b))
+* fix Composite.bounds global issue, closes #627, closes #544 ([f7f77b4](https://github.com/liabru/matter-js/commit/f7f77b4)), closes [#627](https://github.com/liabru/matter-js/issues/627) [#544](https://github.com/liabru/matter-js/issues/544)
+* fix docs for Vector.angle, closes #471 ([db30d79](https://github.com/liabru/matter-js/commit/db30d79)), closes [#471](https://github.com/liabru/matter-js/issues/471)
+* Fixed constraint pointB documentation ([0b5ce1d](https://github.com/liabru/matter-js/commit/0b5ce1d))
+* fixed require for external libraries, closes #629, closes #559, closes #593, closes #365, closes #62 ([0cf97f5](https://github.com/liabru/matter-js/commit/0cf97f5)), closes [#629](https://github.com/liabru/matter-js/issues/629) [#559](https://github.com/liabru/matter-js/issues/559) [#593](https://github.com/liabru/matter-js/issues/593) [#365](https://github.com/liabru/matter-js/issues/365) [#629](https://github.com/liabru/matter-js/issues/629)
+* remove browserify-shim ([e3c176e](https://github.com/liabru/matter-js/commit/e3c176e))
+* updated pathseg library, closes #548, closes #602, closes #424 ([1e5758f](https://github.com/liabru/matter-js/commit/1e5758f)), closes [#548](https://github.com/liabru/matter-js/issues/548) [#602](https://github.com/liabru/matter-js/issues/602) [#424](https://github.com/liabru/matter-js/issues/424)
+
+
+
 <a name="0.14.1"></a>
 ## 0.14.1 (2018-01-10)
 
