@@ -21,7 +21,6 @@
   ],
   "devDependencies": {
     "browserify": "^14.0.0",
-    "browserify-shim": "^3.8.13",
     "cheerio": "^0.22.0",
     "connect-livereload": "^0.6.0",
     "event-stream": "^3.3.2",
@@ -59,8 +58,5 @@
     "src",
     "build",
     "CHANGELOG.md"
-  ],
-  "browserify-shim": {
-    "poly-decomp": "global:decomp"
-  }
+  ]
 }

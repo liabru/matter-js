@@ -111,13 +111,16 @@ gulp.task('watch', function() {
     var b = browserify({
         entries: ['src/module/main.js'],
         standalone: 'Matter',
-        plugin: [watchify],
-        transform: ['browserify-shim']
+        plugin: [watchify]
     });
 
     var bundle = function() {
         gutil.log('Updated bundle build/matter-dev.js');
         b.bundle()
+            .on('error', function(err) {
+                gutil.log('ERROR', err.message);
+                this.emit('end');
+            })
             .pipe(through2({ objectMode: true }, function(chunk, encoding, callback) {
                 return callback(
                     null, 
