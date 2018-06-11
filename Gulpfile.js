@@ -259,7 +259,7 @@ var build = function(options) {
 
     var compiled = gulp.src(['src/module/main.js'])
         .pipe(through2.obj(function(file, enc, next){
-            browserify(file.path, { standalone: 'Matter', transform: ['browserify-shim'] })
+            browserify(file.path, { standalone: 'Matter' })
                 .bundle(function(err, res){
                     file.contents = res;
                     next(null, file);
