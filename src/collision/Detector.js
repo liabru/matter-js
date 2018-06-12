@@ -11,74 +11,114 @@ var Detector = {};
 module.exports = Detector;
 
 var SAT = require('./SAT');
-var Pair = require('./Pair');
+var Pairs = require('./Pairs');
+var Sleeping = require('../core/Sleeping');
 var Bounds = require('../geometry/Bounds');
+
+var dummyPair = { idA: 1 << 30, idB: (1 << 30) + 1 };
 
 (function() {
 
     /**
-     * Finds all collisions given a list of pairs.
+     * Finds all collisions given a list of bodies and their potential collision pairs
      * @method collisions
-     * @param {pair[]} broadphasePairs
+     * @param {bodies[]} bodies
      * @param {engine} engine
      * @return {array} collisions
      */
-    Detector.collisions = function(broadphasePairs, engine) {
-        var collisions = [],
-            pairsTable = engine.pairs.table;
+    Detector.collisions = function(bodies, engine) {
+        var allPairs = engine.pairs,
+            oldCollisions = allPairs.list,
+            newCollisions = [],
+            collisionStart,
+            collisionActive,
+            collisionEnd;
 
         // @if DEBUG
         var metrics = engine.metrics;
         // @endif
-        
-        for (var i = 0; i < broadphasePairs.length; i++) {
-            var bodyA = broadphasePairs[i][0], 
-                bodyB = broadphasePairs[i][1];
 
-            if ((bodyA.isStatic || bodyA.isSleeping) && (bodyB.isStatic || bodyB.isSleeping))
-                continue;
-            
-            if (!Detector.canCollide(bodyA.collisionFilter, bodyB.collisionFilter))
-                continue;
+        var engineEvents = engine.events;
+        var hasCollisionEvent = !!(
+            engineEvents.collisionStart ||
+            engineEvents.collisionActive ||
+            engineEvents.collisionEnd
+        );
 
-            // @if DEBUG
-            metrics.midphaseTests += 1;
-            // @endif
+        if (hasCollisionEvent) {
+            collisionStart = [];
+            collisionActive = [];
+            collisionEnd = [];
+            allPairs.collisionStart = collisionStart;
+            allPairs.collisionActive = collisionActive;
+            allPairs.collisionEnd = collisionEnd;
+        }
 
-            // mid phase
-            if (Bounds.overlaps(bodyA.bounds, bodyB.bounds)) {
-                for (var j = bodyA.parts.length > 1 ? 1 : 0; j < bodyA.parts.length; j++) {
-                    var partA = bodyA.parts[j];
+        oldCollisions.push(dummyPair);
 
-                    for (var k = bodyB.parts.length > 1 ? 1 : 0; k < bodyB.parts.length; k++) {
-                        var partB = bodyB.parts[k];
+        var pairIndex = 0,
+            oldCollision = oldCollisions[pairIndex++];
 
-                        if ((partA === bodyA && partB === bodyB) || Bounds.overlaps(partA.bounds, partB.bounds)) {
-                            // find a previous collision we could reuse
-                            var pairId = Pair.id(partA, partB),
-                                pair = pairsTable[pairId],
-                                previousCollision;
+        for (var i = 0; i < bodies.length; i++) {
+            var bodyA = bodies[i],
+                partsA = bodyA.parts,
+                firstPartsA = bodyA.parts.length > 1 ? 1 : 0,
+                pairs = bodyA.pairs;
 
-                            if (pair && pair.isActive) {
-                                previousCollision = pair.collision;
-                            } else {
-                                previousCollision = null;
-                            }
+            for (var j = 0; j < pairs.length; j++) {
+                var bodyB = pairs[j][0];
 
-                            // narrow phase
-                            var collision = SAT.collides(partA, partB, previousCollision);
+                if ((bodyA.isStatic || bodyA.isSleeping) && (bodyB.isStatic || bodyB.isSleeping))
+                    continue;
+                
+                if (!Detector.canCollide(bodyA.collisionFilter, bodyB.collisionFilter))
+                    continue;
 
-                            // @if DEBUG
-                            metrics.narrowphaseTests += 1;
-                            if (collision.reused)
-                                metrics.narrowReuseCount += 1;
-                            // @endif
+                // @if DEBUG
+                metrics.midphaseTests += 1;
+                // @endif
 
-                            if (collision.collided) {
-                                collisions.push(collision);
+                // mid phase
+                if (Bounds.overlaps(bodyA.bounds, bodyB.bounds)) {
+                    for (var l = firstPartsA; l < partsA.length; l++) {
+                        var partA = partsA[l];
+
+                        var partsB = bodyB.parts;
+                        for (var k = partsB.length > 1 ? 1 : 0; k < partsB.length; k++) {
+                            var partB = partsB[k];
+
+                            if ((partA === bodyA && partB === bodyB) || Bounds.overlaps(partA.bounds, partB.bounds)) {
+                                // narrow phase
+                                var collision = SAT.collides(partA, partB);
+
                                 // @if DEBUG
-                                metrics.narrowDetections += 1;
+                                metrics.narrowphaseTests += 1;
                                 // @endif
+
+                                if (collision) {
+                                    newCollisions.push(collision);
+
+                                    if (hasCollisionEvent) {
+                                        // Check old pairs to determine which collisions are new
+                                        // and which collisions are not active anymore
+                                        var idA = partA.id;
+                                        var idB = partB.id;
+                                        while (oldCollision.idA < idA
+                                            || (oldCollision.idA === idA && oldCollision.idB < idB)) {
+                                            collisionEnd.push(oldCollision);
+                                            oldCollision = oldCollisions[pairIndex++];
+                                        }
+
+                                        if (oldCollision.idA === idA && oldCollision.idB === idB) {
+                                            // Pair was already active
+                                            collisionActive.push(collision);
+                                            oldCollision = oldCollisions[pairIndex++];
+                                        } else {
+                                            // Pair could not be found, collision is new
+                                            collisionStart.push(collision);
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -86,7 +126,14 @@ var Bounds = require('../geometry/Bounds');
             }
         }
 
-        return collisions;
+        if (hasCollisionEvent) {
+            pairIndex -= 1;
+            while (pairIndex < oldCollisions.length - 1) {
+                collisionEnd.push(oldCollisions[pairIndex++]);
+            }
+        }
+
+        allPairs.list = newCollisions;
     };
 
     /**

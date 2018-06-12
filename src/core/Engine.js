@@ -19,6 +19,7 @@ var Render = require('../render/Render');
 var Pairs = require('../collision/Pairs');
 var Metrics = require('./Metrics');
 var Grid = require('../collision/Grid');
+var Detector = require('../collision/Detector');
 var Events = require('./Events');
 var Composite = require('../body/Composite');
 var Constraint = require('../constraint/Constraint');
@@ -88,6 +89,8 @@ var Body = require('../body/Body');
         engine.broadphase = engine.broadphase.controller.create(engine.broadphase);
         engine.metrics = engine.metrics || { extended: false };
 
+        engine.world.grid = engine.broadphase;
+
         // @if DEBUG
         engine.metrics = Metrics.create(engine.metrics);
         // @endif
@@ -132,7 +135,8 @@ var Body = require('../body/Body');
 
         // get lists of all bodies and constraints, no matter what composites they are in
         var allBodies = Composite.allBodies(world),
-            allConstraints = Composite.allConstraints(world);
+            allConstraints = Composite.allConstraints(world),
+            hasConstraints = allConstraints.length > 0;
 
         // @if DEBUG
         // reset metrics logging
@@ -149,25 +153,19 @@ var Body = require('../body/Body');
         // update all body position and rotation by integration
         Engine._bodiesUpdate(allBodies, delta, timing.timeScale, correction, world.bounds);
 
-        // update all constraints (first pass)
-        Constraint.preSolveAll(allBodies);
-        for (i = 0; i < engine.constraintIterations; i++) {
-            Constraint.solveAll(allConstraints, timing.timeScale);
+        if (hasConstraints) {
+            // update all constraints (first pass)
+            Constraint.preSolveAll(allBodies);
+            for (i = 0; i < engine.constraintIterations; i++) {
+                Constraint.solveAll(allConstraints, timing.timeScale);
+            }
+            Constraint.postSolveAll(allBodies, true);
         }
-        Constraint.postSolveAll(allBodies);
 
         // broadphase pass: find potential collision pairs
         if (broadphase.controller) {
-            // if world is dirty, we must flush the whole grid
-            if (world.isModified)
-                broadphase.controller.clear(broadphase);
-
             // update the grid buckets based on current bodies
-            broadphase.controller.update(broadphase, allBodies, engine, world.isModified);
-            broadphasePairs = broadphase.pairsList;
-        } else {
-            // if no broadphase set, we just pass all bodies
-            broadphasePairs = allBodies;
+            broadphase.controller.update(broadphase, allBodies, engine);
         }
 
         // clear all composite modified flags
@@ -176,13 +174,11 @@ var Body = require('../body/Body');
         }
 
         // narrowphase pass: find actual collisions, then create or update collision pairs
-        var collisions = broadphase.detector(broadphasePairs, engine);
+        // var timestamp = timing.timestamp;
+        Detector.collisions(allBodies, engine);
 
         // update collision pairs
-        var pairs = engine.pairs,
-            timestamp = timing.timestamp;
-        Pairs.update(pairs, collisions, timestamp);
-        Pairs.removeOld(pairs, timestamp);
+        var pairs = engine.pairs;
 
         // wake up bodies involved in collisions
         if (engine.enableSleeping)
@@ -195,16 +191,18 @@ var Body = require('../body/Body');
         // iteratively resolve position between collisions
         Resolver.preSolvePosition(pairs.list);
         for (i = 0; i < engine.positionIterations; i++) {
-            Resolver.solvePosition(pairs.list, timing.timeScale);
+            Resolver.solvePosition(pairs.list, allBodies, timing.timeScale);
         }
         Resolver.postSolvePosition(allBodies);
 
-        // update all constraints (second pass)
-        Constraint.preSolveAll(allBodies);
-        for (i = 0; i < engine.constraintIterations; i++) {
-            Constraint.solveAll(allConstraints, timing.timeScale);
+        if (hasConstraints) {
+            // update all constraints (second pass)
+            Constraint.preSolveAll(allBodies);
+            for (i = 0; i < engine.constraintIterations; i++) {
+                Constraint.solveAll(allConstraints, timing.timeScale);
+            }
+            Constraint.postSolveAll(allBodies);
         }
-        Constraint.postSolveAll(allBodies);
 
         // iteratively resolve velocity between collisions
         Resolver.preSolveVelocity(pairs.list);
@@ -263,14 +261,13 @@ var Body = require('../body/Body');
      */
     Engine.clear = function(engine) {
         var world = engine.world;
-        
+    
         Pairs.clear(engine.pairs);
 
         var broadphase = engine.broadphase;
         if (broadphase.controller) {
             var bodies = Composite.allBodies(world);
-            broadphase.controller.clear(broadphase);
-            broadphase.controller.update(broadphase, bodies, engine, true);
+            broadphase.controller.clear(broadphase, bodies);
         }
     };
 

@@ -35,22 +35,35 @@ var Common = require('../core/Common');
      * @param {body} body
      */
     Vertices.create = function(points, body) {
-        var vertices = [];
+        var vertices = new Array(points.length);
 
         for (var i = 0; i < points.length; i++) {
-            var point = points[i],
-                vertex = {
-                    x: point.x,
-                    y: point.y,
-                    index: i,
-                    body: body,
-                    isInternal: false
-                };
-
-            vertices.push(vertex);
+            var point = points[i];
+            vertices[i] = Vertices.createVertex(body, i, point.x, point.y);
         }
 
         return vertices;
+    };
+
+    /**
+     * Creates a new vertex
+     *
+     * @method create
+     * @param {body} body
+     * @param {i} index of vertex within the body
+     * @param {x} vertex position x
+     * @param {y} vertex position y
+     */
+    Vertices.createVertex = function(body, i, x, y) {
+        return {
+            x: x,
+            y: y,
+            index: i,
+            body: body,
+            isInternal: false,
+            normalImpulse: 0,
+            tangentImpulse: 0
+        };
     };
 
     /**
@@ -219,12 +232,13 @@ var Common = require('../core/Common');
      * @return {boolean} True if the vertices contains point, otherwise false
      */
     Vertices.contains = function(vertices, point) {
-        for (var i = 0; i < vertices.length; i++) {
-            var vertice = vertices[i],
-                nextVertice = vertices[(i + 1) % vertices.length];
+        var nextVertice = vertices[0];
+        for (var i = vertices.length - 1; i >= 0; i--) {
+            var vertice = vertices[i];
             if ((point.x - vertice.x) * (nextVertice.y - vertice.y) + (point.y - vertice.y) * (vertice.x - nextVertice.x) > 0) {
                 return false;
             }
+            nextVertice = vertice;
         }
 
         return true;

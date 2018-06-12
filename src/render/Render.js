@@ -1061,7 +1061,6 @@ var Mouse = require('../core/Mouse');
     Render.collisions = function(render, pairs, context) {
         var c = context,
             options = render.options,
-            pair,
             collision,
             corrected,
             bodyA,
@@ -1073,16 +1072,11 @@ var Mouse = require('../core/Mouse');
 
         // render collision positions
         for (i = 0; i < pairs.length; i++) {
-            pair = pairs[i];
+            collision = pairs[i];
 
-            if (!pair.isActive)
-                continue;
-
-            collision = pair.collision;
-            for (j = 0; j < pair.activeContacts.length; j++) {
-                var contact = pair.activeContacts[j],
-                    vertex = contact.vertex;
-                c.rect(vertex.x - 1.5, vertex.y - 1.5, 3.5, 3.5);
+            for (j = 0; j < collision.contactCount; j++) {
+                var contact = collision.contacts[j];
+                c.rect(contact.x - 1.5, contact.y - 1.5, 3.5, 3.5);
             }
         }
 
@@ -1097,23 +1091,18 @@ var Mouse = require('../core/Mouse');
 
         // render collision normals
         for (i = 0; i < pairs.length; i++) {
-            pair = pairs[i];
+            collision = pairs[i];
 
-            if (!pair.isActive)
-                continue;
+            if (collision.contactCount > 0) {
+                var normalPosX = collision.contacts[0].x,
+                    normalPosY = collision.contacts[0].y;
 
-            collision = pair.collision;
-
-            if (pair.activeContacts.length > 0) {
-                var normalPosX = pair.activeContacts[0].vertex.x,
-                    normalPosY = pair.activeContacts[0].vertex.y;
-
-                if (pair.activeContacts.length === 2) {
-                    normalPosX = (pair.activeContacts[0].vertex.x + pair.activeContacts[1].vertex.x) / 2;
-                    normalPosY = (pair.activeContacts[0].vertex.y + pair.activeContacts[1].vertex.y) / 2;
+                if (collision.contactCount === 2) {
+                    normalPosX = (collision.contacts[0].x + collision.contacts[1].x) / 2;
+                    normalPosY = (collision.contacts[0].y + collision.contacts[1].y) / 2;
                 }
 
-                if (collision.bodyB === collision.supports[0].body || collision.bodyA.isStatic === true) {
+                if (collision.bodyB === collision.contacts[0].body || collision.bodyA.isStatic === true) {
                     c.moveTo(normalPosX - collision.normal.x * 8, normalPosY - collision.normal.y * 8);
                 } else {
                     c.moveTo(normalPosX + collision.normal.x * 8, normalPosY + collision.normal.y * 8);
@@ -1156,12 +1145,8 @@ var Mouse = require('../core/Mouse');
 
         // render separations
         for (i = 0; i < pairs.length; i++) {
-            pair = pairs[i];
+            collision = pairs[i];
 
-            if (!pair.isActive)
-                continue;
-
-            collision = pair.collision;
             bodyA = collision.bodyA;
             bodyB = collision.bodyB;
 
@@ -1210,19 +1195,25 @@ var Mouse = require('../core/Mouse');
 
         c.beginPath();
 
-        var bucketKeys = Common.keys(grid.buckets);
+        var buckets = grid.buckets;
+        var columnKeys = Common.keys(buckets);
 
-        for (var i = 0; i < bucketKeys.length; i++) {
-            var bucketId = bucketKeys[i];
+        for (var i = 0; i < columnKeys.length; i += 1) {
+            var columnKey = columnKeys[i];
+            var column = buckets[columnKey];
+            var rowKeys = Object.keys(column);
+            for (var j = 0; j < rowKeys.length; j += 1) {
+                var rowKey = rowKeys[j];
+                var bucket = column[rowKey];
 
-            if (grid.buckets[bucketId].length < 2)
-                continue;
+                if (bucket.length < 2)
+                    continue;
 
-            var region = bucketId.split(/C|R/);
-            c.rect(0.5 + parseInt(region[1], 10) * grid.bucketWidth,
-                    0.5 + parseInt(region[2], 10) * grid.bucketHeight,
-                    grid.bucketWidth,
-                    grid.bucketHeight);
+                c.rect(0.5 + parseInt(columnKey, 10) * grid.bucketWidth,
+                        0.5 + parseInt(rowKey, 10) * grid.bucketHeight,
+                        grid.bucketWidth,
+                        grid.bucketHeight);
+            }
         }
 
         c.lineWidth = 1;

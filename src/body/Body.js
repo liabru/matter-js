@@ -19,6 +19,8 @@ var Render = require('../render/Render');
 var Common = require('../core/Common');
 var Bounds = require('../geometry/Bounds');
 var Axes = require('../geometry/Axes');
+var Projections = require('../geometry/Projections');
+
 
 (function() {
 
@@ -49,6 +51,7 @@ var Axes = require('../geometry/Axes');
             force: { x: 0, y: 0 },
             torque: 0,
             positionImpulse: { x: 0, y: 0 },
+            previousPositionImpulse: { x: 0, y: 0 },
             constraintImpulse: { x: 0, y: 0, angle: 0 },
             totalContacts: 0,
             speed: 0,
@@ -82,7 +85,27 @@ var Axes = require('../geometry/Axes');
                     yOffset: 0
                 },
                 lineWidth: 0
-            }
+            },
+
+            pairs: [],
+            region: null,
+
+            events: null,
+            bounds: null,
+            chamfer: null,
+            circleRadius: 0,
+            positionPrev: null,
+            anglePrev: 0,
+            parent: null,
+            composite: null,
+
+            axes: null,
+            projections: null,
+            area: 0,
+            mass: 0,
+            inertia: 0,
+
+            _original: null
         };
 
         var body = Common.extend(defaults, options);
@@ -143,14 +166,16 @@ var Axes = require('../geometry/Axes');
         Vertices.rotate(body.vertices, body.angle, body.position);
         Axes.rotate(body.axes, body.angle);
         Bounds.update(body.bounds, body.vertices, body.velocity);
+        Projections.verticesOntoAxes(body.projections, body.vertices, body.axes);
 
         // allow options to override the automatically calculated properties
-        Body.set(body, {
-            axes: options.axes || body.axes,
-            area: options.area || body.area,
-            mass: options.mass || body.mass,
-            inertia: options.inertia || body.inertia
-        });
+        var properties = {};
+        if (options.axes) { properties.axes = options.axes; }
+        if (options.area) { properties.area = options.area; }
+        if (options.mass) { properties.mass = options.mass; }
+        if (options.inertia) { properties.inertia = options.inertia; }
+
+        Body.set(body, properties);
 
         // render properties
         var defaultFillStyle = (body.isStatic ? '#2e2b44' : Common.choose(['#006BA6', '#0496FF', '#FFBC42', '#D81159', '#8F2D56'])),
@@ -166,24 +191,18 @@ var Axes = require('../geometry/Axes');
      * Prefer to use the actual setter functions in performance critical situations.
      * @method set
      * @param {body} body
-     * @param {} settings A property name (or map of properties and values) to set on the body.
-     * @param {} value The value to set if `settings` is a single property name.
+     * @param {object} settings A map of properties and values to set on the body.
      */
-    Body.set = function(body, settings, value) {
-        var property;
-
-        if (typeof settings === 'string') {
-            property = settings;
-            settings = {};
-            settings[property] = value;
-        }
+    Body.set = function(body, settings) {
+        var property,
+            value;
 
         for (property in settings) {
-            value = settings[property];
 
             if (!settings.hasOwnProperty(property))
                 continue;
 
+            value = settings[property];
             switch (property) {
 
             case 'isStatic':
@@ -200,6 +219,9 @@ var Axes = require('../geometry/Axes');
                 break;
             case 'inertia':
                 Body.setInertia(body, value);
+                break;
+            case 'axes':
+                Body.setAxes(body, value);
                 break;
             case 'vertices':
                 Body.setVertices(body, value);
@@ -269,7 +291,7 @@ var Axes = require('../geometry/Axes');
                 part.inverseMass = part._original.inverseMass;
                 part.inverseInertia = part._original.inverseInertia;
 
-                delete part._original;
+                part._original = null;
             }
         }
     };
@@ -334,7 +356,6 @@ var Axes = require('../geometry/Axes');
         }
 
         // update properties
-        body.axes = Axes.fromVertices(body.vertices);
         body.area = Vertices.area(body.vertices);
         Body.setMass(body, body.density * body.area);
 
@@ -347,7 +368,14 @@ var Axes = require('../geometry/Axes');
 
         // update geometry
         Vertices.translate(body.vertices, body.position);
+        Body.setAxes(body, Axes.fromVertices(body.vertices));
         Bounds.update(body.bounds, body.vertices, body.velocity);
+        Projections.verticesOntoAxes(body.projections, body.vertices, body.axes);
+    };
+
+    Body.setAxes = function (body, axes) {
+        body.axes = axes;
+        body.projections = Projections.create(axes.length);
     };
 
     /**
@@ -430,6 +458,7 @@ var Axes = require('../geometry/Axes');
             part.position.y += delta.y;
             Vertices.translate(part.vertices, delta);
             Bounds.update(part.bounds, part.vertices, body.velocity);
+            Projections.verticesOntoAxes(part.projections, part.vertices, part.axes);
         }
     };
 
@@ -449,6 +478,7 @@ var Axes = require('../geometry/Axes');
             Vertices.rotate(part.vertices, delta, body.position);
             Axes.rotate(part.axes, delta);
             Bounds.update(part.bounds, part.vertices, body.velocity);
+            Projections.verticesOntoAxes(part.projections, part.vertices, part.axes);
             if (i > 0) {
                 Vector.rotateAbout(part.position, delta, body.position, part.position);
             }
@@ -557,6 +587,7 @@ var Axes = require('../geometry/Axes');
 
             // update bounds
             Bounds.update(part.bounds, part.vertices, body.velocity);
+            Projections.verticesOntoAxes(part.projections, part.vertices, part.axes);
         }
 
         // handle parent body
@@ -591,49 +622,59 @@ var Axes = require('../geometry/Axes');
     Body.update = function(body, deltaTime, timeScale, correction) {
         var deltaTimeSquared = Math.pow(deltaTime * timeScale * body.timeScale, 2);
 
+        var position = body.position,
+            previousPosition = body.positionPrev,
+            velocity = body.velocity,
+            force = body.force;
+
         // from the previous step
         var frictionAir = 1 - body.frictionAir * timeScale * body.timeScale,
-            velocityPrevX = body.position.x - body.positionPrev.x,
-            velocityPrevY = body.position.y - body.positionPrev.y;
+            velocityPrevX = position.x - previousPosition.x,
+            velocityPrevY = position.y - previousPosition.y;
 
         // update velocity with Verlet integration
-        body.velocity.x = (velocityPrevX * frictionAir * correction) + (body.force.x / body.mass) * deltaTimeSquared;
-        body.velocity.y = (velocityPrevY * frictionAir * correction) + (body.force.y / body.mass) * deltaTimeSquared;
+        velocity.x = (velocityPrevX * frictionAir * correction) + (force.x / body.mass) * deltaTimeSquared;
+        velocity.y = (velocityPrevY * frictionAir * correction) + (force.y / body.mass) * deltaTimeSquared;
 
-        body.positionPrev.x = body.position.x;
-        body.positionPrev.y = body.position.y;
-        body.position.x += body.velocity.x;
-        body.position.y += body.velocity.y;
+        previousPosition.x = position.x;
+        previousPosition.y = position.y;
+        position.x += velocity.x;
+        position.y += velocity.y;
 
         // update angular velocity with Verlet integration
-        body.angularVelocity = ((body.angle - body.anglePrev) * frictionAir * correction) + (body.torque / body.inertia) * deltaTimeSquared;
+        var angularVelocity = ((body.angle - body.anglePrev) * frictionAir * correction) + (body.torque / body.inertia) * deltaTimeSquared;
+        body.angularVelocity = angularVelocity;
         body.anglePrev = body.angle;
-        body.angle += body.angularVelocity;
+        body.angle += angularVelocity;
 
         // track speed and acceleration
-        body.speed = Vector.magnitude(body.velocity);
-        body.angularSpeed = Math.abs(body.angularVelocity);
+        body.speed = Vector.magnitude(velocity);
+        body.angularSpeed = Math.abs(angularVelocity);
 
         // transform the body geometry
-        for (var i = 0; i < body.parts.length; i++) {
-            var part = body.parts[i];
+        var parts = body.parts;
+        for (var i = 0; i < parts.length; i++) {
+            var part = parts[i],
+                partVertices = part.vertices,
+                partPosition = part.position;
 
-            Vertices.translate(part.vertices, body.velocity);
+            Vertices.translate(partVertices, velocity);
             
             if (i > 0) {
-                part.position.x += body.velocity.x;
-                part.position.y += body.velocity.y;
+                partPosition.x += velocity.x;
+                partPosition.y += velocity.y;
             }
 
-            if (body.angularVelocity !== 0) {
-                Vertices.rotate(part.vertices, body.angularVelocity, body.position);
-                Axes.rotate(part.axes, body.angularVelocity);
+            if (angularVelocity !== 0) {
+                Vertices.rotate(partVertices, angularVelocity, position);
+                Axes.rotate(part.axes, angularVelocity);
                 if (i > 0) {
-                    Vector.rotateAbout(part.position, body.angularVelocity, body.position, part.position);
+                    Vector.rotateAbout(partPosition, angularVelocity, position, partPosition);
                 }
             }
 
-            Bounds.update(part.bounds, part.vertices, body.velocity);
+            Bounds.update(part.bounds, partVertices, velocity);
+            Projections.verticesOntoAxes(part.projections, part.vertices, part.axes);
         }
     };
 
