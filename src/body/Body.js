@@ -83,7 +83,19 @@ var Axes = require('../geometry/Axes');
                     yOffset: 0
                 },
                 lineWidth: 0
-            }
+            },
+            events: null,
+            bounds: null,
+            chamfer: null,
+            circleRadius: 0,
+            positionPrev: null,
+            anglePrev: 0,
+            parent: null,
+            axes: null,
+            area: 0,
+            mass: 0,
+            inertia: 0,
+            _original: null
         };
 
         var body = Common.extend(defaults, options);
@@ -180,11 +192,11 @@ var Axes = require('../geometry/Axes');
         }
 
         for (property in settings) {
-            value = settings[property];
 
             if (!settings.hasOwnProperty(property))
                 continue;
 
+            value = settings[property];
             switch (property) {
 
             case 'isStatic':
@@ -270,7 +282,7 @@ var Axes = require('../geometry/Axes');
                 part.inverseMass = part._original.inverseMass;
                 part.inverseInertia = part._original.inverseInertia;
 
-                delete part._original;
+                part._original = null;
             }
         }
     };
