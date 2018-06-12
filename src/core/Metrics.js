@@ -24,8 +24,6 @@ var Common = require('./Common');
             extended: false,
             narrowDetections: 0,
             narrowphaseTests: 0,
-            narrowReuse: 0,
-            narrowReuseCount: 0,
             midphaseTests: 0,
             broadphaseTests: 0,
             narrowEff: 0.0001,
@@ -50,8 +48,6 @@ var Common = require('./Common');
         if (metrics.extended) {
             metrics.narrowDetections = 0;
             metrics.narrowphaseTests = 0;
-            metrics.narrowReuse = 0;
-            metrics.narrowReuseCount = 0;
             metrics.midphaseTests = 0;
             metrics.broadphaseTests = 0;
             metrics.narrowEff = 0;
@@ -82,7 +78,6 @@ var Common = require('./Common');
             metrics.midEff = (metrics.narrowDetections / (metrics.midphaseTests || 1)).toFixed(2);
             metrics.narrowEff = (metrics.narrowDetections / (metrics.narrowphaseTests || 1)).toFixed(2);
             metrics.broadEff = (1 - (metrics.broadphaseTests / (bodies.length || 1))).toFixed(2);
-            metrics.narrowReuse = (metrics.narrowReuseCount / (metrics.narrowphaseTests || 1)).toFixed(2);
             //var broadphase = engine.broadphase[engine.broadphase.current];
             //if (broadphase.instance)
             //    metrics.buckets = Common.keys(broadphase.instance.buckets).length;

@@ -265,9 +265,8 @@ var Common = require('../core/Common');
             var body = bodies[i],
                 impulse = body.constraintImpulse;
 
-            if (body.isStatic || (impulse.x === 0 && impulse.y === 0 && impulse.angle === 0)) {
+            if (body.isStatic || (impulse.x === 0 && impulse.y === 0 && impulse.angle === 0))
                 continue;
-            }
 
             Sleeping.set(body, false);
 
