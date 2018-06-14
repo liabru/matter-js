@@ -45,6 +45,7 @@ var Bounds = require('../geometry/Bounds');
      * Find a solution for pair positions.
      * @method solvePosition
      * @param {pair[]} pairs
+     * @param {body[]} bodies
      * @param {number} timeScale
      */
     Resolver.solvePosition = function(pairs, bodies, timeScale) {
@@ -65,7 +66,6 @@ var Bounds = require('../geometry/Bounds');
             bodyBtoAY,
             positionImpulse,
             impulseCoefficient = timeScale * Resolver._positionDampen;
-
 
         for (i = 0; i < bodies.length; i++) {
             var body = bodies[i];
@@ -90,14 +90,12 @@ var Bounds = require('../geometry/Bounds');
 
             penetration = collision.penetration;
 
-            // bodyBtoA = positionImpulseB - positionImpulseA + penetration
             bodyBtoAX = positionImpulseB.x - positionImpulseA.x + penetration.x;
             bodyBtoAY = positionImpulseB.y - positionImpulseA.y + penetration.y;
 
             normalX = normal.x;
             normalY = normal.y;
 
-            // separation = dot(normal, bodyBtoA)
             separation = normalX * bodyBtoAX + normalY * bodyBtoAY;
             pair.separation = separation;
 
@@ -119,7 +117,6 @@ var Bounds = require('../geometry/Bounds');
             }
         }
     };
-
 
     /**
      * Apply position resolution.

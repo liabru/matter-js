@@ -181,7 +181,7 @@ module.exports = Common;
             return obj instanceof HTMLElement;
         }
 
-        return !!(obj.nodeType && obj.nodeName);
+        return !!(obj && obj.nodeType && obj.nodeName);
     };
 
     /**
@@ -536,4 +536,18 @@ module.exports = Common;
         ));
     };
 
+    /**
+     * Used to require external libraries outside of the bundle.
+     * It first looks for the `globalName` on the environment's global namespace.
+     * If the global is not found, it will fall back to using the standard `require` using the `moduleName`.
+     * @private
+     * @method _requireGlobal
+     * @param {string} globalName The global module name
+     * @param {string} moduleName The fallback CommonJS module name
+     * @return {} The loaded module
+     */
+    Common._requireGlobal = function(globalName, moduleName) {
+        var obj = (typeof window !== 'undefined' ? window[globalName] : typeof global !== 'undefined' ? global[globalName] : null);
+        return obj || require(moduleName);
+    };
 })();

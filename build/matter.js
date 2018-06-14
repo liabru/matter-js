@@ -1,5 +1,5 @@
 /**
-* matter-js 0.14.0 by @liabru 2017-11-30
+* matter-js 0.14.2 by @liabru 2018-06-11
 * http://brm.io/matter-js/
 * License MIT
 */
@@ -28,7 +28,7 @@
  * THE SOFTWARE.
  */
 
-(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Matter = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Matter = f()}})(function(){var define,module,exports;return (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(_dereq_,module,exports){
 /**
 * The `Matter.Body` module contains methods for creating and manipulating body models.
 * A `Matter.Body` is a rigid body that can be simulated by a `Matter.Engine`.
@@ -1240,6 +1240,7 @@ module.exports = Composite;
 
 var Events = _dereq_('../core/Events');
 var Common = _dereq_('../core/Common');
+var Bounds = _dereq_('../geometry/Bounds');
 var Body = _dereq_('./Body');
 
 (function() {
@@ -1764,7 +1765,7 @@ var Body = _dereq_('./Body');
      * @returns {bounds} The composite bounds.
      */
     Composite.bounds = function(composite) {
-        var bodies = Matter.Composite.allBodies(composite),
+        var bodies = Composite.allBodies(composite),
             vertices = [];
 
         for (var i = 0; i < bodies.length; i += 1) {
@@ -1772,7 +1773,7 @@ var Body = _dereq_('./Body');
             vertices.push(body.bounds.min, body.bounds.max);
         }
 
-        return Matter.Bounds.create(vertices);
+        return Bounds.create(vertices);
     };
 
     /*
@@ -1908,7 +1909,7 @@ var Body = _dereq_('./Body');
 
 })();
 
-},{"../core/Common":14,"../core/Events":16,"./Body":1}],3:[function(_dereq_,module,exports){
+},{"../core/Common":14,"../core/Events":16,"../geometry/Bounds":26,"./Body":1}],3:[function(_dereq_,module,exports){
 /**
 * The `Matter.World` module contains methods for creating and manipulating the world composite.
 * A `Matter.World` is a `Matter.Composite` body, which is a collection of `Matter.Body`, `Matter.Constraint` and other `Matter.Composite`.
@@ -3953,7 +3954,7 @@ var Common = _dereq_('../core/Common');
      */
 
     /**
-     * A `Vector` that specifies the offset of the constraint from center of the `constraint.bodyA` if defined, otherwise a world-space position.
+     * A `Vector` that specifies the offset of the constraint from center of the `constraint.bodyB` if defined, otherwise a world-space position.
      *
      * @property pointB
      * @type vector
@@ -4263,6 +4264,7 @@ var Bounds = _dereq_('../geometry/Bounds');
 })();
 
 },{"../body/Composite":2,"../collision/Detector":5,"../core/Common":14,"../core/Events":16,"../core/Mouse":19,"../core/Sleeping":22,"../geometry/Bounds":26,"../geometry/Vertices":29,"./Constraint":12}],14:[function(_dereq_,module,exports){
+(function (global){
 /**
 * The `Matter.Common` module contains utility functions that are common to all modules.
 *
@@ -4446,7 +4448,7 @@ module.exports = Common;
             return obj instanceof HTMLElement;
         }
 
-        return !!(obj.nodeType && obj.nodeName);
+        return !!(obj && obj.nodeType && obj.nodeName);
     };
 
     /**
@@ -4801,8 +4803,23 @@ module.exports = Common;
         ));
     };
 
+    /**
+     * Used to require external libraries outside of the bundle.
+     * It first looks for the `globalName` on the environment's global namespace.
+     * If the global is not found, it will fall back to using the standard `require` using the `moduleName`.
+     * @private
+     * @method _requireGlobal
+     * @param {string} globalName The global module name
+     * @param {string} moduleName The fallback CommonJS module name
+     * @return {} The loaded module
+     */
+    Common._requireGlobal = function(globalName, moduleName) {
+        var obj = (typeof window !== 'undefined' ? window[globalName] : typeof global !== 'undefined' ? global[globalName] : null);
+        return obj || _dereq_(moduleName);
+    };
 })();
 
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],15:[function(_dereq_,module,exports){
 /**
 * The `Matter.Engine` module contains methods for creating and manipulating engines.
@@ -5444,7 +5461,7 @@ var Common = _dereq_('./Common');
      * @readOnly
      * @type {String}
      */
-    Matter.version = '0.14.0';
+    Matter.version = '0.14.2';
 
     /**
      * A list of plugin dependencies to be installed. These are normally set and installed through `Matter.use`.
@@ -6517,7 +6534,6 @@ var Events = _dereq_('./Events');
 })();
 
 },{"./Events":16}],23:[function(_dereq_,module,exports){
-(function (global){
 /**
 * The `Matter.Bodies` module contains factory methods for creating rigid body models 
 * with commonly used body configurations (such as rectangles, circles and other polygons).
@@ -6538,7 +6554,7 @@ var Common = _dereq_('../core/Common');
 var Body = _dereq_('../body/Body');
 var Bounds = _dereq_('../geometry/Bounds');
 var Vector = _dereq_('../geometry/Vector');
-var decomp = (typeof window !== "undefined" ? window['decomp'] : typeof global !== "undefined" ? global['decomp'] : null);
+var decomp;
 
 (function() {
 
@@ -6717,6 +6733,10 @@ var decomp = (typeof window !== "undefined" ? window['decomp'] : typeof global !
      * @return {body}
      */
     Bodies.fromVertices = function(x, y, vertexSets, options, flagInternal, removeCollinear, minimumArea) {
+        if (!decomp) {
+            decomp = Common._requireGlobal('decomp', 'poly-decomp');
+        }
+
         var body,
             parts,
             isConvex,
@@ -6850,7 +6870,6 @@ var decomp = (typeof window !== "undefined" ? window['decomp'] : typeof global !
 
 })();
 
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"../body/Body":1,"../core/Common":14,"../geometry/Bounds":26,"../geometry/Vector":28,"../geometry/Vertices":29}],24:[function(_dereq_,module,exports){
 /**
 * The `Matter.Composites` module contains factory methods for creating composite bodies
@@ -7384,6 +7403,7 @@ var Svg = {};
 module.exports = Svg;
 
 var Bounds = _dereq_('../geometry/Bounds');
+var Common = _dereq_('../core/Common');
 
 (function() {
 
@@ -7392,12 +7412,17 @@ var Bounds = _dereq_('../geometry/Bounds');
      * If the input path forms a concave shape, you must decompose the result into convex parts before use.
      * See `Bodies.fromVertices` which provides support for this.
      * Note that this function is not guaranteed to support complex paths (such as those with holes).
+     * You must load the `pathseg.js` polyfill on newer browsers.
      * @method pathToVertices
      * @param {SVGPathElement} path
      * @param {Number} [sampleLength=15]
      * @return {Vector[]} points
      */
     Svg.pathToVertices = function(path, sampleLength) {
+        if (typeof window !== 'undefined' && !('SVGPathSeg' in window)) {
+            Common.warn('Svg.pathToVertices: SVGPathSeg not defined, a polyfill is required.');
+        }
+
         // https://github.com/wout/svg.topoly.js/blob/master/svg.topoly.js
         var i, il, total, point, segment, segments, 
             segmentsQueue, lastSegment, 
@@ -7589,7 +7614,7 @@ var Bounds = _dereq_('../geometry/Bounds');
     };
 
 })();
-},{"../geometry/Bounds":26}],28:[function(_dereq_,module,exports){
+},{"../core/Common":14,"../geometry/Bounds":26}],28:[function(_dereq_,module,exports){
 /**
 * The `Matter.Vector` module contains methods for creating and manipulating vectors.
 * Vectors are the basis of all the geometry related operations in the engine.
@@ -7806,7 +7831,7 @@ module.exports = Vector;
     };
 
     /**
-     * Returns the angle in radians between the two vectors relative to the x-axis.
+     * Returns the angle between the vector `vectorB - vectorA` and the x-axis in radians.
      * @method angle
      * @param {vector} vectorA
      * @param {vector} vectorB

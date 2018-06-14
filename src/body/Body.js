@@ -20,7 +20,6 @@ var Common = require('../core/Common');
 var Bounds = require('../geometry/Bounds');
 var Axes = require('../geometry/Axes');
 
-
 (function() {
 
     Body._inertiaScale = 4;
@@ -87,7 +86,6 @@ var Axes = require('../geometry/Axes');
                 },
                 lineWidth: 0
             },
-
             events: null,
             bounds: null,
             chamfer: null,
@@ -95,13 +93,10 @@ var Axes = require('../geometry/Axes');
             positionPrev: null,
             anglePrev: 0,
             parent: null,
-            composite: null,
-
             axes: null,
             area: 0,
             mass: 0,
             inertia: 0,
-
             _original: null
         };
 
@@ -186,11 +181,17 @@ var Axes = require('../geometry/Axes');
      * Prefer to use the actual setter functions in performance critical situations.
      * @method set
      * @param {body} body
-     * @param {object} settings A map of properties and values to set on the body.
+     * @param {} settings A property name (or map of properties and values) to set on the body.
+     * @param {} value The value to set if `settings` is a single property name.
      */
-    Body.set = function(body, settings) {
-        var property,
-            value;
+    Body.set = function(body, settings, value) {
+        var property;
+
+        if (typeof settings === 'string') {
+            property = settings;
+            settings = {};
+            settings[property] = value;
+        }
 
         for (property in settings) {
 
