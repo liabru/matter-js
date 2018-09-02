@@ -181,7 +181,7 @@ var decomp;
      * If the vertices are convex, they will pass through as supplied.
      * Otherwise if the vertices are concave, they will be decomposed if [poly-decomp.js](https://github.com/schteppe/poly-decomp.js) is available.
      * Note that this process is not guaranteed to support complex sets of vertices (e.g. those with holes may fail).
-     * By default the decomposition will discard collinear edges (to improve performance).
+     * By default the decomposition will discard collinear edges and run quickDecomp (to improve performance).
      * It can also optionally discard any parts that have an area less than `minimumArea`.
      * If the vertices can not be decomposed, the result will fall back to using the convex hull.
      * The options parameter is an object that specifies any `Matter.Body` properties you wish to override the defaults.
@@ -194,9 +194,10 @@ var decomp;
      * @param {bool} [flagInternal=false]
      * @param {number} [removeCollinear=0.01]
      * @param {number} [minimumArea=10]
+     * @param {number} [quick=true]
      * @return {body}
      */
-    Bodies.fromVertices = function(x, y, vertexSets, options, flagInternal, removeCollinear, minimumArea) {
+    Bodies.fromVertices = function(x, y, vertexSets, options, flagInternal, removeCollinear, minimumArea, quick) {
         if (!decomp) {
             decomp = Common._requireGlobal('decomp', 'poly-decomp');
         }
@@ -254,8 +255,12 @@ var decomp;
                 if (removeCollinear !== false)
                     decomp.removeCollinearPoints(concave, removeCollinear);
 
-                // use the quick decomposition algorithm (Bayazit)
-                var decomposed = decomp.quickDecomp(concave);
+                // use the quick decomposition algorithm (Bayazit) or not
+                if (quick !== false) {
+                    decomp.removeCollinearPoints(concave, removeCollinear);
+                } else {
+                    var decomposed = decomp.decomp(concave);
+                }
 
                 // for each decomposed chunk
                 for (i = 0; i < decomposed.length; i++) {
