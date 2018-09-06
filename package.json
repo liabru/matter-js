@@ -53,7 +53,9 @@
   "scripts": {
     "test": "gulp build:dev && gulp lint"
   },
-  "dependencies": {},
+  "dependencies": {
+    "matter-attractors": "^0.1.6"
+  },
   "files": [
     "src",
     "build",
