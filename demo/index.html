@@ -16,20 +16,23 @@
     <script type="text/javascript" src="/demo/lib/decomp.js"></script>
     <script type="text/javascript" src="/demo/lib/pathseg.js"></script>
 
-    <!-- Matter -->
-    <script src="../build/matter-dev.js"></script>
+    <!-- Matter - we specifically use 0.12.0 for attractors compatibility -->
+    <script src="../build/matter-12.js"></script>
 
     <!-- MatterTools -->
     <script src="//code.jquery.com/jquery-3.1.1.js"></script>
     <script src="/demo/lib/matter-tools.gui.js"></script>
     <script src="/demo/lib/matter-tools.inspector.js"></script>
     <script src="/demo/lib/matter-tools.demo.js"></script>
+    <script src="/node_modules/matter-attractors/build/matter-attractors.js"></script>
 
     <!-- Plugins -->
     <script src="/demo/lib/matter-wrap.js"></script>
     
     <!-- Examples -->
     <script src="../examples/airFriction.js"></script>
+    <script src="../examples/attractionSimple.js"></script>
+    <script src="../examples/attractionGravity.js"></script>
     <script src="../examples/avalanche.js"></script>
     <script src="../examples/ballPool.js"></script>
     <script src="../examples/bridge.js"></script>

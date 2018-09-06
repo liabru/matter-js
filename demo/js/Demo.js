@@ -43,6 +43,18 @@
                 sourceLink: sourceLinkRoot + '/avalanche.js'
             },
             {
+                name: 'Attraction, Simple',
+                id: 'attractionSimple',
+                init: Example.attractionSimple,
+                sourceLink: sourceLinkRoot + '/attractionSimple.js'
+            },
+            {
+                name: 'Attraction, Gravity',
+                id: 'attractionGravity',
+                init: Example.attractionGravity,
+                sourceLink: sourceLinkRoot + '/attractionGravity.js'
+            },
+            {
                 name: 'Ball Pool',
                 id: 'ballPool',
                 init: Example.ballPool,
