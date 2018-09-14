@@ -258,7 +258,7 @@ var decomp;
 
                 // use the quick decomposition algorithm (Bayazit) or not
                 if (quick !== false) {
-                    decomp.removeCollinearPoints(concave, removeCollinear);
+                    var decomposed = decomp.quickDecomp(concave);
                 } else {
                     var decomposed = decomp.decomp(concave);
                 }
