@@ -602,10 +602,11 @@ var Axes = require('../geometry/Axes');
      * @param {number} correction
      */
     Body.update = function(body, deltaTime, timeScale, correction) {
-        var deltaTimeSquared = Math.pow(deltaTime * timeScale * body.timeScale, 2);
+        var deltaTimeScaled = deltaTime * timeScale * body.timeScale;
+        var deltaTimeSquared = Math.pow(deltaTimeScaled, 2);
 
         // from the previous step
-        var frictionAir = 1 - body.frictionAir * timeScale * body.timeScale,
+        var frictionAir = 1 - body.frictionAir * deltaTimeScaled / body.mass,
             velocityPrevX = body.position.x - body.positionPrev.x,
             velocityPrevY = body.position.y - body.positionPrev.y;
 
