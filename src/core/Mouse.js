@@ -150,8 +150,8 @@ var Common = require('../core/Common');
     Mouse.setOffset = function(mouse, offset) {
         mouse.offset.x = offset.x;
         mouse.offset.y = offset.y;
-        mouse.position.x = mouse.absolute.x * mouse.scale.x + mouse.offset.x;
-        mouse.position.y = mouse.absolute.y * mouse.scale.y + mouse.offset.y;
+        mouse.position.x = (mouse.absolute.x * mouse.scale.x + mouse.offset.x) * mouse.pixelRatio;
+        mouse.position.y = (mouse.absolute.y * mouse.scale.y + mouse.offset.y) * mouse.pixelRatio;
     };
 
     /**
@@ -163,8 +163,8 @@ var Common = require('../core/Common');
     Mouse.setScale = function(mouse, scale) {
         mouse.scale.x = scale.x;
         mouse.scale.y = scale.y;
-        mouse.position.x = mouse.absolute.x * mouse.scale.x + mouse.offset.x;
-        mouse.position.y = mouse.absolute.y * mouse.scale.y + mouse.offset.y;
+        mouse.position.x = (mouse.absolute.x * mouse.scale.x + mouse.offset.x) * mouse.pixelRatio;
+        mouse.position.y = (mouse.absolute.y * mouse.scale.y + mouse.offset.y) * mouse.pixelRatio;
     };
     
     /**
