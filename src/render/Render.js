@@ -155,7 +155,6 @@ var Mouse = require('../core/Mouse');
         canvas.height = options.height * pixelRatio;
         canvas.style.width = options.width + 'px';
         canvas.style.height = options.height + 'px';
-        render.context.scale(pixelRatio, pixelRatio);
     };
 
     /**
@@ -267,7 +266,11 @@ var Mouse = require('../core/Mouse');
             boundsScaleX = boundsWidth / render.options.width,
             boundsScaleY = boundsHeight / render.options.height;
 
-        render.context.scale(1 / boundsScaleX, 1 / boundsScaleY);
+        render.context.setTransform(
+            render.options.pixelRatio / boundsScaleX, 0, 0, 
+            render.options.pixelRatio / boundsScaleY, 0, 0
+        );
+        
         render.context.translate(-render.bounds.min.x, -render.bounds.min.y);
     };
 
@@ -348,8 +351,8 @@ var Mouse = require('../core/Mouse');
             // update mouse
             if (render.mouse) {
                 Mouse.setScale(render.mouse, {
-                    x: (render.bounds.max.x - render.bounds.min.x) / render.canvas.width,
-                    y: (render.bounds.max.y - render.bounds.min.y) / render.canvas.height
+                    x: (render.bounds.max.x - render.bounds.min.x) / render.options.width,
+                    y: (render.bounds.max.y - render.bounds.min.y) / render.options.height
                 });
 
                 Mouse.setOffset(render.mouse, render.bounds.min);
@@ -357,6 +360,10 @@ var Mouse = require('../core/Mouse');
         } else {
             constraints = allConstraints;
             bodies = allBodies;
+
+            if (render.options.pixelRatio !== 1) {
+                render.context.setTransform(render.options.pixelRatio, 0, 0, render.options.pixelRatio, 0, 0);
+            }
         }
 
         if (!options.wireframes || (engine.enableSleeping && options.showSleeping)) {
