@@ -232,6 +232,9 @@ var Axes = require('../geometry/Axes');
             case 'parts':
                 Body.setParts(body, value);
                 break;
+            case 'centre':
+                Body.setCentre(body, value);
+                break;
             default:
                 body[property] = value;
 
@@ -424,6 +427,31 @@ var Axes = require('../geometry/Axes');
         Body.setMass(body, total.mass);
         Body.setInertia(body, total.inertia);
         Body.setPosition(body, total.centre);
+    };
+
+    /**
+     * Set the centre of mass of the body. 
+     * The `centre` is a vector in world-space unless `relative` is set, in which case it is a translation.
+     * The centre of mass is the point the body rotates about and can be used to simulate non-uniform density.
+     * This is equal to moving `body.position` but not the `body.vertices`.
+     * Invalid if the `centre` falls outside the body's convex hull.
+     * @method setCentre
+     * @param {body} body
+     * @param {vector} centre
+     * @param {bool} relative
+     */
+    Body.setCentre = function(body, centre, relative) {
+        if (!relative) {
+            body.positionPrev.x = centre.x - (body.position.x - body.positionPrev.x);
+            body.positionPrev.y = centre.y - (body.position.y - body.positionPrev.y);
+            body.position.x = centre.x;
+            body.position.y = centre.y;
+        } else {
+            body.positionPrev.x += centre.x;
+            body.positionPrev.y += centre.y;
+            body.position.x += centre.x;
+            body.position.y += centre.y;
+        }
     };
 
     /**
