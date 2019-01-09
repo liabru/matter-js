@@ -78,6 +78,7 @@ var Common = require('./Common');
     /**
      * Continuously ticks a `Matter.Engine` by calling `Runner.tick` on the `requestAnimationFrame` event.
      * @method run
+     * @param {runner} [runner]
      * @param {engine} engine
      */
     Runner.run = function(runner, engine) {
@@ -208,7 +209,7 @@ var Common = require('./Common');
     /**
      * Alias for `Runner.run`.
      * @method start
-     * @param {runner} runner
+     * @param {runner} [runner]
      * @param {engine} engine
      */
     Runner.start = function(runner, engine) {
