@@ -254,11 +254,27 @@ var Common = require('../core/Common');
         var vertex,
             delta;
 
-        for (var i = 0; i < vertices.length; i++) {
-            vertex = vertices[i];
-            delta = Vector.sub(vertex, point);
-            vertices[i].x = point.x + delta.x * scaleX;
-            vertices[i].y = point.y + delta.y * scaleY;
+        // Reverse the order from counterclockwise to clockwise when scaleX or scaleY is negative, but not both.
+        if (scaleX < 0 && scaleY > 0 || scaleX > 0 && scaleY < 0) {
+            var pastVertices = [];
+
+            for (var i = 0; i < vertices.length; i++)
+                pastVertices[i] = { x: vertices[i].x, y: vertices[i].y };
+
+            for (var i = 0, j = pastVertices.length - 1; i < pastVertices.length; i++) {
+                j = pastVertices.length - i - 1;
+                vertex = pastVertices[j];
+                delta = Vector.sub(vertex, point);
+                vertices[i].x = point.x + delta.x * scaleX;
+                vertices[i].y = point.y + delta.y * scaleY;
+            }
+        } else {
+            for (var i = 0; i < vertices.length; i++) {
+                vertex = vertices[i];
+                delta = Vector.sub(vertex, point);
+                vertices[i].x = point.x + delta.x * scaleX;
+                vertices[i].y = point.y + delta.y * scaleY;
+            }
         }
 
         return vertices;
