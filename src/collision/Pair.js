@@ -17,104 +17,30 @@ module.exports = Pair;
      * @param {number} timestamp
      * @return {pair} A new pair
      */
-    Pair.create = function(collision, timestamp) {
+    Pair.create = function(collision) {
         var bodyA = collision.bodyA,
-            bodyB = collision.bodyB;
+            bodyB = collision.bodyB,
+            parentA = collision.parentA,
+            parentB = collision.parentB;
 
         var pair = {
-            id: Pair.id(bodyA, bodyB),
+            idA: bodyA.id,
+            idB: bodyB.id,
             bodyA: bodyA,
             bodyB: bodyB,
-            activeContacts: [],
-            separation: 0,
-            isActive: true,
-            confirmedActive: true,
+            activeContacts: collision.supports,
+            activeContactsCount: collision.supportCount,
+            separation: collision.depth,
             isSensor: bodyA.isSensor || bodyB.isSensor,
-            timeCreated: timestamp,
-            timeUpdated: timestamp,
-            collision: null,
-            inverseMass: 0,
-            friction: 0,
-            frictionStatic: 0,
-            restitution: 0,
-            slop: 0
+            collision: collision,
+            inverseMass: parentA.inverseMass + parentB.inverseMass,
+            friction: Math.min(parentA.friction, parentB.friction),
+            frictionStatic: Math.max(parentA.frictionStatic, parentB.frictionStatic),
+            restitution: Math.max(parentA.restitution, parentB.restitution),
+            slop: Math.max(parentA.slop, parentB.slop)
         };
 
-        Pair.update(pair, collision, timestamp);
-
         return pair;
-    };
-
-    /**
-     * Updates a pair given a collision.
-     * @method update
-     * @param {pair} pair
-     * @param {collision} collision
-     * @param {number} timestamp
-     */
-    Pair.update = function(pair, collision, timestamp) {
-        pair.collision = collision;
-
-        if (collision.collided) {
-            var supports = collision.supports,
-                activeContacts = pair.activeContacts,
-                parentA = collision.parentA,
-                parentB = collision.parentB;
-
-            pair.inverseMass = parentA.inverseMass + parentB.inverseMass;
-            pair.friction = Math.min(parentA.friction, parentB.friction);
-            pair.frictionStatic = Math.max(parentA.frictionStatic, parentB.frictionStatic);
-            pair.restitution = Math.max(parentA.restitution, parentB.restitution);
-            pair.slop = Math.max(parentA.slop, parentB.slop);
-
-            for (var i = 0; i < supports.length; i++) {
-                activeContacts[i] = supports[i].contact;
-            }
-
-            // optimise array size
-            var supportCount = supports.length;
-            if (supportCount < activeContacts.length) {
-                activeContacts.length = supportCount;
-            }
-
-            pair.separation = collision.depth;
-            Pair.setActive(pair, true, timestamp);
-        } else {
-            if (pair.isActive === true)
-                Pair.setActive(pair, false, timestamp);
-        }
-    };
-    
-    /**
-     * Set a pair as active or inactive.
-     * @method setActive
-     * @param {pair} pair
-     * @param {bool} isActive
-     * @param {number} timestamp
-     */
-    Pair.setActive = function(pair, isActive, timestamp) {
-        if (isActive) {
-            pair.isActive = true;
-            pair.timeUpdated = timestamp;
-        } else {
-            pair.isActive = false;
-            pair.activeContacts.length = 0;
-        }
-    };
-
-    /**
-     * Get the id for the given pair.
-     * @method id
-     * @param {body} bodyA
-     * @param {body} bodyB
-     * @return {string} Unique pairId
-     */
-    Pair.id = function(bodyA, bodyB) {
-        if (bodyA.id < bodyB.id) {
-            return 'A' + bodyA.id + 'B' + bodyB.id;
-        } else {
-            return 'A' + bodyB.id + 'B' + bodyA.id;
-        }
     };
 
 })();
