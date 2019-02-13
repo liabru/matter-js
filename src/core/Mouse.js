@@ -182,8 +182,8 @@ var Common = require('../core/Common');
             scrollX = (window.pageXOffset !== undefined) ? window.pageXOffset : rootNode.scrollLeft,
             scrollY = (window.pageYOffset !== undefined) ? window.pageYOffset : rootNode.scrollTop,
             touches = event.changedTouches,
-            elementWidth = element.width || element.clientWidth,
-            elementHeight = element.height || element.clientHeight,
+            elementWidth = element.width || element.clientWidth || elementBounds.width,
+            elementHeight = element.height || element.clientHeight || elementBounds.height,
             x, y;
         
         if (touches) {
@@ -200,8 +200,8 @@ var Common = require('../core/Common');
         }
 
         return { 
-            x: x / (element.clientWidth / elementWidth * pixelRatio),
-            y: y / (element.clientHeight / elementHeight * pixelRatio)
+            x: x / ((element.clientWidth || elementBounds.width) / elementWidth * pixelRatio),
+            y: y / ((element.clientHeight || elementBounds.height) / elementHeight * pixelRatio)
         };
     };
 
