@@ -306,8 +306,6 @@ var Mouse = require('../core/Mouse');
             timestamp: engine.timing.timestamp
         };
 
-        Events.trigger(render, 'beforeRender', event);
-
         // apply background if it has changed
         if (render.currentBackground !== background)
             _applyBackground(render, background);
@@ -317,6 +315,8 @@ var Mouse = require('../core/Mouse');
         context.fillStyle = "transparent";
         context.fillRect(0, 0, canvas.width, canvas.height);
         context.globalCompositeOperation = 'source-over';
+
+        Events.trigger(render, 'beforeRender', event);
 
         // handle bounds
         if (options.hasBounds) {
