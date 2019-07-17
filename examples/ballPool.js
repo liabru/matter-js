@@ -48,9 +48,9 @@ Example.ballPool = function() {
     
     World.add(world, [
         stack,
-        Bodies.polygon(200, 460, 3, 60),
-        Bodies.polygon(400, 460, 5, 60),
-        Bodies.rectangle(600, 460, 80, 80)
+        Bodies.polygon(0, 77, 90, 1),
+        Bodies.polygon(0, 77, 90, 1),
+        Bodies.rectangle(0, 77, 90, 1)
     ]);
 
     // add mouse control
