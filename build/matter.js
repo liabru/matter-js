@@ -3099,7 +3099,7 @@ var Bounds = _dereq_('../geometry/Bounds');
             bodyBtoAY,
             positionImpulse,
             timeScale = delta / Common._timeUnit,
-            impulseCoefficient = Resolver._positionDampen * timeScale;
+            damping = Common.clamp(Resolver._positionDampen * timeScale, 0, 1);
 
         for (i = 0; i < bodies.length; i++) {
             var body = bodies[i];
@@ -3133,7 +3133,7 @@ var Bounds = _dereq_('../geometry/Bounds');
             separation = normalX * bodyBtoAX + normalY * bodyBtoAY;
             pair.separation = separation;
 
-            positionImpulse = (separation - pair.slop) * impulseCoefficient;
+            positionImpulse = (separation - pair.slop) * damping;
 
             if (bodyA.isStatic || bodyB.isStatic)
                 positionImpulse *= 2;
@@ -6255,8 +6255,8 @@ var Common = _dereq_('./Common');
         var runner = Common.extend(defaults, options);
 
         runner.delta = runner.delta || 1000 / runner.fps;
-        runner.deltaMin = runner.deltaMin || 1000 / runner.fps;
-        runner.deltaMax = runner.deltaMax || 1000 / (runner.fps * 0.5);
+        runner.deltaMin = runner.deltaMin || 1000 / 60;//1000 / runner.fps;
+        runner.deltaMax = runner.deltaMax || 1000 / 30;//1000 / (runner.fps * 0.5);
         runner.fps = 1000 / runner.delta;
 
         return runner;
@@ -6274,11 +6274,14 @@ var Common = _dereq_('./Common');
             runner = Runner.create();
         }
 
+        var count = 0;
+
         (function run(time){
             runner.frameRequestId = _requestAnimationFrame(run);
 
-            if (time && runner.enabled) {
+            if (time && runner.enabled && count < 100) {
                 Runner.tick(runner, engine, time);
+                //count += 1;
             }
         })();
 
@@ -6315,6 +6318,8 @@ var Common = _dereq_('./Common');
             // limit delta
             delta = delta < runner.deltaMin ? runner.deltaMin : delta;
             delta = delta > runner.deltaMax ? runner.deltaMax : delta;
+
+            //console.log(delta)
 
             // update engine timing object
             runner.delta = delta;
