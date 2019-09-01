@@ -43,14 +43,16 @@ Example.timescale = function() {
         Bodies.rectangle(0, 300, 50, 600, { isStatic: true })
     ]);
 
-    var explosion = function(engine) {
+    var explosion = function(engine, delta) {
+        var timeScale = delta / 1000;
         var bodies = Composite.allBodies(engine.world);
 
         for (var i = 0; i < bodies.length; i++) {
             var body = bodies[i];
 
             if (!body.isStatic && body.position.y >= 500) {
-                var forceMagnitude = 0.05 * body.mass;
+                // Scale force accounting for time delta.
+                var forceMagnitude = (0.001 * body.mass) / (timeScale || 1);
 
                 Body.applyForce(body, body.position, {
                     x: (forceMagnitude + Common.random() * forceMagnitude) * Common.choose([1, -1]), 
@@ -61,30 +63,29 @@ Example.timescale = function() {
     };
 
     var timeScaleTarget = 1,
-        counter = 0;
-
+        lastTime = Common.now();
 
     Events.on(engine, 'afterUpdate', function(event) {
+        var timeScale = event.delta / 1000;
+
         // tween the timescale for bullet time slow-mo
-        engine.timing.timeScale += (timeScaleTarget - engine.timing.timeScale) * 0.05;
+        engine.timing.timeScale += (timeScaleTarget - engine.timing.timeScale) * 12 * timeScale;
 
-        counter += 1;
-
-        // every 1.5 sec
-        if (counter >= 60 * 1.5) {
+        // every 2 sec (real time)
+        if (Common.now() - lastTime >= 2000) {
 
             // flip the timescale
             if (timeScaleTarget < 1) {
                 timeScaleTarget = 1;
             } else {
-                timeScaleTarget = 0.05;
+                timeScaleTarget = 0;
             }
 
             // create some random forces
-            explosion(engine);
+            explosion(engine, event.delta);
 
-            // reset counter
-            counter = 0;
+            // update last time
+            lastTime = Common.now();
         }
     });
 
@@ -94,12 +95,10 @@ Example.timescale = function() {
         restitution: 0.8
     };
     
-    // add some small bouncy circles... remember Swordfish?
     World.add(world, Composites.stack(20, 100, 15, 3, 20, 40, function(x, y) {
         return Bodies.circle(x, y, Common.random(10, 20), bodyOptions);
     }));
 
-    // add some larger random bouncy objects
     World.add(world, Composites.stack(50, 50, 8, 3, 0, 0, function(x, y) {
         switch (Math.round(Common.random(0, 1))) {
 

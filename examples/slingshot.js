@@ -10,6 +10,7 @@ Example.slingshot = function() {
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
         World = Matter.World,
+        Body = Matter.Body,
         Bodies = Matter.Bodies;
 
     // create engine
@@ -41,7 +42,7 @@ Example.slingshot = function() {
         elastic = Constraint.create({ 
             pointA: anchor, 
             bodyB: rock, 
-            stiffness: 0.05
+            stiffness: 0.015
         });
 
     var pyramid = Composites.pyramid(500, 300, 9, 10, 0, 0, function(x, y) {
@@ -58,6 +59,12 @@ Example.slingshot = function() {
 
     Events.on(engine, 'afterUpdate', function() {
         if (mouseConstraint.mouse.button === -1 && (rock.position.x > 190 || rock.position.y < 430)) {
+            // Limit maximum speed of current rock.
+            if (Body.getSpeed(rock) > 45) {
+                Body.setSpeed(rock, 45);
+            }
+
+            // Release current rock and add a new one.
             rock = Bodies.polygon(170, 450, 7, 20, rockOptions);
             World.add(engine.world, rock);
             elastic.bodyB = rock;

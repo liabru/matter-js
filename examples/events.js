@@ -40,13 +40,19 @@ Example.events = function() {
         console.log('added to world:', event.object);
     });
 
+    var lastTime = Common.now();
+
     // an example of using beforeUpdate event on an engine
     Events.on(engine, 'beforeUpdate', function(event) {
         var engine = event.source;
 
         // apply random forces every 5 secs
-        if (event.timestamp % 5000 < 50)
-            shakeScene(engine);
+        if (Common.now() - lastTime >= 5000) {
+            shakeScene(engine, event.delta);
+
+            // update last time
+            lastTime = Common.now();
+        }
     });
 
     // an example of using collisionStart event on an engine
@@ -102,14 +108,16 @@ Example.events = function() {
     
     World.add(world, stack);
 
-    var shakeScene = function(engine) {
+    var shakeScene = function(engine, delta) {
+        var timeScale = delta / 1000;
         var bodies = Composite.allBodies(engine.world);
 
         for (var i = 0; i < bodies.length; i++) {
             var body = bodies[i];
 
             if (!body.isStatic && body.position.y >= 500) {
-                var forceMagnitude = 0.02 * body.mass;
+                // Scale force accounting for time delta.
+                var forceMagnitude = (0.0005 * body.mass) / (timeScale || 1);
 
                 Body.applyForce(body, body.position, { 
                     x: (forceMagnitude + Common.random() * forceMagnitude) * Common.choose([1, -1]), 
@@ -140,7 +148,7 @@ Example.events = function() {
     Events.on(mouseConstraint, 'mousedown', function(event) {
         var mousePosition = event.mouse.position;
         console.log('mousedown at ' + mousePosition.x + ' ' + mousePosition.y);
-        shakeScene(engine);
+        shakeScene(engine, event.delta);
     });
 
     // an example of using mouse events on a mouse
