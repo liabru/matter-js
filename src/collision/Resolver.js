@@ -49,9 +49,9 @@ var Bounds = require('../geometry/Bounds');
      * @method solvePosition
      * @param {pair[]} pairs
      * @param {body[]} bodies
-     * @param {number} timeScale
+     * @param {number} delta
      */
-    Resolver.solvePosition = function(pairs, bodies, timeScale) {
+    Resolver.solvePosition = function(pairs, bodies, delta) {
         var i,
             normalX,
             normalY,
@@ -68,7 +68,8 @@ var Bounds = require('../geometry/Bounds');
             bodyBtoAX,
             bodyBtoAY,
             positionImpulse,
-            impulseCoefficient = timeScale * Resolver._positionDampen;
+            timeScale = delta / Common._timeUnit,
+            impulseCoefficient = Resolver._positionDampen * timeScale;
 
         for (i = 0; i < bodies.length; i++) {
             var body = bodies[i];
@@ -231,10 +232,12 @@ var Bounds = require('../geometry/Bounds');
      * Find a solution for pair velocities.
      * @method solveVelocity
      * @param {pair[]} pairs
-     * @param {number} timeScale
+     * @param {number} delta
      */
-    Resolver.solveVelocity = function(pairs, timeScale) {
-        var timeScaleSquared = timeScale * timeScale,
+    Resolver.solveVelocity = function(pairs, delta) {
+        var timeScale = delta / Common._timeUnit,
+            timeScale2 = timeScale * timeScale,
+            timeScale3 = timeScale2 * timeScale,
             impulse = Vector._temp[0],
             tempA = Vector._temp[1],
             tempB = Vector._temp[2],
@@ -287,10 +290,10 @@ var Bounds = require('../geometry/Bounds');
                 var tangentImpulse = tangentVelocity,
                     maxFriction = Infinity;
 
-                if (tangentSpeed > pair.friction * pair.frictionStatic * normalForce * timeScaleSquared) {
-                    maxFriction = tangentSpeed;
+                if (tangentSpeed > pair.friction * pair.frictionStatic * normalForce * timeScale3) {
+                    maxFriction = tangentSpeed * timeScale;
                     tangentImpulse = Common.clamp(
-                        pair.friction * tangentVelocityDirection * timeScaleSquared,
+                        pair.friction * tangentVelocityDirection * timeScale3,
                         -maxFriction, maxFriction
                     );
                 }
@@ -304,7 +307,7 @@ var Bounds = require('../geometry/Bounds');
                 tangentImpulse *= share;
 
                 // handle high velocity and resting collisions separately
-                if (normalVelocity < 0 && normalVelocity * normalVelocity > Resolver._restingThresh * timeScaleSquared) {
+                if (normalVelocity < 0 && normalVelocity * normalVelocity > Resolver._restingThresh * timeScale2) {
                     // high normal velocity so clear cached contact normal impulse
                     contact.normalImpulse = 0;
                 } else {
@@ -316,7 +319,7 @@ var Bounds = require('../geometry/Bounds');
                 }
 
                 // handle high velocity and resting collisions separately
-                if (tangentVelocity * tangentVelocity > Resolver._restingThreshTangent * timeScaleSquared) {
+                if (tangentVelocity * tangentVelocity > Resolver._restingThreshTangent * timeScale2) {
                     // high tangent velocity so clear cached contact tangent impulse
                     contact.tangentImpulse = 0;
                 } else {

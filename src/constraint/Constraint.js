@@ -110,9 +110,11 @@ var Common = require('../core/Common');
      * @private
      * @method solveAll
      * @param {constraint[]} constraints
-     * @param {number} timeScale
+     * @param {number} delta
      */
-    Constraint.solveAll = function(constraints, timeScale) {
+    Constraint.solveAll = function(constraints, delta) {
+        var timeScale = Common.clamp(delta / Common._timeUnit, 0, 1);
+
         // Solve fixed constraints first.
         for (var i = 0; i < constraints.length; i += 1) {
             var constraint = constraints[i],
@@ -183,7 +185,9 @@ var Common = require('../core/Common');
 
         // solve distance constraint with Gauss-Siedel method
         var difference = (currentLength - constraint.length) / currentLength,
-            stiffness = constraint.stiffness < 1 ? constraint.stiffness * timeScale : constraint.stiffness,
+            isRigid = constraint.stiffness >= 1 || constraint.length === 0,
+            stiffness = isRigid ? constraint.stiffness : constraint.stiffness * timeScale * timeScale,
+            damping = constraint.damping * timeScale,
             force = Vector.mult(delta, difference * stiffness),
             massTotal = (bodyA ? bodyA.inverseMass : 0) + (bodyB ? bodyB.inverseMass : 0),
             inertiaTotal = (bodyA ? bodyA.inverseInertia : 0) + (bodyB ? bodyB.inverseInertia : 0),
@@ -193,8 +197,8 @@ var Common = require('../core/Common');
             normal,
             normalVelocity,
             relativeVelocity;
-
-        if (constraint.damping) {
+    
+        if (damping > 0) {
             var zero = Vector.create();
             normal = Vector.div(delta, currentLength);
 
@@ -218,9 +222,9 @@ var Common = require('../core/Common');
             bodyA.position.y -= force.y * share;
 
             // apply damping
-            if (constraint.damping) {
-                bodyA.positionPrev.x -= constraint.damping * normal.x * normalVelocity * share;
-                bodyA.positionPrev.y -= constraint.damping * normal.y * normalVelocity * share;
+            if (damping > 0) {
+                bodyA.positionPrev.x -= damping * normal.x * normalVelocity * share;
+                bodyA.positionPrev.y -= damping * normal.y * normalVelocity * share;
             }
 
             // apply torque
@@ -241,9 +245,9 @@ var Common = require('../core/Common');
             bodyB.position.y += force.y * share;
 
             // apply damping
-            if (constraint.damping) {
-                bodyB.positionPrev.x += constraint.damping * normal.x * normalVelocity * share;
-                bodyB.positionPrev.y += constraint.damping * normal.y * normalVelocity * share;
+            if (damping > 0) {
+                bodyB.positionPrev.x += damping * normal.x * normalVelocity * share;
+                bodyB.positionPrev.y += damping * normal.y * normalVelocity * share;
             }
 
             // apply torque

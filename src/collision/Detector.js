@@ -21,9 +21,10 @@ var Bounds = require('../geometry/Bounds');
      * @method collisions
      * @param {pair[]} broadphasePairs
      * @param {engine} engine
+     * @param {number} delta
      * @return {array} collisions
      */
-    Detector.collisions = function(broadphasePairs, engine) {
+    Detector.collisions = function(broadphasePairs, engine, delta) {
         var collisions = [],
             pairsTable = engine.pairs.table;
 
@@ -66,7 +67,7 @@ var Bounds = require('../geometry/Bounds');
                             }
 
                             // narrow phase
-                            var collision = SAT.collides(partA, partB, previousCollision);
+                            var collision = SAT.collides(partA, partB, previousCollision, delta);
 
                             // @if DEBUG
                             metrics.narrowphaseTests += 1;

@@ -15,13 +15,13 @@ module.exports = Body;
 var Vertices = require('../geometry/Vertices');
 var Vector = require('../geometry/Vector');
 var Sleeping = require('../core/Sleeping');
-var Render = require('../render/Render');
 var Common = require('../core/Common');
 var Bounds = require('../geometry/Bounds');
 var Axes = require('../geometry/Axes');
 
 (function() {
 
+    Body._timeCorrection = true;
     Body._inertiaScale = 4;
     Body._nextCollidingGroupId = 1;
     Body._nextNonCollidingGroupId = -1;
@@ -95,6 +95,7 @@ var Axes = require('../geometry/Axes');
             area: 0,
             mass: 0,
             inertia: 0,
+            deltaTime: null,
             _original: null
         };
 
@@ -462,8 +463,8 @@ var Axes = require('../geometry/Axes');
      */
     Body.setPosition = function(body, position) {
         var delta = Vector.sub(position, body.position);
-        body.positionPrev.x += delta.x;
-        body.positionPrev.y += delta.y;
+            body.positionPrev.x += delta.x;
+            body.positionPrev.y += delta.y;
 
         for (var i = 0; i < body.parts.length; i++) {
             var part = body.parts[i];
@@ -482,7 +483,7 @@ var Axes = require('../geometry/Axes');
      */
     Body.setAngle = function(body, angle) {
         var delta = angle - body.angle;
-        body.anglePrev += delta;
+            body.anglePrev += delta;
 
         for (var i = 0; i < body.parts.length; i++) {
             var part = body.parts[i];
@@ -625,26 +626,28 @@ var Axes = require('../geometry/Axes');
      * Performs a simulation step for the given `body`, including updating position and angle using Verlet integration.
      * @method update
      * @param {body} body
-     * @param {number} deltaTime
-     * @param {number} timeScale
-     * @param {number} correction
+     * @param {number} [deltaTime=16.666]
      */
-    Body.update = function(body, deltaTime, timeScale, correction) {
-        var deltaTimeSquared = Math.pow(deltaTime * timeScale * body.timeScale, 2);
+    Body.update = function(body, deltaTime) {
+        deltaTime = (typeof deltaTime !== 'undefined' ? deltaTime : Common._timeUnit) * body.timeScale;
+
+        var deltaTimeSquared = deltaTime * deltaTime,
+            correction = Body._timeCorrection ? deltaTime / (body.deltaTime || deltaTime) : 1;
 
         // from the previous step
-        var frictionAir = 1 - body.frictionAir * timeScale * body.timeScale,
-            velocityPrevX = body.position.x - body.positionPrev.x,
-            velocityPrevY = body.position.y - body.positionPrev.y;
+        var frictionAir = 1 - body.frictionAir * (deltaTime / Common._timeUnit),
+            velocityPrevX = (body.position.x - body.positionPrev.x) * correction,
+            velocityPrevY = (body.position.y - body.positionPrev.y) * correction;
 
         // update velocity with Verlet integration
-        body.velocity.x = (velocityPrevX * frictionAir * correction) + (body.force.x / body.mass) * deltaTimeSquared;
-        body.velocity.y = (velocityPrevY * frictionAir * correction) + (body.force.y / body.mass) * deltaTimeSquared;
+        body.velocity.x = (velocityPrevX * frictionAir) + (body.force.x / body.mass) * deltaTimeSquared;
+        body.velocity.y = (velocityPrevY * frictionAir) + (body.force.y / body.mass) * deltaTimeSquared;
 
         body.positionPrev.x = body.position.x;
         body.positionPrev.y = body.position.y;
         body.position.x += body.velocity.x;
         body.position.y += body.velocity.y;
+        body.deltaTime = deltaTime;
 
         // update angular velocity with Verlet integration
         body.angularVelocity = ((body.angle - body.anglePrev) * frictionAir * correction) + (body.torque / body.inertia) * deltaTimeSquared;
@@ -880,7 +883,7 @@ var Axes = require('../geometry/Axes');
     /**
      * A `Vector` that _measures_ the current velocity of the body after the last `Body.update`. It is read-only. 
      * If you need to modify a body's velocity directly, you should either apply a force or simply change the body's `position` (as the engine uses position-Verlet integration).
-     *
+     * 
      * @readOnly
      * @property velocity
      * @type vector
@@ -1107,6 +1110,16 @@ var Axes = require('../geometry/Axes');
      * @property timeScale
      * @type number
      * @default 1
+     */
+
+    /**
+     * A `Number` that records the last delta time value used to update this body.
+     * This is automatically updated by the engine inside of `Body.update`.
+     *
+     * @readOnly
+     * @property deltaTime
+     * @type number
+     * @default null
      */
 
     /**

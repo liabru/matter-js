@@ -97,35 +97,29 @@ var Body = require('../body/Body');
 
     /**
      * Moves the simulation forward in time by `delta` ms.
-     * The `correction` argument is an optional `Number` that specifies the time correction factor to apply to the update.
-     * This can help improve the accuracy of the simulation in cases where `delta` is changing between updates.
-     * The value of `correction` is defined as `delta / lastDelta`, i.e. the percentage change of `delta` over the last step.
-     * Therefore the value is always `1` (no correction) when `delta` constant (or when no correction is desired, which is the default).
-     * See the paper on <a href="http://lonesock.net/article/verlet.html">Time Corrected Verlet</a> for more information.
-     *
      * Triggers `beforeUpdate` and `afterUpdate` events.
      * Triggers `collisionStart`, `collisionActive` and `collisionEnd` events.
      * @method update
      * @param {engine} engine
      * @param {number} [delta=16.666]
-     * @param {number} [correction=1]
      */
-    Engine.update = function(engine, delta, correction) {
-        delta = delta || 1000 / 60;
-        correction = correction || 1;
-
+    Engine.update = function(engine, delta) {
         var world = engine.world,
             timing = engine.timing,
             broadphase = engine.broadphase,
-            broadphasePairs = [],
+            broadphasePairs,
             i;
 
+        delta = typeof delta !== 'undefined' ? delta : Common._timeUnit;
+        delta *= timing.timeScale;
+
         // increment timestamp
-        timing.timestamp += delta * timing.timeScale;
+        timing.timestamp += delta;
 
         // create an event object
         var event = {
-            timestamp: timing.timestamp
+            timestamp: timing.timestamp,
+            delta: delta
         };
 
         Events.trigger(engine, 'beforeUpdate', event);
@@ -141,18 +135,20 @@ var Body = require('../body/Body');
 
         // if sleeping enabled, call the sleeping controller
         if (engine.enableSleeping)
-            Sleeping.update(allBodies, timing.timeScale);
+            Sleeping.update(allBodies, delta);
 
         // applies gravity to all bodies
         Engine._bodiesApplyGravity(allBodies, world.gravity);
 
         // update all body position and rotation by integration
-        Engine._bodiesUpdate(allBodies, delta, timing.timeScale, correction, world.bounds);
+        if (delta > 0) {
+            Engine._bodiesUpdate(allBodies, delta);
+        }
 
         // update all constraints (first pass)
         Constraint.preSolveAll(allBodies);
         for (i = 0; i < engine.constraintIterations; i++) {
-            Constraint.solveAll(allConstraints, timing.timeScale);
+            Constraint.solveAll(allConstraints, delta);
         }
         Constraint.postSolveAll(allBodies);
 
@@ -176,7 +172,7 @@ var Body = require('../body/Body');
         }
 
         // narrowphase pass: find actual collisions, then create or update collision pairs
-        var collisions = broadphase.detector(broadphasePairs, engine);
+        var collisions = broadphase.detector(broadphasePairs, engine, delta);
 
         // update collision pairs
         var pairs = engine.pairs,
@@ -186,7 +182,7 @@ var Body = require('../body/Body');
 
         // wake up bodies involved in collisions
         if (engine.enableSleeping)
-            Sleeping.afterCollisions(pairs.list, timing.timeScale);
+            Sleeping.afterCollisions(pairs.list, delta);
 
         // trigger collision events
         if (pairs.collisionStart.length > 0)
@@ -195,21 +191,21 @@ var Body = require('../body/Body');
         // iteratively resolve position between collisions
         Resolver.preSolvePosition(pairs.list);
         for (i = 0; i < engine.positionIterations; i++) {
-            Resolver.solvePosition(pairs.list, allBodies, timing.timeScale);
+            Resolver.solvePosition(pairs.list, allBodies, delta);
         }
         Resolver.postSolvePosition(allBodies);
 
         // update all constraints (second pass)
         Constraint.preSolveAll(allBodies);
         for (i = 0; i < engine.constraintIterations; i++) {
-            Constraint.solveAll(allConstraints, timing.timeScale);
+            Constraint.solveAll(allConstraints, delta);
         }
         Constraint.postSolveAll(allBodies);
 
         // iteratively resolve velocity between collisions
         Resolver.preSolveVelocity(pairs.list);
         for (i = 0; i < engine.velocityIterations; i++) {
-            Resolver.solveVelocity(pairs.list, timing.timeScale);
+            Resolver.solveVelocity(pairs.list, delta);
         }
 
         // trigger collision events
@@ -322,21 +318,16 @@ var Body = require('../body/Body');
      * @method _bodiesUpdate
      * @private
      * @param {body[]} bodies
-     * @param {number} deltaTime 
-     * The amount of time elapsed between updates
-     * @param {number} timeScale
-     * @param {number} correction 
-     * The Verlet correction factor (deltaTime / lastDeltaTime)
-     * @param {bounds} worldBounds
+     * @param {number} delta The amount of time elapsed between updates
      */
-    Engine._bodiesUpdate = function(bodies, deltaTime, timeScale, correction, worldBounds) {
+    Engine._bodiesUpdate = function(bodies, delta) {
         for (var i = 0; i < bodies.length; i++) {
             var body = bodies[i];
 
             if (body.isStatic || body.isSleeping)
                 continue;
 
-            Body.update(body, deltaTime, timeScale, correction);
+            Body.update(body, delta);
         }
     };
 
@@ -373,6 +364,7 @@ var Body = require('../body/Body');
     * @param {} event An event object
     * @param {} event.pairs List of affected pairs
     * @param {number} event.timestamp The engine.timing.timestamp of the event
+    * @param {number} event.delta The delta time in milliseconds value used in the update
     * @param {} event.source The source object of the event
     * @param {} event.name The name of the event
     */
@@ -384,6 +376,7 @@ var Body = require('../body/Body');
     * @param {} event An event object
     * @param {} event.pairs List of affected pairs
     * @param {number} event.timestamp The engine.timing.timestamp of the event
+    * @param {number} event.delta The delta time in milliseconds value used in the update
     * @param {} event.source The source object of the event
     * @param {} event.name The name of the event
     */

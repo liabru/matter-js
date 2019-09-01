@@ -12,8 +12,11 @@ module.exports = SAT;
 
 var Vertices = require('../geometry/Vertices');
 var Vector = require('../geometry/Vector');
+var Common = require('../core/Common');
 
 (function() {
+
+    SAT._reuseMotionThresh = 0.2;
 
     /**
      * Detect collision between two bodies using the Separating Axis Theorem.
@@ -21,14 +24,18 @@ var Vector = require('../geometry/Vector');
      * @param {body} bodyA
      * @param {body} bodyB
      * @param {collision} previousCollision
+     * @param {number} [delta=0]
      * @return {collision} collision
      */
-    SAT.collides = function(bodyA, bodyB, previousCollision) {
+    SAT.collides = function(bodyA, bodyB, previousCollision, delta) {
         var overlapAB,
             overlapBA, 
             minOverlap,
             collision,
-            canReusePrevCol = false;
+            canReusePrevCol = false,
+            timeScale = delta / Common._timeUnit;
+
+        delta = typeof delta !== 'undefined' ? delta : 0;
 
         if (previousCollision) {
             // estimate total motion
@@ -39,7 +46,7 @@ var Vector = require('../geometry/Vector');
 
             // we may be able to (partially) reuse collision result 
             // but only safe if collision was resting
-            canReusePrevCol = previousCollision && previousCollision.collided && motion < 0.2;
+            canReusePrevCol = previousCollision && previousCollision.collided && motion < SAT._reuseMotionThresh * timeScale * timeScale;
 
             // reuse collision object
             collision = previousCollision;
