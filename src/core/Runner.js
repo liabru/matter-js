@@ -52,6 +52,7 @@ var Common = require('./Common');
      */
     Runner.create = function(options) {
         var defaults = {
+            substeps: 1,
             fps: 60,
             deltaSampleSize: 60,
             counterTimestamp: 0,
@@ -85,8 +86,8 @@ var Common = require('./Common');
             runner = Runner.create();
         }
 
-        (function render(time){
-            runner.frameRequestId = _requestAnimationFrame(render);
+        (function run(time){
+            runner.frameRequestId = _requestAnimationFrame(run);
 
             if (time && runner.enabled) {
                 Runner.tick(runner, engine, time);
@@ -160,7 +161,14 @@ var Common = require('./Common');
 
         // update
         Events.trigger(runner, 'beforeUpdate', event);
-        Engine.update(engine, delta, correction);
+
+        var substeps = runner.substeps,
+            subDelta = delta / substeps;
+
+        for (var i = 0; i < substeps; i += 1) {
+            Engine.update(engine, subDelta);
+        }
+
         Events.trigger(runner, 'afterUpdate', event);
 
         // render
@@ -289,6 +297,16 @@ var Common = require('./Common');
      * @property enabled
      * @type boolean
      * @default true
+     */
+
+    /**
+     * A `Number` integer that specifies the number of `Engine.update` calls made per-tick.
+     * Increasing the number of substeps improves accuracy at the cost of performance.
+     * By default `1` update is performed per tick with time `delta`.
+     * If `substeps > 1` then `substeps` updates are made with `delta` being `delta / substeps`.
+     * @property substeps
+     * @type number
+     * @default 1
      */
 
     /**
