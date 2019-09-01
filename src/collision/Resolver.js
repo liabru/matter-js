@@ -69,7 +69,7 @@ var Bounds = require('../geometry/Bounds');
             bodyBtoAY,
             positionImpulse,
             timeScale = delta / Common._timeUnit,
-            impulseCoefficient = Resolver._positionDampen * timeScale;
+            damping = Common.clamp(Resolver._positionDampen * timeScale, 0, 1);
 
         for (i = 0; i < bodies.length; i++) {
             var body = bodies[i];
@@ -103,7 +103,7 @@ var Bounds = require('../geometry/Bounds');
             separation = normalX * bodyBtoAX + normalY * bodyBtoAY;
             pair.separation = separation;
 
-            positionImpulse = (separation - pair.slop) * impulseCoefficient;
+            positionImpulse = (separation - pair.slop) * damping;
 
             if (bodyA.isStatic || bodyB.isStatic)
                 positionImpulse *= 2;
