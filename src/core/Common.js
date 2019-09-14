@@ -257,7 +257,7 @@ module.exports = Common;
      * @return {number} the current timestamp
      */
     Common.now = function() {
-        if (window.performance) {
+        if (typeof window !== 'undefined' && window.performance) {
             if (window.performance.now) {
                 return window.performance.now();
             } else if (window.performance.webkitNow) {
