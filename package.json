@@ -48,10 +48,17 @@
     "through2": "^2.0.3",
     "vinyl-transform": "^1.0.0",
     "watchify": "^3.9.0",
+    "webpack": "^4.39.3",
+    "webpack-cli": "^3.3.8",
+    "webpack-dev-server": "^3.8.0",
     "yuidocjs": "^0.10.2"
   },
   "scripts": {
     "test": "gulp build:dev && gulp lint"
+    "dev": "webpack-dev-server",
+    "build": "webpack --mode=production & webpack --mode=production --env.MINIMIZE",
+    "build-alpha": "webpack --mode=production --env.EDGE & webpack --mode=production --env.MINIMIZE --env.EDGE",
+    "build-examples": "webpack --config webpack.examples.config.js --mode=production --env.EDGE & webpack --config webpack.examples.config.js --mode=production --env.MINIMIZE --env.EDGE",
   },
   "dependencies": {},
   "files": [

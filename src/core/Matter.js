@@ -27,7 +27,7 @@ var Common = require('./Common');
      * @readOnly
      * @type {String}
      */
-    Matter.version = '@@VERSION@@';
+    Matter.version = typeof __MATTER_VERSION__ !== 'undefined' ? __MATTER_VERSION__ : '*';
 
     /**
      * A list of plugin dependencies to be installed. These are normally set and installed through `Matter.use`.
