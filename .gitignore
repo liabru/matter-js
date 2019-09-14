@@ -13,3 +13,4 @@ test/browser/diffs
 test/browser/refs
 test/node/diffs
 test/node/refs
+__snapshots__
