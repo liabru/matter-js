@@ -123,3 +123,7 @@ Example.bridge = function() {
         }
     };
 };
+
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = Example[Object.keys(Example)[0]];
+}
