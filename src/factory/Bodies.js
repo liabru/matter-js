@@ -18,7 +18,6 @@ var Common = require('../core/Common');
 var Body = require('../body/Body');
 var Bounds = require('../geometry/Bounds');
 var Vector = require('../geometry/Vector');
-var decomp;
 
 (function() {
 
@@ -197,11 +196,8 @@ var decomp;
      * @return {body}
      */
     Bodies.fromVertices = function(x, y, vertexSets, options, flagInternal, removeCollinear, minimumArea) {
-        if (!decomp) {
-            decomp = Common._requireGlobal('decomp', 'poly-decomp');
-        }
-
-        var body,
+        var decomp = typeof decomp !== 'undefined' ? decomp : require('poly-decomp'),
+            body,
             parts,
             isConvex,
             vertices,
