@@ -25,7 +25,7 @@ const limit = (val, precision=3) => {
 const engineSnapshot = (engine, extended=false) => {
     const { 
         positionIterations, velocityIterations,
-        constraintIterations, world
+        constraintIterations, timing, world
     } = engine;
 
     const bodies = Composite.allBodies(world);
@@ -36,6 +36,7 @@ const engineSnapshot = (engine, extended=false) => {
         positionIterations,
         velocityIterations,
         constraintIterations,
+        timing,
         bodyCount: bodies.length,
         constraintCount: constraints.length,
         compositeCount: composites.length,
