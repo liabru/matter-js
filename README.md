@@ -149,13 +149,13 @@ See the [API Documentation](http://brm.io/matter-js/docs/) and the [wiki](https:
 
 ### Building and Contributing
 
-To build you must first install [node.js](http://nodejs.org/) and [gulp](http://gulpjs.com/), then run
+To build you must first install [node.js](http://nodejs.org/), then run
 
 	npm install
 
 This will install the required build dependencies, then run
 
-	gulp dev
+	npm run dev
 
 to spawn a development server. For information on contributing see [CONTRIBUTING.md](https://github.com/liabru/matter-js/blob/master/CONTRIBUTING.md).
 
