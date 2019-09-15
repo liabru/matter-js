@@ -20,7 +20,7 @@ which will install the required build dependencies, then run
 
 	npm run dev
 
-which will run the development server and opens `http://localhost:8000/demo/index.html` in your browser. Any changes you make to the source will automatically rebuild and reload the page.
+which will run the development server and opens `http://localhost:8000/` in your browser. Any changes you make to the source will automatically rebuild and reload the page.
 
 ## Commands
 

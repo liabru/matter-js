@@ -49,15 +49,22 @@ module.exports = (env = {}) => {
             }
         },
         devServer: {
-            contentBase: __dirname,
+            contentBase: [
+                path.resolve(__dirname, './demo'),
+                path.resolve(__dirname, './examples')
+            ],
             open: true,
-            openPage: 'demo/index.html',
+            openPage: '',
             compress: true,
             port: 8000,
             proxy: {
                 '/build': {
                     target: 'http://localhost:8000/',
                     pathRewrite: { '^/build' : '/' }
+                },
+                '/examples': {
+                    target: 'http://localhost:8000/',
+                    pathRewrite: { '^/examples' : '/' }
                 }
             }
         }
