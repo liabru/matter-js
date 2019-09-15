@@ -72,7 +72,7 @@ gulp.task('release', callback => {
 gulp.task('release:lint', shell('npm run lint'));
 gulp.task('release:build', shell('npm run build'));
 gulp.task('release:test', shell('TEST_BUILD=true npm run test'));
-gulp.task('release:push:git', shell('git push'));
+gulp.task('release:push:git', shell('git push origin && git push origin --tags'));
 gulp.task('release:push:npm', shell('npm publish'));
 
 gulp.task('release:push', callback => {
