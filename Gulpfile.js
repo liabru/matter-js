@@ -4,7 +4,6 @@ const gulp = require('gulp');
 const bump = require('gulp-bump');
 const changelog = require('gulp-conventional-changelog');
 const tag = require('gulp-tag-version');
-const release = require('gulp-github-release');
 const sequence = require('run-sequence');
 const gutil = require('gulp-util');
 const pkg = require('./package.json');
@@ -106,18 +105,4 @@ gulp.task('release:push', callback => {
             sequence('tag', 'release:push:git', 'release:push:npm', callback);
         }
     });
-});
-
-gulp.task('release:push:github', () => {
-    return gulp.src([
-        'CHANGELOG.md',
-        'LICENSE', 
-        buildDirectory + '/matter.min.js', 
-        buildDirectory + '/matter.js'
-    ]).pipe(release({
-        owner: 'liabru',
-        repo: pkg.name,
-        tag: pkg.version,
-        name: 'Matter.js ' + pkg.version
-    }));
 });
