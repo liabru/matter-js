@@ -192,8 +192,7 @@ var Axes = require('../geometry/Axes');
         }
 
         for (property in settings) {
-
-            if (!settings.hasOwnProperty(property))
+            if (!Object.prototype.hasOwnProperty.call(settings, property))
                 continue;
 
             value = settings[property];
@@ -1162,7 +1161,7 @@ var Axes = require('../geometry/Axes');
      * @default 1
      */
 
-     /**
+    /**
       * A `Number` that defines the offset in the x-axis for the sprite (normalised by texture width).
       *
       * @property render.sprite.xOffset
@@ -1170,7 +1169,7 @@ var Axes = require('../geometry/Axes');
       * @default 0
       */
 
-     /**
+    /**
       * A `Number` that defines the offset in the y-axis for the sprite (normalised by texture height).
       *
       * @property render.sprite.yOffset
