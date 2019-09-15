@@ -105,6 +105,6 @@ Example.terrain = function() {
     };
 };
 
-if (typeof module !== 'undefined' && module.exports) {
+if (typeof module !== 'undefined') {
     module.exports = Example;
 }
