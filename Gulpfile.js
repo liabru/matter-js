@@ -8,7 +8,6 @@ const sequence = require('run-sequence');
 const gutil = require('gulp-util');
 const pkg = require('./package.json');
 const exec = require('child_process').exec;
-const buildDirectory = 'build';
 
 const shellExec = (command, callback) => {
     const args = process.argv.slice(3).join(' '),
@@ -34,25 +33,7 @@ gulp.task('test', hint('npm run test'));
 gulp.task('lint', hint('npm run lint'));
 
 gulp.task('doc', callback => {
-    const options = {
-        paths: ['src'],
-        themedir: 'matter-doc-theme',
-        outdir: 'doc/build',
-        linkNatives: true,
-        project: {
-            name: pkg.name + ' ' + pkg.version + ' Physics Engine API Docs',
-            description: pkg.description,
-            version: pkg.version,
-            url: pkg.homepage
-        }
-    };
-
-    const doc = require('yuidocjs');
-    const json = new doc.YUIDoc(options).run();
-    json.project = options.project;
-
-    const builder = new doc.DocBuilder(options, json);
-    builder.compile(callback);
+    shellExec(`yuidoc --config yuidoc.json --project-version ${pkg.version}`, callback);
 });
 
 gulp.task('bump', () => {
