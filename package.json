@@ -37,7 +37,7 @@
     "build": "webpack --mode=production & webpack --mode=production --env.MINIMIZE",
     "build-alpha": "webpack --mode=production --env.EDGE & webpack --mode=production --env.MINIMIZE --env.EDGE",
     "build-examples": "webpack --config webpack.examples.config.js --mode=production --env.EDGE & webpack --config webpack.examples.config.js --mode=production --env.MINIMIZE --env.EDGE",
-    "lint": "eslint 'src/**/*.js' 'demo/js/Demo.js' 'examples/*.js'",
+    "lint": "eslint 'src/**/*.js' 'demo/js/Demo.js' 'examples/*.js' 'test/*.spec.js' 'webpack.*.js' 'Gulpfile.js'",
     "doc": "gulp doc",
     "test": "jest",
     "test-snapshot": "TEST_SNAPSHOTS=true jest --ci",

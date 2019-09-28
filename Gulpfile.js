@@ -1,3 +1,4 @@
+/* eslint-env es6 */
 "use strict";
 
 const gulp = require('gulp');

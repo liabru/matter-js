@@ -1,3 +1,5 @@
+/* eslint-env es6 */
+/* eslint no-global-assign: 0 */
 "use strict";
 
 const Common = require('./Common');
