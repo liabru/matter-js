@@ -9,6 +9,7 @@ module.exports = (env = {}) => {
     const minimize = env.MINIMIZE || false;
     const edge = env.EDGE || false;
     const maxSize = minimize ? 100 * 1024 : 512 * 1024;
+    const isDevServer = process.env.WEBPACK_DEV_SERVER;
 
     const commitHash = execSync('git rev-parse --short HEAD').toString().trim();
     const version = !edge ? pkg.version : `${pkg.version}-alpha-${commitHash}`;
@@ -37,7 +38,7 @@ module.exports = (env = {}) => {
         plugins: [
             new webpack.BannerPlugin(banner),
             new webpack.DefinePlugin({
-                __MATTER_VERSION__: JSON.stringify(version),
+                __MATTER_VERSION__: JSON.stringify(!isDevServer ? version : '*'),
             })
         ],
         externals: {
