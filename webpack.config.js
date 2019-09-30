@@ -53,7 +53,8 @@ module.exports = (env = {}) => {
         devServer: {
             contentBase: [
                 path.resolve(__dirname, './demo'),
-                path.resolve(__dirname, './examples')
+                path.resolve(__dirname, './examples'),
+                path.resolve(__dirname, './build')
             ],
             open: true,
             openPage: '',

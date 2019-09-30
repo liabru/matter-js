@@ -34,5 +34,7 @@ creates a release build
 runs the linter
 - **npm run test**  
 runs the tests
+- **npm run compare**  
+compares the output of examples for current source against release build
 - **npm run doc**  
 builds the documentation

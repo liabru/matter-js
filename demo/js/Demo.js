@@ -1,5 +1,8 @@
 /**
-* The Matter.js demo page controller and example runner.
+* The Matter.js development demo and testing tool.
+*
+* This demo uses MatterTools, you can see the wiki for a simple example instead:
+* https://github.com/liabru/matter-js/wiki/Getting-started
 *
 * NOTE: For the actual example code, refer to the source files in `/examples/`.
 *
@@ -63,6 +66,14 @@
         if (!example.init) {
             console.warn('Example not loaded:', example.id);
         }
+    }
+
+    if (window.location.search.indexOf('compare') >= 0) {
+        var compareScript = document.createElement('script');
+        compareScript.src = '../js/Compare.js';
+        window.MatterDemo = { examples: examples };
+        document.body.append(compareScript);
+        return;
     }
 
     var demo = MatterTools.Demo.create({
