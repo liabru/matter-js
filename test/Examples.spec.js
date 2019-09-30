@@ -20,7 +20,7 @@ const runExamples = (matter) => {
     let snapshots = {};
     matter = stubBrowserFeatures(matter);
     global.Matter = matter;
-    matter.Plugin.register(require('matter-wrap'));
+    matter.use(require('matter-wrap'));
 
     const Example = require('../examples/index');
     const examples = Object.keys(Example).filter(key => !excludeExamples.includes(key));

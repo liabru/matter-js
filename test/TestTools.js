@@ -182,7 +182,7 @@ const toMatchExtrinsics = {
             }
         });
 
-        const pass = equal.length === similaritys.length && changed.length === 0 && borderline.length === 0;
+        const pass = equal.length === entries.length && changed.length === 0 && borderline.length === 0;
 
         return {
             message: () => `Expected positions and velocities to match between builds.
