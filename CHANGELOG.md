@@ -464,7 +464,7 @@
 * improved examples ([6e1f8e9](https://github.com/liabru/matter-js/commit/6e1f8e9))
 * improved friction, added body.frictionStatic ([937c7bf](https://github.com/liabru/matter-js/commit/937c7bf))
 * improved traction for Composites.car ([95eddb0](https://github.com/liabru/matter-js/commit/95eddb0))
-* increased tollerance on internal edge finding ([40905e8](https://github.com/liabru/matter-js/commit/40905e8))
+* increased tolerance on internal edge finding ([40905e8](https://github.com/liabru/matter-js/commit/40905e8))
 * initial work on browser tests ([6a88256](https://github.com/liabru/matter-js/commit/6a88256))
 * initial work on compound bodies ([243fce4](https://github.com/liabru/matter-js/commit/243fce4))
 * Make background:'transparent' work like canvas renderer ([f9123f9](https://github.com/liabru/matter-js/commit/f9123f9))
