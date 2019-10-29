@@ -65,7 +65,7 @@ Example.timescale = function() {
 
 
     Events.on(engine, 'afterUpdate', function(event) {
-        // tween the timescale for bullet time slow-mo
+        // tweak the timescale for bullet time slow-mo
         engine.timing.timeScale += (timeScaleTarget - engine.timing.timeScale) * 0.05;
 
         counter += 1;

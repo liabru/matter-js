@@ -114,7 +114,7 @@ Example.views = function() {
 
         // if scale has changed
         if (Math.abs(boundsScale.x - boundsScaleTarget) > 0.01) {
-            // smoothly tween scale factor
+            // smoothly tweak scale factor
             scaleFactor = (boundsScaleTarget - boundsScale.x) * 0.2;
             boundsScale.x += scaleFactor;
             boundsScale.y += scaleFactor;

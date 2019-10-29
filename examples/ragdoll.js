@@ -85,7 +85,7 @@ Example.ragdoll = function() {
         counter = 0;
 
     Events.on(engine, 'afterUpdate', function(event) {
-        // tween the timescale for slow-mo
+        // tweak the timescale for slow-mo
         if (mouse.button === -1) {
             engine.timing.timeScale += (timeScaleTarget - engine.timing.timeScale) * 0.05;
         } else {
