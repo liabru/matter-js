@@ -454,7 +454,7 @@ Example.ragdoll.ragdoll = function(x, y, scale, options) {
         }
     });
 
-    var headContraint = Constraint.create({
+    var headConstraint = Constraint.create({
         bodyA: head,
         pointA: {
             x: 0,
@@ -488,7 +488,7 @@ Example.ragdoll.ragdoll = function(x, y, scale, options) {
         ],
         constraints: [
             upperToLowerLeftArm, upperToLowerRightArm, chestToLeftUpperArm, 
-            chestToRightUpperArm, headContraint, upperToLowerLeftLeg, 
+            chestToRightUpperArm, headConstraint, upperToLowerLeftLeg, 
             upperToLowerRightLeg, chestToLeftUpperLeg, chestToRightUpperLeg,
             legToLeg
         ]
