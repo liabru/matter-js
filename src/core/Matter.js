@@ -58,7 +58,7 @@ var Common = require('./Common');
     };
 
     /**
-     * Chains a function to excute before the original function on the given `path` relative to `Matter`.
+     * Chains a function to execute before the original function on the given `path` relative to `Matter`.
      * See also docs for `Common.chain`.
      * @method before
      * @param {string} path The path relative to `Matter`
@@ -71,7 +71,7 @@ var Common = require('./Common');
     };
 
     /**
-     * Chains a function to excute after the original function on the given `path` relative to `Matter`.
+     * Chains a function to execute after the original function on the given `path` relative to `Matter`.
      * See also docs for `Common.chain`.
      * @method after
      * @param {string} path The path relative to `Matter`
