@@ -1,10 +1,10 @@
 var Example = Example || {};
 
-Matter.use(
-    'matter-wrap'
-);
-
 Example.avalanche = function() {
+    Matter.use(
+        'matter-wrap'
+    );
+    
     var Engine = Matter.Engine,
         Render = Matter.Render,
         Runner = Matter.Runner,

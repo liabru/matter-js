@@ -6,8 +6,10 @@ const compactStringify = require('json-stringify-pretty-compact');
 const { Composite, Constraint } = require('../src/module/main');
 
 const comparePath = './test/__compare__';
-const compareCommand = 'open http://localhost:8000/?compare'
-const diffCommand = 'code -n -d test/__compare__/examples-dev.json test/__compare__/examples-build.json';
+const compareCommand = 'open http://localhost:8000/?compare';
+const diffSaveCommand = 'npm run test-save';
+const diffCommand = 'code -n -d test/__compare__/examples-build.json test/__compare__/examples-dev.json';
+const equalityThreshold = 0.99999;
 
 const intrinsicProps = [
     // Common
@@ -26,27 +28,18 @@ const intrinsicProps = [
     'bodies', 'constraints', 'composites'
 ];
 
-const stubBrowserFeatures = M => {
-    const noop = () => ({ collisionFilter: {}, mouse: {} });
-    M.Render.create = () => ({ options: {}, bounds: { min: { x: 0, y: 0 }, max: { x: 800, y: 600 }}});
-    M.Render.run = M.Render.lookAt = noop;
-    M.Runner.create = M.Runner.run = noop;
-    M.MouseConstraint.create = M.Mouse.create = noop;
-    M.Common.log = M.Common.info = M.Common.warn = noop;
-    return M;
-};
-
-const colors = { White: 37, BrightWhite: 90, BrightCyan: 36 };
-const color = (text, number) => `\x1b[${number}m${text}\x1b[0m`;
+const colors = { Red: 31, Green: 32, Yellow: 33, White: 37, BrightWhite: 90, BrightCyan: 36 };
+const color = (text, number) => number ? `\x1b[${number}m${text}\x1b[0m` : text;
 const limit = (val, precision=3) => parseFloat(val.toPrecision(precision));
+const toPercent = val => (100 * val).toPrecision(3);
 
-const engineSnapshot = (engine) => ({
+const engineCapture = (engine) => ({
     timestamp: limit(engine.timing.timestamp),
-    world: worldSnapshotExtrinsic(engine.world),
-    worldIntrinsic: worldSnapshotIntrinsic(engine.world)
+    extrinsic: worldCaptureExtrinsic(engine.world),
+    intrinsic: worldCaptureIntrinsic(engine.world)
 });
 
-const worldSnapshotExtrinsic = world => ({
+const worldCaptureExtrinsic = world => ({
     bodies: Composite.allBodies(world).reduce((bodies, body) => {
         bodies[body.id] = [
             body.position.x,
@@ -75,7 +68,7 @@ const worldSnapshotExtrinsic = world => ({
     }, {})
 });
 
-const worldSnapshotIntrinsic = world => worldSnapshotIntrinsicBase({
+const worldCaptureIntrinsic = world => worldCaptureIntrinsicBase({
     bodies: Composite.allBodies(world).reduce((bodies, body) => {
         bodies[body.id] = body;
         return bodies;
@@ -94,13 +87,13 @@ const worldSnapshotIntrinsic = world => worldSnapshotIntrinsicBase({
     }, {})
 });
 
-const worldSnapshotIntrinsicBase = (obj, depth=0) => {
+const worldCaptureIntrinsicBase = (obj, depth=0) => {
     if (obj === Infinity) {
         return 'Infinity';
     } else if (typeof obj === 'number') {
         return limit(obj);
     } else if (Array.isArray(obj)) {
-        return obj.map(item => worldSnapshotIntrinsicBase(item, depth + 1));
+        return obj.map(item => worldCaptureIntrinsicBase(item, depth + 1));
     } else if (typeof obj !== 'object') {
         return obj;
     }
@@ -116,7 +109,7 @@ const worldSnapshotIntrinsicBase = (obj, depth=0) => {
                 val = `[${val.length}]`;
             }
 
-            cleaned[key] = worldSnapshotIntrinsicBase(val, depth + 1);
+            cleaned[key] = worldCaptureIntrinsicBase(val, depth + 1);
             return cleaned;
         }, {});
 
@@ -129,18 +122,18 @@ const similarity = (a, b) => {
     return 1 / (1 + (distance / a.length));
 };
 
-const snapshotSimilarityExtrinsic = (currentSnapshots, referenceSnapshots) => {
+const captureSimilarityExtrinsic = (currentCaptures, referenceCaptures) => {
     const result = {};
 
-    Object.entries(currentSnapshots).forEach(([name, current]) => {
-        const reference = referenceSnapshots[name];
+    Object.entries(currentCaptures).forEach(([name, current]) => {
+        const reference = referenceCaptures[name];
         const worldVector = [];
         const worldVectorRef = [];
 
-        Object.keys(current.world).forEach(objectType => {
-            Object.keys(current.world[objectType]).forEach(objectId => {
-                worldVector.push(...current.world[objectType][objectId]);
-                worldVectorRef.push(...reference.world[objectType][objectId]);
+        Object.keys(current.extrinsic).forEach(objectType => {
+            Object.keys(current.extrinsic[objectType]).forEach(objectId => {
+                worldVector.push(...current.extrinsic[objectType][objectId]);
+                worldVectorRef.push(...reference.extrinsic[objectType][objectId]);
             });
         });
 
@@ -150,7 +143,7 @@ const snapshotSimilarityExtrinsic = (currentSnapshots, referenceSnapshots) => {
     return result;
 };
 
-const writeSnapshots = (name, obj) => {
+const writeCaptures = (name, obj) => {
     try {
         fs.mkdirSync(comparePath, { recursive: true });
     } catch (err) {
@@ -160,98 +153,118 @@ const writeSnapshots = (name, obj) => {
 };
 
 const toMatchExtrinsics = {
-    toMatchExtrinsics(received, value, ticks) {
-        const changed = [];
-        const borderline = [];
-        const equal = [];
-        const similaritys = snapshotSimilarityExtrinsic(received, value);
-        const entries = Object.entries(similaritys);
-
-        entries.sort(([_nameA, similarityA], [_nameB, similarityB]) => similarityA - similarityB);
-
-        entries.forEach(([name, similarity], i) => {
-            const percentSimilar = similarity * 100;
-
-            if (percentSimilar < 99.99) {
-                const col = i < 5 ? colors.White : colors.BrightWhite;
-                changed.push(color(`◇ ${name}`, col) + ` ${percentSimilar.toFixed(2)}%`);
-            } else if (percentSimilar !== 100) {
-                borderline.push(`~ ${name}`);
-            } else {
-                equal.push(`✓ ${name}`);
-            }
-        });
-
-        const pass = equal.length === entries.length && changed.length === 0 && borderline.length === 0;
+    toMatchExtrinsics(received, value) {
+        const similaritys = captureSimilarityExtrinsic(received, value);
+        const pass = Object.values(similaritys).every(similarity => similarity >= equalityThreshold);
 
         return {
-            message: () => `Expected positions and velocities to match between builds.
-
-${color('▶', colors.White)} Debug using ${color(compareCommand + '=' + ticks + '#' + entries[0][0], colors.BrightCyan)}
-
-(${changed.length}) Changed
-
-    ${changed.join(' ')}
-
-(${borderline.length}) Borderline (> 99.99%)
-
-    ${borderline.join(' ').slice(0, 80)}...
-
-(${equal.length}) Equal
-
-    ${equal.join(' ').slice(0, 80)}...`,
+            message: () => 'Expected positions and velocities to match between builds.',
             pass
         };
     }
 };
 
 const toMatchIntrinsics = {
-    toMatchIntrinsics(currentSnapshots, referenceSnapshots) {
-        const changed = [];
-        const equal = [];
-        const currentChanged = {};
-        const referenceChanged = {};
-        const entries = Object.entries(currentSnapshots);
+    toMatchIntrinsics(currentCaptures, referenceCaptures) {
+        const entries = Object.entries(currentCaptures);
+        let changed = false;
 
         entries.forEach(([name, current]) => {
-            const reference = referenceSnapshots[name];
-            const endWorld = current.worldIntrinsic;
-            const endWorldRef = reference.worldIntrinsic;
-
-            if (this.equals(endWorld, endWorldRef)) {
-                equal.push(`✓ ${name}`);
-            } else {
-                changed.push(color(`◇ ${name}`, changed.length < 5 ? colors.White : colors.BrightWhite));
-
-                if (changed.length < 2) {
-                    currentChanged[name] = endWorld;
-                    referenceChanged[name] = endWorldRef;
-                }
+            const reference = referenceCaptures[name];
+            if (!this.equals(current.intrinsic, reference.intrinsic)) {
+                changed = true;
             }
         });
 
-        const pass = equal.length === entries.length && changed.length === 0;
-
-        writeSnapshots('examples-dev', currentChanged);
-        writeSnapshots('examples-build', referenceChanged);
-
         return {
-            message: () => `Expected intrinsic properties to match between builds.
-
-(${changed.length}) Changed
-
-${changed.join(' ')}
-
-(${equal.length}) Equal
-
-${equal.join(' ').slice(0, 80)}...
-
-${color('▶', colors.White)} Inspect using ${color(diffCommand, colors.BrightCyan)}`,
-            pass
+            message: () => 'Expected intrinsic properties to match between builds.',
+            pass: !changed
         };
     }
 };
 
+const similarityRatings = similarity => similarity < equalityThreshold ? color('●', colors.Yellow) : '·';
+const changeRatings = isChanged => isChanged ? color('◆', colors.White) : '·';
+
+const equals = (a, b) => {
+    try {
+        expect(a).toEqual(b);
+    } catch (e) {
+        return false;
+    }
+    return true;
+};
+
+const comparisonReport = (capturesDev, capturesBuild, buildVersion, save) => {
+    const similaritys = captureSimilarityExtrinsic(capturesDev, capturesBuild);
+    const similarityEntries = Object.entries(similaritys);
+    const devIntrinsicsChanged = {};
+    const buildIntrinsicsChanged = {};
+    let intrinsicChangeCount = 0;
+    let totalTimeBuild = 0;
+    let totalTimeDev = 0;
+
+    const capturePerformance = Object.entries(capturesDev).map(([name]) => {
+        const buildDuration = capturesBuild[name].duration;
+        const devDuration = capturesDev[name].duration;
+        totalTimeBuild += buildDuration;
+        totalTimeDev += devDuration;
+
+        const changedIntrinsics = !equals(capturesDev[name].intrinsic, capturesBuild[name].intrinsic);
+        if (changedIntrinsics) {
+            capturesDev[name].changedIntrinsics = true;
+            if (intrinsicChangeCount < 2) {
+                devIntrinsicsChanged[name] = capturesDev[name].intrinsic;
+                buildIntrinsicsChanged[name] = capturesBuild[name].intrinsic;
+                intrinsicChangeCount += 1;
+            }
+        }
+        
+        return { name };
+    });
+
+    capturePerformance.sort((a, b) => a.name.localeCompare(b.name));
+    similarityEntries.sort((a, b) => a[1] - b[1]);
+
+    let similarityAvg = 0;
+    let perfChange = 1 - (totalTimeDev / totalTimeBuild);
+    perfChange = perfChange < -0.05 || perfChange > 0.05 ? perfChange : 0;
+
+    similarityEntries.forEach(([_, similarity]) => {
+        similarityAvg += similarity;
+    });
+
+    similarityAvg /= similarityEntries.length;
+
+    if (save) {
+        writeCaptures('examples-dev', devIntrinsicsChanged);
+        writeCaptures('examples-build', buildIntrinsicsChanged);
+    }
+
+    return [
+        [`Output comparison of ${similarityEntries.length}`,
+         `examples against ${color('matter-js@' + buildVersion, colors.Yellow)} build on last run`
+        ].join(' '),
+        `\n\n${color('Similarity', colors.White)}`,
+        `${color(toPercent(similarityAvg), similarityAvg === 1 ? colors.Green : colors.Yellow)}%`,
+        `${color('Performance', colors.White)}`,
+        `${color((perfChange >= 0 ? '+' : '') + toPercent(perfChange), perfChange >= 0 ? colors.Green : colors.Red)}%`,
+        capturePerformance.reduce((output, p, i) => {
+            output += `${p.name} `;
+            output += `${similarityRatings(similaritys[p.name])} `;
+            output += `${changeRatings(capturesDev[p.name].changedIntrinsics)} `;
+            if (i > 0 && i < capturePerformance.length && i % 5 === 0) {
+                output += '\n';
+            }
+            return output;
+        }, '\n\n'),
+        `\nwhere  · no change  ● extrinsics changed  ◆ intrinsics changed\n`,
+        similarityAvg < 1 ? `\n${color('▶', colors.White)} ${color(compareCommand + '=' + 120 + '#' + similarityEntries[0][0], colors.BrightCyan)}` : '',
+        intrinsicChangeCount > 0 ? `\n${color('▶', colors.White)} ${color((save ? diffCommand : diffSaveCommand), colors.BrightCyan)}` : ''
+    ].join('  ');
+};
+
 module.exports = {
-    stubBrowserFeatures, engineSnapshot, toMatchExtrinsics, toMatchIntrinsics
+    engineCapture, comparisonReport,
+    toMatchExtrinsics, toMatchIntrinsics
 };
