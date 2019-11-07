@@ -196,7 +196,7 @@ var Vector = require('../geometry/Vector');
      * @return {body}
      */
     Bodies.fromVertices = function(x, y, vertexSets, options, flagInternal, removeCollinear, minimumArea) {
-        var decomp = typeof decomp !== 'undefined' ? decomp : require('poly-decomp'),
+        var decomp = global.decomp || require('poly-decomp'),
             body,
             parts,
             isConvex,

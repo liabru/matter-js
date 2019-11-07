@@ -1,73 +1,72 @@
 /* eslint-env es6 */
-/* eslint no-global-assign: 0 */
 "use strict";
 
-const { 
-    stubBrowserFeatures, engineSnapshot, toMatchExtrinsics, toMatchIntrinsics 
-} = require('./TestTools');
+jest.setTimeout(30 * 1000);
 
-const totalUpdates = 120;
-const isCompare = process.env.COMPARE === 'true';
-const excludeExamples = ['stress', 'stress2', 'svg', 'terrain'];
+const { comparisonReport, toMatchExtrinsics, toMatchIntrinsics } = require('./TestTools');
 
+const Example = require('../examples/index');
 const MatterBuild = require('../build/matter');
-const MatterDev = require('../src/module/main');
+const Worker = require('jest-worker').default;
 
-jest.mock('matter-wrap', () => require('../demo/lib/matter-wrap'), { virtual: true });
-jest.mock('poly-decomp', () => require('../demo/lib/decomp'), { virtual: true });
+const testComparison = process.env.COMPARE === 'true';
+const saveComparison = process.env.SAVE === 'true';
+const excludeExamples = [ 'svg', 'terrain' ];
+const examples = Object.keys(Example).filter(key => !excludeExamples.includes(key));
 
-const runExamples = (matter) => {
-    let snapshots = {};
-    matter = stubBrowserFeatures(matter);
-    global.Matter = matter;
-    matter.use(require('matter-wrap'));
+const runExamples = async useDev => {
+    const worker = new Worker(require.resolve('./ExampleWorker'), {
+        enableWorkerThreads: true
+    });
 
-    const Example = require('../examples/index');
-    const examples = Object.keys(Example).filter(key => !excludeExamples.includes(key));
+    const result = await Promise.all(examples.map(name => worker.runExample({
+        name,
+        useDev,
+        totalUpdates: 120
+    })));
 
-    const consoleOriginal = global.console;
-    global.console = { log: () => {} };
+    await worker.end();
 
-    for (name of examples) {
-        matter.Common._nextId = matter.Common._seed = 0;
-
-        const example = Example[name]();
-        const engine = example.engine;
-
-        for (let i = 0; i < totalUpdates; i += 1) {
-            matter.Engine.update(engine, 1000 / 60);
-        }
-    
-        snapshots[name] = isCompare ? engineSnapshot(engine) : {};
-    }
-
-    global.console = consoleOriginal;
-    global.Matter = undefined;
-    return snapshots;
+    return result.reduce((out, capture) => (out[capture.name] = capture, out), {});
 };
 
-const snapshotsDev = runExamples(MatterDev);
-const snapshotsBuild = runExamples(MatterBuild);
-const examples = Object.keys(snapshotsDev);
+const capturesDev = runExamples(true);
+const capturesBuild = runExamples(false);
 
-describe(`Integration tests (${examples.length})`, () => {
-    test(`Examples run without throwing`, () => {
-        expect(Object.keys(snapshotsDev)).toEqual(examples);
-        expect(Object.keys(snapshotsBuild)).toEqual(examples);
+afterAll(async () => {
+    // Report experimental capture comparison.
+    const dev = await capturesDev;
+    const build = await capturesBuild;
+    console.log(comparisonReport(dev, build, MatterBuild.version, saveComparison));
+});
+
+describe(`Integration checks (${examples.length})`, () => {
+    test(`Examples run without throwing`, async () => {
+        const dev = await capturesDev;
+        const build = await capturesBuild;
+        expect(Object.keys(dev)).toEqual(examples);
+        expect(Object.keys(build)).toEqual(examples);
     });
 });
 
-if (isCompare) {
-    describe(`Regression tests (${examples.length})`, () => {
+// Experimental regression comparison checks.
+if (testComparison) {
+    describe(`Regression checks (${examples.length})`, () => {
         expect.extend(toMatchExtrinsics);
         expect.extend(toMatchIntrinsics);
 
-        test(`Examples match properties with release build`, () => {
-            expect(snapshotsDev).toMatchIntrinsics(snapshotsBuild, totalUpdates);
+        test(`Examples match intrinsic properties with release build`, async () => {
+            const dev = await capturesDev;
+            const build = await capturesBuild;
+            // compare mass, inertia, friction etc.
+            expect(dev).toMatchIntrinsics(build);
         });
 
-        test(`Examples match positions and velocities with release build`, () => {
-            expect(snapshotsDev).toMatchExtrinsics(snapshotsBuild, totalUpdates);
+        test(`Examples match extrinsic positions and velocities with release build`, async () => {
+            const dev = await capturesDev;
+            const build = await capturesBuild;
+            // compare position, linear and angular velocity
+            expect(dev).toMatchExtrinsics(build);
         });
     });
 }
