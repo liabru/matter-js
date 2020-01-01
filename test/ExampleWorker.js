@@ -21,7 +21,7 @@ const reset = M => {
 
 const { engineCapture } = require('./TestTools');
 const MatterDev = stubBrowserFeatures(require('../src/module/main'));
-const MatterBuild = stubBrowserFeatures(require('../build/Matter'));
+const MatterBuild = stubBrowserFeatures(require('../build/matter'));
 const Example = require('../examples/index');
 const decomp = require('../demo/lib/decomp');
 
