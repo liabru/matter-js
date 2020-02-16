@@ -668,6 +668,10 @@ var Axes = require('../geometry/Axes');
             if (body.angularVelocity !== 0) {
                 Vertices.rotate(part.vertices, body.angularVelocity, body.position);
                 Axes.rotate(part.axes, body.angularVelocity);
+
+                // also we update the angle of child parts
+                part.angle = body.angle;
+
                 if (i > 0) {
                     Vector.rotateAbout(part.position, body.angularVelocity, body.position, part.position);
                 }
