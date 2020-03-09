@@ -203,12 +203,14 @@ const comparisonReport = (capturesDev, capturesBuild, buildVersion, save) => {
     let intrinsicChangeCount = 0;
     let totalTimeBuild = 0;
     let totalTimeDev = 0;
+    let totalOverlapBuild = 0;
+    let totalOverlapDev = 0;
 
     const capturePerformance = Object.entries(capturesDev).map(([name]) => {
-        const buildDuration = capturesBuild[name].duration;
-        const devDuration = capturesDev[name].duration;
-        totalTimeBuild += buildDuration;
-        totalTimeDev += devDuration;
+        totalTimeBuild += capturesBuild[name].duration;
+        totalTimeDev += capturesDev[name].duration;
+        totalOverlapBuild += capturesBuild[name].overlap;
+        totalOverlapDev += capturesDev[name].overlap;
 
         const changedIntrinsics = !equals(capturesDev[name].intrinsic, capturesBuild[name].intrinsic);
         if (changedIntrinsics) {
@@ -226,15 +228,17 @@ const comparisonReport = (capturesDev, capturesBuild, buildVersion, save) => {
     capturePerformance.sort((a, b) => a.name.localeCompare(b.name));
     similarityEntries.sort((a, b) => a[1] - b[1]);
 
-    let similarityAvg = 0;
     let perfChange = 1 - (totalTimeDev / totalTimeBuild);
     perfChange = perfChange < -0.05 || perfChange > 0.05 ? perfChange : 0;
 
+    let similarityAvg = 0;
     similarityEntries.forEach(([_, similarity]) => {
         similarityAvg += similarity;
     });
 
     similarityAvg /= similarityEntries.length;
+
+    const overlapChange = (totalOverlapDev / (totalOverlapBuild || 1)) - 1;
 
     if (save) {
         writeCaptures('examples-dev', devIntrinsicsChanged);
@@ -249,6 +253,8 @@ const comparisonReport = (capturesDev, capturesBuild, buildVersion, save) => {
         `${color(toPercent(similarityAvg), similarityAvg === 1 ? colors.Green : colors.Yellow)}%`,
         `${color('Performance', colors.White)}`,
         `${color((perfChange >= 0 ? '+' : '') + toPercent(perfChange), perfChange >= 0 ? colors.Green : colors.Red)}%`,
+        `${color('Overlap', colors.White)}`,
+        `${color((overlapChange >= 0 ? '+' : '') + toPercent(overlapChange), overlapChange > 0 ? colors.Red : colors.Green)}%`,
         capturePerformance.reduce((output, p, i) => {
             output += `${p.name} `;
             output += `${similarityRatings(similaritys[p.name])} `;

@@ -11,7 +11,8 @@ const Worker = require('jest-worker').default;
 
 const testComparison = process.env.COMPARE === 'true';
 const saveComparison = process.env.SAVE === 'true';
-const excludeExamples = [ 'svg', 'terrain' ];
+const excludeExamples = ['svg', 'terrain'];
+const excludeJitter = ['stack', 'circleStack', 'restitution', 'staticFriction', 'friction', 'newtonsCradle', 'catapult'];
 const examples = Object.keys(Example).filter(key => !excludeExamples.includes(key));
 
 const runExamples = async useDev => {
@@ -22,7 +23,8 @@ const runExamples = async useDev => {
     const result = await Promise.all(examples.map(name => worker.runExample({
         name,
         useDev,
-        totalUpdates: 120
+        totalUpdates: 120,
+        jitter: excludeJitter.includes(name) ? 0 : 1e-10
     })));
 
     await worker.end();

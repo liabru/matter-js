@@ -38,13 +38,42 @@ const runExample = options => {
 
   const example = Example[options.name]();
   const engine = example.engine;
-  const startTime = process.hrtime();
+  
+  let totalDuration = 0;
+  let overlapTotal = 0;
+  let overlapCount = 0;
 
-  for (let i = 0; i < options.totalUpdates; i += 1) {
-      Matter.Engine.update(engine, 1000 / 60);
+  const bodies = Matter.Composite.allBodies(engine.world);
+
+  if (options.jitter) {
+    for (let i = 0; i < bodies.length; i += 1) {
+      const body = bodies[i];
+
+      Matter.Body.applyForce(body, body.position, { 
+        x: Math.cos(i * i) * options.jitter * body.mass, 
+        y: Math.sin(i * i) * options.jitter * body.mass
+      });
+    }
   }
 
-  const duration = process.hrtime(startTime);
+  for (let i = 0; i < options.totalUpdates; i += 1) {
+      const startTime = process.hrtime();
+
+      Matter.Engine.update(engine, 1000 / 60);
+
+      const duration = process.hrtime(startTime);
+      totalDuration += duration[0] * 1e9 + duration[1];
+
+      for (let p = 0; p < engine.pairs.list.length; p += 1) {
+        const pair = engine.pairs.list[p];
+        const separation = pair.separation - pair.slop;
+
+        if (pair.isActive && !pair.isSensor) {
+          overlapTotal += separation > 0 ? separation : 0;
+          overlapCount += 1;
+        }
+      }
+  }
 
   global.console = consoleOriginal;
   global.document = undefined;
@@ -53,7 +82,8 @@ const runExample = options => {
 
   return {
     name: options.name,
-    duration: duration[0] * 1e9 + duration[1],
+    duration: totalDuration,
+    overlap: overlapTotal / (overlapCount || 1),
     ...engineCapture(engine)
   };
 };
