@@ -4,6 +4,7 @@
 
 const stubBrowserFeatures = M => {
   const noop = () => ({ collisionFilter: {}, mouse: {} });
+  M.Common._requireGlobal = name => global[name];
   M.Render.create = () => ({ options: {}, bounds: { min: { x: 0, y: 0 }, max: { x: 800, y: 600 }}});
   M.Render.run = M.Render.lookAt = noop;
   M.Runner.create = M.Runner.run = noop;
@@ -30,7 +31,7 @@ const runExample = options => {
   const consoleOriginal = global.console;
 
   global.console = { log: () => {} };
-  global.document = {};
+  global.document = global.window = { addEventListener: () => {} };
   global.decomp = decomp;
   global.Matter = Matter;
 
@@ -76,6 +77,7 @@ const runExample = options => {
   }
 
   global.console = consoleOriginal;
+  global.window = undefined;
   global.document = undefined;
   global.decomp = undefined;
   global.Matter = undefined;

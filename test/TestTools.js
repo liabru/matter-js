@@ -118,7 +118,9 @@ const worldCaptureIntrinsicBase = (obj, depth=0) => {
 };
 
 const similarity = (a, b) => {
-    const distance = Math.sqrt(a.reduce((sum, _val, i) => sum + Math.pow(a[i] - b[i], 2), 0));
+    const distance = Math.sqrt(a.reduce(
+        (sum, _val, i) => sum + Math.pow((a[i] || 0) - (b[i] || 0), 2), 0)
+    );
     return 1 / (1 + (distance / a.length));
 };
 
