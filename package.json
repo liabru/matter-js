@@ -37,8 +37,8 @@
   "scripts": {
     "dev": "webpack-dev-server --watch-content-base",
     "build": "webpack --mode=production & webpack --mode=production --env.MINIMIZE",
-    "build-alpha": "webpack --mode=production --env.EDGE & webpack --mode=production --env.MINIMIZE --env.EDGE",
-    "build-examples": "webpack --config webpack.examples.config.js --mode=production --env.EDGE & webpack --config webpack.examples.config.js --mode=production --env.MINIMIZE --env.EDGE",
+    "build-alpha": "webpack --mode=production --env.ALPHA & webpack --mode=production --env.MINIMIZE --env.ALPHA",
+    "build-examples": "webpack --config webpack.examples.config.js --mode=production --env.ALPHA & webpack --config webpack.examples.config.js --mode=production --env.MINIMIZE --env.ALPHA",
     "lint": "eslint 'src/**/*.js' 'demo/js/Demo.js' 'demo/js/Compare.js' 'examples/*.js' 'webpack.*.js' 'Gulpfile.js'",
     "doc": "gulp doc",
     "test": "jest",

@@ -8,17 +8,19 @@ const execSync = require('child_process').execSync;
 
 module.exports = (env = {}) => {
     const minimize = env.MINIMIZE || false;
-    const edge = env.EDGE || false;
+    const alpha = env.ALPHA || false;
     const maxSize = minimize ? 100 * 1024 : 512 * 1024;
     const isDevServer = process.env.WEBPACK_DEV_SERVER;
 
     const commitHash = execSync('git rev-parse --short HEAD').toString().trim();
-    const version = !edge ? pkg.version : `${pkg.version}-alpha-${commitHash}`;
+    const version = !alpha ? pkg.version : `${pkg.version}-alpha+${commitHash}`;
     const date = new Date().toISOString().slice(0, 10);
     const name = 'matter';
-    const banner = `${name} ${version} by @liabru ${date}
-    ${pkg.homepage}
-    License ${pkg.license}`;
+    const alphaInfo = 'Experimental pre-release build.\n  ';
+    const banner = 
+`  ${pkg.name} ${version} by @liabru (c) ${date}
+  ${alpha ? alphaInfo : ''}${pkg.homepage}
+  License ${pkg.license}`;
 
     return {
         entry: { [name]: './src/module/main.js' },
@@ -28,7 +30,7 @@ module.exports = (env = {}) => {
             umdNamedDefine: true,
             globalObject: 'this',
             path: path.resolve(__dirname, './build'),
-            filename: `[name]${minimize ? '.min' : ''}.js`
+            filename: `[name]${alpha ? '.alpha' : ''}${minimize ? '.min' : ''}.js`
         },
         node: false,
         optimization: { minimize },
