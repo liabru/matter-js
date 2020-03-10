@@ -80,8 +80,8 @@ var Bounds = require('../geometry/Bounds');
 
             // get current separation between body edges involved in collision
             bodyBtoA = Vector.sub(Vector.add(bodyB.positionImpulse, bodyB.position, tempA), 
-                                    Vector.add(bodyA.positionImpulse, 
-                                        Vector.sub(bodyB.position, collision.penetration, tempB), tempC), tempD);
+                Vector.add(bodyA.positionImpulse, 
+                    Vector.sub(bodyB.position, collision.penetration, tempB), tempC), tempD);
 
             pair.separation = Vector.dot(normal, bodyBtoA);
         }
