@@ -44,15 +44,8 @@ var Common = require('../core/Common');
                     y: point.y,
                     index: i,
                     body: body,
-                    isInternal: false,
-                    contact: null
+                    isInternal: false
                 };
-
-            vertex.contact = {
-                vertex: vertex,
-                normalImpulse: 0,
-                tangentImpulse: 0
-            };
 
             vertices.push(vertex);
         }
