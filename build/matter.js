@@ -1,5 +1,5 @@
 /**
-* matter-js 0.14.2-alpha by @liabru 2019-09-01
+* matter-js 0.14.2 by @liabru 2018-06-11
 * http://brm.io/matter-js/
 * License MIT
 */
@@ -46,13 +46,13 @@ module.exports = Body;
 var Vertices = _dereq_('../geometry/Vertices');
 var Vector = _dereq_('../geometry/Vector');
 var Sleeping = _dereq_('../core/Sleeping');
+var Render = _dereq_('../render/Render');
 var Common = _dereq_('../core/Common');
 var Bounds = _dereq_('../geometry/Bounds');
 var Axes = _dereq_('../geometry/Axes');
 
 (function() {
 
-    Body._timeCorrection = true;
     Body._inertiaScale = 4;
     Body._nextCollidingGroupId = 1;
     Body._nextNonCollidingGroupId = -1;
@@ -80,7 +80,6 @@ var Axes = _dereq_('../geometry/Axes');
             force: { x: 0, y: 0 },
             torque: 0,
             positionImpulse: { x: 0, y: 0 },
-            previousPositionImpulse: { x: 0, y: 0 },
             constraintImpulse: { x: 0, y: 0, angle: 0 },
             totalContacts: 0,
             speed: 0,
@@ -114,20 +113,7 @@ var Axes = _dereq_('../geometry/Axes');
                     yOffset: 0
                 },
                 lineWidth: 0
-            },
-            events: null,
-            bounds: null,
-            chamfer: null,
-            circleRadius: 0,
-            positionPrev: null,
-            anglePrev: 0,
-            parent: null,
-            axes: null,
-            area: 0,
-            mass: 0,
-            inertia: 0,
-            deltaTime: null,
-            _original: null
+            }
         };
 
         var body = Common.extend(defaults, options);
@@ -224,11 +210,11 @@ var Axes = _dereq_('../geometry/Axes');
         }
 
         for (property in settings) {
+            value = settings[property];
 
             if (!settings.hasOwnProperty(property))
                 continue;
 
-            value = settings[property];
             switch (property) {
 
             case 'isStatic':
@@ -263,9 +249,6 @@ var Axes = _dereq_('../geometry/Axes');
                 break;
             case 'parts':
                 Body.setParts(body, value);
-                break;
-            case 'centre':
-                Body.setCentre(body, value);
                 break;
             default:
                 body[property] = value;
@@ -317,7 +300,7 @@ var Axes = _dereq_('../geometry/Axes');
                 part.inverseMass = part._original.inverseMass;
                 part.inverseInertia = part._original.inverseInertia;
 
-                part._original = null;
+                delete part._original;
             }
         }
     };
@@ -350,7 +333,7 @@ var Axes = _dereq_('../geometry/Axes');
     };
 
     /**
-     * Sets the moment of inertia (i.e. second moment of area) of the body. 
+     * Sets the moment of inertia (i.e. second moment of area) of the body of the body. 
      * Inverse inertia is automatically updated to reflect the change. Mass is not changed.
      * @method setInertia
      * @param {body} body
@@ -462,51 +445,15 @@ var Axes = _dereq_('../geometry/Axes');
     };
 
     /**
-     * Set the centre of mass of the body. 
-     * The `centre` is a vector in world-space unless `relative` is set, in which case it is a translation.
-     * The centre of mass is the point the body rotates about and can be used to simulate non-uniform density.
-     * This is equal to moving `body.position` but not the `body.vertices`.
-     * Invalid if the `centre` falls outside the body's convex hull.
-     * @method setCentre
-     * @param {body} body
-     * @param {vector} centre
-     * @param {bool} relative
-     */
-    Body.setCentre = function(body, centre, relative) {
-        if (!relative) {
-            body.positionPrev.x = centre.x - (body.position.x - body.positionPrev.x);
-            body.positionPrev.y = centre.y - (body.position.y - body.positionPrev.y);
-            body.position.x = centre.x;
-            body.position.y = centre.y;
-        } else {
-            body.positionPrev.x += centre.x;
-            body.positionPrev.y += centre.y;
-            body.position.x += centre.x;
-            body.position.y += centre.y;
-        }
-    };
-
-    /**
-     * Sets the position of the body instantly. By default velocity, angle, force etc. are unchanged.
-     * If `updateVelocity` is `true` then velocity is inferred from the change in position.
+     * Sets the position of the body instantly. Velocity, angle, force etc. are unchanged.
      * @method setPosition
      * @param {body} body
      * @param {vector} position
-     * @param {boolean} [updateVelocity=false]
      */
-    Body.setPosition = function(body, position, updateVelocity) {
+    Body.setPosition = function(body, position) {
         var delta = Vector.sub(position, body.position);
-
-        if (updateVelocity) {
-            body.positionPrev.x = body.position.x;
-            body.positionPrev.y = body.position.y;
-            body.velocity.x = delta.x;
-            body.velocity.y = delta.y;
-            body.speed = Vector.magnitude(delta);
-        } else {
-            body.positionPrev.x += delta.x;
-            body.positionPrev.y += delta.y;
-        }
+        body.positionPrev.x += delta.x;
+        body.positionPrev.y += delta.y;
 
         for (var i = 0; i < body.parts.length; i++) {
             var part = body.parts[i];
@@ -518,23 +465,14 @@ var Axes = _dereq_('../geometry/Axes');
     };
 
     /**
-     * Sets the angle of the body instantly. By default angular velocity, position, force etc. are unchanged.
-     * If `updateVelocity` is `true` then angular velocity is inferred from the change in angle.
+     * Sets the angle of the body instantly. Angular velocity, position, force etc. are unchanged.
      * @method setAngle
      * @param {body} body
      * @param {number} angle
-     * @param {boolean} [updateVelocity=false]
      */
-    Body.setAngle = function(body, angle, updateVelocity) {
+    Body.setAngle = function(body, angle) {
         var delta = angle - body.angle;
-        
-        if (updateVelocity) {
-            body.anglePrev = body.angle;
-            body.angularVelocity = delta;
-            body.angularSpeed = Math.abs(delta);
-        } else {
-            body.anglePrev += delta;
-        }
+        body.anglePrev += delta;
 
         for (var i = 0; i < body.parts.length; i++) {
             var part = body.parts[i];
@@ -555,47 +493,11 @@ var Axes = _dereq_('../geometry/Axes');
      * @param {vector} velocity
      */
     Body.setVelocity = function(body, velocity) {
-        var timeScale = body.deltaTime / Common._timeUnit;
-        body.positionPrev.x = body.position.x - velocity.x * timeScale;
-        body.positionPrev.y = body.position.y - velocity.y * timeScale;
-        body.velocity.x = velocity.x * timeScale;
-        body.velocity.y = velocity.y * timeScale;
+        body.positionPrev.x = body.position.x - velocity.x;
+        body.positionPrev.y = body.position.y - velocity.y;
+        body.velocity.x = velocity.x;
+        body.velocity.y = velocity.y;
         body.speed = Vector.magnitude(body.velocity);
-    };
-
-    /**
-     * Gets the linear velocity of the body. Use this instead of the internal `body.velocity`.
-     * @method getVelocity
-     * @param {body} body
-     * @return {vector} velocity
-     */
-    Body.getVelocity = function(body) {
-        var timeScale = Common._timeUnit / body.deltaTime;
-
-        return {
-            x: (body.position.x - body.positionPrev.x) * timeScale,
-            y: (body.position.y - body.positionPrev.y) * timeScale
-        };
-    };
-
-    /**
-     * Gets the linear speed the body. Use this instead of the internal `body.speed`.
-     * @method getSpeed
-     * @param {body} body
-     * @return {number} speed
-     */
-    Body.getSpeed = function(body) {
-        return Vector.magnitude(Body.getVelocity(body));
-    };
-
-    /**
-     * Sets the linear speed of the body. Use this instead of the internal `body.speed`.
-     * @method setSpeed
-     * @param {body} body
-     * @param {number} speed
-     */
-    Body.setSpeed = function(body, speed) {
-        Body.setVelocity(body, Vector.mult(Vector.normalise(Body.getVelocity(body)), speed));
     };
 
     /**
@@ -605,66 +507,31 @@ var Axes = _dereq_('../geometry/Axes');
      * @param {number} velocity
      */
     Body.setAngularVelocity = function(body, velocity) {
-        var timeScale = body.deltaTime / Common._timeUnit;
-        body.anglePrev = body.angle - velocity * timeScale;
-        body.angularVelocity = velocity * timeScale;
+        body.anglePrev = body.angle - velocity;
+        body.angularVelocity = velocity;
         body.angularSpeed = Math.abs(body.angularVelocity);
     };
 
     /**
-     * Gets the angular velocity of the body. Use this instead of the internal `body.angularVelocity`.
-     * @method getAngularVelocity
-     * @param {body} body
-     * @return {number} angular velocity
-     */
-    Body.getAngularVelocity = function(body) {
-        return (body.angle - body.anglePrev) * Common._timeUnit / body.deltaTime;
-    };
-
-    /**
-     * Gets the angular speed of the body. Use this instead of the internal `body.angularSpeed`.
-     * @method getAngularSpeed
-     * @param {body} body
-     * @return {number} angular speed
-     */
-    Body.getAngularSpeed = function(body) {
-        return Math.abs(Body.getAngularVelocity(body));
-    };
-
-    /**
-     * Sets the angular speed of the body. Use this instead of the internal `body.angularSpeed`.
-     * @method setAngularSpeed
-     * @param {body} body
-     * @param {number} speed
-     */
-    Body.setAngularSpeed = function(body, speed) {
-        Body.setAngularVelocity(body, Common.sign(Body.getAngularVelocity(body)) * speed);
-    };
-
-    /**
-     * Moves a body by a given vector relative to its current position, without imparting any velocity by default.
-     * If `updateVelocity` is `true` then velocity is inferred from the change in position.
+     * Moves a body by a given vector relative to its current position, without imparting any velocity.
      * @method translate
      * @param {body} body
      * @param {vector} translation
-     * @param {boolean} [updateVelocity=false]
      */
-    Body.translate = function(body, translation, updateVelocity) {
-        Body.setPosition(body, Vector.add(body.position, translation), updateVelocity);
+    Body.translate = function(body, translation) {
+        Body.setPosition(body, Vector.add(body.position, translation));
     };
 
     /**
-     * Rotates a body by a given angle relative to its current angle, without imparting any angular velocity by default.
-     * If `updateVelocity` is `true` then angular velocity is inferred from the change in angle.
+     * Rotates a body by a given angle relative to its current angle, without imparting any angular velocity.
      * @method rotate
      * @param {body} body
      * @param {number} rotation
      * @param {vector} [point]
-     * @param {boolean} [updateVelocity=false]
      */
-    Body.rotate = function(body, rotation, point, updateVelocity) {
+    Body.rotate = function(body, rotation, point) {
         if (!point) {
-            Body.setAngle(body, body.angle + rotation, updateVelocity);
+            Body.setAngle(body, body.angle + rotation);
         } else {
             var cos = Math.cos(rotation),
                 sin = Math.sin(rotation),
@@ -674,9 +541,9 @@ var Axes = _dereq_('../geometry/Axes');
             Body.setPosition(body, {
                 x: point.x + (dx * cos - dy * sin),
                 y: point.y + (dx * sin + dy * cos)
-            }, updateVelocity);
+            });
 
-            Body.setAngle(body, body.angle + rotation, updateVelocity);
+            Body.setAngle(body, body.angle + rotation);
         }
     };
 
@@ -748,28 +615,26 @@ var Axes = _dereq_('../geometry/Axes');
      * Performs a simulation step for the given `body`, including updating position and angle using Verlet integration.
      * @method update
      * @param {body} body
-     * @param {number} [deltaTime=16.666]
+     * @param {number} deltaTime
+     * @param {number} timeScale
+     * @param {number} correction
      */
-    Body.update = function(body, deltaTime) {
-        deltaTime = (typeof deltaTime !== 'undefined' ? deltaTime : Common._timeUnit) * body.timeScale;
-
-        var deltaTimeSquared = deltaTime * deltaTime,
-            correction = Body._timeCorrection ? deltaTime / (body.deltaTime || deltaTime) : 1;
+    Body.update = function(body, deltaTime, timeScale, correction) {
+        var deltaTimeSquared = Math.pow(deltaTime * timeScale * body.timeScale, 2);
 
         // from the previous step
-        var frictionAir = 1 - body.frictionAir * (deltaTime / Common._timeUnit),
-            velocityPrevX = (body.position.x - body.positionPrev.x) * correction,
-            velocityPrevY = (body.position.y - body.positionPrev.y) * correction;
+        var frictionAir = 1 - body.frictionAir * timeScale * body.timeScale,
+            velocityPrevX = body.position.x - body.positionPrev.x,
+            velocityPrevY = body.position.y - body.positionPrev.y;
 
         // update velocity with Verlet integration
-        body.velocity.x = (velocityPrevX * frictionAir) + (body.force.x / body.mass) * deltaTimeSquared;
-        body.velocity.y = (velocityPrevY * frictionAir) + (body.force.y / body.mass) * deltaTimeSquared;
+        body.velocity.x = (velocityPrevX * frictionAir * correction) + (body.force.x / body.mass) * deltaTimeSquared;
+        body.velocity.y = (velocityPrevY * frictionAir * correction) + (body.force.y / body.mass) * deltaTimeSquared;
 
         body.positionPrev.x = body.position.x;
         body.positionPrev.y = body.position.y;
         body.position.x += body.velocity.x;
         body.position.y += body.velocity.y;
-        body.deltaTime = deltaTime;
 
         // update angular velocity with Verlet integration
         body.angularVelocity = ((body.angle - body.anglePrev) * frictionAir * correction) + (body.torque / body.inertia) * deltaTimeSquared;
@@ -985,7 +850,7 @@ var Axes = _dereq_('../geometry/Axes');
      */
 
     /**
-     * Internal only. Use `Body.getSpeed` and `Body.setSpeed` instead.
+     * A `Number` that _measures_ the current speed of the body after the last `Body.update`. It is read-only and always positive (it's the magnitude of `body.velocity`).
      *
      * @readOnly
      * @property speed
@@ -994,7 +859,7 @@ var Axes = _dereq_('../geometry/Axes');
      */
 
     /**
-     * Internal only. Use `Body.getAngularSpeed` and `Body.setAngularSpeed` instead.
+     * A `Number` that _measures_ the current angular speed of the body after the last `Body.update`. It is read-only and always positive (it's the magnitude of `body.angularVelocity`).
      *
      * @readOnly
      * @property angularSpeed
@@ -1003,8 +868,9 @@ var Axes = _dereq_('../geometry/Axes');
      */
 
     /**
-     * Internal only. Use `Body.getVelocity` and `Body.setVelocity` instead.
-     * 
+     * A `Vector` that _measures_ the current velocity of the body after the last `Body.update`. It is read-only. 
+     * If you need to modify a body's velocity directly, you should either apply a force or simply change the body's `position` (as the engine uses position-Verlet integration).
+     *
      * @readOnly
      * @property velocity
      * @type vector
@@ -1012,7 +878,8 @@ var Axes = _dereq_('../geometry/Axes');
      */
 
     /**
-     * Internal only. Use `Body.getAngularVelocity` and `Body.setAngularVelocity` instead.
+     * A `Number` that _measures_ the current angular velocity of the body after the last `Body.update`. It is read-only. 
+     * If you need to modify a body's angular velocity directly, you should apply a torque or simply change the body's `angle` (as the engine uses position-Verlet integration).
      *
      * @readOnly
      * @property angularVelocity
@@ -1233,16 +1100,6 @@ var Axes = _dereq_('../geometry/Axes');
      */
 
     /**
-     * A `Number` that records the last delta time value used to update this body.
-     * This is automatically updated by the engine inside of `Body.update`.
-     *
-     * @readOnly
-     * @property deltaTime
-     * @type number
-     * @default null
-     */
-
-    /**
      * An `Object` that defines the rendering properties to be consumed by the module `Matter.Render`.
      *
      * @property render
@@ -1365,7 +1222,7 @@ var Axes = _dereq_('../geometry/Axes');
 
 })();
 
-},{"../core/Common":13,"../core/Sleeping":21,"../geometry/Axes":24,"../geometry/Bounds":25,"../geometry/Vector":27,"../geometry/Vertices":28}],2:[function(_dereq_,module,exports){
+},{"../core/Common":14,"../core/Sleeping":22,"../geometry/Axes":25,"../geometry/Bounds":26,"../geometry/Vector":28,"../geometry/Vertices":29,"../render/Render":31}],2:[function(_dereq_,module,exports){
 /**
 * The `Matter.Composite` module contains methods for creating and manipulating composite bodies.
 * A composite body is a collection of `Matter.Body`, `Matter.Constraint` and other `Matter.Composite`, therefore composites form a tree structure.
@@ -2052,7 +1909,7 @@ var Body = _dereq_('./Body');
 
 })();
 
-},{"../core/Common":13,"../core/Events":15,"../geometry/Bounds":25,"./Body":1}],3:[function(_dereq_,module,exports){
+},{"../core/Common":14,"../core/Events":16,"../geometry/Bounds":26,"./Body":1}],3:[function(_dereq_,module,exports){
 /**
 * The `Matter.World` module contains methods for creating and manipulating the world composite.
 * A `Matter.World` is a `Matter.Composite` body, which is a collection of `Matter.Body`, `Matter.Constraint` and other `Matter.Composite`.
@@ -2201,7 +2058,47 @@ var Common = _dereq_('../core/Common');
 
 })();
 
-},{"../constraint/Constraint":11,"../core/Common":13,"./Composite":2}],4:[function(_dereq_,module,exports){
+},{"../constraint/Constraint":12,"../core/Common":14,"./Composite":2}],4:[function(_dereq_,module,exports){
+/**
+* The `Matter.Contact` module contains methods for creating and manipulating collision contacts.
+*
+* @class Contact
+*/
+
+var Contact = {};
+
+module.exports = Contact;
+
+(function() {
+
+    /**
+     * Creates a new contact.
+     * @method create
+     * @param {vertex} vertex
+     * @return {contact} A new contact
+     */
+    Contact.create = function(vertex) {
+        return {
+            id: Contact.id(vertex),
+            vertex: vertex,
+            normalImpulse: 0,
+            tangentImpulse: 0
+        };
+    };
+    
+    /**
+     * Generates a contact id.
+     * @method id
+     * @param {vertex} vertex
+     * @return {string} Unique contactID
+     */
+    Contact.id = function(vertex) {
+        return vertex.body.id + '_' + vertex.index;
+    };
+
+})();
+
+},{}],5:[function(_dereq_,module,exports){
 /**
 * The `Matter.Detector` module contains methods for detecting collisions given a set of pairs.
 *
@@ -2225,10 +2122,9 @@ var Bounds = _dereq_('../geometry/Bounds');
      * @method collisions
      * @param {pair[]} broadphasePairs
      * @param {engine} engine
-     * @param {number} delta
      * @return {array} collisions
      */
-    Detector.collisions = function(broadphasePairs, engine, delta) {
+    Detector.collisions = function(broadphasePairs, engine) {
         var collisions = [],
             pairsTable = engine.pairs.table;
 
@@ -2265,7 +2161,7 @@ var Bounds = _dereq_('../geometry/Bounds');
                             }
 
                             // narrow phase
-                            var collision = SAT.collides(partA, partB, previousCollision, delta);
+                            var collision = SAT.collides(partA, partB, previousCollision);
 
 
                             if (collision.collided) {
@@ -2297,7 +2193,7 @@ var Bounds = _dereq_('../geometry/Bounds');
 
 })();
 
-},{"../geometry/Bounds":25,"./Pair":6,"./SAT":10}],5:[function(_dereq_,module,exports){
+},{"../geometry/Bounds":26,"./Pair":7,"./SAT":11}],6:[function(_dereq_,module,exports){
 /**
 * The `Matter.Grid` module contains methods for creating and manipulating collision broadphase grid structures.
 *
@@ -2613,7 +2509,7 @@ var Common = _dereq_('../core/Common');
     
 })();
 
-},{"../core/Common":13,"./Detector":4,"./Pair":6}],6:[function(_dereq_,module,exports){
+},{"../core/Common":14,"./Detector":5,"./Pair":7}],7:[function(_dereq_,module,exports){
 /**
 * The `Matter.Pair` module contains methods for creating and manipulating collision pairs.
 *
@@ -2623,6 +2519,8 @@ var Common = _dereq_('../core/Common');
 var Pair = {};
 
 module.exports = Pair;
+
+var Contact = _dereq_('./Contact');
 
 (function() {
     
@@ -2635,25 +2533,26 @@ module.exports = Pair;
      */
     Pair.create = function(collision, timestamp) {
         var bodyA = collision.bodyA,
-            bodyB = collision.bodyB;
+            bodyB = collision.bodyB,
+            parentA = collision.parentA,
+            parentB = collision.parentB;
 
         var pair = {
             id: Pair.id(bodyA, bodyB),
             bodyA: bodyA,
             bodyB: bodyB,
+            contacts: {},
             activeContacts: [],
             separation: 0,
             isActive: true,
-            confirmedActive: true,
             isSensor: bodyA.isSensor || bodyB.isSensor,
             timeCreated: timestamp,
             timeUpdated: timestamp,
-            collision: null,
-            inverseMass: 0,
-            friction: 0,
-            frictionStatic: 0,
-            restitution: 0,
-            slop: 0
+            inverseMass: parentA.inverseMass + parentB.inverseMass,
+            friction: Math.min(parentA.friction, parentB.friction),
+            frictionStatic: Math.max(parentA.frictionStatic, parentB.frictionStatic),
+            restitution: Math.max(parentA.restitution, parentB.restitution),
+            slop: Math.max(parentA.slop, parentB.slop)
         };
 
         Pair.update(pair, collision, timestamp);
@@ -2669,28 +2568,31 @@ module.exports = Pair;
      * @param {number} timestamp
      */
     Pair.update = function(pair, collision, timestamp) {
+        var contacts = pair.contacts,
+            supports = collision.supports,
+            activeContacts = pair.activeContacts,
+            parentA = collision.parentA,
+            parentB = collision.parentB;
+        
         pair.collision = collision;
-
+        pair.inverseMass = parentA.inverseMass + parentB.inverseMass;
+        pair.friction = Math.min(parentA.friction, parentB.friction);
+        pair.frictionStatic = Math.max(parentA.frictionStatic, parentB.frictionStatic);
+        pair.restitution = Math.max(parentA.restitution, parentB.restitution);
+        pair.slop = Math.max(parentA.slop, parentB.slop);
+        activeContacts.length = 0;
+        
         if (collision.collided) {
-            var supports = collision.supports,
-                activeContacts = pair.activeContacts,
-                parentA = collision.parentA,
-                parentB = collision.parentB;
-
-            pair.inverseMass = parentA.inverseMass + parentB.inverseMass;
-            pair.friction = Math.min(parentA.friction, parentB.friction);
-            pair.frictionStatic = Math.max(parentA.frictionStatic, parentB.frictionStatic);
-            pair.restitution = Math.max(parentA.restitution, parentB.restitution);
-            pair.slop = Math.max(parentA.slop, parentB.slop);
-
             for (var i = 0; i < supports.length; i++) {
-                activeContacts[i] = supports[i].contact;
-            }
+                var support = supports[i],
+                    contactId = Contact.id(support),
+                    contact = contacts[contactId];
 
-            // optimise array size
-            var supportCount = supports.length;
-            if (supportCount < activeContacts.length) {
-                activeContacts.length = supportCount;
+                if (contact) {
+                    activeContacts.push(contact);
+                } else {
+                    activeContacts.push(contacts[contactId] = Contact.create(support));
+                }
             }
 
             pair.separation = collision.depth;
@@ -2734,7 +2636,8 @@ module.exports = Pair;
     };
 
 })();
-},{}],7:[function(_dereq_,module,exports){
+
+},{"./Contact":4}],8:[function(_dereq_,module,exports){
 /**
 * The `Matter.Pairs` module contains methods for creating and manipulating collision pair sets.
 *
@@ -2781,6 +2684,7 @@ var Common = _dereq_('../core/Common');
             collisionStart = pairs.collisionStart,
             collisionEnd = pairs.collisionEnd,
             collisionActive = pairs.collisionActive,
+            activePairIds = [],
             collision,
             pairId,
             pair,
@@ -2791,15 +2695,12 @@ var Common = _dereq_('../core/Common');
         collisionEnd.length = 0;
         collisionActive.length = 0;
 
-        for (i = 0; i < pairsList.length; i++) {
-            pairsList[i].confirmedActive = false;
-        }
-
         for (i = 0; i < collisions.length; i++) {
             collision = collisions[i];
 
             if (collision.collided) {
                 pairId = Pair.id(collision.bodyA, collision.bodyB);
+                activePairIds.push(pairId);
 
                 pair = pairsTable[pairId];
                 
@@ -2815,7 +2716,6 @@ var Common = _dereq_('../core/Common');
 
                     // update the pair
                     Pair.update(pair, collision, timestamp);
-                    pair.confirmedActive = true;
                 } else {
                     // pair did not exist, create a new pair
                     pair = Pair.create(collision, timestamp);
@@ -2831,7 +2731,7 @@ var Common = _dereq_('../core/Common');
         // deactivate previously active pairs that are now inactive
         for (i = 0; i < pairsList.length; i++) {
             pair = pairsList[i];
-            if (pair.isActive && !pair.confirmedActive) {
+            if (pair.isActive && Common.indexOf(activePairIds, pair.id) === -1) {
                 Pair.setActive(pair, false, timestamp);
                 collisionEnd.push(pair);
             }
@@ -2895,7 +2795,7 @@ var Common = _dereq_('../core/Common');
 
 })();
 
-},{"../core/Common":13,"./Pair":6}],8:[function(_dereq_,module,exports){
+},{"../core/Common":14,"./Pair":7}],9:[function(_dereq_,module,exports){
 /**
 * The `Matter.Query` module contains methods for performing collision queries.
 *
@@ -3027,7 +2927,7 @@ var Vertices = _dereq_('../geometry/Vertices');
 
 })();
 
-},{"../factory/Bodies":22,"../geometry/Bounds":25,"../geometry/Vector":27,"../geometry/Vertices":28,"./SAT":10}],9:[function(_dereq_,module,exports){
+},{"../factory/Bodies":23,"../geometry/Bounds":26,"../geometry/Vector":28,"../geometry/Vertices":29,"./SAT":11}],10:[function(_dereq_,module,exports){
 /**
 * The `Matter.Resolver` module contains methods for resolving collision pairs.
 *
@@ -3078,34 +2978,23 @@ var Bounds = _dereq_('../geometry/Bounds');
      * Find a solution for pair positions.
      * @method solvePosition
      * @param {pair[]} pairs
-     * @param {body[]} bodies
-     * @param {number} delta
+     * @param {number} timeScale
      */
-    Resolver.solvePosition = function(pairs, bodies, delta) {
+    Resolver.solvePosition = function(pairs, timeScale) {
         var i,
-            normalX,
-            normalY,
             pair,
             collision,
             bodyA,
             bodyB,
             normal,
-            separation,
-            penetration,
-            positionImpulseA,
-            positionImpulseB,
+            bodyBtoA,
             contactShare,
-            bodyBtoAX,
-            bodyBtoAY,
             positionImpulse,
-            timeScale = delta / Common._timeUnit,
-            damping = Common.clamp(Resolver._positionDampen * timeScale, 0, 1);
-
-        for (i = 0; i < bodies.length; i++) {
-            var body = bodies[i];
-            body.previousPositionImpulse.x = body.positionImpulse.x;
-            body.previousPositionImpulse.y = body.positionImpulse.y;
-        }
+            contactCount = {},
+            tempA = Vector._temp[0],
+            tempB = Vector._temp[1],
+            tempC = Vector._temp[2],
+            tempD = Vector._temp[3];
 
         // find impulses required to resolve penetration
         for (i = 0; i < pairs.length; i++) {
@@ -3119,35 +3008,39 @@ var Bounds = _dereq_('../geometry/Bounds');
             bodyB = collision.parentB;
             normal = collision.normal;
 
-            positionImpulseA = bodyA.previousPositionImpulse;
-            positionImpulseB = bodyB.previousPositionImpulse;
+            // get current separation between body edges involved in collision
+            bodyBtoA = Vector.sub(Vector.add(bodyB.positionImpulse, bodyB.position, tempA), 
+                                    Vector.add(bodyA.positionImpulse, 
+                                        Vector.sub(bodyB.position, collision.penetration, tempB), tempC), tempD);
 
-            penetration = collision.penetration;
+            pair.separation = Vector.dot(normal, bodyBtoA);
+        }
+        
+        for (i = 0; i < pairs.length; i++) {
+            pair = pairs[i];
 
-            bodyBtoAX = positionImpulseB.x - positionImpulseA.x + penetration.x;
-            bodyBtoAY = positionImpulseB.y - positionImpulseA.y + penetration.y;
-
-            normalX = normal.x;
-            normalY = normal.y;
-
-            separation = normalX * bodyBtoAX + normalY * bodyBtoAY;
-            pair.separation = separation;
-
-            positionImpulse = (separation - pair.slop) * damping;
+            if (!pair.isActive || pair.isSensor)
+                continue;
+            
+            collision = pair.collision;
+            bodyA = collision.parentA;
+            bodyB = collision.parentB;
+            normal = collision.normal;
+            positionImpulse = (pair.separation - pair.slop) * timeScale;
 
             if (bodyA.isStatic || bodyB.isStatic)
                 positionImpulse *= 2;
             
             if (!(bodyA.isStatic || bodyA.isSleeping)) {
-                contactShare = positionImpulse / bodyA.totalContacts;
-                bodyA.positionImpulse.x += normalX * contactShare;
-                bodyA.positionImpulse.y += normalY * contactShare;
+                contactShare = Resolver._positionDampen / bodyA.totalContacts;
+                bodyA.positionImpulse.x += normal.x * positionImpulse * contactShare;
+                bodyA.positionImpulse.y += normal.y * positionImpulse * contactShare;
             }
 
             if (!(bodyB.isStatic || bodyB.isSleeping)) {
-                contactShare = positionImpulse / bodyB.totalContacts;
-                bodyB.positionImpulse.x -= normalX * contactShare;
-                bodyB.positionImpulse.y -= normalY * contactShare;
+                contactShare = Resolver._positionDampen / bodyB.totalContacts;
+                bodyB.positionImpulse.x -= normal.x * positionImpulse * contactShare;
+                bodyB.positionImpulse.y -= normal.y * positionImpulse * contactShare;
             }
         }
     };
@@ -3262,12 +3155,10 @@ var Bounds = _dereq_('../geometry/Bounds');
      * Find a solution for pair velocities.
      * @method solveVelocity
      * @param {pair[]} pairs
-     * @param {number} delta
+     * @param {number} timeScale
      */
-    Resolver.solveVelocity = function(pairs, delta) {
-        var timeScale = delta / Common._timeUnit,
-            timeScale2 = timeScale * timeScale,
-            timeScale3 = timeScale2 * timeScale,
+    Resolver.solveVelocity = function(pairs, timeScale) {
+        var timeScaleSquared = timeScale * timeScale,
             impulse = Vector._temp[0],
             tempA = Vector._temp[1],
             tempB = Vector._temp[2],
@@ -3320,10 +3211,10 @@ var Bounds = _dereq_('../geometry/Bounds');
                 var tangentImpulse = tangentVelocity,
                     maxFriction = Infinity;
 
-                if (tangentSpeed > pair.friction * pair.frictionStatic * normalForce * timeScale3) {
-                    maxFriction = tangentSpeed * timeScale;
+                if (tangentSpeed > pair.friction * pair.frictionStatic * normalForce * timeScaleSquared) {
+                    maxFriction = tangentSpeed;
                     tangentImpulse = Common.clamp(
-                        pair.friction * tangentVelocityDirection * timeScale3,
+                        pair.friction * tangentVelocityDirection * timeScaleSquared,
                         -maxFriction, maxFriction
                     );
                 }
@@ -3337,7 +3228,7 @@ var Bounds = _dereq_('../geometry/Bounds');
                 tangentImpulse *= share;
 
                 // handle high velocity and resting collisions separately
-                if (normalVelocity < 0 && normalVelocity * normalVelocity > Resolver._restingThresh * timeScale2) {
+                if (normalVelocity < 0 && normalVelocity * normalVelocity > Resolver._restingThresh * timeScaleSquared) {
                     // high normal velocity so clear cached contact normal impulse
                     contact.normalImpulse = 0;
                 } else {
@@ -3349,7 +3240,7 @@ var Bounds = _dereq_('../geometry/Bounds');
                 }
 
                 // handle high velocity and resting collisions separately
-                if (tangentVelocity * tangentVelocity > Resolver._restingThreshTangent * timeScale2) {
+                if (tangentVelocity * tangentVelocity > Resolver._restingThreshTangent * timeScaleSquared) {
                     // high tangent velocity so clear cached contact tangent impulse
                     contact.tangentImpulse = 0;
                 } else {
@@ -3381,7 +3272,8 @@ var Bounds = _dereq_('../geometry/Bounds');
     };
 
 })();
-},{"../core/Common":13,"../geometry/Bounds":25,"../geometry/Vector":27,"../geometry/Vertices":28}],10:[function(_dereq_,module,exports){
+
+},{"../core/Common":14,"../geometry/Bounds":26,"../geometry/Vector":28,"../geometry/Vertices":29}],11:[function(_dereq_,module,exports){
 /**
 * The `Matter.SAT` module contains methods for detecting collisions using the Separating Axis Theorem.
 *
@@ -3396,11 +3288,8 @@ module.exports = SAT;
 
 var Vertices = _dereq_('../geometry/Vertices');
 var Vector = _dereq_('../geometry/Vector');
-var Common = _dereq_('../core/Common');
 
 (function() {
-
-    SAT._reuseMotionThresh = 0.2;
 
     /**
      * Detect collision between two bodies using the Separating Axis Theorem.
@@ -3408,18 +3297,14 @@ var Common = _dereq_('../core/Common');
      * @param {body} bodyA
      * @param {body} bodyB
      * @param {collision} previousCollision
-     * @param {number} [delta=0]
      * @return {collision} collision
      */
-    SAT.collides = function(bodyA, bodyB, previousCollision, delta) {
+    SAT.collides = function(bodyA, bodyB, previousCollision) {
         var overlapAB,
             overlapBA, 
             minOverlap,
             collision,
-            canReusePrevCol = false,
-            timeScale = delta / Common._timeUnit;
-
-        delta = typeof delta !== 'undefined' ? delta : 0;
+            canReusePrevCol = false;
 
         if (previousCollision) {
             // estimate total motion
@@ -3430,7 +3315,7 @@ var Common = _dereq_('../core/Common');
 
             // we may be able to (partially) reuse collision result 
             // but only safe if collision was resting
-            canReusePrevCol = previousCollision && previousCollision.collided && motion < SAT._reuseMotionThresh * timeScale * timeScale;
+            canReusePrevCol = previousCollision && previousCollision.collided && motion < 0.2;
 
             // reuse collision object
             collision = previousCollision;
@@ -3660,7 +3545,7 @@ var Common = _dereq_('../core/Common');
 
 })();
 
-},{"../core/Common":13,"../geometry/Vector":27,"../geometry/Vertices":28}],11:[function(_dereq_,module,exports){
+},{"../geometry/Vector":28,"../geometry/Vertices":29}],12:[function(_dereq_,module,exports){
 /**
 * The `Matter.Constraint` module contains methods for creating and manipulating constraints.
 * Constraints are used for specifying that a fixed distance must be maintained between two bodies (or a body and a fixed world-space position).
@@ -3773,11 +3658,9 @@ var Common = _dereq_('../core/Common');
      * @private
      * @method solveAll
      * @param {constraint[]} constraints
-     * @param {number} delta
+     * @param {number} timeScale
      */
-    Constraint.solveAll = function(constraints, delta) {
-        var timeScale = Common.clamp(delta / Common._timeUnit, 0, 1);
-
+    Constraint.solveAll = function(constraints, timeScale) {
         // Solve fixed constraints first.
         for (var i = 0; i < constraints.length; i += 1) {
             var constraint = constraints[i],
@@ -3848,9 +3731,7 @@ var Common = _dereq_('../core/Common');
 
         // solve distance constraint with Gauss-Siedel method
         var difference = (currentLength - constraint.length) / currentLength,
-            isRigid = constraint.stiffness >= 1 || constraint.length === 0,
-            stiffness = isRigid ? constraint.stiffness : constraint.stiffness * timeScale * timeScale,
-            damping = constraint.damping * timeScale,
+            stiffness = constraint.stiffness < 1 ? constraint.stiffness * timeScale : constraint.stiffness,
             force = Vector.mult(delta, difference * stiffness),
             massTotal = (bodyA ? bodyA.inverseMass : 0) + (bodyB ? bodyB.inverseMass : 0),
             inertiaTotal = (bodyA ? bodyA.inverseInertia : 0) + (bodyB ? bodyB.inverseInertia : 0),
@@ -3860,8 +3741,8 @@ var Common = _dereq_('../core/Common');
             normal,
             normalVelocity,
             relativeVelocity;
-    
-        if (damping > 0) {
+
+        if (constraint.damping) {
             var zero = Vector.create();
             normal = Vector.div(delta, currentLength);
 
@@ -3885,9 +3766,9 @@ var Common = _dereq_('../core/Common');
             bodyA.position.y -= force.y * share;
 
             // apply damping
-            if (damping > 0) {
-                bodyA.positionPrev.x -= damping * normal.x * normalVelocity * share;
-                bodyA.positionPrev.y -= damping * normal.y * normalVelocity * share;
+            if (constraint.damping) {
+                bodyA.positionPrev.x -= constraint.damping * normal.x * normalVelocity * share;
+                bodyA.positionPrev.y -= constraint.damping * normal.y * normalVelocity * share;
             }
 
             // apply torque
@@ -3908,9 +3789,9 @@ var Common = _dereq_('../core/Common');
             bodyB.position.y += force.y * share;
 
             // apply damping
-            if (damping > 0) {
-                bodyB.positionPrev.x += damping * normal.x * normalVelocity * share;
-                bodyB.positionPrev.y += damping * normal.y * normalVelocity * share;
+            if (constraint.damping) {
+                bodyB.positionPrev.x += constraint.damping * normal.x * normalVelocity * share;
+                bodyB.positionPrev.y += constraint.damping * normal.y * normalVelocity * share;
             }
 
             // apply torque
@@ -4119,7 +4000,7 @@ var Common = _dereq_('../core/Common');
 
 })();
 
-},{"../core/Common":13,"../core/Sleeping":21,"../geometry/Axes":24,"../geometry/Bounds":25,"../geometry/Vector":27,"../geometry/Vertices":28}],12:[function(_dereq_,module,exports){
+},{"../core/Common":14,"../core/Sleeping":22,"../geometry/Axes":25,"../geometry/Bounds":26,"../geometry/Vector":28,"../geometry/Vertices":29}],13:[function(_dereq_,module,exports){
 /**
 * The `Matter.MouseConstraint` module contains methods for creating mouse constraints.
 * Mouse constraints are used for allowing user interaction, providing the ability to move bodies via the mouse or touch.
@@ -4382,7 +4263,7 @@ var Bounds = _dereq_('../geometry/Bounds');
 
 })();
 
-},{"../body/Composite":2,"../collision/Detector":4,"../core/Common":13,"../core/Events":15,"../core/Mouse":18,"../core/Sleeping":21,"../geometry/Bounds":25,"../geometry/Vertices":28,"./Constraint":11}],13:[function(_dereq_,module,exports){
+},{"../body/Composite":2,"../collision/Detector":5,"../core/Common":14,"../core/Events":16,"../core/Mouse":19,"../core/Sleeping":22,"../geometry/Bounds":26,"../geometry/Vertices":29,"./Constraint":12}],14:[function(_dereq_,module,exports){
 (function (global){
 /**
 * The `Matter.Common` module contains utility functions that are common to all modules.
@@ -4396,7 +4277,6 @@ module.exports = Common;
 
 (function() {
 
-    Common._timeUnit = 1000 / 60;
     Common._nextId = 0;
     Common._seed = 0;
     Common._nowStartTime = +(new Date());
@@ -4940,7 +4820,7 @@ module.exports = Common;
 })();
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],14:[function(_dereq_,module,exports){
+},{}],15:[function(_dereq_,module,exports){
 /**
 * The `Matter.Engine` module contains methods for creating and manipulating engines.
 * An engine is a controller that manages updating the simulation of the world.
@@ -5037,29 +4917,35 @@ var Body = _dereq_('../body/Body');
 
     /**
      * Moves the simulation forward in time by `delta` ms.
+     * The `correction` argument is an optional `Number` that specifies the time correction factor to apply to the update.
+     * This can help improve the accuracy of the simulation in cases where `delta` is changing between updates.
+     * The value of `correction` is defined as `delta / lastDelta`, i.e. the percentage change of `delta` over the last step.
+     * Therefore the value is always `1` (no correction) when `delta` constant (or when no correction is desired, which is the default).
+     * See the paper on <a href="http://lonesock.net/article/verlet.html">Time Corrected Verlet</a> for more information.
+     *
      * Triggers `beforeUpdate` and `afterUpdate` events.
      * Triggers `collisionStart`, `collisionActive` and `collisionEnd` events.
      * @method update
      * @param {engine} engine
      * @param {number} [delta=16.666]
+     * @param {number} [correction=1]
      */
-    Engine.update = function(engine, delta) {
+    Engine.update = function(engine, delta, correction) {
+        delta = delta || 1000 / 60;
+        correction = correction || 1;
+
         var world = engine.world,
             timing = engine.timing,
             broadphase = engine.broadphase,
-            broadphasePairs,
+            broadphasePairs = [],
             i;
 
-        delta = typeof delta !== 'undefined' ? delta : Common._timeUnit;
-        delta *= timing.timeScale;
-
         // increment timestamp
-        timing.timestamp += delta;
+        timing.timestamp += delta * timing.timeScale;
 
         // create an event object
         var event = {
-            timestamp: timing.timestamp,
-            delta: delta
+            timestamp: timing.timestamp
         };
 
         Events.trigger(engine, 'beforeUpdate', event);
@@ -5071,20 +4957,18 @@ var Body = _dereq_('../body/Body');
 
         // if sleeping enabled, call the sleeping controller
         if (engine.enableSleeping)
-            Sleeping.update(allBodies, delta);
+            Sleeping.update(allBodies, timing.timeScale);
 
         // applies gravity to all bodies
         Engine._bodiesApplyGravity(allBodies, world.gravity);
 
         // update all body position and rotation by integration
-        if (delta > 0) {
-            Engine._bodiesUpdate(allBodies, delta);
-        }
+        Engine._bodiesUpdate(allBodies, delta, timing.timeScale, correction, world.bounds);
 
         // update all constraints (first pass)
         Constraint.preSolveAll(allBodies);
         for (i = 0; i < engine.constraintIterations; i++) {
-            Constraint.solveAll(allConstraints, delta);
+            Constraint.solveAll(allConstraints, timing.timeScale);
         }
         Constraint.postSolveAll(allBodies);
 
@@ -5108,7 +4992,7 @@ var Body = _dereq_('../body/Body');
         }
 
         // narrowphase pass: find actual collisions, then create or update collision pairs
-        var collisions = broadphase.detector(broadphasePairs, engine, delta);
+        var collisions = broadphase.detector(broadphasePairs, engine);
 
         // update collision pairs
         var pairs = engine.pairs,
@@ -5118,7 +5002,7 @@ var Body = _dereq_('../body/Body');
 
         // wake up bodies involved in collisions
         if (engine.enableSleeping)
-            Sleeping.afterCollisions(pairs.list, delta);
+            Sleeping.afterCollisions(pairs.list, timing.timeScale);
 
         // trigger collision events
         if (pairs.collisionStart.length > 0)
@@ -5127,21 +5011,21 @@ var Body = _dereq_('../body/Body');
         // iteratively resolve position between collisions
         Resolver.preSolvePosition(pairs.list);
         for (i = 0; i < engine.positionIterations; i++) {
-            Resolver.solvePosition(pairs.list, allBodies, delta);
+            Resolver.solvePosition(pairs.list, timing.timeScale);
         }
         Resolver.postSolvePosition(allBodies);
 
         // update all constraints (second pass)
         Constraint.preSolveAll(allBodies);
         for (i = 0; i < engine.constraintIterations; i++) {
-            Constraint.solveAll(allConstraints, delta);
+            Constraint.solveAll(allConstraints, timing.timeScale);
         }
         Constraint.postSolveAll(allBodies);
 
         // iteratively resolve velocity between collisions
         Resolver.preSolveVelocity(pairs.list);
         for (i = 0; i < engine.velocityIterations; i++) {
-            Resolver.solveVelocity(pairs.list, delta);
+            Resolver.solveVelocity(pairs.list, timing.timeScale);
         }
 
         // trigger collision events
@@ -5250,16 +5134,21 @@ var Body = _dereq_('../body/Body');
      * @method _bodiesUpdate
      * @private
      * @param {body[]} bodies
-     * @param {number} delta The amount of time elapsed between updates
+     * @param {number} deltaTime 
+     * The amount of time elapsed between updates
+     * @param {number} timeScale
+     * @param {number} correction 
+     * The Verlet correction factor (deltaTime / lastDeltaTime)
+     * @param {bounds} worldBounds
      */
-    Engine._bodiesUpdate = function(bodies, delta) {
+    Engine._bodiesUpdate = function(bodies, deltaTime, timeScale, correction, worldBounds) {
         for (var i = 0; i < bodies.length; i++) {
             var body = bodies[i];
 
             if (body.isStatic || body.isSleeping)
                 continue;
 
-            Body.update(body, delta);
+            Body.update(body, deltaTime, timeScale, correction);
         }
     };
 
@@ -5296,7 +5185,6 @@ var Body = _dereq_('../body/Body');
     * @param {} event An event object
     * @param {} event.pairs List of affected pairs
     * @param {number} event.timestamp The engine.timing.timestamp of the event
-    * @param {number} event.delta The delta time in milliseconds value used in the update
     * @param {} event.source The source object of the event
     * @param {} event.name The name of the event
     */
@@ -5308,7 +5196,6 @@ var Body = _dereq_('../body/Body');
     * @param {} event An event object
     * @param {} event.pairs List of affected pairs
     * @param {number} event.timestamp The engine.timing.timestamp of the event
-    * @param {number} event.delta The delta time in milliseconds value used in the update
     * @param {} event.source The source object of the event
     * @param {} event.name The name of the event
     */
@@ -5432,7 +5319,7 @@ var Body = _dereq_('../body/Body');
 
 })();
 
-},{"../body/Body":1,"../body/Composite":2,"../body/World":3,"../collision/Grid":5,"../collision/Pairs":7,"../collision/Resolver":9,"../constraint/Constraint":11,"../render/Render":30,"./Common":13,"./Events":15,"./Metrics":17,"./Sleeping":21}],15:[function(_dereq_,module,exports){
+},{"../body/Body":1,"../body/Composite":2,"../body/World":3,"../collision/Grid":6,"../collision/Pairs":8,"../collision/Resolver":10,"../constraint/Constraint":12,"../render/Render":31,"./Common":14,"./Events":16,"./Metrics":18,"./Sleeping":22}],16:[function(_dereq_,module,exports){
 /**
 * The `Matter.Events` module contains methods to fire and listen to events on other objects.
 *
@@ -5519,9 +5406,7 @@ var Common = _dereq_('./Common');
             callbacks,
             eventClone;
 
-        var events = object.events;
-        
-        if (events && Common.keys(events).length > 0) {
+        if (object.events) {
             if (!event)
                 event = {};
 
@@ -5529,7 +5414,7 @@ var Common = _dereq_('./Common');
 
             for (var i = 0; i < names.length; i++) {
                 name = names[i];
-                callbacks = events[name];
+                callbacks = object.events[name];
 
                 if (callbacks) {
                     eventClone = Common.clone(event, false);
@@ -5546,7 +5431,7 @@ var Common = _dereq_('./Common');
 
 })();
 
-},{"./Common":13}],16:[function(_dereq_,module,exports){
+},{"./Common":14}],17:[function(_dereq_,module,exports){
 /**
 * The `Matter` module is the top level namespace. It also includes a function for installing plugins on top of the library.
 *
@@ -5576,7 +5461,7 @@ var Common = _dereq_('./Common');
      * @readOnly
      * @type {String}
      */
-    Matter.version = '0.14.2-alpha';
+    Matter.version = '0.14.2';
 
     /**
      * A list of plugin dependencies to be installed. These are normally set and installed through `Matter.use`.
@@ -5634,9 +5519,9 @@ var Common = _dereq_('./Common');
 
 })();
 
-},{"./Common":13,"./Plugin":19}],17:[function(_dereq_,module,exports){
+},{"./Common":14,"./Plugin":20}],18:[function(_dereq_,module,exports){
 
-},{"../body/Composite":2,"./Common":13}],18:[function(_dereq_,module,exports){
+},{"../body/Composite":2,"./Common":14}],19:[function(_dereq_,module,exports){
 /**
 * The `Matter.Mouse` module contains methods for creating and manipulating mouse inputs.
 *
@@ -5673,7 +5558,7 @@ var Common = _dereq_('../core/Common');
         mouse.scale = { x: 1, y: 1 };
         mouse.wheelDelta = 0;
         mouse.button = -1;
-        mouse.pixelRatio = parseInt(mouse.element.getAttribute('data-pixel-ratio'), 10) || 1;
+        mouse.pixelRatio = mouse.element.getAttribute('data-pixel-ratio') || 1;
 
         mouse.sourceEvents = {
             mousemove: null,
@@ -5839,7 +5724,7 @@ var Common = _dereq_('../core/Common');
 
 })();
 
-},{"../core/Common":13}],19:[function(_dereq_,module,exports){
+},{"../core/Common":14}],20:[function(_dereq_,module,exports){
 /**
 * The `Matter.Plugin` module contains functions for registering and installing plugins on modules.
 *
@@ -6185,7 +6070,7 @@ var Common = _dereq_('./Common');
 
 })();
 
-},{"./Common":13}],20:[function(_dereq_,module,exports){
+},{"./Common":14}],21:[function(_dereq_,module,exports){
 /**
 * The `Matter.Runner` module is an optional utility which provides a game loop, 
 * that handles continuously updating a `Matter.Engine` for you within a browser.
@@ -6240,13 +6125,14 @@ var Common = _dereq_('./Common');
      */
     Runner.create = function(options) {
         var defaults = {
-            substeps: 1,
             fps: 60,
+            correction: 1,
             deltaSampleSize: 60,
             counterTimestamp: 0,
             frameCounter: 0,
             deltaHistory: [],
             timePrev: null,
+            timeScalePrev: 1,
             frameRequestId: null,
             isFixed: false,
             enabled: true
@@ -6255,8 +6141,8 @@ var Common = _dereq_('./Common');
         var runner = Common.extend(defaults, options);
 
         runner.delta = runner.delta || 1000 / runner.fps;
-        runner.deltaMin = runner.deltaMin || 1000 / 60;//1000 / runner.fps;
-        runner.deltaMax = runner.deltaMax || 1000 / 30;//1000 / (runner.fps * 0.5);
+        runner.deltaMin = runner.deltaMin || 1000 / runner.fps;
+        runner.deltaMax = runner.deltaMax || 1000 / (runner.fps * 0.5);
         runner.fps = 1000 / runner.delta;
 
         return runner;
@@ -6274,14 +6160,11 @@ var Common = _dereq_('./Common');
             runner = Runner.create();
         }
 
-        var count = 0;
+        (function render(time){
+            runner.frameRequestId = _requestAnimationFrame(render);
 
-        (function run(time){
-            runner.frameRequestId = _requestAnimationFrame(run);
-
-            if (time && runner.enabled && count < 100) {
+            if (time && runner.enabled) {
                 Runner.tick(runner, engine, time);
-                //count += 1;
             }
         })();
 
@@ -6290,7 +6173,7 @@ var Common = _dereq_('./Common');
 
     /**
      * A game loop utility that updates the engine and renderer by one step (a 'tick').
-     * Features delta smoothing and fixed or dynamic timing.
+     * Features delta smoothing, time correction and fixed or dynamic timing.
      * Triggers `beforeTick`, `tick` and `afterTick` events on the engine.
      * Consider just `Engine.update(engine, delta)` if you're using your own loop.
      * @method tick
@@ -6300,7 +6183,16 @@ var Common = _dereq_('./Common');
      */
     Runner.tick = function(runner, engine, time) {
         var timing = engine.timing,
+            correction = 1,
             delta;
+
+        // create an event object
+        var event = {
+            timestamp: timing.timestamp
+        };
+
+        Events.trigger(runner, 'beforeTick', event);
+        Events.trigger(engine, 'beforeTick', event); // @deprecated
 
         if (runner.isFixed) {
             // fixed timestep
@@ -6314,24 +6206,27 @@ var Common = _dereq_('./Common');
             runner.deltaHistory.push(delta);
             runner.deltaHistory = runner.deltaHistory.slice(-runner.deltaSampleSize);
             delta = Math.min.apply(null, runner.deltaHistory);
-
+            
             // limit delta
             delta = delta < runner.deltaMin ? runner.deltaMin : delta;
             delta = delta > runner.deltaMax ? runner.deltaMax : delta;
 
-            //console.log(delta)
+            // correction for delta
+            correction = delta / runner.delta;
 
             // update engine timing object
             runner.delta = delta;
         }
 
-        // create an event object
-        var event = {
-            timestamp: timing.timestamp
-        };
+        // time correction for time scaling
+        if (runner.timeScalePrev !== 0)
+            correction *= timing.timeScale / runner.timeScalePrev;
 
-        Events.trigger(runner, 'beforeTick', event);
-        Events.trigger(engine, 'beforeTick', event); // @deprecated
+        if (timing.timeScale === 0)
+            correction = 0;
+
+        runner.timeScalePrev = timing.timeScale;
+        runner.correction = correction;
 
         // fps counter
         runner.frameCounter += 1;
@@ -6354,14 +6249,7 @@ var Common = _dereq_('./Common');
 
         // update
         Events.trigger(runner, 'beforeUpdate', event);
-
-        var substeps = runner.substeps,
-            subDelta = delta / substeps;
-
-        for (var i = 0; i < substeps; i += 1) {
-            Engine.update(engine, subDelta);
-        }
-
+        Engine.update(engine, delta, correction);
         Events.trigger(runner, 'afterUpdate', event);
 
         // render
@@ -6493,16 +6381,6 @@ var Common = _dereq_('./Common');
      */
 
     /**
-     * A `Number` integer that specifies the number of `Engine.update` calls made per-tick.
-     * Increasing the number of substeps improves accuracy at the cost of performance.
-     * By default `1` update is performed per tick with time `delta`.
-     * If `substeps > 1` then `substeps` updates are made with `delta` being `delta / substeps`.
-     * @property substeps
-     * @type number
-     * @default 1
-     */
-
-    /**
      * A `Boolean` that specifies if the runner should use a fixed timestep (otherwise it is variable).
      * If timing is fixed, then the apparent simulation speed will change depending on the frame rate (but behaviour will be deterministic).
      * If the timing is variable, then the apparent simulation speed will be constant (approximately, but at the cost of determininism).
@@ -6524,7 +6402,7 @@ var Common = _dereq_('./Common');
 
 })();
 
-},{"./Common":13,"./Engine":14,"./Events":15}],21:[function(_dereq_,module,exports){
+},{"./Common":14,"./Engine":15,"./Events":16}],22:[function(_dereq_,module,exports){
 /**
 * The `Matter.Sleeping` module contains methods to manage the sleeping state of bodies.
 *
@@ -6536,7 +6414,6 @@ var Sleeping = {};
 module.exports = Sleeping;
 
 var Events = _dereq_('./Events');
-var Common = _dereq_('./Common');
 
 (function() {
 
@@ -6548,11 +6425,11 @@ var Common = _dereq_('./Common');
      * Puts bodies to sleep or wakes them up depending on their motion.
      * @method update
      * @param {body[]} bodies
-     * @param {number} delta
+     * @param {number} timeScale
      */
-    Sleeping.update = function(bodies, delta) {
-        var timeScale = delta / Common._timeUnit;
-        
+    Sleeping.update = function(bodies, timeScale) {
+        var timeFactor = timeScale * timeScale * timeScale;
+
         // update bodies sleeping status
         for (var i = 0; i < bodies.length; i++) {
             var body = bodies[i],
@@ -6569,11 +6446,11 @@ var Common = _dereq_('./Common');
         
             // biased average motion estimation between frames
             body.motion = Sleeping._minBias * minMotion + (1 - Sleeping._minBias) * maxMotion;
-
-            if (body.sleepThreshold > 0 && body.motion < Sleeping._motionSleepThreshold * timeScale * timeScale) {
+            
+            if (body.sleepThreshold > 0 && body.motion < Sleeping._motionSleepThreshold * timeFactor) {
                 body.sleepCounter += 1;
                 
-                if (body.sleepCounter >= body.sleepThreshold / timeScale)
+                if (body.sleepCounter >= body.sleepThreshold)
                     Sleeping.set(body, true);
             } else if (body.sleepCounter > 0) {
                 body.sleepCounter -= 1;
@@ -6585,10 +6462,10 @@ var Common = _dereq_('./Common');
      * Given a set of colliding pairs, wakes the sleeping bodies involved.
      * @method afterCollisions
      * @param {pair[]} pairs
-     * @param {number} delta
+     * @param {number} timeScale
      */
-    Sleeping.afterCollisions = function(pairs, delta) {
-        var timeScale = delta / Common._timeUnit;
+    Sleeping.afterCollisions = function(pairs, timeScale) {
+        var timeFactor = timeScale * timeScale * timeScale;
 
         // wake up bodies involved in collisions
         for (var i = 0; i < pairs.length; i++) {
@@ -6610,7 +6487,7 @@ var Common = _dereq_('./Common');
                 var sleepingBody = (bodyA.isSleeping && !bodyA.isStatic) ? bodyA : bodyB,
                     movingBody = sleepingBody === bodyA ? bodyB : bodyA;
 
-                if (!sleepingBody.isStatic && movingBody.motion > Sleeping._motionWakeThreshold * timeScale * timeScale) {
+                if (!sleepingBody.isStatic && movingBody.motion > Sleeping._motionWakeThreshold * timeFactor) {
                     Sleeping.set(sleepingBody, false);
                 }
             }
@@ -6656,7 +6533,7 @@ var Common = _dereq_('./Common');
 
 })();
 
-},{"./Common":13,"./Events":15}],22:[function(_dereq_,module,exports){
+},{"./Events":16}],23:[function(_dereq_,module,exports){
 /**
 * The `Matter.Bodies` module contains factory methods for creating rigid body models 
 * with commonly used body configurations (such as rectangles, circles and other polygons).
@@ -6993,7 +6870,7 @@ var decomp;
 
 })();
 
-},{"../body/Body":1,"../core/Common":13,"../geometry/Bounds":25,"../geometry/Vector":27,"../geometry/Vertices":28}],23:[function(_dereq_,module,exports){
+},{"../body/Body":1,"../core/Common":14,"../geometry/Bounds":26,"../geometry/Vector":28,"../geometry/Vertices":29}],24:[function(_dereq_,module,exports){
 /**
 * The `Matter.Composites` module contains factory methods for creating composite bodies
 * with commonly used configurations (such as stacks and chains).
@@ -7322,7 +7199,7 @@ var Bodies = _dereq_('./Bodies');
 
 })();
 
-},{"../body/Body":1,"../body/Composite":2,"../constraint/Constraint":11,"../core/Common":13,"./Bodies":22}],24:[function(_dereq_,module,exports){
+},{"../body/Body":1,"../body/Composite":2,"../constraint/Constraint":12,"../core/Common":14,"./Bodies":23}],25:[function(_dereq_,module,exports){
 /**
 * The `Matter.Axes` module contains methods for creating and manipulating sets of axes.
 *
@@ -7388,7 +7265,7 @@ var Common = _dereq_('../core/Common');
 
 })();
 
-},{"../core/Common":13,"../geometry/Vector":27}],25:[function(_dereq_,module,exports){
+},{"../core/Common":14,"../geometry/Vector":28}],26:[function(_dereq_,module,exports){
 /**
 * The `Matter.Bounds` module contains methods for creating and manipulating axis-aligned bounding boxes (AABB).
 *
@@ -7510,7 +7387,7 @@ module.exports = Bounds;
     
 })();
 
-},{}],26:[function(_dereq_,module,exports){
+},{}],27:[function(_dereq_,module,exports){
 /**
 * The `Matter.Svg` module contains methods for converting SVG images into an array of vector points.
 *
@@ -7737,7 +7614,7 @@ var Common = _dereq_('../core/Common');
     };
 
 })();
-},{"../core/Common":13,"../geometry/Bounds":25}],27:[function(_dereq_,module,exports){
+},{"../core/Common":14,"../geometry/Bounds":26}],28:[function(_dereq_,module,exports){
 /**
 * The `Matter.Vector` module contains methods for creating and manipulating vectors.
 * Vectors are the basis of all the geometry related operations in the engine.
@@ -7977,7 +7854,7 @@ module.exports = Vector;
     ];
 
 })();
-},{}],28:[function(_dereq_,module,exports){
+},{}],29:[function(_dereq_,module,exports){
 /**
 * The `Matter.Vertices` module contains methods for creating and manipulating sets of vertices.
 * A set of vertices is an array of `Matter.Vector` with additional indexing properties inserted by `Vertices.create`.
@@ -8024,15 +7901,8 @@ var Common = _dereq_('../core/Common');
                     y: point.y,
                     index: i,
                     body: body,
-                    isInternal: false,
-                    contact: null
+                    isInternal: false
                 };
-
-            vertex.contact = {
-                vertex: vertex,
-                normalImpulse: 0,
-                tangentImpulse: 0
-            };
 
             vertices.push(vertex);
         }
@@ -8432,13 +8302,15 @@ var Common = _dereq_('../core/Common');
     };
 
 })();
-},{"../core/Common":13,"../geometry/Vector":27}],29:[function(_dereq_,module,exports){
+
+},{"../core/Common":14,"../geometry/Vector":28}],30:[function(_dereq_,module,exports){
 var Matter = module.exports = _dereq_('../core/Matter');
 
 Matter.Body = _dereq_('../body/Body');
 Matter.Composite = _dereq_('../body/Composite');
 Matter.World = _dereq_('../body/World');
 
+Matter.Contact = _dereq_('../collision/Contact');
 Matter.Detector = _dereq_('../collision/Detector');
 Matter.Grid = _dereq_('../collision/Grid');
 Matter.Pairs = _dereq_('../collision/Pairs');
@@ -8481,7 +8353,7 @@ Matter.World.addConstraint = Matter.Composite.addConstraint;
 Matter.World.clear = Matter.Composite.clear;
 Matter.Engine.run = Matter.Runner.run;
 
-},{"../body/Body":1,"../body/Composite":2,"../body/World":3,"../collision/Detector":4,"../collision/Grid":5,"../collision/Pair":6,"../collision/Pairs":7,"../collision/Query":8,"../collision/Resolver":9,"../collision/SAT":10,"../constraint/Constraint":11,"../constraint/MouseConstraint":12,"../core/Common":13,"../core/Engine":14,"../core/Events":15,"../core/Matter":16,"../core/Metrics":17,"../core/Mouse":18,"../core/Plugin":19,"../core/Runner":20,"../core/Sleeping":21,"../factory/Bodies":22,"../factory/Composites":23,"../geometry/Axes":24,"../geometry/Bounds":25,"../geometry/Svg":26,"../geometry/Vector":27,"../geometry/Vertices":28,"../render/Render":30,"../render/RenderPixi":31}],30:[function(_dereq_,module,exports){
+},{"../body/Body":1,"../body/Composite":2,"../body/World":3,"../collision/Contact":4,"../collision/Detector":5,"../collision/Grid":6,"../collision/Pair":7,"../collision/Pairs":8,"../collision/Query":9,"../collision/Resolver":10,"../collision/SAT":11,"../constraint/Constraint":12,"../constraint/MouseConstraint":13,"../core/Common":14,"../core/Engine":15,"../core/Events":16,"../core/Matter":17,"../core/Metrics":18,"../core/Mouse":19,"../core/Plugin":20,"../core/Runner":21,"../core/Sleeping":22,"../factory/Bodies":23,"../factory/Composites":24,"../geometry/Axes":25,"../geometry/Bounds":26,"../geometry/Svg":27,"../geometry/Vector":28,"../geometry/Vertices":29,"../render/Render":31,"../render/RenderPixi":32}],31:[function(_dereq_,module,exports){
 /**
 * The `Matter.Render` module is a simple HTML5 canvas based renderer for visualising instances of `Matter.Engine`.
 * It is intended for development and debugging purposes, but may also be suitable for simple games.
@@ -8639,6 +8511,7 @@ var Mouse = _dereq_('../core/Mouse');
         canvas.height = options.height * pixelRatio;
         canvas.style.width = options.width + 'px';
         canvas.style.height = options.height + 'px';
+        render.context.scale(pixelRatio, pixelRatio);
     };
 
     /**
@@ -8750,11 +8623,7 @@ var Mouse = _dereq_('../core/Mouse');
             boundsScaleX = boundsWidth / render.options.width,
             boundsScaleY = boundsHeight / render.options.height;
 
-        render.context.setTransform(
-            render.options.pixelRatio / boundsScaleX, 0, 0, 
-            render.options.pixelRatio / boundsScaleY, 0, 0
-        );
-        
+        render.context.scale(1 / boundsScaleX, 1 / boundsScaleY);
         render.context.translate(-render.bounds.min.x, -render.bounds.min.y);
     };
 
@@ -8835,8 +8704,8 @@ var Mouse = _dereq_('../core/Mouse');
             // update mouse
             if (render.mouse) {
                 Mouse.setScale(render.mouse, {
-                    x: (render.bounds.max.x - render.bounds.min.x) / render.options.width,
-                    y: (render.bounds.max.y - render.bounds.min.y) / render.options.height
+                    x: (render.bounds.max.x - render.bounds.min.x) / render.canvas.width,
+                    y: (render.bounds.max.y - render.bounds.min.y) / render.canvas.height
                 });
 
                 Mouse.setOffset(render.mouse, render.bounds.min);
@@ -8844,10 +8713,6 @@ var Mouse = _dereq_('../core/Mouse');
         } else {
             constraints = allConstraints;
             bodies = allBodies;
-
-            if (render.options.pixelRatio !== 1) {
-                render.context.setTransform(render.options.pixelRatio, 0, 0, render.options.pixelRatio, 0, 0);
-            }
         }
 
         if (!options.wireframes || (engine.enableSleeping && options.showSleeping)) {
@@ -9975,7 +9840,7 @@ var Mouse = _dereq_('../core/Mouse');
 
 })();
 
-},{"../body/Composite":2,"../collision/Grid":5,"../core/Common":13,"../core/Events":15,"../core/Mouse":18,"../geometry/Bounds":25,"../geometry/Vector":27}],31:[function(_dereq_,module,exports){
+},{"../body/Composite":2,"../collision/Grid":6,"../core/Common":14,"../core/Events":16,"../core/Mouse":19,"../geometry/Bounds":26,"../geometry/Vector":28}],32:[function(_dereq_,module,exports){
 /**
 * The `Matter.RenderPixi` module is an example renderer using pixi.js.
 * See also `Matter.Render` for a canvas based renderer.
@@ -10492,5 +10357,5 @@ var Vector = _dereq_('../geometry/Vector');
 
 })();
 
-},{"../body/Composite":2,"../core/Common":13,"../core/Events":15,"../geometry/Bounds":25,"../geometry/Vector":27}]},{},[29])(29)
+},{"../body/Composite":2,"../core/Common":14,"../core/Events":16,"../geometry/Bounds":26,"../geometry/Vector":28}]},{},[30])(30)
 });
