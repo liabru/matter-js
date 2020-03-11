@@ -1,10 +1,10 @@
 var Example = Example || {};
 
-Matter.use(
-    'matter-wrap'
-);
-
 Example.ballPool = function() {
+    Matter.use(
+        'matter-wrap'
+    );
+    
     var Engine = Matter.Engine,
         Render = Matter.Render,
         Runner = Matter.Runner,
@@ -98,3 +98,7 @@ Example.ballPool = function() {
         }
     };
 };
+
+if (typeof module !== 'undefined') {
+    module.exports = Example[Object.keys(Example)[0]];
+}

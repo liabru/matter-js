@@ -18,7 +18,6 @@ var Common = require('../core/Common');
 var Body = require('../body/Body');
 var Bounds = require('../geometry/Bounds');
 var Vector = require('../geometry/Vector');
-var decomp;
 
 (function() {
 
@@ -46,7 +45,7 @@ var decomp;
         if (options.chamfer) {
             var chamfer = options.chamfer;
             rectangle.vertices = Vertices.chamfer(rectangle.vertices, chamfer.radius, 
-                                    chamfer.quality, chamfer.qualityMin, chamfer.qualityMax);
+                chamfer.quality, chamfer.qualityMin, chamfer.qualityMax);
             delete options.chamfer;
         }
 
@@ -92,7 +91,7 @@ var decomp;
         if (options.chamfer) {
             var chamfer = options.chamfer;
             trapezoid.vertices = Vertices.chamfer(trapezoid.vertices, chamfer.radius, 
-                                    chamfer.quality, chamfer.qualityMin, chamfer.qualityMax);
+                chamfer.quality, chamfer.qualityMin, chamfer.qualityMax);
             delete options.chamfer;
         }
 
@@ -169,7 +168,7 @@ var decomp;
         if (options.chamfer) {
             var chamfer = options.chamfer;
             polygon.vertices = Vertices.chamfer(polygon.vertices, chamfer.radius, 
-                                    chamfer.quality, chamfer.qualityMin, chamfer.qualityMax);
+                chamfer.quality, chamfer.qualityMin, chamfer.qualityMax);
             delete options.chamfer;
         }
 
@@ -197,11 +196,8 @@ var decomp;
      * @return {body}
      */
     Bodies.fromVertices = function(x, y, vertexSets, options, flagInternal, removeCollinear, minimumArea) {
-        if (!decomp) {
-            decomp = Common._requireGlobal('decomp', 'poly-decomp');
-        }
-
-        var body,
+        var decomp = global.decomp || require('poly-decomp'),
+            body,
             parts,
             isConvex,
             vertices,

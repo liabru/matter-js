@@ -89,3 +89,7 @@ Example.friction = function() {
         }
     };
 };
+
+if (typeof module !== 'undefined') {
+    module.exports = Example[Object.keys(Example)[0]];
+}

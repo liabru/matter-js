@@ -49,7 +49,6 @@ var Axes = require('../geometry/Axes');
             force: { x: 0, y: 0 },
             torque: 0,
             positionImpulse: { x: 0, y: 0 },
-            previousPositionImpulse: { x: 0, y: 0 },
             constraintImpulse: { x: 0, y: 0, angle: 0 },
             totalContacts: 0,
             speed: 0,
@@ -193,8 +192,7 @@ var Axes = require('../geometry/Axes');
         }
 
         for (property in settings) {
-
-            if (!settings.hasOwnProperty(property))
+            if (!Object.prototype.hasOwnProperty.call(settings, property))
                 continue;
 
             value = settings[property];
@@ -1264,7 +1262,7 @@ var Axes = require('../geometry/Axes');
      * @default 1
      */
 
-     /**
+    /**
       * A `Number` that defines the offset in the x-axis for the sprite (normalised by texture width).
       *
       * @property render.sprite.xOffset
@@ -1272,7 +1270,7 @@ var Axes = require('../geometry/Axes');
       * @default 0
       */
 
-     /**
+    /**
       * A `Number` that defines the offset in the y-axis for the sprite (normalised by texture height).
       *
       * @property render.sprite.yOffset

@@ -485,7 +485,7 @@ var Vector = require('../geometry/Vector');
 
                 primitive.moveTo(part.position.x - body.position.x, part.position.y - body.position.y);
                 primitive.lineTo(((part.vertices[0].x + part.vertices[part.vertices.length-1].x) / 2 - body.position.x), 
-                                 ((part.vertices[0].y + part.vertices[part.vertices.length-1].y) / 2 - body.position.y));
+                    ((part.vertices[0].y + part.vertices[part.vertices.length-1].y) / 2 - body.position.y));
 
                 primitive.endFill();
             }

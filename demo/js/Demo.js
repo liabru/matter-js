@@ -1,5 +1,8 @@
 /**
-* The Matter.js demo page controller and example runner.
+* The Matter.js development demo and testing tool.
+*
+* This demo uses MatterTools, you can see the wiki for a simple example instead:
+* https://github.com/liabru/matter-js/wiki/Getting-started
 *
 * NOTE: For the actual example code, refer to the source files in `/examples/`.
 *
@@ -7,7 +10,71 @@
 */
 
 (function() {
+    var examples = [ 
+        { name: 'Air Friction', id: 'airFriction' },
+        { name: 'Avalanche', id: 'avalanche' },
+        { name: 'Ball Pool', id: 'ballPool' },
+        { name: 'Bridge', id: 'bridge' },
+        { name: 'Broadphase', id: 'broadphase' },
+        { name: 'Car', id: 'car' },
+        { name: 'Catapult', id: 'catapult' },
+        { name: 'Chains', id: 'chains' },
+        { name: 'Circle Stack', id: 'circleStack' },
+        { name: 'Cloth', id: 'cloth' },
+        { name: 'Collision Filtering', id: 'collisionFiltering' },
+        { name: 'Composite Manipulation', id: 'compositeManipulation' },
+        { name: 'Compound Bodies', id: 'compound' },
+        { name: 'Compound Stack', id: 'compoundStack' },
+        { name: 'Concave', id: 'concave' },
+        { name: 'Constraints', id: 'constraints' },
+        { name: 'Double Pendulum', id: 'doublePendulum' },
+        { name: 'Events', id: 'events' },
+        { name: 'Friction', id: 'friction' },
+        { name: 'Reverse Gravity', id: 'gravity' },
+        { name: 'Gyroscope', id: 'gyro' },
+        { name: 'Manipulation', id: 'manipulation' },
+        { name: 'Mixed Shapes', id: 'mixed' },
+        { name: 'Newton\'s Cradle', id: 'newtonsCradle' },
+        { name: 'Ragdoll', id: 'ragdoll' },
+        { name: 'Pyramid', id: 'pyramid' },
+        { name: 'Raycasting', id: 'raycasting' },
+        { name: 'Restitution', id: 'restitution' },
+        { name: 'Rounded Corners (Chamfering)', id: 'rounded' },
+        { name: 'Sensors', id: 'sensors' },
+        { name: 'Sleeping', id: 'sleeping' },
+        { name: 'Slingshot', id: 'slingshot' },
+        { name: 'Soft Body', id: 'softBody' },
+        { name: 'Sprites', id: 'sprites' },
+        { name: 'Stack', id: 'stack' },
+        { name: 'Static Friction', id: 'staticFriction' },
+        { name: 'Stress', id: 'stress' },
+        { name: 'Stress 2', id: 'stress2' },
+        { name: 'Concave SVG Paths', id: 'svg' },
+        { name: 'Terrain', id: 'terrain' },
+        { name: 'Time Scaling', id: 'timescale' },
+        { name: 'Views', id: 'views' },
+        { name: 'Wrecking Ball', id: 'wreckingBall' } 
+    ];
+
     var sourceLinkRoot = 'https://github.com/liabru/matter-js/blob/master/examples';
+
+    for (var i = 0; i < examples.length; i += 1) {
+        var example = examples[i];
+        example.sourceLink = sourceLinkRoot + '/' + example.id + '.js';
+        example.init = window.Example[example.id];
+
+        if (!example.init) {
+            console.warn('Example not loaded:', example.id);
+        }
+    }
+
+    if (window.location.search.indexOf('compare') >= 0) {
+        var compareScript = document.createElement('script');
+        compareScript.src = '../js/Compare.js';
+        window.MatterDemo = { examples: examples };
+        document.body.append(compareScript);
+        return;
+    }
 
     var demo = MatterTools.Demo.create({
         toolbar: {
@@ -29,266 +96,7 @@
         resetOnOrientation: true,
         routing: true,
         startExample: 'mixed',
-        examples: [
-            {
-                name: 'Air Friction',
-                id: 'airFriction',
-                init: Example.airFriction,
-                sourceLink: sourceLinkRoot + '/airFriction.js'
-            },
-            {
-                name: 'Avalanche',
-                id: 'avalanche',
-                init: Example.avalanche,
-                sourceLink: sourceLinkRoot + '/avalanche.js'
-            },
-            {
-                name: 'Ball Pool',
-                id: 'ballPool',
-                init: Example.ballPool,
-                sourceLink: sourceLinkRoot + '/ballPool.js'
-            },
-            {
-                name: 'Bridge',
-                id: 'bridge',
-                init: Example.bridge,
-                sourceLink: sourceLinkRoot + '/bridge.js'
-            },
-            {
-                name: 'Broadphase',
-                id: 'broadphase',
-                init: Example.broadphase,
-                sourceLink: sourceLinkRoot + '/broadphase.js'
-            },
-            {
-                name: 'Car',
-                id: 'car',
-                init: Example.car,
-                sourceLink: sourceLinkRoot + '/car.js'
-            },
-            {
-                name: 'Catapult',
-                id: 'catapult',
-                init: Example.catapult,
-                sourceLink: sourceLinkRoot + '/catapult.js'
-            },
-            {
-                name: 'Chains',
-                id: 'chains',
-                init: Example.chains,
-                sourceLink: sourceLinkRoot + '/chains.js'
-            },
-            {
-                name: 'Circle Stack',
-                id: 'circleStack',
-                init: Example.circleStack,
-                sourceLink: sourceLinkRoot + '/circleStack.js'
-            },
-            {
-                name: 'Cloth',
-                id: 'cloth',
-                init: Example.cloth,
-                sourceLink: sourceLinkRoot + '/cloth.js'
-            },
-            {
-                name: 'Collision Filtering',
-                id: 'collisionFiltering',
-                init: Example.collisionFiltering,
-                sourceLink: sourceLinkRoot + '/collisionFiltering.js'
-            },
-            {
-                name: 'Composite Manipulation',
-                id: 'compositeManipulation',
-                init: Example.compositeManipulation,
-                sourceLink: sourceLinkRoot + '/compositeManipulation.js'
-            },
-            {
-                name: 'Compound Bodies',
-                id: 'compound',
-                init: Example.compound,
-                sourceLink: sourceLinkRoot + '/compound.js'
-            },
-            {
-                name: 'Compound Stack',
-                id: 'compoundStack',
-                init: Example.compoundStack,
-                sourceLink: sourceLinkRoot + '/compoundStack.js'
-            },
-            {
-                name: 'Concave',
-                id: 'concave',
-                init: Example.concave,
-                sourceLink: sourceLinkRoot + '/concave.js'
-            },
-            {
-                name: 'Constraints',
-                id: 'constraints',
-                init: Example.constraints,
-                sourceLink: sourceLinkRoot + '/constraints.js'
-            },
-            {
-                name: 'Double Pendulum',
-                id: 'doublePendulum',
-                init: Example.doublePendulum,
-                sourceLink: sourceLinkRoot + '/doublePendulum.js'
-            },
-            {
-                name: 'Events',
-                id: 'events',
-                init: Example.events,
-                sourceLink: sourceLinkRoot + '/events.js'
-            },
-            {
-                name: 'Friction',
-                id: 'friction',
-                init: Example.friction,
-                sourceLink: sourceLinkRoot + '/friction.js'
-            },
-            {
-                name: 'Reverse Gravity',
-                id: 'gravity',
-                init: Example.gravity,
-                sourceLink: sourceLinkRoot + '/gravity.js'
-            },
-            {
-                name: 'Gyroscope',
-                id: 'gyro',
-                init: Example.gyro,
-                sourceLink: sourceLinkRoot + '/gyro.js'
-            },
-            {
-                name: 'Manipulation',
-                id: 'manipulation',
-                init: Example.manipulation,
-                sourceLink: sourceLinkRoot + '/manipulation.js'
-            },
-            {
-                name: 'Mixed Shapes',
-                id: 'mixed',
-                init: Example.mixed,
-                sourceLink: sourceLinkRoot + '/mixed.js'
-            },
-            {
-                name: 'Newton\'s Cradle',
-                id: 'newtonsCradle',
-                init: Example.newtonsCradle,
-                sourceLink: sourceLinkRoot + '/newtonsCradle.js'
-            },
-            {
-                name: 'Ragdoll',
-                id: 'ragdoll',
-                init: Example.ragdoll,
-                sourceLink: sourceLinkRoot + '/ragdoll.js'
-            },
-            {
-                name: 'Pyramid',
-                id: 'pyramid',
-                init: Example.pyramid,
-                sourceLink: sourceLinkRoot + '/pyramid.js'
-            },
-            {
-                name: 'Raycasting',
-                id: 'raycasting',
-                init: Example.raycasting,
-                sourceLink: sourceLinkRoot + '/raycasting.js'
-            },
-            {
-                name: 'Restitution',
-                id: 'restitution',
-                init: Example.restitution,
-                sourceLink: sourceLinkRoot + '/restitution.js'
-            },
-            {
-                name: 'Rounded Corners (Chamfering)',
-                id: 'rounded',
-                init: Example.rounded,
-                sourceLink: sourceLinkRoot + '/rounded.js'
-            },
-            {
-                name: 'Sensors',
-                id: 'sensors',
-                init: Example.sensors,
-                sourceLink: sourceLinkRoot + '/sensors.js'
-            },
-            {
-                name: 'Sleeping',
-                id: 'sleeping',
-                init: Example.sleeping,
-                sourceLink: sourceLinkRoot + '/sleeping.js'
-            },
-            {
-                name: 'Slingshot',
-                id: 'slingshot',
-                init: Example.slingshot,
-                sourceLink: sourceLinkRoot + '/slingshot.js'
-            },
-            {
-                name: 'Soft Body',
-                id: 'softBody',
-                init: Example.softBody,
-                sourceLink: sourceLinkRoot + '/softBody.js'
-            },
-            {
-                name: 'Sprites',
-                id: 'sprites',
-                init: Example.sprites,
-                sourceLink: sourceLinkRoot + '/sprites.js'
-            },
-            {
-                name: 'Stack',
-                id: 'stack',
-                init: Example.stack,
-                sourceLink: sourceLinkRoot + '/stack.js'
-            },
-            {
-                name: 'Static Friction',
-                id: 'staticFriction',
-                init: Example.staticFriction,
-                sourceLink: sourceLinkRoot + '/staticFriction.js'
-            },
-            {
-                name: 'Stress',
-                id: 'stress',
-                init: Example.stress,
-                sourceLink: sourceLinkRoot + '/stress.js'
-            },
-            {
-                name: 'Stress 2',
-                id: 'stress2',
-                init: Example.stress2,
-                sourceLink: sourceLinkRoot + '/stress2.js'
-            },
-            {
-                name: 'Concave SVG Paths',
-                id: 'svg',
-                init: Example.svg,
-                sourceLink: sourceLinkRoot + '/svg.js'
-            },
-            {
-                name: 'Terrain',
-                id: 'terrain',
-                init: Example.terrain,
-                sourceLink: sourceLinkRoot + '/terrain.js'
-            },
-            {
-                name: 'Time Scaling',
-                id: 'timescale',
-                init: Example.timescale,
-                sourceLink: sourceLinkRoot + '/timescale.js'
-            },
-            {
-                name: 'Views',
-                id: 'views',
-                init: Example.views,
-                sourceLink: sourceLinkRoot + '/views.js'
-            },
-            {
-                name: 'Wrecking Ball',
-                id: 'wreckingBall',
-                init: Example.wreckingBall,
-                sourceLink: sourceLinkRoot + '/wreckingBall.js'
-            }
-        ]
+        examples: examples
     });
 
     document.body.appendChild(demo.dom.root);

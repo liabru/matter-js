@@ -128,7 +128,7 @@ var Common = require('../core/Common');
      * @return {world} The original world with the objects from composite added
      */
     
-     /**
+    /**
       * An alias for Composite.addBody
       * @method addBody
       * @param {world} world
@@ -136,7 +136,7 @@ var Common = require('../core/Common');
       * @return {world} The original world with the body added
       */
 
-     /**
+    /**
       * An alias for Composite.addConstraint
       * @method addConstraint
       * @param {world} world

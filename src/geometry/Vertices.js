@@ -44,15 +44,8 @@ var Common = require('../core/Common');
                     y: point.y,
                     index: i,
                     body: body,
-                    isInternal: false,
-                    contact: null
+                    isInternal: false
                 };
-
-            vertex.contact = {
-                vertex: vertex,
-                normalImpulse: 0,
-                tangentImpulse: 0
-            };
 
             vertices.push(vertex);
         }
@@ -70,7 +63,7 @@ var Common = require('../core/Common');
      * @return {vertices} vertices
      */
     Vertices.fromPath = function(path, body) {
-        var pathPattern = /L?\s*([\-\d\.e]+)[\s,]*([\-\d\.e]+)*/ig,
+        var pathPattern = /L?\s*([-\d.e]+)[\s,]*([-\d.e]+)*/ig,
             points = [];
 
         path.replace(pathPattern, function(match, x, y) {

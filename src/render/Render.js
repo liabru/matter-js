@@ -927,7 +927,7 @@ var Mouse = require('../core/Mouse');
                         // render a single axis indicator
                         c.moveTo(part.position.x, part.position.y);
                         c.lineTo((part.vertices[0].x + part.vertices[part.vertices.length-1].x) / 2,
-                                 (part.vertices[0].y + part.vertices[part.vertices.length-1].y) / 2);
+                            (part.vertices[0].y + part.vertices[part.vertices.length-1].y) / 2);
                     }
                 }
             }
@@ -1227,9 +1227,9 @@ var Mouse = require('../core/Mouse');
 
             var region = bucketId.split(/C|R/);
             c.rect(0.5 + parseInt(region[1], 10) * grid.bucketWidth,
-                    0.5 + parseInt(region[2], 10) * grid.bucketHeight,
-                    grid.bucketWidth,
-                    grid.bucketHeight);
+                0.5 + parseInt(region[2], 10) * grid.bucketHeight,
+                grid.bucketWidth,
+                grid.bucketHeight);
         }
 
         c.lineWidth = 1;
@@ -1276,7 +1276,7 @@ var Mouse = require('../core/Mouse');
                 bounds = item.bounds;
                 context.beginPath();
                 context.rect(Math.floor(bounds.min.x - 3), Math.floor(bounds.min.y - 3),
-                             Math.floor(bounds.max.x - bounds.min.x + 6), Math.floor(bounds.max.y - bounds.min.y + 6));
+                    Math.floor(bounds.max.x - bounds.min.x + 6), Math.floor(bounds.max.y - bounds.min.y + 6));
                 context.closePath();
                 context.stroke();
 
@@ -1310,7 +1310,7 @@ var Mouse = require('../core/Mouse');
             bounds = inspector.selectBounds;
             context.beginPath();
             context.rect(Math.floor(bounds.min.x), Math.floor(bounds.min.y),
-                         Math.floor(bounds.max.x - bounds.min.x), Math.floor(bounds.max.y - bounds.min.y));
+                Math.floor(bounds.max.x - bounds.min.x), Math.floor(bounds.max.y - bounds.min.y));
             context.closePath();
             context.stroke();
             context.fill();

@@ -1,10 +1,10 @@
 var Example = Example || {};
 
-Matter.use(
-    'matter-wrap'
-);
-
 Example.avalanche = function() {
+    Matter.use(
+        'matter-wrap'
+    );
+    
     var Engine = Matter.Engine,
         Render = Matter.Render,
         Runner = Matter.Runner,
@@ -90,3 +90,7 @@ Example.avalanche = function() {
         }
     };
 };
+
+if (typeof module !== 'undefined') {
+    module.exports = Example[Object.keys(Example)[0]];
+}

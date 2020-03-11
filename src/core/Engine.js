@@ -191,7 +191,7 @@ var Body = require('../body/Body');
         // iteratively resolve position between collisions
         Resolver.preSolvePosition(pairs.list);
         for (i = 0; i < engine.positionIterations; i++) {
-            Resolver.solvePosition(pairs.list, allBodies, delta);
+            Resolver.solvePosition(pairs.list, delta);
         }
         Resolver.postSolvePosition(allBodies);
 
