@@ -117,7 +117,7 @@ Example.events = function() {
 
             if (!body.isStatic && body.position.y >= 500) {
                 // Scale force accounting for time delta.
-                var forceMagnitude = (0.0005 * body.mass) / (timeScale || 1);
+                var forceMagnitude = (0.03 * body.mass);
 
                 Body.applyForce(body, body.position, { 
                     x: (forceMagnitude + Common.random() * forceMagnitude) * Common.choose([1, -1]), 

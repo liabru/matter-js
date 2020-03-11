@@ -94,7 +94,7 @@ var Axes = require('../geometry/Axes');
             area: 0,
             mass: 0,
             inertia: 0,
-            deltaTime: null,
+            deltaTime: Common._timeUnit,
             _original: null
         };
 
@@ -778,8 +778,9 @@ var Axes = require('../geometry/Axes');
      * @param {vector} force
      */
     Body.applyForce = function(body, position, force) {
-        body.force.x += force.x;
-        body.force.y += force.y;
+        var timeScale = body.deltaTime / Common._timeUnit;
+        body.force.x += force.x / timeScale;
+        body.force.y += force.y / timeScale;
         var offset = { x: position.x - body.position.x, y: position.y - body.position.y };
         body.torque += offset.x * force.y - offset.y * force.x;
     };

@@ -52,7 +52,7 @@ Example.timescale = function() {
 
             if (!body.isStatic && body.position.y >= 500) {
                 // Scale force accounting for time delta.
-                var forceMagnitude = (0.001 * body.mass) / (timeScale || 1);
+                var forceMagnitude = (0.05 * body.mass);
 
                 Body.applyForce(body, body.position, {
                     x: (forceMagnitude + Common.random() * forceMagnitude) * Common.choose([1, -1]), 
