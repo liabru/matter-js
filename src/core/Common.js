@@ -16,6 +16,9 @@ module.exports = Common;
     Common._warnedOnce = {};
     Common._decomp = null;
     
+    Common._2PI = 2 * Math.PI;
+    Common._3PI = 3 * Math.PI;
+
     /**
      * Extends the object in the first argument using the object in the second argument.
      * @method extend
@@ -250,6 +253,43 @@ module.exports = Common;
      */
     Common.sign = function(value) {
         return value < 0 ? -1 : 1;
+    };
+
+    /**
+     * Returns the normalised signed difference between the two angles in radians [-PI, PI].
+     * @method angleDiff
+     * @param {number} angleA the first angle in radians
+     * @param {number} angleB the second angle in radians
+     * @return {number} the normalised signed difference
+     */
+    Common.angleDiff = function(angleA, angleB) {
+        return ((((angleA - angleB) % Common._2PI) + Common._3PI) % Common._2PI) - Math.PI;
+    };
+
+    /**
+     * Clamps the given `angle` in radians between `angleMin` and `angleMax` inclusive.
+     * @method clampAngle
+     * @param {number} angleMin the angle minimum in radians
+     * @param {number} angleMax the angle maximum in radians
+     * @return {number} the clamped angle
+     */
+    Common.clampAngle = function(angle, angleMin, angleMax) {
+        if (angleMax - angleMin === 0) {
+            return angleMax;
+        }
+
+        var deltaMin = Common.angleDiff(angle, angleMin);
+        var deltaMax = Common.angleDiff(angle, angleMax);
+
+        if (deltaMin > 0 && deltaMax < 0) {
+            return angle;
+        }
+
+        if (Math.abs(deltaMin) < Math.abs(deltaMax)) {
+            return angle - deltaMin;
+        }
+
+        return angle - deltaMax;
     };
     
     /**
