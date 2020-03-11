@@ -107,7 +107,7 @@ var Bounds = require('../geometry/Bounds');
                                 constraint.pointA = mouse.position;
                                 constraint.bodyB = mouseConstraint.body = body;
                                 constraint.pointB = { x: mouse.position.x - body.position.x, y: mouse.position.y - body.position.y };
-                                constraint.angleB = body.angle;
+                                constraint.angleBPrev = body.angle;
 
                                 Sleeping.set(body, false);
                                 Events.trigger(mouseConstraint, 'startdrag', { mouse: mouse, body: body });
