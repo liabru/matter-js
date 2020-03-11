@@ -52,7 +52,7 @@ Example.compositeManipulation = function() {
 
     Events.on(engine, 'afterUpdate', function(event) {
         var time = engine.timing.timestamp,
-            timeScale = event.delta / 1000;
+            timeScale = (event.delta || (1000 / 60)) / 1000;
 
         Composite.translate(stack, {
             x: Math.sin(time * 0.001) * 10 * timeScale,

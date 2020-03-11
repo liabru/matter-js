@@ -343,6 +343,7 @@ var Body = require('../body/Body');
     * @event beforeUpdate
     * @param {} event An event object
     * @param {number} event.timestamp The engine.timing.timestamp of the event
+    * @param {number} event.delta The delta time in milliseconds value used in the update
     * @param {} event.source The source object of the event
     * @param {} event.name The name of the event
     */
@@ -353,6 +354,7 @@ var Body = require('../body/Body');
     * @event afterUpdate
     * @param {} event An event object
     * @param {number} event.timestamp The engine.timing.timestamp of the event
+    * @param {number} event.delta The delta time in milliseconds value used in the update
     * @param {} event.source The source object of the event
     * @param {} event.name The name of the event
     */
@@ -388,6 +390,7 @@ var Body = require('../body/Body');
     * @param {} event An event object
     * @param {} event.pairs List of affected pairs
     * @param {number} event.timestamp The engine.timing.timestamp of the event
+    * @param {number} event.delta The delta time in milliseconds value used in the update
     * @param {} event.source The source object of the event
     * @param {} event.name The name of the event
     */

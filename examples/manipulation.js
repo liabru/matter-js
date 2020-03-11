@@ -64,7 +64,7 @@ Example.manipulation = function() {
         scaleRate = 0.6;
 
     Events.on(engine, 'beforeUpdate', function(event) {
-        var timeScale = event.delta / 1000;
+        var timeScale = (event.delta || (1000 / 60)) / 1000;
 
         if (scaleRate > 0) {
             Body.scale(bodyF, 1 + (scaleRate * timeScale), 1 + (scaleRate * timeScale));
