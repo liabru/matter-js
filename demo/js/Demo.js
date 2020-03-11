@@ -27,6 +27,7 @@
         { name: 'Compound Stack', id: 'compoundStack' },
         { name: 'Concave', id: 'concave' },
         { name: 'Constraints', id: 'constraints' },
+        { name: 'Angle Constraints', id: 'angleConstraints' },
         { name: 'Double Pendulum', id: 'doublePendulum' },
         { name: 'Events', id: 'events' },
         { name: 'Friction', id: 'friction' },
