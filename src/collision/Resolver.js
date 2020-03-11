@@ -50,7 +50,7 @@ var Bounds = require('../geometry/Bounds');
      * @param {pair[]} pairs
      * @param {number} delta
      */
-     Resolver.solvePosition = function(pairs, delta) {
+    Resolver.solvePosition = function(pairs, delta) {
         var i,
             pair,
             collision,
