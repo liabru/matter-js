@@ -23,6 +23,7 @@ var Common = require('../core/Common');
 
     Constraint._warming = 0.4;
     Constraint._torqueDampen = 1;
+    Constraint._angleLimitDampen = 0.5;
     Constraint._minLength = 0.000001;
 
     /**
@@ -48,8 +49,9 @@ var Common = require('../core/Common');
         // calculate static length using initial world space points
         var initialPointA = constraint.bodyA ? Vector.add(constraint.bodyA.position, constraint.pointA) : constraint.pointA,
             initialPointB = constraint.bodyB ? Vector.add(constraint.bodyB.position, constraint.pointB) : constraint.pointB,
-            length = Vector.magnitude(Vector.sub(initialPointA, initialPointB));
-    
+            length = Vector.magnitude(Vector.sub(initialPointA, initialPointB)),
+            angle = Vector.angle(initialPointA, initialPointB);
+        
         constraint.length = typeof constraint.length !== 'undefined' ? constraint.length : length;
 
         // option defaults
@@ -59,9 +61,23 @@ var Common = require('../core/Common');
         constraint.stiffness = constraint.stiffness || (constraint.length > 0 ? 1 : 0.7);
         constraint.damping = constraint.damping || 0;
         constraint.angularStiffness = constraint.angularStiffness || 0;
-        constraint.angleA = constraint.bodyA ? constraint.bodyA.angle : constraint.angleA;
-        constraint.angleB = constraint.bodyB ? constraint.bodyB.angle : constraint.angleB;
+        constraint.angleAPrev = constraint.bodyA ? constraint.bodyA.angle : constraint.angleAPrev;
+        constraint.angleBPrev = constraint.bodyB ? constraint.bodyB.angle : constraint.angleBPrev;
         constraint.plugin = {};
+
+        constraint.angleA = typeof constraint.angleA !== 'undefined' ? 
+            constraint.angleA : (constraint.bodyA ? 0 : angle);
+
+        constraint.angleAStiffness = constraint.angleAStiffness || 0;
+        constraint.angleAMin = constraint.angleAMin || 0;
+        constraint.angleAMax = constraint.angleAMax || 0;
+
+        constraint.angleB = typeof constraint.angleB !== 'undefined' ? 
+            constraint.angleB : (constraint.bodyB ? 0 : angle);
+
+        constraint.angleBStiffness = constraint.angleBStiffness || 0;
+        constraint.angleBMin = constraint.angleBMin || 0;
+        constraint.angleBMax = constraint.angleBMax || 0;
 
         // render
         var render = {
@@ -69,7 +85,8 @@ var Common = require('../core/Common');
             lineWidth: 2,
             strokeStyle: '#ffffff',
             type: 'line',
-            anchors: true
+            anchors: true,
+            angles: true
         };
 
         if (constraint.length === 0 && constraint.stiffness > 0.1) {
@@ -154,14 +171,14 @@ var Common = require('../core/Common');
 
         // update reference angle
         if (bodyA && !bodyA.isStatic) {
-            Vector.rotate(pointA, bodyA.angle - constraint.angleA, pointA);
-            constraint.angleA = bodyA.angle;
+            Vector.rotate(pointA, bodyA.angle - constraint.angleAPrev, pointA);
+            constraint.angleAPrev = bodyA.angle;
         }
         
         // update reference angle
         if (bodyB && !bodyB.isStatic) {
-            Vector.rotate(pointB, bodyB.angle - constraint.angleB, pointB);
-            constraint.angleB = bodyB.angle;
+            Vector.rotate(pointB, bodyB.angle - constraint.angleBPrev, pointB);
+            constraint.angleBPrev = bodyB.angle;
         }
 
         var pointAWorld = pointA,
@@ -188,11 +205,29 @@ var Common = require('../core/Common');
             massTotal = (bodyA ? bodyA.inverseMass : 0) + (bodyB ? bodyB.inverseMass : 0),
             inertiaTotal = (bodyA ? bodyA.inverseInertia : 0) + (bodyB ? bodyB.inverseInertia : 0),
             resistanceTotal = massTotal + inertiaTotal,
+            angleAStiffness = (constraint.angleAStiffness < 1 ? constraint.angleAStiffness * timeScale : constraint.angleAStiffness) * Constraint._angleLimitDampen,
+            angleBStiffness = (constraint.angleBStiffness < 1 ? constraint.angleBStiffness * timeScale : constraint.angleBStiffness) * Constraint._angleLimitDampen,
             torque,
             share,
             normal,
             normalVelocity,
-            relativeVelocity;
+            relativeVelocity,
+            angleLimitPointA,
+            angleLimitPointB;
+
+        if (constraint.angleAStiffness) {
+            angleLimitPointA = Constraint.solveAngleLimits(
+                constraint, bodyA, constraint.angleA, constraint.angleAMin, 
+                constraint.angleAMax, delta, -1, currentLength, pointAWorld, pointBWorld
+            );
+        }
+
+        if (constraint.angleBStiffness) {
+            angleLimitPointB = Constraint.solveAngleLimits(
+                constraint, bodyB, constraint.angleB, constraint.angleBMin, 
+                constraint.angleBMax, delta, 1, currentLength, pointBWorld, pointAWorld
+            );
+        }
 
         if (constraint.damping) {
             var zero = Vector.create();
@@ -209,6 +244,12 @@ var Common = require('../core/Common');
         if (bodyA && !bodyA.isStatic) {
             share = bodyA.inverseMass / massTotal;
 
+            // temporarily add angular limit force from pointB if pinned
+            if (angleLimitPointB && (!bodyB || bodyB.isStatic)) {
+                force.x -= angleLimitPointB.x * angleBStiffness;
+                force.y -= angleLimitPointB.y * angleBStiffness;
+            }
+
             // keep track of applied impulses for post solving
             bodyA.constraintImpulse.x -= force.x * share;
             bodyA.constraintImpulse.y -= force.y * share;
@@ -223,14 +264,33 @@ var Common = require('../core/Common');
                 bodyA.positionPrev.y -= constraint.damping * normal.y * normalVelocity * share;
             }
 
-            // apply torque
+            // find torque to apply
             torque = (Vector.cross(pointA, force) / resistanceTotal) * Constraint._torqueDampen * bodyA.inverseInertia * (1 - constraint.angularStiffness);
+
+            // add any torque from angular limit at pointA
+            if (angleLimitPointA) {
+                torque -= angleLimitPointA.angle * angleAStiffness;
+            }
+
+            // apply torque
             bodyA.constraintImpulse.angle -= torque;
             bodyA.angle -= torque;
+
+            // remove angular limit from pointB
+            if (angleLimitPointB && (!bodyB || bodyB.isStatic)) {
+                force.x += angleLimitPointB.x * angleBStiffness;
+                force.y += angleLimitPointB.y * angleBStiffness;
+            }
         }
 
         if (bodyB && !bodyB.isStatic) {
             share = bodyB.inverseMass / massTotal;
+
+            // add angular limit force from pointA if pinned
+            if (angleLimitPointA && (!bodyA || bodyA.isStatic)) {
+                force.x += angleLimitPointA.x * angleAStiffness;
+                force.y += angleLimitPointA.y * angleAStiffness;
+            }
 
             // keep track of applied impulses for post solving
             bodyB.constraintImpulse.x += force.x * share;
@@ -246,8 +306,15 @@ var Common = require('../core/Common');
                 bodyB.positionPrev.y += constraint.damping * normal.y * normalVelocity * share;
             }
 
-            // apply torque
+            // find torque to apply
             torque = (Vector.cross(pointB, force) / resistanceTotal) * Constraint._torqueDampen * bodyB.inverseInertia * (1 - constraint.angularStiffness);
+            
+            // add any torque from angular limit at pointB
+            if (angleLimitPointB) {
+                torque += angleLimitPointB.angle * angleBStiffness;
+            }
+            
+            // apply torque
             bodyB.constraintImpulse.angle += torque;
             bodyB.angle += torque;
         }
@@ -325,6 +392,46 @@ var Common = require('../core/Common');
             y: (constraint.bodyB ? constraint.bodyB.position.y : 0) + constraint.pointB.y
         };
     };
+    
+    /**
+     * Solves angle limits on the constraint.
+     * @private
+     * @method solveAngleLimits
+     */
+    Constraint.solveAngleLimits = function(constraint, body, angle, angleMin, angleMax, delta, deltaScale, currentLength, pointAWorld, pointBWorld) {
+        var currentAngle = (body ? body.angle : 0) + (constraint.length > 0 ? angle : 0),
+            min = angleMin < angleMax ? angleMin : angleMax,
+            max = angleMax > angleMin ? angleMax : angleMin,
+            angleNormal = { x: Math.cos(currentAngle), y: Math.sin(currentAngle) },
+            angleDelta;
+
+        if (constraint.length === 0) {
+            // use absolute angle for pin constraints
+            angleDelta = Common.angleDiff(angle, currentAngle);
+        } else {
+            // otherwise use relative angle
+            angleDelta = Math.atan2(
+                angleNormal.x * delta.y * deltaScale - angleNormal.y * delta.x * deltaScale,
+                angleNormal.x * delta.x * deltaScale + angleNormal.y * delta.y * deltaScale
+            );
+        }
+
+        // no impulse required if angle within limits
+        if (angleDelta > min && angleDelta < max) {
+            return null;
+        }
+
+        // find the clamped angle and clamp the normal
+        var angleClamped = Common.clampAngle(angleDelta, min, max),
+            normalLimited = Vector.rotate(angleNormal, angleClamped);
+
+        // return the impulses required to correct the angle
+        return {
+            x: pointAWorld.x + normalLimited.x * currentLength - pointBWorld.x, 
+            y: pointAWorld.y + normalLimited.y * currentLength - pointBWorld.y,
+            angle: Common.angleDiff(angleDelta, angleClamped)
+        };
+    };
 
     /*
     *
@@ -333,7 +440,7 @@ var Common = require('../core/Common');
     */
 
     /**
-     * An integer `Number` uniquely identifying number generated in `Composite.create` by `Common.nextId`.
+     * An integer `Number` uniquely identifying number generated in `Constraint.create` by `Common.nextId`.
      *
      * @property id
      * @type number
@@ -408,6 +515,14 @@ var Common = require('../core/Common');
      */
 
     /**
+     * **ALPHA**: A `Boolean` that defines if the constraint's anglular limits should be rendered.
+     *
+     * @property render.angles
+     * @type boolean
+     * @default true
+     */
+
+    /**
      * The first possible `Body` that this constraint is attached to.
      *
      * @property bodyA
@@ -467,6 +582,92 @@ var Common = require('../core/Common');
      *
      * @property length
      * @type number
+     */
+
+    /**
+     * **ALPHA**: A `Number` in radians that specifies the limiting angle of the constraint about `constraint.pointA`.
+     * It is relative to `constraint.bodyA.angle` if `constraint.bodyA` is set, otherwise is absolute.
+     * Defaults to the initial angle of the constraint or `0`.
+     * Only applies if `constraint.angleAStiffness > 0`.
+     * The constraint angle is measured between the vector `pointA - pointB` and the x-axis.
+     *
+     * @property angleA
+     * @type number
+     * @default the initial relative constraint angle
+     */
+
+    /**
+     * **ALPHA**: A `Number` that specifies the stiffness of angular limits about `constraint.pointA`.  
+     * A value of `0` (default) means the constraint will not limit the angle.  
+     * A value of `0.01` means the constraint will softly limit the angle.  
+     * A value of `1` means the constraint will rigidly limit the angle.  
+     *
+     * @property angleAStiffness
+     * @type number
+     * @default 0
+     */
+
+    /**
+     * **ALPHA**: A `Number` in radians that specifies the lower angular limit 
+     * about `constraint.pointA` relative to `constraint.angleA`.  
+     * A value of `-0.5` means the constraint is limited to `0.5` radians 
+     * anti-clockwise of `constraint.angleA`, or clockwise if the value is positive.
+     *
+     * @property angleAMin
+     * @type number
+     * @default 0
+     */
+
+    /**
+     * **ALPHA**: A `Number` in radians that specifies the upper angular limit 
+     * about `constraint.pointA` relative to `constraint.angleA`. See `constraint.angleAMin` for more.
+     *
+     * @property angleAMax
+     * @type number
+     * @default 0
+     */
+
+    /**
+     * **ALPHA**: A `Number` in radians that specifies the limiting angle of the constraint about `constraint.pointB`.
+     * It is relative to `constraint.bodyB.angle` if `constraint.bodyB` is set, otherwise is absolute.
+     * Defaults to the initial angle of the constraint or `0`.
+     * Only applies if `constraint.angleBStiffness > 0`.
+     * The constraint angle is measured between the vector `pointA - pointB` and the x-axis.
+     *
+     * @property angleB
+     * @type number
+     * @default the initial relative constraint angle
+     */
+
+    /**
+     * **ALPHA**: A `Number` that specifies the stiffness of angular limits about `constraint.pointB`.  
+     * A value of `0` (default) means the constraint will not limit the angle.  
+     * A value of `0.01` means the constraint will softly limit the angle.  
+     * A value of `1` means the constraint will rigidly limit the angle.  
+     *
+     * @property angleBStiffness
+     * @type number
+     * @default 0
+     */
+
+    /**
+     * **ALPHA**: A `Number` in radians that specifies the lower angular limit 
+     * about `constraint.pointB` relative to `constraint.angleB`.  
+     * A value of `-0.5` means the constraint is limited to `0.5` radians 
+     * anti-clockwise of `constraint.angleB`, or clockwise if the value is positive.
+     *
+     * @property angleBMin
+     * @type number
+     * @default 0
+     */
+
+    /**
+     * **ALPHA**: A `Number` in radians that specifies the upper angular limit 
+     * about `constraint.pointB` relative to `constraint.angleB`. See `constraint.angleBMin` for more.
+     *
+     * @property angleBMax
+     * @type number
+     * @default 0
      */
 
     /**
