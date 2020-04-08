@@ -48,7 +48,7 @@ var Bounds = require('../geometry/Bounds');
 
         var constraint = Constraint.create({ 
             label: 'Mouse Constraint',
-            pointA: mouse.position,
+            pointA: mouse.absolute,
             pointB: { x: 0, y: 0 },
             length: 0.01, 
             stiffness: 0.1,
@@ -99,14 +99,14 @@ var Bounds = require('../geometry/Bounds');
             if (!constraint.bodyB) {
                 for (var i = 0; i < bodies.length; i++) {
                     body = bodies[i];
-                    if (Bounds.contains(body.bounds, mouse.position) 
+                    if (Bounds.contains(body.bounds, mouse.absolute) 
                             && Detector.canCollide(body.collisionFilter, mouseConstraint.collisionFilter)) {
                         for (var j = body.parts.length > 1 ? 1 : 0; j < body.parts.length; j++) {
                             var part = body.parts[j];
-                            if (Vertices.contains(part.vertices, mouse.position)) {
-                                constraint.pointA = mouse.position;
+                            if (Vertices.contains(part.vertices, mouse.absolute)) {
+                                constraint.pointA = mouse.absolute;
                                 constraint.bodyB = mouseConstraint.body = body;
-                                constraint.pointB = { x: mouse.position.x - body.position.x, y: mouse.position.y - body.position.y };
+                                constraint.pointB = { x: mouse.absolute.x - body.position.x, y: mouse.absolute.y - body.position.y };
                                 constraint.angleB = body.angle;
 
                                 Sleeping.set(body, false);
@@ -119,7 +119,7 @@ var Bounds = require('../geometry/Bounds');
                 }
             } else {
                 Sleeping.set(constraint.bodyB, false);
-                constraint.pointA = mouse.position;
+                constraint.pointA = mouse.absolute;
             }
         } else {
             constraint.bodyB = mouseConstraint.body = null;
