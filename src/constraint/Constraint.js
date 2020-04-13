@@ -37,7 +37,10 @@ var Common = require('../core/Common');
      * @return {constraint} constraint
      */
     Constraint.create = function(options) {
-        var constraint = options;
+        var defaults = {
+        };
+
+        var constraint = Common.extend(defaults, false, options);
 
         // if bodies defined but no points, use body centre
         if (constraint.bodyA && !constraint.pointA)
