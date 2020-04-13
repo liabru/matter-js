@@ -38,8 +38,15 @@ var Common = require('../core/Common');
      */
     Constraint.create = function(options) {
         var defaults = {
+            id: Common.nextId(),
+            type: 'constraint',
+            label: 'Constraint',
+            damping: 0,
+            angularStiffness: 0,
+            plugin: {},
         };
 
+        // NOTE: defaults are merged non-recursively, so any deep defaults must be merged separately.
         var constraint = Common.extend(defaults, false, options);
 
         // if bodies defined but no points, use body centre
@@ -56,15 +63,9 @@ var Common = require('../core/Common');
         constraint.length = typeof constraint.length !== 'undefined' ? constraint.length : length;
 
         // option defaults
-        constraint.id = constraint.id || Common.nextId();
-        constraint.label = constraint.label || 'Constraint';
-        constraint.type = 'constraint';
         constraint.stiffness = constraint.stiffness || (constraint.length > 0 ? 1 : 0.7);
-        constraint.damping = constraint.damping || 0;
-        constraint.angularStiffness = constraint.angularStiffness || 0;
         constraint.angleA = constraint.bodyA ? constraint.bodyA.angle : constraint.angleA;
         constraint.angleB = constraint.bodyB ? constraint.bodyB.angle : constraint.angleB;
-        constraint.plugin = {};
 
         // render
         var render = {
