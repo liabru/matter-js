@@ -12,21 +12,21 @@
 
     <title>Matter.js Demo</title>
     
-    <!-- libs -->
-    <script type="text/javascript" src="/demo/lib/decomp.js"></script>
-    <script type="text/javascript" src="/demo/lib/pathseg.js"></script>
+    <!-- Libs -->
+    <script type="text/javascript" src="./lib/decomp.js"></script>
+    <script type="text/javascript" src="./lib/pathseg.js"></script>
 
     <!-- Matter -->
-    <script src="../build/matter-dev.js"></script>
-
+    <script src="../build/matter.js"></script>
+    
     <!-- MatterTools -->
-    <script src="//code.jquery.com/jquery-3.1.1.js"></script>
-    <script src="/demo/lib/matter-tools.gui.js"></script>
-    <script src="/demo/lib/matter-tools.inspector.js"></script>
-    <script src="/demo/lib/matter-tools.demo.js"></script>
+    <script src="https://code.jquery.com/jquery-3.1.1.js"></script>
+    <script src="./lib/matter-tools.gui.js"></script>
+    <script src="./lib/matter-tools.inspector.js"></script>
+    <script src="./lib/matter-tools.demo.js"></script>
 
     <!-- Plugins -->
-    <script src="/demo/lib/matter-wrap.js"></script>
+    <script src="./lib/matter-wrap.js"></script>
     
     <!-- Examples -->
     <script src="../examples/airFriction.js"></script>
@@ -72,7 +72,7 @@
     <script src="../examples/timescale.js"></script>
     <script src="../examples/views.js"></script>
     <script src="../examples/wreckingBall.js"></script>
-
+    
     <style type="text/css">
       * {
         box-sizing: border-box;
@@ -82,9 +82,30 @@
         margin: 0;
         padding: 0;
       }
+
+      .matter-js-compare-build {
+        position: absolute;
+        background: none;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border: 0;
+        z-index: 1;
+        pointer-events: none;
+      }
+
+      .matter-js-compare-build .matter-header-outer {
+        display: none;
+      }
+
+      .matter-js-compare-build canvas {
+        opacity: 0.5;
+        background: transparent !important;
+      }
     </style>
   </head>
   <body>
-    <script src="/demo/js/Demo.js"></script>
+    <script src="./js/Demo.js"></script>
   </body>
 </html>

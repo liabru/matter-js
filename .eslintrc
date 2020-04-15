@@ -65,7 +65,12 @@
         "Runner": false,
         "Svg": false,
         "Metrics": false,
-        "Example": false
+        "Example": false,
+        "__MATTER_VERSION__": false,
+        "jest": false,
+        "test": false,
+        "expect": false,
+        "describe": false
     },
     "extends": "eslint:recommended"
 }

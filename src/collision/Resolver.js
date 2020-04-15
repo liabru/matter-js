@@ -48,33 +48,23 @@ var Bounds = require('../geometry/Bounds');
      * Find a solution for pair positions.
      * @method solvePosition
      * @param {pair[]} pairs
-     * @param {body[]} bodies
      * @param {number} timeScale
      */
-    Resolver.solvePosition = function(pairs, bodies, timeScale) {
+    Resolver.solvePosition = function(pairs, timeScale) {
         var i,
-            normalX,
-            normalY,
             pair,
             collision,
             bodyA,
             bodyB,
             normal,
-            separation,
-            penetration,
-            positionImpulseA,
-            positionImpulseB,
+            bodyBtoA,
             contactShare,
-            bodyBtoAX,
-            bodyBtoAY,
             positionImpulse,
-            impulseCoefficient = timeScale * Resolver._positionDampen;
-
-        for (i = 0; i < bodies.length; i++) {
-            var body = bodies[i];
-            body.previousPositionImpulse.x = body.positionImpulse.x;
-            body.previousPositionImpulse.y = body.positionImpulse.y;
-        }
+            contactCount = {},
+            tempA = Vector._temp[0],
+            tempB = Vector._temp[1],
+            tempC = Vector._temp[2],
+            tempD = Vector._temp[3];
 
         // find impulses required to resolve penetration
         for (i = 0; i < pairs.length; i++) {
@@ -88,35 +78,39 @@ var Bounds = require('../geometry/Bounds');
             bodyB = collision.parentB;
             normal = collision.normal;
 
-            positionImpulseA = bodyA.previousPositionImpulse;
-            positionImpulseB = bodyB.previousPositionImpulse;
+            // get current separation between body edges involved in collision
+            bodyBtoA = Vector.sub(Vector.add(bodyB.positionImpulse, bodyB.position, tempA), 
+                Vector.add(bodyA.positionImpulse, 
+                    Vector.sub(bodyB.position, collision.penetration, tempB), tempC), tempD);
 
-            penetration = collision.penetration;
+            pair.separation = Vector.dot(normal, bodyBtoA);
+        }
+        
+        for (i = 0; i < pairs.length; i++) {
+            pair = pairs[i];
 
-            bodyBtoAX = positionImpulseB.x - positionImpulseA.x + penetration.x;
-            bodyBtoAY = positionImpulseB.y - positionImpulseA.y + penetration.y;
-
-            normalX = normal.x;
-            normalY = normal.y;
-
-            separation = normalX * bodyBtoAX + normalY * bodyBtoAY;
-            pair.separation = separation;
-
-            positionImpulse = (separation - pair.slop) * impulseCoefficient;
+            if (!pair.isActive || pair.isSensor)
+                continue;
+            
+            collision = pair.collision;
+            bodyA = collision.parentA;
+            bodyB = collision.parentB;
+            normal = collision.normal;
+            positionImpulse = (pair.separation - pair.slop) * timeScale;
 
             if (bodyA.isStatic || bodyB.isStatic)
                 positionImpulse *= 2;
             
             if (!(bodyA.isStatic || bodyA.isSleeping)) {
-                contactShare = positionImpulse / bodyA.totalContacts;
-                bodyA.positionImpulse.x += normalX * contactShare;
-                bodyA.positionImpulse.y += normalY * contactShare;
+                contactShare = Resolver._positionDampen / bodyA.totalContacts;
+                bodyA.positionImpulse.x += normal.x * positionImpulse * contactShare;
+                bodyA.positionImpulse.y += normal.y * positionImpulse * contactShare;
             }
 
             if (!(bodyB.isStatic || bodyB.isSleeping)) {
-                contactShare = positionImpulse / bodyB.totalContacts;
-                bodyB.positionImpulse.x -= normalX * contactShare;
-                bodyB.positionImpulse.y -= normalY * contactShare;
+                contactShare = Resolver._positionDampen / bodyB.totalContacts;
+                bodyB.positionImpulse.x -= normal.x * positionImpulse * contactShare;
+                bodyB.positionImpulse.y -= normal.y * positionImpulse * contactShare;
             }
         }
     };

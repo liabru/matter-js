@@ -1,10 +1,10 @@
 var Example = Example || {};
 
-Matter.use(
-    'matter-wrap'
-);
-
 Example.ballPool = function() {
+    Matter.use(
+        'matter-wrap'
+    );
+    
     var Engine = Matter.Engine,
         Render = Matter.Render,
         Runner = Matter.Runner,
@@ -50,7 +50,8 @@ Example.ballPool = function() {
         stack,
         Bodies.polygon(200, 460, 3, 60),
         Bodies.polygon(400, 460, 5, 60),
-        Bodies.rectangle(600, 460, 80, 80)
+        Bodies.rectangle(600, 460, 80, 80),
+        Bodies.capsule(500, 460, 40, 100)
     ]);
 
     // add mouse control
@@ -98,3 +99,7 @@ Example.ballPool = function() {
         }
     };
 };
+
+if (typeof module !== 'undefined') {
+    module.exports = Example[Object.keys(Example)[0]];
+}

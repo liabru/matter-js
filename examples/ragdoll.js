@@ -496,3 +496,7 @@ Example.ragdoll.ragdoll = function(x, y, scale, options) {
 
     return person;
 };
+
+if (typeof module !== 'undefined') {
+    module.exports = Example[Object.keys(Example)[0]];
+}

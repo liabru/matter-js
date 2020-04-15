@@ -2,10 +2,9 @@ language: node_js
 sudo: false
 node_js:
   - "node"
-before_install: 
-  - npm install -g gulp
-  - mkdir travis-phantomjs
-  - wget https://s3.amazonaws.com/travis-phantomjs/phantomjs-2.0.0-ubuntu-12.04.tar.bz2 -O $PWD/travis-phantomjs/phantomjs-2.0.0-ubuntu-12.04.tar.bz2
-  - tar -xvf $PWD/travis-phantomjs/phantomjs-2.0.0-ubuntu-12.04.tar.bz2 -C $PWD/travis-phantomjs
-  - export PATH=$PWD/travis-phantomjs:$PATH
-install: npm install
+install:
+  - npm install
+script:
+  - npm run lint
+  - npm run test
+  - npm run build

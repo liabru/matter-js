@@ -68,26 +68,28 @@ Example.gyro = function() {
     ]);
 
     // add gyro control
-    var updateGravity = function(event) {
-        var orientation = typeof window.orientation !== 'undefined' ? window.orientation : 0,
-            gravity = engine.world.gravity;
+    if (typeof window !== 'undefined') {
+        var updateGravity = function(event) {
+            var orientation = typeof window.orientation !== 'undefined' ? window.orientation : 0,
+                gravity = engine.world.gravity;
 
-        if (orientation === 0) {
-            gravity.x = Common.clamp(event.gamma, -90, 90) / 90;
-            gravity.y = Common.clamp(event.beta, -90, 90) / 90;
-        } else if (orientation === 180) {
-            gravity.x = Common.clamp(event.gamma, -90, 90) / 90;
-            gravity.y = Common.clamp(-event.beta, -90, 90) / 90;
-        } else if (orientation === 90) {
-            gravity.x = Common.clamp(event.beta, -90, 90) / 90;
-            gravity.y = Common.clamp(-event.gamma, -90, 90) / 90;
-        } else if (orientation === -90) {
-            gravity.x = Common.clamp(-event.beta, -90, 90) / 90;
-            gravity.y = Common.clamp(event.gamma, -90, 90) / 90;
-        }
-    };
+            if (orientation === 0) {
+                gravity.x = Common.clamp(event.gamma, -90, 90) / 90;
+                gravity.y = Common.clamp(event.beta, -90, 90) / 90;
+            } else if (orientation === 180) {
+                gravity.x = Common.clamp(event.gamma, -90, 90) / 90;
+                gravity.y = Common.clamp(-event.beta, -90, 90) / 90;
+            } else if (orientation === 90) {
+                gravity.x = Common.clamp(event.beta, -90, 90) / 90;
+                gravity.y = Common.clamp(-event.gamma, -90, 90) / 90;
+            } else if (orientation === -90) {
+                gravity.x = Common.clamp(-event.beta, -90, 90) / 90;
+                gravity.y = Common.clamp(event.gamma, -90, 90) / 90;
+            }
+        };
 
-    window.addEventListener('deviceorientation', updateGravity);
+        window.addEventListener('deviceorientation', updateGravity);
+    }
 
     // add mouse control
     var mouse = Mouse.create(render.canvas),
@@ -121,7 +123,13 @@ Example.gyro = function() {
         stop: function() {
             Matter.Render.stop(render);
             Matter.Runner.stop(runner);
-            window.removeEventListener('deviceorientation', updateGravity);
+            if (typeof window !== 'undefined') {
+                window.removeEventListener('deviceorientation', updateGravity);
+            }
         }
     };
 };
+
+if (typeof module !== 'undefined') {
+    module.exports = Example[Object.keys(Example)[0]];
+}

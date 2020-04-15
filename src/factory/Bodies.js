@@ -18,7 +18,6 @@ var Common = require('../core/Common');
 var Body = require('../body/Body');
 var Bounds = require('../geometry/Bounds');
 var Vector = require('../geometry/Vector');
-var decomp;
 
 (function() {
 
@@ -46,7 +45,7 @@ var decomp;
         if (options.chamfer) {
             var chamfer = options.chamfer;
             rectangle.vertices = Vertices.chamfer(rectangle.vertices, chamfer.radius, 
-                                    chamfer.quality, chamfer.qualityMin, chamfer.qualityMax);
+                chamfer.quality, chamfer.qualityMin, chamfer.qualityMax);
             delete options.chamfer;
         }
 
@@ -92,7 +91,7 @@ var decomp;
         if (options.chamfer) {
             var chamfer = options.chamfer;
             trapezoid.vertices = Vertices.chamfer(trapezoid.vertices, chamfer.radius, 
-                                    chamfer.quality, chamfer.qualityMin, chamfer.qualityMax);
+                chamfer.quality, chamfer.qualityMin, chamfer.qualityMax);
             delete options.chamfer;
         }
 
@@ -169,7 +168,7 @@ var decomp;
         if (options.chamfer) {
             var chamfer = options.chamfer;
             polygon.vertices = Vertices.chamfer(polygon.vertices, chamfer.radius, 
-                                    chamfer.quality, chamfer.qualityMin, chamfer.qualityMax);
+                chamfer.quality, chamfer.qualityMin, chamfer.qualityMax);
             delete options.chamfer;
         }
 
@@ -197,11 +196,8 @@ var decomp;
      * @return {body}
      */
     Bodies.fromVertices = function(x, y, vertexSets, options, flagInternal, removeCollinear, minimumArea) {
-        if (!decomp) {
-            decomp = Common._requireGlobal('decomp', 'poly-decomp');
-        }
-
-        var body,
+        var decomp = global.decomp || require('poly-decomp'),
+            body,
             parts,
             isConvex,
             vertices,
@@ -332,7 +328,7 @@ var decomp;
         }
     };
 
-    /**
+     /**
      * Creates a new rigid body model with a capsule hull. 
      * The options parameter is an object that specifies any properties you wish to override the defaults.
      * See the properties section of the `Matter.Body` module for detailed information on what you can pass via the `options` object.
@@ -342,14 +338,14 @@ var decomp;
      * @param {number} radius
      * @param {number} height
      * @param {object} [options]
-     * @param {number} rotation vertices roate of angle
+     * @param {number} [rotation] vertices roate of angle
      * @param {number} [maxSides]
      * @return {body} A new capsule body
      */
     Bodies.capsule = function(x, y, radius , height , options , rotation, maxSides) {
         options = options || {};
 
-        maxSides = maxSides || 25;
+        maxSides = maxSides || 26;
         var sides = Math.ceil(Math.max(6, Math.min(maxSides, radius)));
         // optimisation: always use even number of sides (half the number of unique axes)
         sides = sides % 2 === 1 ? sides++ : sides;
