@@ -628,7 +628,8 @@ var Axes = require('../geometry/Axes');
      * @param {number} correction
      */
     Body.update = function(body, deltaTime, timeScale, correction) {
-        var deltaTimeSquared = Math.pow(deltaTime * timeScale * body.timeScale, 2);
+        // Delta time squared in seconds
+        var deltaTimeSquared = Math.pow(deltaTime / 1000 * timeScale * body.timeScale, 2);
 
         // from the previous step
         var frictionAir = 1 - body.frictionAir * timeScale * body.timeScale,
