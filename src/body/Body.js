@@ -295,7 +295,7 @@ var Axes = require('../geometry/Axes');
      * @param {number} mass
      */
     Body.setMass = function(body, mass) {
-        var moment = body.inertia / (body.mass / 6);
+        var moment = body.inertia / (mass / 6);
         body.inertia = moment * (mass / 6);
         body.inverseInertia = 1 / body.inertia;
 
