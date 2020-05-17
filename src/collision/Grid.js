@@ -243,7 +243,10 @@ var Common = require('../core/Common');
         for (var i = 0; i < bucket.length; i++) {
             var bodyB = bucket[i];
 
-            if (body.id === bodyB.id || (body.isStatic && bodyB.isStatic))
+            if (body.id === bodyB.id)
+                continue;
+
+            if (body.isStatic && bodyB.isStatic && !(body.isSensor || bodyB.isSensor))
                 continue;
 
             // keep track of the number of buckets the pair exists in

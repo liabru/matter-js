@@ -35,7 +35,7 @@ var Bounds = require('../geometry/Bounds');
             var bodyA = broadphasePairs[i][0], 
                 bodyB = broadphasePairs[i][1];
 
-            if ((bodyA.isStatic || bodyA.isSleeping) && (bodyB.isStatic || bodyB.isSleeping))
+            if (bodyA.isSleeping && bodyB.isSleeping)
                 continue;
             
             if (!Detector.canCollide(bodyA.collisionFilter, bodyB.collisionFilter))
