@@ -249,6 +249,11 @@ var Axes = require('../geometry/Axes');
     Body.setStatic = function(body, isStatic) {
         for (var i = 0; i < body.parts.length; i++) {
             var part = body.parts[i];
+
+            if (part.isStatic === isStatic) {
+                continue;
+            }
+
             part.isStatic = isStatic;
 
             if (isStatic) {
