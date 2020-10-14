@@ -51,7 +51,7 @@ var Bounds = require('../geometry/Bounds');
      * @param {number} timeScale
      */
     Resolver.solvePosition = function(pairs, timeScale) {
-        var i,
+        let i,
             pair,
             collision,
             bodyA,
@@ -60,11 +60,7 @@ var Bounds = require('../geometry/Bounds');
             bodyBtoA,
             contactShare,
             positionImpulse,
-            contactCount = {},
-            tempA = Vector._temp[0],
-            tempB = Vector._temp[1],
-            tempC = Vector._temp[2],
-            tempD = Vector._temp[3];
+            contactCount = {};
 
         // find impulses required to resolve penetration
         for (i = 0; i < pairs.length; i++) {
@@ -79,9 +75,9 @@ var Bounds = require('../geometry/Bounds');
             normal = collision.normal;
 
             // get current separation between body edges involved in collision
-            bodyBtoA = Vector.sub(Vector.add(bodyB.positionImpulse, bodyB.position, tempA), 
+            bodyBtoA = Vector.sub(Vector.add(bodyB.positionImpulse, bodyB.position), 
                 Vector.add(bodyA.positionImpulse, 
-                    Vector.sub(bodyB.position, collision.penetration, tempB), tempC), tempD);
+                    Vector.sub(bodyB.position, collision.penetration)));
 
             pair.separation = Vector.dot(normal, bodyBtoA);
         }
@@ -229,13 +225,8 @@ var Bounds = require('../geometry/Bounds');
      */
     Resolver.solveVelocity = function(pairs, timeScale) {
         var timeScaleSquared = timeScale * timeScale,
-            impulse = Vector._temp[0],
-            tempA = Vector._temp[1],
-            tempB = Vector._temp[2],
-            tempC = Vector._temp[3],
-            tempD = Vector._temp[4],
-            tempE = Vector._temp[5];
-        
+            impulse = {};
+
         for (var i = 0; i < pairs.length; i++) {
             var pair = pairs[i];
             
@@ -262,11 +253,11 @@ var Bounds = require('../geometry/Bounds');
             for (var j = 0; j < contacts.length; j++) {
                 var contact = contacts[j],
                     contactVertex = contact.vertex,
-                    offsetA = Vector.sub(contactVertex, bodyA.position, tempA),
-                    offsetB = Vector.sub(contactVertex, bodyB.position, tempB),
-                    velocityPointA = Vector.add(bodyA.velocity, Vector.mult(Vector.perp(offsetA), bodyA.angularVelocity), tempC),
-                    velocityPointB = Vector.add(bodyB.velocity, Vector.mult(Vector.perp(offsetB), bodyB.angularVelocity), tempD), 
-                    relativeVelocity = Vector.sub(velocityPointA, velocityPointB, tempE),
+                    offsetA = Vector.sub(contactVertex, bodyA.position),
+                    offsetB = Vector.sub(contactVertex, bodyB.position),
+                    velocityPointA = Vector.add(bodyA.velocity, Vector.mult(Vector.perp(offsetA), bodyA.angularVelocity)),
+                    velocityPointB = Vector.add(bodyB.velocity, Vector.mult(Vector.perp(offsetB), bodyB.angularVelocity)), 
+                    relativeVelocity = Vector.sub(velocityPointA, velocityPointB),
                     normalVelocity = Vector.dot(normal, relativeVelocity);
 
                 var tangentVelocity = Vector.dot(tangent, relativeVelocity),
