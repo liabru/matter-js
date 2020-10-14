@@ -51,7 +51,7 @@ var Bounds = require('../geometry/Bounds');
      * @param {number} timeScale
      */
     Resolver.solvePosition = function(pairs, timeScale) {
-        let i,
+        var i,
             pair,
             collision,
             bodyA,
