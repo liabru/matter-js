@@ -31,6 +31,7 @@
     "json-stringify-pretty-compact": "^2.0.0",
     "run-sequence": "^2.2.1",
     "webpack": "^4.44.2",
+    "puppeteer-core": "^5.5.0",
     "webpack-cli": "^3.3.11",
     "webpack-dev-server": "^3.11.0"
   },
@@ -41,9 +42,12 @@
     "build-examples": "webpack --config webpack.examples.config.js --mode=production --env.ALPHA & webpack --config webpack.examples.config.js --mode=production --env.MINIMIZE --env.ALPHA",
     "lint": "eslint 'src/**/*.js' 'demo/js/Demo.js' 'demo/js/Compare.js' 'examples/*.js' 'webpack.*.js' 'Gulpfile.js'",
     "doc": "gulp doc",
-    "test": "jest",
-    "test-save": "SAVE=true jest",
-    "test-watch": "jest --watch"
+    "test": "npm run test-node",
+    "test-all": "jest",
+    "test-save": "SAVE=true npm run test-node",
+    "test-watch": "npm run test-node -- --watch",
+    "test-node": "jest ./test/Examples.spec.js",
+    "test-browser": "jest ./test/Browser.spec.js"
   },
   "dependencies": {},
   "files": [
