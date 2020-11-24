@@ -115,7 +115,11 @@ You can install using package managers [npm](https://www.npmjs.org/package/matte
 
     npm install matter-js
 
-Alternatively you can download a [stable release](https://github.com/liabru/matter-js/tags) or try the latest experimental [alpha build](https://github.com/liabru/matter-js/tree/master/build) (master) and include the script in your web page:
+If you wish to include it as a script tag you can link to a service like [unpkg](https://unpkg.com/) and include it in your HTML like so:
+
+    <script src="https://unpkg.com/matter-js"></script>
+
+Anmother way is to download a [stable release](https://github.com/liabru/matter-js/tags) or try the latest experimental [alpha build](https://github.com/liabru/matter-js/tree/master/build) (master) and include the script in your web page:
 
     <script src="matter.js" type="text/javascript"></script>
 
