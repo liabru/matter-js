@@ -59,7 +59,7 @@ gulp.task('release', callback => {
         if (stdout && stdout.trim()) {
             throw new gutil.PluginError({
                 plugin: 'release',
-                message: 'cannot build release as there are uncomitted changes'
+                message: 'cannot build release as there are uncommitted changes'
             });
         } else {
             sequence(

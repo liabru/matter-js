@@ -85,7 +85,7 @@ Example.ragdoll = function() {
         counter = 0;
 
     Events.on(engine, 'afterUpdate', function(event) {
-        // tween the timescale for slow-mo
+        // tweak the timescale for slow-mo
         if (mouse.button === -1) {
             engine.timing.timeScale += (timeScaleTarget - engine.timing.timeScale) * 0.05;
         } else {
@@ -454,7 +454,7 @@ Example.ragdoll.ragdoll = function(x, y, scale, options) {
         }
     });
 
-    var headContraint = Constraint.create({
+    var headConstraint = Constraint.create({
         bodyA: head,
         pointA: {
             x: 0,
@@ -488,7 +488,7 @@ Example.ragdoll.ragdoll = function(x, y, scale, options) {
         ],
         constraints: [
             upperToLowerLeftArm, upperToLowerRightArm, chestToLeftUpperArm, 
-            chestToRightUpperArm, headContraint, upperToLowerLeftLeg, 
+            chestToRightUpperArm, headConstraint, upperToLowerLeftLeg, 
             upperToLowerRightLeg, chestToLeftUpperLeg, chestToRightUpperLeg,
             legToLeg
         ]
