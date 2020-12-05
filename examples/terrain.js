@@ -106,5 +106,5 @@ Example.terrain = function() {
 };
 
 if (typeof module !== 'undefined') {
-    module.exports = Example;
+    module.exports = Example[Object.keys(Example)[0]];
 }
