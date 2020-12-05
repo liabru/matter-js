@@ -1,7 +1,7 @@
 .idea
 node_modules
 npm-debug.log
-doc
+docs
 matter-doc-theme
 RELEASE.md
 build/matter-dev.js
