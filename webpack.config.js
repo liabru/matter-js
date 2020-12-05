@@ -24,8 +24,10 @@ module.exports = (env = {}) => {
 ${alpha ? alphaInfo : ''}${pkg.homepage}
 License ${pkg.license}${!minimize ? '\n\n' + license : ''}`;
 
+    const entry = isDevServer ? './demo/js/Server.js' : './src/module/main.js';
+
     return {
-        entry: { [name]: './src/module/main.js' },
+        entry: { [name]: entry },
         output: {
             library: 'Matter',
             libraryTarget: 'umd',
