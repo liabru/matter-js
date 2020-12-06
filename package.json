@@ -47,7 +47,7 @@
     "test-browser": "jest ./test/Browser.spec.js",
     "changelog": "conventional-changelog -i CHANGELOG.md -s -r",
     "release": "npm version --no-git-tag-version",
-    "preversion": "git checkout -b master && npm run lint && SAVE=true npm run test-all",
+    "preversion": "git checkout master && npm run lint && SAVE=true npm run test-all",
     "version": "git checkout -b release/$npm_package_version && npm run build"
   },
   "dependencies": {},
