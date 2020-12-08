@@ -22,7 +22,6 @@ Example.sprites = function() {
         options: {
             width: 800,
             height: 600,
-            background: '#0f0f13',
             showAngleIndicator: false,
             wireframes: false
         }
