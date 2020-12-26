@@ -5841,7 +5841,7 @@ var Common = _dereq_('./Common');
      * This sorting attempts to satisfy every dependency's requested ordering, but may not be exact in all cases.
      * This function logs the resulting status of each dependency in the console, along with any warnings.
      * - A green tick ✅ indicates a dependency was resolved and installed.
-     * - An orange diamond 🔶 indicates a dependency was resolved but a warning was thrown for it or one if its dependencies.
+     * - An orange diamond 🔶 indicates a dependency was resolved but a warning was thrown for it or one of its dependencies.
      * - A red cross ❌ indicates a dependency could not be resolved.
      * Avoid calling this function multiple times on the same module unless you intend to manually control installation order.
      * @method use
