@@ -335,4 +335,65 @@ var Vector = require('../geometry/Vector');
         }
     };
 
+     /**
+     * Creates a new rigid body model with a capsule hull. 
+     * The options parameter is an object that specifies any properties you wish to override the defaults.
+     * See the properties section of the `Matter.Body` module for detailed information on what you can pass via the `options` object.
+     * @method capsule
+     * @param {number} x
+     * @param {number} y
+     * @param {number} radius
+     * @param {number} height
+     * @param {object} [options]
+     * @param {number} [rotation] vertices roate of angle
+     * @param {number} [maxSides]
+     * @return {body} A new capsule body
+     */
+    Bodies.capsule = function(x, y, radius , height , options , rotation, maxSides) {
+        options = options || {};
+
+        maxSides = maxSides || 26;
+        var sides = Math.ceil(Math.max(6, Math.min(maxSides, radius)));
+        // optimisation: always use even number of sides (half the number of unique axes)
+        sides = sides % 2 === 1 ? sides++ : sides;
+
+        var halfSides= sides/2,
+            halfDiff = (height - radius)/2,
+            theta = 2 * Math.PI / sides,
+            path = '',
+            angOffset = Math.PI + theta * 0.5,
+            angle, 
+            xx , 
+            yy , 
+            yOffset ;
+
+            // Always greater than 0 of halfDiff
+            halfDiff = halfDiff < 0 ? 0 : halfDiff;
+
+        for (var i = 0; i < sides  ; i++) {
+            yOffset = i > halfSides ? halfDiff : -halfDiff;
+            angle = angOffset + (i * theta);
+            xx = Math.cos(angle) * radius;
+            yy = Math.sin(angle) * radius + yOffset;
+            if(i == 0){
+                path +='L ' + xx.toFixed(3) + ' ' + (yy - yOffset *2).toFixed(3) + ' ';
+            }
+            path += 'L ' + xx.toFixed(3) + ' ' + yy.toFixed(3) + ' ';
+            if(i == halfSides){
+                path +='L ' + xx.toFixed(3) + ' ' + (yy - yOffset *2).toFixed(3) + ' ';
+            } 
+        }
+        var createCapsule = {
+            label: 'createCapsule Body',
+            position: { x: x, y: y },
+            vertices: Vertices.fromPath(path)
+        };
+
+        if(rotation !=null || rotation % (Math.PI * 2) == 0){
+            Vertices.rotate(createCapsule.vertices , rotation, {x:x,y:y});
+        }
+
+        return Body.create(Common.extend({}, createCapsule, options));
+    };
+
 })();
