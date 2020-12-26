@@ -1,5 +1,5 @@
 /*!
- * matter-js-examples 0.14.2 by @liabru 2020-12-05
+ * matter-js-examples 0.15.0 by @liabru 2020-12-26
  * http://brm.io/matter-js/
  * License MIT
  * 
@@ -308,13 +308,13 @@ Example.avalanche = function() {
     var stack = Composites.stack(20, 20, 20, 5, 0, 0, function(x, y) {
         return Bodies.circle(x, y, Common.random(10, 20), { friction: 0.00001, restitution: 0.5, density: 0.001 });
     });
-    
+
     World.add(world, stack);
     
     World.add(world, [
-        Bodies.rectangle(200, 150, 700, 20, { isStatic: true, angle: Math.PI * 0.06 }),
-        Bodies.rectangle(500, 350, 700, 20, { isStatic: true, angle: -Math.PI * 0.06 }),
-        Bodies.rectangle(340, 580, 700, 20, { isStatic: true, angle: Math.PI * 0.04 })
+        Bodies.rectangle(200, 150, 700, 20, { isStatic: true, angle: Math.PI * 0.06, render: { fillStyle: '#060a19' } }),
+        Bodies.rectangle(500, 350, 700, 20, { isStatic: true, angle: -Math.PI * 0.06, render: { fillStyle: '#060a19' } }),
+        Bodies.rectangle(340, 580, 700, 20, { isStatic: true, angle: Math.PI * 0.04, render: { fillStyle: '#060a19' } })
     ]);
 
     // add mouse control
@@ -407,7 +407,7 @@ Example.ballPool = function() {
 
     // add bodies
     World.add(world, [
-        Bodies.rectangle(400, 600, 1200, 50.5, { isStatic: true })
+        Bodies.rectangle(400, 600, 1200, 50.5, { isStatic: true, render: { fillStyle: '#060a19' } })
     ]);
 
     var stack = Composites.stack(100, 0, 10, 8, 10, 10, function(x, y) {
@@ -521,7 +521,7 @@ Example.bridge = function() {
             density: 0.005,
             frictionAir: 0.05,
             render: {
-                fillStyle: '#575375'
+                fillStyle: '#060a19'
             }
         });
     });
@@ -764,9 +764,9 @@ Example.car = function() {
     World.add(world, Composites.car(350, 300, 150 * scale, 30 * scale, 30 * scale));
     
     World.add(world, [
-        Bodies.rectangle(200, 150, 400, 20, { isStatic: true, angle: Math.PI * 0.06 }),
-        Bodies.rectangle(500, 350, 650, 20, { isStatic: true, angle: -Math.PI * 0.06 }),
-        Bodies.rectangle(300, 560, 600, 20, { isStatic: true, angle: Math.PI * 0.04 })
+        Bodies.rectangle(200, 150, 400, 20, { isStatic: true, angle: Math.PI * 0.06, render: { fillStyle: '#060a19' }}),
+        Bodies.rectangle(500, 350, 650, 20, { isStatic: true, angle: -Math.PI * 0.06, render: { fillStyle: '#060a19' }}),
+        Bodies.rectangle(300, 560, 600, 20, { isStatic: true, angle: Math.PI * 0.04, render: { fillStyle: '#060a19' }})
     ]);
 
     // add mouse control
@@ -863,9 +863,9 @@ Example.catapult = function() {
     World.add(world, [
         stack,
         catapult,
-        Bodies.rectangle(400, 600, 800, 50.5, { isStatic: true }),
-        Bodies.rectangle(250, 555, 20, 50, { isStatic: true }),
-        Bodies.rectangle(400, 535, 20, 80, { isStatic: true, collisionFilter: { group: group } }),
+        Bodies.rectangle(400, 600, 800, 50.5, { isStatic: true, render: { fillStyle: '#060a19' } }),
+        Bodies.rectangle(250, 555, 20, 50, { isStatic: true, render: { fillStyle: '#060a19' } }),
+        Bodies.rectangle(400, 535, 20, 80, { isStatic: true, collisionFilter: { group: group }, render: { fillStyle: '#060a19' } }),
         Bodies.circle(560, 100, 50, { density: 0.005 }),
         Constraint.create({ 
             bodyA: catapult, 
@@ -1187,8 +1187,8 @@ Example.cloth = function() {
 
     World.add(world, [
         cloth,
-        Bodies.circle(300, 500, 80, { isStatic: true }),
-        Bodies.rectangle(500, 480, 80, 80, { isStatic: true }),
+        Bodies.circle(300, 500, 80, { isStatic: true, render: { fillStyle: '#060a19' }}),
+        Bodies.rectangle(500, 480, 80, 80, { isStatic: true, render: { fillStyle: '#060a19' }}),
         Bodies.rectangle(400, 609, 800, 50, { isStatic: true })
     ]);
 
@@ -1261,8 +1261,7 @@ Example.collisionFiltering = function() {
         options: {
             width: 800,
             height: 600,
-            wireframes: false,
-            background: '#111'
+            wireframes: false
         }
     });
 
@@ -1278,9 +1277,9 @@ Example.collisionFiltering = function() {
         greenCategory = 0x0004,
         blueCategory = 0x0008;
 
-    var redColor = '#C44D58',
-        blueColor = '#4ECDC4',
-        greenColor = '#C7F464';
+    var colorA = '#f55a3c',
+        colorB = '#063e7b',
+        colorC = '#f5d259';
 
     // add floor
     World.add(world, Bodies.rectangle(400, 600, 900, 50, { 
@@ -1295,14 +1294,14 @@ Example.collisionFiltering = function() {
     World.add(world,
         Composites.stack(275, 100, 5, 9, 10, 10, function(x, y, column, row) {
             var category = redCategory,
-                color = redColor;
+                color = colorA;
 
             if (row > 5) {
                 category = blueCategory;
-                color = blueColor;
+                color = colorB;
             } else if (row > 2) {
                 category = greenCategory;
-                color = greenColor;
+                color = colorC;
             }
 
             return Bodies.circle(x, y, 20, {
@@ -1325,7 +1324,7 @@ Example.collisionFiltering = function() {
                 mask: defaultCategory | greenCategory
             },
             render: {
-                fillStyle: greenColor
+                fillStyle: colorC
             }
         })
     );
@@ -1337,7 +1336,7 @@ Example.collisionFiltering = function() {
                 mask: defaultCategory | redCategory
             },
             render: {
-                fillStyle: redColor
+                fillStyle: colorA
             }
         })
     );
@@ -1349,7 +1348,7 @@ Example.collisionFiltering = function() {
                 mask: defaultCategory | blueCategory
             },
             render: {
-                fillStyle: blueColor
+                fillStyle: colorB
             }
         })
     );
@@ -1782,7 +1781,7 @@ Example.concave = function() {
         horseShoe = Vertices.fromPath('35 7 19 17 14 38 14 58 25 79 45 85 65 84 65 66 46 67 34 59 30 44 33 29 45 23 66 23 66 7 53 7');
 
     var stack = Composites.stack(50, 50, 6, 4, 10, 10, function(x, y) {
-        var color = Common.choose(['#556270', '#4ECDC4', '#C7F464', '#FF6B6B', '#C44D58']);
+        var color = Common.choose(['#f19648', '#f5d259', '#f55a3c', '#063e7b', '#ececd1']);
         return Bodies.fromVertices(x, y, Common.choose([arrow, chevron, star, horseShoe]), {
             render: {
                 fillStyle: color,
@@ -2055,8 +2054,7 @@ Example.doublePendulum = function() {
         options: {
             width: 800,
             height: 600,
-            wireframes: false,
-            background: '#0f0f13'
+            wireframes: false
         }
     });
 
@@ -2082,9 +2080,6 @@ Example.doublePendulum = function() {
             }
         });
     });
-
-    pendulum.bodies[0].render.strokeStyle = '#4a485b';
-    pendulum.bodies[1].render.strokeStyle = '#4a485b';
 
     world.gravity.scale = 0.002;
     
@@ -2419,17 +2414,17 @@ Example.friction = function() {
     ]);
 
     World.add(world, [
-        Bodies.rectangle(300, 180, 700, 20, { isStatic: true, angle: Math.PI * 0.06 }),
+        Bodies.rectangle(300, 180, 700, 20, { isStatic: true, angle: Math.PI * 0.06, render: { fillStyle: '#060a19' } }),
         Bodies.rectangle(300, 70, 40, 40, { friction: 0.001 })
     ]);
 
     World.add(world, [
-        Bodies.rectangle(300, 350, 700, 20, { isStatic: true, angle: Math.PI * 0.06 }),
+        Bodies.rectangle(300, 350, 700, 20, { isStatic: true, angle: Math.PI * 0.06, render: { fillStyle: '#060a19' } }),
         Bodies.rectangle(300, 250, 40, 40, { friction: 0.0005 })
     ]);
 
     World.add(world, [
-        Bodies.rectangle(300, 520, 700, 20, { isStatic: true, angle: Math.PI * 0.06 }),
+        Bodies.rectangle(300, 520, 700, 20, { isStatic: true, angle: Math.PI * 0.06, render: { fillStyle: '#060a19' } }),
         Bodies.rectangle(300, 430, 40, 40, { friction: 0 })
     ]);
 
@@ -2760,15 +2755,15 @@ Example.manipulation = function() {
     Runner.run(runner, engine);
 
     // add bodies
-    var bodyA = Bodies.rectangle(100, 200, 50, 50, { isStatic: true }),
+    var bodyA = Bodies.rectangle(100, 200, 50, 50, { isStatic: true, render: { fillStyle: '#060a19' } }),
         bodyB = Bodies.rectangle(200, 200, 50, 50),
         bodyC = Bodies.rectangle(300, 200, 50, 50),
         bodyD = Bodies.rectangle(400, 200, 50, 50),
         bodyE = Bodies.rectangle(550, 200, 50, 50),
         bodyF = Bodies.rectangle(700, 200, 50, 50),
-        bodyG = Bodies.circle(400, 100, 25),
-        partA = Bodies.rectangle(600, 200, 120, 50),
-        partB = Bodies.rectangle(660, 200, 50, 190),
+        bodyG = Bodies.circle(400, 100, 25, { render: { fillStyle: '#060a19' } }),
+        partA = Bodies.rectangle(600, 200, 120, 50, { render: { fillStyle: '#060a19' } }),
+        partB = Bodies.rectangle(660, 200, 50, 190, { render: { fillStyle: '#060a19' } }),
         compound = Body.create({
             parts: [partA, partB],
             isStatic: true
@@ -3103,8 +3098,7 @@ Example.ragdoll = function() {
         options: {
             width: 800,
             height: 600,
-            showAngleIndicator: true,
-            background: '#0f0f13'
+            showAngleIndicator: true
         }
     });
 
@@ -3121,7 +3115,9 @@ Example.ragdoll = function() {
         return Bodies.rectangle(x - 50, y + column * 50, 100, 1000, {
             isStatic: true,
             render: {
-                fillStyle: '#222'
+                fillStyle: '#060a19',
+                strokeStyle: '#ffffff',
+                lineWidth: 1
             }
         });
     });
@@ -3131,7 +3127,7 @@ Example.ragdoll = function() {
         var sides = Math.round(Common.random(1, 8)),
             options = {
                 render: {
-                    fillStyle: Common.choose(['#006BA6', '#0496FF', '#D81159', '#8F2D56'])
+                    fillStyle: Common.choose(['#f19648', '#f5d259', '#f55a3c', '#063e7b', '#ececd1'])
                 }
             };
 
@@ -4054,8 +4050,7 @@ Example.sensors = function() {
         options: {
             width: 800,
             height: 600,
-            wireframes: false,
-            background: '#111'
+            wireframes: false
         }
     });
 
@@ -4066,14 +4061,14 @@ Example.sensors = function() {
     Runner.run(runner, engine);
 
     // add bodies
-    var redColor = '#C44D58',
-        greenColor = '#C7F464';
+    var colorA = '#f55a3c',
+        colorB = '#f5d259';
 
     var collider = Bodies.rectangle(400, 300, 500, 50, {
         isSensor: true,
         isStatic: true,
         render: {
-            strokeStyle: redColor,
+            strokeStyle: colorA,
             fillStyle: 'transparent',
             lineWidth: 1
         }
@@ -4081,11 +4076,11 @@ Example.sensors = function() {
 
     World.add(world, [
         collider,
-        Bodies.rectangle(400, 620, 800, 50, { 
+        Bodies.rectangle(400, 600, 800, 50, { 
             isStatic: true,
             render: {
-                fillStyle: 'transparent',
-                lineWidth: 1
+                fillStyle: '#060a19',
+                lineWidth: 0
             }
         })
     ]);
@@ -4093,7 +4088,7 @@ Example.sensors = function() {
     World.add(world,
         Bodies.circle(400, 40, 30, {
             render: {
-                strokeStyle: greenColor,
+                strokeStyle: colorB,
                 fillStyle: 'transparent',
                 lineWidth: 1
             }
@@ -4107,9 +4102,9 @@ Example.sensors = function() {
             var pair = pairs[i];
 
             if (pair.bodyA === collider) {
-                pair.bodyB.render.strokeStyle = redColor;
+                pair.bodyB.render.strokeStyle = colorA;
             } else if (pair.bodyB === collider) {
-                pair.bodyA.render.strokeStyle = redColor;
+                pair.bodyA.render.strokeStyle = colorA;
             }
         }
     });
@@ -4121,9 +4116,9 @@ Example.sensors = function() {
             var pair = pairs[i];
 
             if (pair.bodyA === collider) {
-                pair.bodyB.render.strokeStyle = greenColor;
+                pair.bodyB.render.strokeStyle = colorB;
             } else if (pair.bodyB === collider) {
-                pair.bodyA.render.strokeStyle = greenColor;
+                pair.bodyA.render.strokeStyle = colorB;
             }
         }
     });
@@ -4322,7 +4317,7 @@ Example.slingshot = function() {
     Runner.run(runner, engine);
 
     // add bodies
-    var ground = Bodies.rectangle(395, 600, 815, 50, { isStatic: true }),
+    var ground = Bodies.rectangle(395, 600, 815, 50, { isStatic: true, render: { fillStyle: '#060a19' } }),
         rockOptions = { density: 0.004 },
         rock = Bodies.polygon(170, 450, 8, 20, rockOptions),
         anchor = { x: 170, y: 450 },
@@ -4336,7 +4331,7 @@ Example.slingshot = function() {
         return Bodies.rectangle(x, y, 25, 40);
     });
 
-    var ground2 = Bodies.rectangle(610, 250, 200, 20, { isStatic: true });
+    var ground2 = Bodies.rectangle(610, 250, 200, 20, { isStatic: true, render: { fillStyle: '#060a19' } });
 
     var pyramid2 = Composites.pyramid(550, 0, 5, 10, 0, 0, function(x, y) {
         return Bodies.rectangle(x, y, 25, 40);
@@ -4515,7 +4510,6 @@ Example.sprites = function() {
         options: {
             width: 800,
             height: 600,
-            background: '#0f0f13',
             showAngleIndicator: false,
             wireframes: false
         }
@@ -4741,7 +4735,7 @@ Example.staticFriction = function() {
     Runner.run(runner, engine);
 
     // add bodies
-    var body = Bodies.rectangle(400, 500, 200, 60, { isStatic: true, chamfer: 10 }),
+    var body = Bodies.rectangle(400, 500, 200, 60, { isStatic: true, chamfer: 10, render: { fillStyle: '#060a19' } }),
         size = 50,
         counter = -1;
 
@@ -5046,7 +5040,7 @@ Example.svg = function() {
             (function(i) {
                 $.get('./svg/' + svgs[i] + '.svg').done(function(data) {
                     var vertexSets = [],
-                        color = Common.choose(['#556270', '#4ECDC4', '#C7F464', '#FF6B6B', '#C44D58']);
+                        color = Common.choose(['#f19648', '#f5d259', '#f55a3c', '#063e7b', '#ececd1']);
 
                     $(data).find('path').each(function(i, path) {
                         var points = Svg.pathToVertices(path, 30);
@@ -5066,7 +5060,7 @@ Example.svg = function() {
 
         $.get('./svg/svg.svg').done(function(data) {
             var vertexSets = [],
-                color = Common.choose(['#556270', '#4ECDC4', '#C7F464', '#FF6B6B', '#C44D58']);
+                color = Common.choose(['#f19648', '#f5d259', '#f55a3c', '#063e7b', '#ececd1']);
 
             $(data).find('path').each(function(i, path) {
                 vertexSets.push(Svg.pathToVertices(path, 30));
@@ -5182,8 +5176,8 @@ Example.terrain = function() {
             terrain = Bodies.fromVertices(400, 350, vertexSets, {
                 isStatic: true,
                 render: {
-                    fillStyle: '#2e2b44',
-                    strokeStyle: '#2e2b44',
+                    fillStyle: '#060a19',
+                    strokeStyle: '#060a19',
                     lineWidth: 1
                 }
             }, true);
