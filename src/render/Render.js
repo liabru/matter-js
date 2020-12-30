@@ -513,17 +513,17 @@ var Mouse = require('../core/Mouse');
                 start = constraint.pointA;
             }
 
+            if (bodyB) {
+                end = Vector.add(bodyB.position, constraint.pointB);
+            } else {
+                end = constraint.pointB;
+            }
+
             if (constraint.render.type === 'pin') {
                 c.beginPath();
                 c.arc(start.x, start.y, 3, 0, 2 * Math.PI);
                 c.closePath();
             } else {
-                if (bodyB) {
-                    end = Vector.add(bodyB.position, constraint.pointB);
-                } else {
-                    end = constraint.pointB;
-                }
-
                 c.beginPath();
                 c.moveTo(start.x, start.y);
 
