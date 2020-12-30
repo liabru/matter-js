@@ -40,17 +40,17 @@ Example.friction = function() {
     ]);
 
     World.add(world, [
-        Bodies.rectangle(300, 180, 700, 20, { isStatic: true, angle: Math.PI * 0.06 }),
+        Bodies.rectangle(300, 180, 700, 20, { isStatic: true, angle: Math.PI * 0.06, render: { fillStyle: '#060a19' } }),
         Bodies.rectangle(300, 70, 40, 40, { friction: 0.001 })
     ]);
 
     World.add(world, [
-        Bodies.rectangle(300, 350, 700, 20, { isStatic: true, angle: Math.PI * 0.06 }),
+        Bodies.rectangle(300, 350, 700, 20, { isStatic: true, angle: Math.PI * 0.06, render: { fillStyle: '#060a19' } }),
         Bodies.rectangle(300, 250, 40, 40, { friction: 0.0005 })
     ]);
 
     World.add(world, [
-        Bodies.rectangle(300, 520, 700, 20, { isStatic: true, angle: Math.PI * 0.06 }),
+        Bodies.rectangle(300, 520, 700, 20, { isStatic: true, angle: Math.PI * 0.06, render: { fillStyle: '#060a19' } }),
         Bodies.rectangle(300, 430, 40, 40, { friction: 0 })
     ]);
 

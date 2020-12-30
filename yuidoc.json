@@ -4,7 +4,7 @@
   "url": "http://brm.io/matter-js/",
   "options": {
       "linkNatives": true,
-      "outdir": "doc/build",
+      "outdir": "docs",
       "themedir": "matter-doc-theme",
       "paths": "src"
   }

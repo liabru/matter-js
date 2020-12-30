@@ -39,7 +39,7 @@ Example.ballPool = function() {
 
     // add bodies
     World.add(world, [
-        Bodies.rectangle(400, 600, 1200, 50.5, { isStatic: true })
+        Bodies.rectangle(400, 600, 1200, 50.5, { isStatic: true, render: { fillStyle: '#060a19' } })
     ]);
 
     var stack = Composites.stack(100, 0, 10, 8, 10, 10, function(x, y) {

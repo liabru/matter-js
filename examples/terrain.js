@@ -47,8 +47,8 @@ Example.terrain = function() {
             terrain = Bodies.fromVertices(400, 350, vertexSets, {
                 isStatic: true,
                 render: {
-                    fillStyle: '#2e2b44',
-                    strokeStyle: '#2e2b44',
+                    fillStyle: '#060a19',
+                    strokeStyle: '#060a19',
                     lineWidth: 1
                 }
             }, true);
@@ -106,5 +106,5 @@ Example.terrain = function() {
 };
 
 if (typeof module !== 'undefined') {
-    module.exports = Example;
+    module.exports = Example[Object.keys(Example)[0]];
 }

@@ -44,7 +44,7 @@ Example.bridge = function() {
             density: 0.005,
             frictionAir: 0.05,
             render: {
-                fillStyle: '#575375'
+                fillStyle: '#060a19'
             }
         });
     });
