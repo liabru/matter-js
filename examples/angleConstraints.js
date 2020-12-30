@@ -215,6 +215,8 @@ Example.angleConstraints = function() {
     };
 };
 
+Example.angleConstraints.for = '>0.15.0';
+
 if (typeof module !== 'undefined') {
-    module.exports = Example[Object.keys(Example)[0]];
+    module.exports = Example.angleConstraints;
 }
