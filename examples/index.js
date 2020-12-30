@@ -1,5 +1,6 @@
 module.exports = {
     airFriction: require('./airFriction.js'),
+    angleConstraints: require('./angleConstraints.js'),
     avalanche: require('./avalanche.js'),
     ballPool: require('./ballPool.js'),
     bridge: require('./bridge.js'),
