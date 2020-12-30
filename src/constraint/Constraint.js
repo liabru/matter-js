@@ -402,7 +402,7 @@ var Common = require('../core/Common');
      * @private
      * @method solveAngleLimits
      */
-    Constraint.solveAngleLimits = function(constraint, body, angle, angleMin, angleMax, delta, deltaScale, currentLength, pointAWorld, pointBWorld) {
+    Constraint.solveAngleLimits = function(constraint, body, angle, angleMin, angleMax, delta, direction, currentLength, pointAWorld, pointBWorld) {
         var currentAngle = (body ? body.angle : 0) + (constraint.length > 0 ? angle : 0),
             min = angleMin < angleMax ? angleMin : angleMax,
             max = angleMax > angleMin ? angleMax : angleMin,
@@ -415,8 +415,8 @@ var Common = require('../core/Common');
         } else {
             // otherwise use relative angle
             angleDelta = Math.atan2(
-                angleNormal.x * delta.y * deltaScale - angleNormal.y * delta.x * deltaScale,
-                angleNormal.x * delta.x * deltaScale + angleNormal.y * delta.y * deltaScale
+                angleNormal.x * delta.y * direction - angleNormal.y * delta.x * direction,
+                angleNormal.x * delta.x * direction + angleNormal.y * delta.y * direction
             );
         }
 
