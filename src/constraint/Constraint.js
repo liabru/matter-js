@@ -1,7 +1,11 @@
 /**
 * The `Matter.Constraint` module contains methods for creating and manipulating constraints.
-* Constraints are used for specifying that a fixed distance must be maintained between two bodies (or a body and a fixed world-space position).
-* The stiffness of constraints can be modified to create springs or elastic.
+* 
+* Constraints are used for specifying that a fixed distance or angle must be maintained between bodies or fixed points.
+* 
+* The stiffness and damping can be modified for a spring-like effect.
+*
+* The angle range and angle stiffness can also be limited if needed.
 *
 * See the included usage [examples](https://github.com/liabru/matter-js/tree/master/examples).
 *
@@ -28,11 +32,18 @@ var Common = require('../core/Common');
 
     /**
      * Creates a new constraint.
-     * All properties have default values, and many are pre-calculated automatically based on other properties.
-     * To simulate a revolute constraint (or pin joint) set `length: 0` and a high `stiffness` value (e.g. `0.7` or above).
-     * If the constraint is unstable, try lowering the `stiffness` value and / or increasing `engine.constraintIterations`.
-     * For compound bodies, constraints must be applied to the parent body (not one of its parts).
-     * See the properties section below for detailed information on what you can pass via the `options` object.
+     * 
+     * All properties have default values and some may be calculated automatically based on other properties.
+     * 
+     * To simulate a pin constraint (or revolute joint) set `length: 0` and a high `stiffness` value (e.g. `0.7` or above).
+     * 
+     * To limit the range of angles of the constraint see the set of angle properties.
+     * 
+     * If the constraint is unstable, try lowering the `stiffness` value or increasing `engine.constraintIterations`.
+     * 
+     * For compound bodies, constraints must be applied to the parent body and not its parts.
+     * 
+     * See the properties section which may be set through the `options` object.
      * @method create
      * @param {} options
      * @return {constraint} constraint
@@ -515,7 +526,7 @@ var Common = require('../core/Common');
      */
 
     /**
-     * **ALPHA**: A `Boolean` that defines if the constraint's anglular limits should be rendered.
+     * A `Boolean` that defines if the constraint's anglular limits should be rendered.
      *
      * @property render.angles
      * @type boolean
@@ -556,7 +567,9 @@ var Common = require('../core/Common');
 
     /**
      * A `Number` that specifies the stiffness of the constraint, i.e. the rate at which it returns to its resting `constraint.length`.
+     * 
      * A value of `1` means the constraint should be very stiff.
+     * 
      * A value of `0.2` means the constraint acts like a soft spring.
      *
      * @property stiffness
@@ -567,8 +580,11 @@ var Common = require('../core/Common');
     /**
      * A `Number` that specifies the damping of the constraint, 
      * i.e. the amount of resistance applied to each body based on their velocities to limit the amount of oscillation.
+     * 
      * Damping will only be apparent when the constraint also has a very low `stiffness`.
+     * 
      * A value of `0.1` means the constraint will apply heavy damping, resulting in little to no oscillation.
+     * 
      * A value of `0` means the constraint will apply no damping.
      *
      * @property damping
@@ -578,6 +594,7 @@ var Common = require('../core/Common');
 
     /**
      * A `Number` that specifies the target resting length of the constraint. 
+     * 
      * It is calculated automatically in `Constraint.create` from initial positions of the `constraint.bodyA` and `constraint.bodyB`.
      *
      * @property length
@@ -585,11 +602,15 @@ var Common = require('../core/Common');
      */
 
     /**
-     * **ALPHA**: A `Number` in radians that specifies the limiting angle of the constraint about `constraint.pointA`.
-     * It is relative to `constraint.bodyA.angle` if `constraint.bodyA` is set, otherwise is absolute.
-     * Defaults to the initial angle of the constraint or `0`.
+     * A `Number` in radians that specifies the limiting angle of the constraint about `constraint.pointA`.
+     * 
      * Only applies if `constraint.angleAStiffness > 0`.
-     * The constraint angle is measured between the vector `pointA - pointB` and the x-axis.
+     * 
+     * Defaults to the initial angle of the constraint or `0`.
+     * 
+     * The angle is relative to `constraint.bodyA.angle` if `constraint.bodyA` is set, otherwise is absolute.
+     * 
+     * When absolute the angle is measured between the vector `constraint.pointA - constraint.pointB` and the x-axis.
      *
      * @property angleA
      * @type number
@@ -597,9 +618,12 @@ var Common = require('../core/Common');
      */
 
     /**
-     * **ALPHA**: A `Number` that specifies the stiffness of angular limits about `constraint.pointA`.  
+     * A `Number` that specifies the stiffness of angular limits about `constraint.pointA`.  
+     * 
      * A value of `0` (default) means the constraint will not limit the angle.  
+     * 
      * A value of `0.01` means the constraint will softly limit the angle.  
+     * 
      * A value of `1` means the constraint will rigidly limit the angle.  
      *
      * @property angleAStiffness
@@ -608,8 +632,9 @@ var Common = require('../core/Common');
      */
 
     /**
-     * **ALPHA**: A `Number` in radians that specifies the lower angular limit 
+     * A `Number` in radians that specifies the lower angular limit 
      * about `constraint.pointA` relative to `constraint.angleA`.  
+     * 
      * A value of `-0.5` means the constraint is limited to `0.5` radians 
      * anti-clockwise of `constraint.angleA`, or clockwise if the value is positive.
      *
@@ -619,8 +644,11 @@ var Common = require('../core/Common');
      */
 
     /**
-     * **ALPHA**: A `Number` in radians that specifies the upper angular limit 
-     * about `constraint.pointA` relative to `constraint.angleA`. See `constraint.angleAMin` for more.
+     * A `Number` in radians that specifies the upper angular limit 
+     * about `constraint.pointA` relative to `constraint.angleA`.
+     * 
+     * A value of `-0.5` means the constraint is limited to `0.5` radians 
+     * anti-clockwise of `constraint.angleA`, or clockwise if the value is positive.
      *
      * @property angleAMax
      * @type number
@@ -628,11 +656,15 @@ var Common = require('../core/Common');
      */
 
     /**
-     * **ALPHA**: A `Number` in radians that specifies the limiting angle of the constraint about `constraint.pointB`.
-     * It is relative to `constraint.bodyB.angle` if `constraint.bodyB` is set, otherwise is absolute.
-     * Defaults to the initial angle of the constraint or `0`.
+     * A `Number` in radians that specifies the limiting angle of the constraint about `constraint.pointB`.
+     * 
      * Only applies if `constraint.angleBStiffness > 0`.
-     * The constraint angle is measured between the vector `pointA - pointB` and the x-axis.
+     * 
+     * Defaults to the initial angle of the constraint or `0`.
+     * 
+     * The angle is relative to `constraint.bodyB.angle` if `constraint.bodyB` is set, otherwise is absolute.
+     * 
+     * When absolute the angle is measured between the vector `constraint.pointA - constraint.pointB` and the x-axis.
      *
      * @property angleB
      * @type number
@@ -640,9 +672,12 @@ var Common = require('../core/Common');
      */
 
     /**
-     * **ALPHA**: A `Number` that specifies the stiffness of angular limits about `constraint.pointB`.  
+     * A `Number` that specifies the stiffness of angular limits about `constraint.pointB`.  
+     * 
      * A value of `0` (default) means the constraint will not limit the angle.  
+     * 
      * A value of `0.01` means the constraint will softly limit the angle.  
+     * 
      * A value of `1` means the constraint will rigidly limit the angle.  
      *
      * @property angleBStiffness
@@ -651,8 +686,9 @@ var Common = require('../core/Common');
      */
 
     /**
-     * **ALPHA**: A `Number` in radians that specifies the lower angular limit 
+     * A `Number` in radians that specifies the lower angular limit 
      * about `constraint.pointB` relative to `constraint.angleB`.  
+     * 
      * A value of `-0.5` means the constraint is limited to `0.5` radians 
      * anti-clockwise of `constraint.angleB`, or clockwise if the value is positive.
      *
@@ -662,8 +698,11 @@ var Common = require('../core/Common');
      */
 
     /**
-     * **ALPHA**: A `Number` in radians that specifies the upper angular limit 
-     * about `constraint.pointB` relative to `constraint.angleB`. See `constraint.angleBMin` for more.
+     * A `Number` in radians that specifies the upper angular limit 
+     * about `constraint.pointB` relative to `constraint.angleB`.
+     * 
+     * A value of `-0.5` means the constraint is limited to `0.5` radians 
+     * anti-clockwise of `constraint.angleB`, or clockwise if the value is positive.
      *
      * @property angleBMax
      * @type number
