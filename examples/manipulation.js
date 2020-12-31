@@ -36,15 +36,15 @@ Example.manipulation = function() {
     Runner.run(runner, engine);
 
     // add bodies
-    var bodyA = Bodies.rectangle(100, 200, 50, 50, { isStatic: true }),
+    var bodyA = Bodies.rectangle(100, 200, 50, 50, { isStatic: true, render: { fillStyle: '#060a19' } }),
         bodyB = Bodies.rectangle(200, 200, 50, 50),
         bodyC = Bodies.rectangle(300, 200, 50, 50),
         bodyD = Bodies.rectangle(400, 200, 50, 50),
         bodyE = Bodies.rectangle(550, 200, 50, 50),
         bodyF = Bodies.rectangle(700, 200, 50, 50),
-        bodyG = Bodies.circle(400, 100, 25),
-        partA = Bodies.rectangle(600, 200, 120 * 0.8, 50 * 0.8),
-        partB = Bodies.rectangle(660, 200, 50 * 0.8, 190 * 0.8),
+        bodyG = Bodies.circle(400, 100, 25, { render: { fillStyle: '#060a19' } }),
+        partA = Bodies.rectangle(600, 200, 120 * 0.8, 50 * 0.8, { render: { fillStyle: '#060a19' } }),
+        partB = Bodies.rectangle(660, 200, 50 * 0.8, 190 * 0.8, { render: { fillStyle: '#060a19' } }),
         compound = Body.create({
             parts: [partA, partB],
             isStatic: true
@@ -139,6 +139,8 @@ Example.manipulation = function() {
     };
 };
 
+Example.manipulation.for = '>=0.14.2';
+
 if (typeof module !== 'undefined') {
-    module.exports = Example[Object.keys(Example)[0]];
+    module.exports = Example.manipulation;
 }

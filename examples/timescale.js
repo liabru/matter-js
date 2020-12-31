@@ -150,6 +150,8 @@ Example.timescale = function() {
     };
 };
 
+Example.timescale.for = '>=0.14.2';
+
 if (typeof module !== 'undefined') {
-    module.exports = Example[Object.keys(Example)[0]];
+    module.exports = Example.timescale;
 }

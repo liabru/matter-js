@@ -26,8 +26,7 @@ Example.doublePendulum = function() {
         options: {
             width: 800,
             height: 600,
-            wireframes: false,
-            background: '#0f0f13'
+            wireframes: false
         }
     });
 
@@ -53,9 +52,6 @@ Example.doublePendulum = function() {
             }
         });
     });
-
-    pendulum.bodies[0].render.strokeStyle = '#4a485b';
-    pendulum.bodies[1].render.strokeStyle = '#4a485b';
 
     world.gravity.scale = 0.002;
     
@@ -152,6 +148,8 @@ Example.doublePendulum = function() {
     };
 };
 
+Example.doublePendulum.for = '>=0.14.2';
+
 if (typeof module !== 'undefined') {
-    module.exports = Example[Object.keys(Example)[0]];
+    module.exports = Example.doublePendulum;
 }
