@@ -34,7 +34,7 @@ Example.staticFriction = function() {
     Runner.run(runner, engine);
 
     // add bodies
-    var body = Bodies.rectangle(400, 500, 200, 60, { isStatic: true, chamfer: 10, isStatic: true, chamfer: 10, render: { fillStyle: '#060a19' } }),
+    var body = Bodies.rectangle(400, 500, 200, 60, { isStatic: true, chamfer: 10, render: { fillStyle: '#060a19' } }),
         size = 50;
 
     var stack = Composites.stack(350, 470 - 6 * size, 1, 6, 0, 0, function(x, y) {
