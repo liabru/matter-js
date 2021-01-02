@@ -99,6 +99,8 @@
         examples: examples
     });
 
+    window.MatterDemo = demo;
+
     document.body.appendChild(demo.dom.root);
 
     MatterTools.Demo.start(demo);

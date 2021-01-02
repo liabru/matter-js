@@ -196,7 +196,8 @@ var Vector = require('../geometry/Vector');
      * @return {body}
      */
     Bodies.fromVertices = function(x, y, vertexSets, options, flagInternal, removeCollinear, minimumArea) {
-        var decomp = global.decomp || require('poly-decomp'),
+        var globals = typeof global !== 'undefined' ? global : window,
+            decomp,
             body,
             parts,
             isConvex,
@@ -206,6 +207,12 @@ var Vector = require('../geometry/Vector');
             k,
             v,
             z;
+
+        try {
+            decomp = globals.decomp || require('poly-decomp');
+        } catch (e) {
+            // decomp is undefined
+        }
 
         options = options || {};
         parts = [];

@@ -27,8 +27,7 @@ Example.ragdoll = function() {
         options: {
             width: 800,
             height: 600,
-            showAngleIndicator: true,
-            background: '#0f0f13'
+            showAngleIndicator: true
         }
     });
 
@@ -45,7 +44,9 @@ Example.ragdoll = function() {
         return Bodies.rectangle(x - 50, y + column * 50, 100, 1000, {
             isStatic: true,
             render: {
-                fillStyle: '#222'
+                fillStyle: '#060a19',
+                strokeStyle: '#ffffff',
+                lineWidth: 1
             }
         });
     });
@@ -55,7 +56,7 @@ Example.ragdoll = function() {
         var sides = Math.round(Common.random(1, 8)),
             options = {
                 render: {
-                    fillStyle: Common.choose(['#006BA6', '#0496FF', '#D81159', '#8F2D56'])
+                    fillStyle: Common.choose(['#f19648', '#f5d259', '#f55a3c', '#063e7b', '#ececd1'])
                 }
             };
 
@@ -497,6 +498,8 @@ Example.ragdoll.ragdoll = function(x, y, scale, options) {
     return person;
 };
 
+Example.ragdoll.for = '>=0.14.2';
+
 if (typeof module !== 'undefined') {
-    module.exports = Example[Object.keys(Example)[0]];
+    module.exports = Example.ragdoll;
 }

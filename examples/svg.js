@@ -45,7 +45,7 @@ Example.svg = function() {
             (function(i) {
                 $.get('./svg/' + svgs[i] + '.svg').done(function(data) {
                     var vertexSets = [],
-                        color = Common.choose(['#556270', '#4ECDC4', '#C7F464', '#FF6B6B', '#C44D58']);
+                        color = Common.choose(['#f19648', '#f5d259', '#f55a3c', '#063e7b', '#ececd1']);
 
                     $(data).find('path').each(function(i, path) {
                         var points = Svg.pathToVertices(path, 30);
@@ -65,7 +65,7 @@ Example.svg = function() {
 
         $.get('./svg/svg.svg').done(function(data) {
             var vertexSets = [],
-                color = Common.choose(['#556270', '#4ECDC4', '#C7F464', '#FF6B6B', '#C44D58']);
+                color = Common.choose(['#f19648', '#f5d259', '#f55a3c', '#063e7b', '#ececd1']);
 
             $(data).find('path').each(function(i, path) {
                 vertexSets.push(Svg.pathToVertices(path, 30));
@@ -124,6 +124,8 @@ Example.svg = function() {
     };
 };
 
+Example.svg.for = '>=0.14.2';
+
 if (typeof module !== 'undefined') {
-    module.exports = Example[Object.keys(Example)[0]];
+    module.exports = Example.svg;
 }

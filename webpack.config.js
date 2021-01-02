@@ -4,6 +4,7 @@
 const webpack = require('webpack');
 const path = require('path');
 const pkg = require('./package.json');
+const fs = require('fs');
 const execSync = require('child_process').execSync;
 
 module.exports = (env = {}) => {
@@ -14,16 +15,19 @@ module.exports = (env = {}) => {
 
     const commitHash = execSync('git rev-parse --short HEAD').toString().trim();
     const version = !alpha ? pkg.version : `${pkg.version}-alpha+${commitHash}`;
+    const license = fs.readFileSync('LICENSE', 'utf8');
     const date = new Date().toISOString().slice(0, 10);
     const name = 'matter';
     const alphaInfo = 'Experimental pre-release build.\n  ';
     const banner = 
-`  ${pkg.name} ${version} by @liabru (c) ${date}
-  ${alpha ? alphaInfo : ''}${pkg.homepage}
-  License ${pkg.license}`;
+`${pkg.name} ${version} by @liabru ${date}
+${alpha ? alphaInfo : ''}${pkg.homepage}
+License ${pkg.license}${!minimize ? '\n\n' + license : ''}`;
+
+    const entry = isDevServer ? './demo/js/Server.js' : './src/module/main.js';
 
     return {
-        entry: { [name]: './src/module/main.js' },
+        entry: { [name]: entry },
         output: {
             library: 'Matter',
             libraryTarget: 'umd',
