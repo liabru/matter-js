@@ -27,9 +27,9 @@
     "json-stringify-pretty-compact": "^2.0.0",
     "puppeteer-core": "^5.5.0",
     "run-sequence": "^2.2.1",
-    "webpack": "^4.44.2",
+    "webpack": "^4.46.0",
     "webpack-cli": "^3.3.11",
-    "webpack-dev-server": "^3.11.0"
+    "webpack-dev-server": "^3.11.1"
   },
   "scripts": {
     "dev": "webpack-dev-server --watch-content-base",
