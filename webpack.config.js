@@ -60,7 +60,7 @@ License ${pkg.license}${!minimize ? '\n\n' + license : ''}`;
             contentBase: [
                 path.resolve(__dirname, './demo'),
                 path.resolve(__dirname, './examples'),
-                path.resolve(__dirname, './build')
+                path.resolve(__dirname, './node_modules/matter-tools/build/')
             ],
             open: true,
             openPage: '',
@@ -74,6 +74,18 @@ License ${pkg.license}${!minimize ? '\n\n' + license : ''}`;
                 '/examples': {
                     target: 'http://localhost:8000/',
                     pathRewrite: { '^/examples' : '/' }
+                },
+                '/lib/matter-tools.demo.js': {
+                    target: 'http://localhost:8000/',
+                    pathRewrite: { '^/lib/matter-tools.demo.js' : '/matter-tools.demo.js' }
+                },
+                '/lib/matter-tools.inspector.js': {
+                    target: 'http://localhost:8000/',
+                    pathRewrite: { '^/lib/matter-tools.inspector.js' : 'matter-tools.inspector.js' }
+                },
+                '/lib/matter-tools.gui.js': {
+                    target: 'http://localhost:8000/',
+                    pathRewrite: { '^/lib/matter-tools.gui.js' : 'matter-tools.gui.js' }
                 }
             }
         }
