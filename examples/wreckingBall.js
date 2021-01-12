@@ -92,3 +92,9 @@ Example.wreckingBall = function() {
         }
     };
 };
+
+Example.wreckingBall.for = '>=0.14.2';
+
+if (typeof module !== 'undefined') {
+    module.exports = Example.wreckingBall;
+}

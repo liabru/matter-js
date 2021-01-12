@@ -43,8 +43,8 @@ Example.cloth = function() {
 
     World.add(world, [
         cloth,
-        Bodies.circle(300, 500, 80, { isStatic: true }),
-        Bodies.rectangle(500, 480, 80, 80, { isStatic: true }),
+        Bodies.circle(300, 500, 80, { isStatic: true, render: { fillStyle: '#060a19' }}),
+        Bodies.rectangle(500, 480, 80, 80, { isStatic: true, render: { fillStyle: '#060a19' }}),
         Bodies.rectangle(400, 609, 800, 50, { isStatic: true })
     ]);
 
@@ -83,3 +83,9 @@ Example.cloth = function() {
         }
     };
 };
+
+Example.cloth.for = '>=0.14.2';
+
+if (typeof module !== 'undefined') {
+    module.exports = Example.cloth;
+}

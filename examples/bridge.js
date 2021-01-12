@@ -44,7 +44,7 @@ Example.bridge = function() {
             density: 0.005,
             frictionAir: 0.05,
             render: {
-                fillStyle: '#575375'
+                fillStyle: '#060a19'
             }
         });
     });
@@ -123,3 +123,9 @@ Example.bridge = function() {
         }
     };
 };
+
+Example.bridge.for = '>=0.14.2';
+
+if (typeof module !== 'undefined') {
+    module.exports = Example.bridge;
+}

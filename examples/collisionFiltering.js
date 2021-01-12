@@ -23,8 +23,7 @@ Example.collisionFiltering = function() {
         options: {
             width: 800,
             height: 600,
-            wireframes: false,
-            background: '#111'
+            wireframes: false
         }
     });
 
@@ -40,9 +39,9 @@ Example.collisionFiltering = function() {
         greenCategory = 0x0004,
         blueCategory = 0x0008;
 
-    var redColor = '#C44D58',
-        blueColor = '#4ECDC4',
-        greenColor = '#C7F464';
+    var colorA = '#f55a3c',
+        colorB = '#063e7b',
+        colorC = '#f5d259';
 
     // add floor
     World.add(world, Bodies.rectangle(400, 600, 900, 50, { 
@@ -57,14 +56,14 @@ Example.collisionFiltering = function() {
     World.add(world,
         Composites.stack(275, 100, 5, 9, 10, 10, function(x, y, column, row) {
             var category = redCategory,
-                color = redColor;
+                color = colorA;
 
             if (row > 5) {
                 category = blueCategory;
-                color = blueColor;
+                color = colorB;
             } else if (row > 2) {
                 category = greenCategory;
-                color = greenColor;
+                color = colorC;
             }
 
             return Bodies.circle(x, y, 20, {
@@ -87,7 +86,7 @@ Example.collisionFiltering = function() {
                 mask: defaultCategory | greenCategory
             },
             render: {
-                fillStyle: greenColor
+                fillStyle: colorC
             }
         })
     );
@@ -99,7 +98,7 @@ Example.collisionFiltering = function() {
                 mask: defaultCategory | redCategory
             },
             render: {
-                fillStyle: redColor
+                fillStyle: colorA
             }
         })
     );
@@ -111,7 +110,7 @@ Example.collisionFiltering = function() {
                 mask: defaultCategory | blueCategory
             },
             render: {
-                fillStyle: blueColor
+                fillStyle: colorB
             }
         })
     );
@@ -154,3 +153,9 @@ Example.collisionFiltering = function() {
         }
     };
 };
+
+Example.collisionFiltering.for = '>=0.14.2';
+
+if (typeof module !== 'undefined') {
+    module.exports = Example.collisionFiltering;
+}

@@ -80,3 +80,9 @@ Example.stack = function() {
         }
     };
 };
+
+Example.stack.for = '>=0.14.2';
+
+if (typeof module !== 'undefined') {
+    module.exports = Example.stack;
+}

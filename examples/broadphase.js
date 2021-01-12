@@ -94,3 +94,9 @@ Example.broadphase = function() {
         }
     };
 };
+
+Example.broadphase.for = '>=0.14.2';
+
+if (typeof module !== 'undefined') {
+    module.exports = Example.broadphase;
+}

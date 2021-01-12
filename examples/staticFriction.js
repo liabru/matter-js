@@ -34,7 +34,7 @@ Example.staticFriction = function() {
     Runner.run(runner, engine);
 
     // add bodies
-    var body = Bodies.rectangle(400, 500, 200, 60, { isStatic: true, chamfer: 10 }),
+    var body = Bodies.rectangle(400, 500, 200, 60, { isStatic: true, chamfer: 10, render: { fillStyle: '#060a19' } }),
         size = 50,
         counter = -1;
 
@@ -105,3 +105,9 @@ Example.staticFriction = function() {
         }
     };
 };
+
+Example.staticFriction.for = '>=0.14.2';
+
+if (typeof module !== 'undefined') {
+    module.exports = Example.staticFriction;
+}

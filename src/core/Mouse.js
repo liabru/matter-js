@@ -34,7 +34,7 @@ var Common = require('../core/Common');
         mouse.scale = { x: 1, y: 1 };
         mouse.wheelDelta = 0;
         mouse.button = -1;
-        mouse.pixelRatio = mouse.element.getAttribute('data-pixel-ratio') || 1;
+        mouse.pixelRatio = parseInt(mouse.element.getAttribute('data-pixel-ratio'), 10) || 1;
 
         mouse.sourceEvents = {
             mousemove: null,

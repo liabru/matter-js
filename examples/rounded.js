@@ -108,3 +108,9 @@ Example.rounded = function() {
         }
     };
 };
+
+Example.rounded.for = '>=0.14.2';
+
+if (typeof module !== 'undefined') {
+    module.exports = Example.rounded;
+}

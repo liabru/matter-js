@@ -106,3 +106,9 @@ Example.compositeManipulation = function() {
         }
     };
 };
+
+Example.compositeManipulation.for = '>=0.14.2';
+
+if (typeof module !== 'undefined') {
+    module.exports = Example.compositeManipulation;
+}

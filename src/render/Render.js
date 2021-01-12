@@ -52,8 +52,8 @@ var Mouse = require('../core/Mouse');
                 width: 800,
                 height: 600,
                 pixelRatio: 1,
-                background: '#18181d',
-                wireframeBackground: '#0f0f13',
+                background: '#14151f',
+                wireframeBackground: '#14151f',
                 hasBounds: !!options.bounds,
                 enabled: true,
                 wireframes: true,
@@ -155,7 +155,6 @@ var Mouse = require('../core/Mouse');
         canvas.height = options.height * pixelRatio;
         canvas.style.width = options.width + 'px';
         canvas.style.height = options.height + 'px';
-        render.context.scale(pixelRatio, pixelRatio);
     };
 
     /**
@@ -267,7 +266,11 @@ var Mouse = require('../core/Mouse');
             boundsScaleX = boundsWidth / render.options.width,
             boundsScaleY = boundsHeight / render.options.height;
 
-        render.context.scale(1 / boundsScaleX, 1 / boundsScaleY);
+        render.context.setTransform(
+            render.options.pixelRatio / boundsScaleX, 0, 0, 
+            render.options.pixelRatio / boundsScaleY, 0, 0
+        );
+        
         render.context.translate(-render.bounds.min.x, -render.bounds.min.y);
     };
 
@@ -348,8 +351,8 @@ var Mouse = require('../core/Mouse');
             // update mouse
             if (render.mouse) {
                 Mouse.setScale(render.mouse, {
-                    x: (render.bounds.max.x - render.bounds.min.x) / render.canvas.width,
-                    y: (render.bounds.max.y - render.bounds.min.y) / render.canvas.height
+                    x: (render.bounds.max.x - render.bounds.min.x) / render.options.width,
+                    y: (render.bounds.max.y - render.bounds.min.y) / render.options.height
                 });
 
                 Mouse.setOffset(render.mouse, render.bounds.min);
@@ -357,6 +360,10 @@ var Mouse = require('../core/Mouse');
         } else {
             constraints = allConstraints;
             bodies = allBodies;
+
+            if (render.options.pixelRatio !== 1) {
+                render.context.setTransform(render.options.pixelRatio, 0, 0, render.options.pixelRatio, 0, 0);
+            }
         }
 
         if (!options.wireframes || (engine.enableSleeping && options.showSleeping)) {
@@ -920,7 +927,7 @@ var Mouse = require('../core/Mouse');
                         // render a single axis indicator
                         c.moveTo(part.position.x, part.position.y);
                         c.lineTo((part.vertices[0].x + part.vertices[part.vertices.length-1].x) / 2,
-                                 (part.vertices[0].y + part.vertices[part.vertices.length-1].y) / 2);
+                            (part.vertices[0].y + part.vertices[part.vertices.length-1].y) / 2);
                     }
                 }
             }
@@ -1220,9 +1227,9 @@ var Mouse = require('../core/Mouse');
 
             var region = bucketId.split(/C|R/);
             c.rect(0.5 + parseInt(region[1], 10) * grid.bucketWidth,
-                    0.5 + parseInt(region[2], 10) * grid.bucketHeight,
-                    grid.bucketWidth,
-                    grid.bucketHeight);
+                0.5 + parseInt(region[2], 10) * grid.bucketHeight,
+                grid.bucketWidth,
+                grid.bucketHeight);
         }
 
         c.lineWidth = 1;
@@ -1269,7 +1276,7 @@ var Mouse = require('../core/Mouse');
                 bounds = item.bounds;
                 context.beginPath();
                 context.rect(Math.floor(bounds.min.x - 3), Math.floor(bounds.min.y - 3),
-                             Math.floor(bounds.max.x - bounds.min.x + 6), Math.floor(bounds.max.y - bounds.min.y + 6));
+                    Math.floor(bounds.max.x - bounds.min.x + 6), Math.floor(bounds.max.y - bounds.min.y + 6));
                 context.closePath();
                 context.stroke();
 
@@ -1303,7 +1310,7 @@ var Mouse = require('../core/Mouse');
             bounds = inspector.selectBounds;
             context.beginPath();
             context.rect(Math.floor(bounds.min.x), Math.floor(bounds.min.y),
-                         Math.floor(bounds.max.x - bounds.min.x), Math.floor(bounds.max.y - bounds.min.y));
+                Math.floor(bounds.max.x - bounds.min.x), Math.floor(bounds.max.y - bounds.min.y));
             context.closePath();
             context.stroke();
             context.fill();

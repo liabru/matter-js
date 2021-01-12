@@ -75,3 +75,9 @@ Example.newtonsCradle = function() {
         }
     };
 };
+
+Example.newtonsCradle.for = '>=0.14.2';
+
+if (typeof module !== 'undefined') {
+    module.exports = Example.newtonsCradle;
+}

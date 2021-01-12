@@ -88,3 +88,9 @@ Example.compoundStack = function() {
         }
     };
 };
+
+Example.compoundStack.for = '>=0.14.2';
+
+if (typeof module !== 'undefined') {
+    module.exports = Example.compoundStack;
+}

@@ -84,3 +84,9 @@ Example.restitution = function() {
         }
     };
 };
+
+Example.restitution.for = '>=0.14.2';
+
+if (typeof module !== 'undefined') {
+    module.exports = Example.restitution;
+}

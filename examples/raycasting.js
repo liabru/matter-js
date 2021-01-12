@@ -134,3 +134,9 @@ Example.raycasting = function() {
         }
     };
 };
+
+Example.raycasting.for = '>=0.14.2';
+
+if (typeof module !== 'undefined') {
+    module.exports = Example.raycasting;
+}

@@ -95,3 +95,9 @@ Example.gravity = function() {
         }
     };
 };
+
+Example.gravity.for = '>=0.14.2';
+
+if (typeof module !== 'undefined') {
+    module.exports = Example.gravity;
+}
