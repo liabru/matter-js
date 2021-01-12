@@ -258,7 +258,7 @@ var Vector = require('../geometry/Vector');
                 decomp.makeCCW(concave);
                 if (removeCollinear !== false)
                     decomp.removeCollinearPoints(concave, removeCollinear);
-                if (removeDuplicatePoints !== false)
+                if (removeDuplicatePoints !== false && decomp.removeDuplicatePoints)
                     decomp.removeDuplicatePoints(concave, removeDuplicatePoints);
 
                 // use the quick decomposition algorithm (Bayazit)
