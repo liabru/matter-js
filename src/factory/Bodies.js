@@ -193,9 +193,10 @@ var Vector = require('../geometry/Vector');
      * @param {bool} [flagInternal=false]
      * @param {number} [removeCollinear=0.01]
      * @param {number} [minimumArea=10]
+     * @param {number} [removeDuplicatePoints=0.01]
      * @return {body}
      */
-    Bodies.fromVertices = function(x, y, vertexSets, options, flagInternal, removeCollinear, minimumArea) {
+    Bodies.fromVertices = function(x, y, vertexSets, options, flagInternal, removeCollinear, minimumArea, removeDuplicatePoints) {
         var globals = typeof global !== 'undefined' ? global : window,
             decomp,
             body,
@@ -220,6 +221,7 @@ var Vector = require('../geometry/Vector');
         flagInternal = typeof flagInternal !== 'undefined' ? flagInternal : false;
         removeCollinear = typeof removeCollinear !== 'undefined' ? removeCollinear : 0.01;
         minimumArea = typeof minimumArea !== 'undefined' ? minimumArea : 10;
+        removeDuplicatePoints = typeof removeDuplicatePoints !== 'undefined' ? removeDuplicatePoints : 0.01;
 
         if (!decomp) {
             Common.warn('Bodies.fromVertices: poly-decomp.js required. Could not decompose vertices. Fallback to convex hull.');
@@ -256,6 +258,8 @@ var Vector = require('../geometry/Vector');
                 decomp.makeCCW(concave);
                 if (removeCollinear !== false)
                     decomp.removeCollinearPoints(concave, removeCollinear);
+                if (removeDuplicatePoints !== false)
+                    decomp.removeDuplicatePoints(concave, removeDuplicatePoints);
 
                 // use the quick decomposition algorithm (Bayazit)
                 var decomposed = decomp.quickDecomp(concave);
