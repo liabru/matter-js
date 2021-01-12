@@ -26,6 +26,7 @@
     "jest-worker": "^24.9.0",
     "json-stringify-pretty-compact": "^2.0.0",
     "matter-tools": "^0.12.2",
+    "pathseg": "^1.2.0",
     "puppeteer-core": "^5.5.0",
     "webpack": "^4.46.0",
     "webpack-cli": "^3.3.11",
