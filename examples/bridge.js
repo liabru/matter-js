@@ -50,8 +50,8 @@ Example.bridge = function() {
     });
     
     Composites.chain(bridge, 0.3, 0, -0.3, 0, { 
-        stiffness: 1,
-        length: 0,
+        stiffness: 0.99,
+        length: 0.0001,
         render: {
             visible: false
         }

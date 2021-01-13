@@ -35,8 +35,7 @@ Example.staticFriction = function() {
 
     // add bodies
     var body = Bodies.rectangle(400, 500, 200, 60, { isStatic: true, chamfer: 10, render: { fillStyle: '#060a19' } }),
-        size = 50,
-        counter = -1;
+        size = 50;
 
     var stack = Composites.stack(350, 470 - 6 * size, 1, 6, 0, 0, function(x, y) {
         return Bodies.rectangle(x, y, size * 2, size, {
@@ -56,18 +55,14 @@ Example.staticFriction = function() {
         Bodies.rectangle(0, 300, 50, 600, { isStatic: true })
     ]);
 
-    Events.on(engine, 'beforeUpdate', function(event) {
-        counter += 0.014;
-
-        if (counter < 0) {
+    Events.on(engine, 'beforeUpdate', function() {
+        if (engine.timing.timestamp < 1500) {
             return;
         }
 
-        var px = 400 + 100 * Math.sin(counter);
+        var px = 400 + 100 * Math.sin((engine.timing.timestamp - 1500) * 0.001);
 
-        // body is static so must manually update velocity for friction to work
-        Body.setVelocity(body, { x: px - body.position.x, y: 0 });
-        Body.setPosition(body, { x: px, y: body.position.y });
+        Body.setPosition(body, { x: px, y: body.position.y }, true);
     });
 
     // add mouse control

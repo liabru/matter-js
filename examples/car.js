@@ -42,7 +42,7 @@ Example.car = function() {
     ]);
 
     var scale = 0.9;
-    World.add(world, Composites.car(150, 100, 150 * scale, 30 * scale, 30 * scale));
+    World.add(world, Composites.car(150, 80, 150 * scale, 30 * scale, 30 * scale));
     
     scale = 0.8;
     World.add(world, Composites.car(350, 300, 150 * scale, 30 * scale, 30 * scale));
