@@ -33,43 +33,44 @@ Example.svg = function() {
     Runner.run(runner, engine);
 
     // add bodies
-    var svgs = [
-        'iconmonstr-check-mark-8-icon', 
-        'iconmonstr-paperclip-2-icon',
-        'iconmonstr-puzzle-icon',
-        'iconmonstr-user-icon'
-    ];
+    if (typeof fetch !== 'undefined') {
+        var select = function(root, selector) {
+            return Array.prototype.slice.call(root.querySelectorAll(selector));
+        };
 
-    if (typeof $ !== 'undefined') {
-        for (var i = 0; i < svgs.length; i += 1) {
-            (function(i) {
-                $.get('./svg/' + svgs[i] + '.svg').done(function(data) {
-                    var vertexSets = [],
-                        color = Common.choose(['#f19648', '#f5d259', '#f55a3c', '#063e7b', '#ececd1']);
+        var loadSvg = function(url) {
+            return fetch(url)
+                .then(function(response) { return response.text(); })
+                .then(function(raw) { return (new window.DOMParser()).parseFromString(raw, 'image/svg+xml'); });
+        };
 
-                    $(data).find('path').each(function(i, path) {
-                        var points = Svg.pathToVertices(path, 30);
-                        vertexSets.push(Vertices.scale(points, 0.4, 0.4));
-                    });
+        ([
+            './svg/iconmonstr-check-mark-8-icon.svg', 
+            './svg/iconmonstr-paperclip-2-icon.svg',
+            './svg/iconmonstr-puzzle-icon.svg',
+            './svg/iconmonstr-user-icon.svg'
+        ]).forEach(function(path, i) { 
+            loadSvg(path).then(function(root) {
+                var color = Common.choose(['#f19648', '#f5d259', '#f55a3c', '#063e7b', '#ececd1']);
 
-                    World.add(world, Bodies.fromVertices(100 + i * 150, 200 + i * 50, vertexSets, {
-                        render: {
-                            fillStyle: color,
-                            strokeStyle: color,
-                            lineWidth: 1
-                        }
-                    }, true));
-                });
-            })(i);
-        }
+                var vertexSets = select(root, 'path')
+                    .map(function(path) { return Vertices.scale(Svg.pathToVertices(path, 30), 0.4, 0.4); });
 
-        $.get('./svg/svg.svg').done(function(data) {
-            var vertexSets = [],
-                color = Common.choose(['#f19648', '#f5d259', '#f55a3c', '#063e7b', '#ececd1']);
-
-            $(data).find('path').each(function(i, path) {
-                vertexSets.push(Svg.pathToVertices(path, 30));
+                World.add(world, Bodies.fromVertices(100 + i * 150, 200 + i * 50, vertexSets, {
+                    render: {
+                        fillStyle: color,
+                        strokeStyle: color,
+                        lineWidth: 1
+                    }
+                }, true));
             });
+        });
+
+        loadSvg('./svg/svg.svg').then(function(root) {
+            var color = Common.choose(['#f19648', '#f5d259', '#f55a3c', '#063e7b', '#ececd1']);
+            
+            var vertexSets = select(root, 'path')
+                .map(function(path) { return Svg.pathToVertices(path, 30); });
 
             World.add(world, Bodies.fromVertices(400, 80, vertexSets, {
                 render: {
@@ -79,6 +80,8 @@ Example.svg = function() {
                 }
             }, true));
         });
+    } else {
+        Common.warn('Fetch is not available. Could not load SVG.');
     }
 
     World.add(world, [
