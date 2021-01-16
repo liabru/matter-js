@@ -119,7 +119,7 @@ var Common = require('./Common');
         };
 
         Events.trigger(runner, 'beforeTick', event);
-        Events.trigger(engine, 'beforeTick', event); // @deprecated
+        Events.trigger(engine, 'beforeTick', event); // back compatibility
 
         if (runner.isFixed) {
             // fixed timestep
@@ -164,14 +164,14 @@ var Common = require('./Common');
         }
 
         Events.trigger(runner, 'tick', event);
-        Events.trigger(engine, 'tick', event); // @deprecated
+        Events.trigger(engine, 'tick', event); // back compatibility
 
         // if world has been modified, clear the render scene graph
         if (engine.world.isModified 
             && engine.render
             && engine.render.controller
             && engine.render.controller.clear) {
-            engine.render.controller.clear(engine.render); // @deprecated
+            engine.render.controller.clear(engine.render); // back compatibility
         }
 
         // update
@@ -180,19 +180,19 @@ var Common = require('./Common');
         Events.trigger(runner, 'afterUpdate', event);
 
         // render
-        // @deprecated
+        // back compatibility
         if (engine.render && engine.render.controller) {
             Events.trigger(runner, 'beforeRender', event);
-            Events.trigger(engine, 'beforeRender', event); // @deprecated
+            Events.trigger(engine, 'beforeRender', event); // back compatibility
 
             engine.render.controller.world(engine.render);
 
             Events.trigger(runner, 'afterRender', event);
-            Events.trigger(engine, 'afterRender', event); // @deprecated
+            Events.trigger(engine, 'afterRender', event); // back compatibility
         }
 
         Events.trigger(runner, 'afterTick', event);
-        Events.trigger(engine, 'afterTick', event); // @deprecated
+        Events.trigger(engine, 'afterTick', event); // back compatibility
     };
 
     /**

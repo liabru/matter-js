@@ -63,7 +63,7 @@ var Body = require('../body/Body');
 
         var engine = Common.extend(defaults, options);
 
-        // @deprecated
+        // back compatibility
         if (element || engine.render) {
             var renderDefaults = {
                 element: element,
@@ -73,12 +73,12 @@ var Body = require('../body/Body');
             engine.render = Common.extend(renderDefaults, engine.render);
         }
 
-        // @deprecated
+        // back compatibility
         if (engine.render && engine.render.controller) {
             engine.render = engine.render.controller.create(engine.render);
         }
 
-        // @deprecated
+        // back compatibility
         if (engine.render) {
             engine.render.engine = engine;
         }
