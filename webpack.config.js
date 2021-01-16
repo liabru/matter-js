@@ -26,6 +26,15 @@ License ${pkg.license}${!minimize ? '\n\n' + license : ''}`;
 
     const entry = isDevServer ? './demo/js/Server.js' : './src/module/main.js';
 
+    const externals = isDevServer ? undefined : {
+        'poly-decomp': {
+            commonjs: 'poly-decomp',
+            commonjs2: 'poly-decomp',
+            amd: 'poly-decomp',
+            root: 'decomp'
+        }
+    };
+
     return {
         entry: { [name]: entry },
         output: {
@@ -48,14 +57,7 @@ License ${pkg.license}${!minimize ? '\n\n' + license : ''}`;
                 __MATTER_VERSION__: JSON.stringify(!isDevServer ? version : '*'),
             })
         ],
-        externals: {
-            'poly-decomp': {
-                commonjs: 'poly-decomp',
-                commonjs2: 'poly-decomp',
-                amd: 'poly-decomp',
-                root: 'decomp'
-            }
-        },
+        externals,
         devServer: {
             contentBase: [
                 path.resolve(__dirname, './demo'),
