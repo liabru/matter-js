@@ -30,11 +30,16 @@ if (!fs.existsSync(browserPath)) {
     // Set up the environment and run examples
     beforeAll(async () => results = await runExamplesBrowser(totalUpdates));
 
-    it('all examples run without throwing error', () => {
+    it('all examples run without throwing error or warning', () => {
       if (results.error) {
         console.error(results.error);
-        expect(!results.error).toBe(true);
-      } else {
+        expect(Boolean(results.error)).toBe(false);
+      }
+      if (results.warns) {
+        console.error(results.warns);
+        expect(results.warns.size).toBe(0);
+      }
+      if (!results.error && !results.warns) {
         for (const example of examples) {
           expect(results[example].id).toBe(example);
           expect(results[example].timestamp).toBeGreaterThan(0);
@@ -49,15 +54,29 @@ const runExamplesBrowser = async updates => {
   const browser = await puppeteer.launch({ executablePath: browserPath });
   const page = await browser.newPage();
   const results = {};
+  let example;
 
   // Load local demo page and catch errors
   let pageError;
+  let pageWarns;
+
   const onPageError = error => pageError = error;
+  const onPageConsole = async message => {
+    const type = message.type();
+    if (example && type === 'error' || type === 'warning') {
+      const log = `[${example}] ${message.type()} ${message.text()}`;
+      pageWarns = pageWarns || new Set();
+      pageWarns.add(log);
+    }
+  }
+
   page.addListener('pageerror', onPageError);
+  page.addListener('console', onPageConsole);
+
   await page.goto(demoPagePath).catch(onPageError);
 
   // For every example
-  for (const example of examples) {
+  for (example of examples) {
     // Bail on error
     if (pageError) {
       break;
@@ -93,5 +112,7 @@ const runExamplesBrowser = async updates => {
   // Tear down
   await browser.close();
 
-  return pageError ? { error: pageError } : results;
+  results.error = pageError;
+  results.warns = pageWarns;
+  return results;
 };
