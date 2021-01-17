@@ -1,5 +1,5 @@
 /*!
- * matter-js 0.15.0 by @liabru 2020-12-26
+ * matter-js 0.16.0 by @liabru 2021-01-17
  * http://brm.io/matter-js/
  * License MIT
  * 
@@ -27,11 +27,11 @@
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
-		module.exports = factory((function webpackLoadOptionalExternalModule() { try { return require("poly-decomp"); } catch(e) {} }()));
+		module.exports = factory(require("poly-decomp"));
 	else if(typeof define === 'function' && define.amd)
 		define("Matter", ["poly-decomp"], factory);
 	else if(typeof exports === 'object')
-		exports["Matter"] = factory((function webpackLoadOptionalExternalModule() { try { return require("poly-decomp"); } catch(e) {} }()));
+		exports["Matter"] = factory(require("poly-decomp"));
 	else
 		root["Matter"] = factory(root["decomp"]);
 })(this, function(__WEBPACK_EXTERNAL_MODULE__27__) {
@@ -7002,11 +7002,11 @@ var Vector = __webpack_require__(2);
      * @param {bool} [flagInternal=false]
      * @param {number} [removeCollinear=0.01]
      * @param {number} [minimumArea=10]
+     * @param {number} [removeDuplicatePoints=0.01]
      * @return {body}
      */
-    Bodies.fromVertices = function(x, y, vertexSets, options, flagInternal, removeCollinear, minimumArea) {
-        var globals = typeof global !== 'undefined' ? global : window,
-            decomp,
+    Bodies.fromVertices = function(x, y, vertexSets, options, flagInternal, removeCollinear, minimumArea, removeDuplicatePoints) {
+        var decomp = __webpack_require__(27),
             body,
             parts,
             isConvex,
@@ -7017,18 +7017,13 @@ var Vector = __webpack_require__(2);
             v,
             z;
 
-        try {
-            decomp = globals.decomp || __webpack_require__(27);
-        } catch (e) {
-            // decomp is undefined
-        }
-
         options = options || {};
         parts = [];
 
         flagInternal = typeof flagInternal !== 'undefined' ? flagInternal : false;
         removeCollinear = typeof removeCollinear !== 'undefined' ? removeCollinear : 0.01;
         minimumArea = typeof minimumArea !== 'undefined' ? minimumArea : 10;
+        removeDuplicatePoints = typeof removeDuplicatePoints !== 'undefined' ? removeDuplicatePoints : 0.01;
 
         if (!decomp) {
             Common.warn('Bodies.fromVertices: poly-decomp.js required. Could not decompose vertices. Fallback to convex hull.');
@@ -7065,6 +7060,8 @@ var Vector = __webpack_require__(2);
                 decomp.makeCCW(concave);
                 if (removeCollinear !== false)
                     decomp.removeCollinearPoints(concave, removeCollinear);
+                if (removeDuplicatePoints !== false && decomp.removeDuplicatePoints)
+                    decomp.removeDuplicatePoints(concave, removeDuplicatePoints);
 
                 // use the quick decomposition algorithm (Bayazit)
                 var decomposed = decomp.quickDecomp(concave);
@@ -7419,6 +7416,8 @@ var Common = __webpack_require__(0);
      * Only the following range types are supported:
      * - Tilde ranges e.g. `~1.2.3`
      * - Caret ranges e.g. `^1.2.3`
+     * - Greater than ranges e.g. `>1.2.3`
+     * - Greater than or equal ranges e.g. `>=1.2.3`
      * - Exact version e.g. `1.2.3`
      * - Any version `*`
      * @method versionParse
@@ -7426,29 +7425,28 @@ var Common = __webpack_require__(0);
      * @return {object} The version range parsed into its components.
      */
     Plugin.versionParse = function(range) {
-        var pattern = /^\*|[\^~]?\d+\.\d+\.\d+(-[0-9A-Za-z-]+)?$/;
+        var pattern = /^(\*)|(\^|~|>=|>)?\s*((\d+)\.(\d+)\.(\d+))(-[0-9A-Za-z-]+)?$/;
 
         if (!pattern.test(range)) {
             Common.warn('Plugin.versionParse:', range, 'is not a valid version or range.');
         }
 
-        var identifiers = range.split('-');
-        range = identifiers[0];
-
-        var isRange = isNaN(Number(range[0])),
-            version = isRange ? range.substr(1) : range,
-            parts = Common.map(version.split('.'), function(part) {
-                return Number(part);
-            });
+        var parts = pattern.exec(range);
+        var major = Number(parts[4]);
+        var minor = Number(parts[5]);
+        var patch = Number(parts[6]);
 
         return {
-            isRange: isRange,
-            version: version,
+            isRange: Boolean(parts[1] || parts[2]),
+            version: parts[3],
             range: range,
-            operator: isRange ? range[0] : '',
-            parts: parts,
-            prerelease: identifiers[1],
-            number: parts[0] * 1e8 + parts[1] * 1e4 + parts[2]
+            operator: parts[1] || parts[2] || '',
+            major: major,
+            minor: minor,
+            patch: patch,
+            parts: [major, minor, patch],
+            prerelease: parts[7],
+            number: major * 1e8 + minor * 1e4 + patch
         };
     };
 
@@ -7464,30 +7462,36 @@ var Common = __webpack_require__(0);
     Plugin.versionSatisfies = function(version, range) {
         range = range || '*';
 
-        var rangeParsed = Plugin.versionParse(range),
-            rangeParts = rangeParsed.parts,
-            versionParsed = Plugin.versionParse(version),
-            versionParts = versionParsed.parts;
+        var r = Plugin.versionParse(range),
+            v = Plugin.versionParse(version);
 
-        if (rangeParsed.isRange) {
-            if (rangeParsed.operator === '*' || version === '*') {
+        if (r.isRange) {
+            if (r.operator === '*' || version === '*') {
                 return true;
             }
 
-            if (rangeParsed.operator === '~') {
-                return versionParts[0] === rangeParts[0] && versionParts[1] === rangeParts[1] && versionParts[2] >= rangeParts[2];
+            if (r.operator === '>') {
+                return v.number > r.number;
             }
 
-            if (rangeParsed.operator === '^') {
-                if (rangeParts[0] > 0) {
-                    return versionParts[0] === rangeParts[0] && versionParsed.number >= rangeParsed.number;
+            if (r.operator === '>=') {
+                return v.number >= r.number;
+            }
+
+            if (r.operator === '~') {
+                return v.major === r.major && v.minor === r.minor && v.patch >= r.patch;
+            }
+
+            if (r.operator === '^') {
+                if (r.major > 0) {
+                    return v.major === r.major && v.number >= r.number;
                 }
 
-                if (rangeParts[1] > 0) {
-                    return versionParts[1] === rangeParts[1] && versionParts[2] >= rangeParts[2];
+                if (r.minor > 0) {
+                    return v.minor === r.minor && v.patch >= r.patch;
                 }
 
-                return versionParts[2] === rangeParts[2];
+                return v.patch === r.patch;
             }
         }
 
@@ -8278,7 +8282,7 @@ var Body = __webpack_require__(6);
 
         var engine = Common.extend(defaults, options);
 
-        // @deprecated
+        // back compatibility
         if (element || engine.render) {
             var renderDefaults = {
                 element: element,
@@ -8288,12 +8292,12 @@ var Body = __webpack_require__(6);
             engine.render = Common.extend(renderDefaults, engine.render);
         }
 
-        // @deprecated
+        // back compatibility
         if (engine.render && engine.render.controller) {
             engine.render = engine.render.controller.create(engine.render);
         }
 
-        // @deprecated
+        // back compatibility
         if (engine.render) {
             engine.render.engine = engine;
         }
@@ -8912,7 +8916,7 @@ var Common = __webpack_require__(0);
      * @readOnly
      * @type {String}
      */
-    Matter.version =  true ? "0.15.0" : undefined;
+    Matter.version =  true ? "0.16.0" : undefined;
 
     /**
      * A list of plugin dependencies to be installed. These are normally set and installed through `Matter.use`.
@@ -9111,7 +9115,6 @@ var Vertices = __webpack_require__(3);
 /* 27 */
 /***/ (function(module, exports) {
 
-if(typeof __WEBPACK_EXTERNAL_MODULE__27__ === 'undefined') {var e = new Error("Cannot find module 'undefined'"); e.code = 'MODULE_NOT_FOUND'; throw e;}
 module.exports = __WEBPACK_EXTERNAL_MODULE__27__;
 
 /***/ }),
@@ -9506,7 +9509,7 @@ var Common = __webpack_require__(0);
         };
 
         Events.trigger(runner, 'beforeTick', event);
-        Events.trigger(engine, 'beforeTick', event); // @deprecated
+        Events.trigger(engine, 'beforeTick', event); // back compatibility
 
         if (runner.isFixed) {
             // fixed timestep
@@ -9551,14 +9554,14 @@ var Common = __webpack_require__(0);
         }
 
         Events.trigger(runner, 'tick', event);
-        Events.trigger(engine, 'tick', event); // @deprecated
+        Events.trigger(engine, 'tick', event); // back compatibility
 
         // if world has been modified, clear the render scene graph
         if (engine.world.isModified 
             && engine.render
             && engine.render.controller
             && engine.render.controller.clear) {
-            engine.render.controller.clear(engine.render); // @deprecated
+            engine.render.controller.clear(engine.render); // back compatibility
         }
 
         // update
@@ -9567,19 +9570,19 @@ var Common = __webpack_require__(0);
         Events.trigger(runner, 'afterUpdate', event);
 
         // render
-        // @deprecated
+        // back compatibility
         if (engine.render && engine.render.controller) {
             Events.trigger(runner, 'beforeRender', event);
-            Events.trigger(engine, 'beforeRender', event); // @deprecated
+            Events.trigger(engine, 'beforeRender', event); // back compatibility
 
             engine.render.controller.world(engine.render);
 
             Events.trigger(runner, 'afterRender', event);
-            Events.trigger(engine, 'afterRender', event); // @deprecated
+            Events.trigger(engine, 'afterRender', event); // back compatibility
         }
 
         Events.trigger(runner, 'afterTick', event);
-        Events.trigger(engine, 'afterTick', event); // @deprecated
+        Events.trigger(engine, 'afterTick', event); // back compatibility
     };
 
     /**

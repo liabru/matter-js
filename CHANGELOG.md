@@ -1,3 +1,24 @@
+## 0.16.0 (2021-01-17)
+
+* added removeDuplicatePoints option from poly-decomp 0.3.0 to Bodies.fromVertices ([#639](https://github.com/liabru/matter-js/issues/639), [947cb97](https://github.com/liabru/matter-js/commit/947cb97), [a9694e6](https://github.com/liabru/matter-js/commit/a9694e6))
+* added support for > and >= operators in plugin version ranges ([0792716](https://github.com/liabru/matter-js/commit/0792716))
+* added support for example versioning in tests ([31d0ace](https://github.com/liabru/matter-js/commit/31d0ace))
+* added version targets for examples ([142b7de](https://github.com/liabru/matter-js/commit/142b7de))
+* added warning check on browser tests ([12377cc](https://github.com/liabru/matter-js/commit/12377cc))
+* changed svg and terrain example to use fetch ([5551cd5](https://github.com/liabru/matter-js/commit/5551cd5))
+* changed deprecated comments to avoid confusion ([1e73cab](https://github.com/liabru/matter-js/commit/1e73cab))
+* fixed poly-decomp external require ([882e07c](https://github.com/liabru/matter-js/commit/882e07c))
+* removed bower.json ([f71d4c0](https://github.com/liabru/matter-js/commit/f71d4c0))
+* removed unused dev dependency run-sequence ([be592fd](https://github.com/liabru/matter-js/commit/be592fd))
+* updated dev dependencies ([151eb30](https://github.com/liabru/matter-js/commit/151eb30))
+* updated matter-tools ([5c66458](https://github.com/liabru/matter-js/commit/5c66458))
+* updated matter-tools ([33e8fe8](https://github.com/liabru/matter-js/commit/33e8fe8))
+* updated demo matter-tools ([a694ae5](https://github.com/liabru/matter-js/commit/a694ae5))
+* updated demo pathseg ([9c5325b](https://github.com/liabru/matter-js/commit/9c5325b))
+* updated readme ([3089b41](https://github.com/liabru/matter-js/commit/3089b41))
+
+
+
 ## 0.15.0 (2020-12-24)
 
 * add window global, stub require and handle bad values in test tools ([497ac80](https://github.com/liabru/matter-js/commit/497ac80))

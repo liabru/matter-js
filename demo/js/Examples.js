@@ -1,5 +1,5 @@
 /*!
- * matter-js-examples 0.15.0 by @liabru 2020-12-26
+ * matter-js-examples 0.16.0 by @liabru 2021-01-17
  * http://brm.io/matter-js/
  * License MIT
  * 
@@ -257,9 +257,12 @@ Example.airFriction = function() {
     };
 };
 
+Example.airFriction.for = '>=0.14.2';
+
 if (true) {
-    module.exports = Example[Object.keys(Example)[0]];
+    module.exports = Example.airFriction;
 }
+
 
 /***/ }),
 /* 2 */
@@ -358,9 +361,12 @@ Example.avalanche = function() {
     };
 };
 
+Example.avalanche.for = '>=0.14.2';
+
 if (true) {
-    module.exports = Example[Object.keys(Example)[0]];
+    module.exports = Example.avalanche;
 }
+
 
 /***/ }),
 /* 3 */
@@ -467,9 +473,12 @@ Example.ballPool = function() {
     };
 };
 
+Example.ballPool.for = '>=0.14.2';
+
 if (true) {
-    module.exports = Example[Object.keys(Example)[0]];
+    module.exports = Example.ballPool;
 }
+
 
 /***/ }),
 /* 4 */
@@ -601,9 +610,12 @@ Example.bridge = function() {
     };
 };
 
+Example.bridge.for = '>=0.14.2';
+
 if (true) {
-    module.exports = Example[Object.keys(Example)[0]];
+    module.exports = Example.bridge;
 }
+
 
 /***/ }),
 /* 5 */
@@ -706,9 +718,12 @@ Example.broadphase = function() {
     };
 };
 
+Example.broadphase.for = '>=0.14.2';
+
 if (true) {
-    module.exports = Example[Object.keys(Example)[0]];
+    module.exports = Example.broadphase;
 }
+
 
 /***/ }),
 /* 6 */
@@ -805,9 +820,12 @@ Example.car = function() {
     };
 };
 
+Example.car.for = '>=0.14.2';
+
 if (true) {
-    module.exports = Example[Object.keys(Example)[0]];
+    module.exports = Example.car;
 }
+
 
 /***/ }),
 /* 7 */
@@ -911,9 +929,12 @@ Example.catapult = function() {
     };
 };
 
+Example.catapult.for = '>=0.14.2';
+
 if (true) {
-    module.exports = Example[Object.keys(Example)[0]];
+    module.exports = Example.catapult;
 }
+
 
 /***/ }),
 /* 8 */
@@ -1043,9 +1064,12 @@ Example.chains = function() {
     };
 };
 
+Example.chains.for = '>=0.14.2';
+
 if (true) {
-    module.exports = Example[Object.keys(Example)[0]];
+    module.exports = Example.chains;
 }
+
 
 /***/ }),
 /* 9 */
@@ -1134,9 +1158,12 @@ Example.circleStack = function() {
     };
 };
 
+Example.circleStack.for = '>=0.14.2';
+
 if (true) {
-    module.exports = Example[Object.keys(Example)[0]];
+    module.exports = Example.circleStack;
 }
+
 
 /***/ }),
 /* 10 */
@@ -1228,9 +1255,12 @@ Example.cloth = function() {
     };
 };
 
+Example.cloth.for = '>=0.14.2';
+
 if (true) {
-    module.exports = Example[Object.keys(Example)[0]];
+    module.exports = Example.cloth;
 }
+
 
 /***/ }),
 /* 11 */
@@ -1392,9 +1422,12 @@ Example.collisionFiltering = function() {
     };
 };
 
+Example.collisionFiltering.for = '>=0.14.2';
+
 if (true) {
-    module.exports = Example[Object.keys(Example)[0]];
+    module.exports = Example.collisionFiltering;
 }
+
 
 /***/ }),
 /* 12 */
@@ -1509,9 +1542,12 @@ Example.compositeManipulation = function() {
     };
 };
 
+Example.compositeManipulation.for = '>=0.14.2';
+
 if (true) {
-    module.exports = Example[Object.keys(Example)[0]];
+    module.exports = Example.compositeManipulation;
 }
+
 
 /***/ }),
 /* 13 */
@@ -1625,9 +1661,12 @@ Example.compound = function() {
     };
 };
 
+Example.compound.for = '>=0.14.2';
+
 if (true) {
-    module.exports = Example[Object.keys(Example)[0]];
+    module.exports = Example.compound;
 }
+
 
 /***/ }),
 /* 14 */
@@ -1724,9 +1763,12 @@ Example.compoundStack = function() {
     };
 };
 
+Example.compoundStack.for = '>=0.14.2';
+
 if (true) {
-    module.exports = Example[Object.keys(Example)[0]];
+    module.exports = Example.compoundStack;
 }
+
 
 /***/ }),
 /* 15 */
@@ -1829,9 +1871,12 @@ Example.concave = function() {
     };
 };
 
+Example.concave.for = '>=0.14.2';
+
 if (true) {
-    module.exports = Example[Object.keys(Example)[0]];
+    module.exports = Example.concave;
 }
+
 
 /***/ }),
 /* 16 */
@@ -2018,9 +2063,12 @@ Example.constraints = function() {
     };
 };
 
+Example.constraints.for = '>=0.14.2';
+
 if (true) {
-    module.exports = Example[Object.keys(Example)[0]];
+    module.exports = Example.constraints;
 }
+
 
 /***/ }),
 /* 17 */
@@ -2176,9 +2224,12 @@ Example.doublePendulum = function() {
     };
 };
 
+Example.doublePendulum.for = '>=0.14.2';
+
 if (true) {
-    module.exports = Example[Object.keys(Example)[0]];
+    module.exports = Example.doublePendulum;
 }
+
 
 /***/ }),
 /* 18 */
@@ -2364,9 +2415,12 @@ Example.events = function() {
     };
 };
 
+Example.events.for = '>=0.14.2';
+
 if (true) {
-    module.exports = Example[Object.keys(Example)[0]];
+    module.exports = Example.events;
 }
+
 
 /***/ }),
 /* 19 */
@@ -2464,9 +2518,12 @@ Example.friction = function() {
     };
 };
 
+Example.friction.for = '>=0.14.2';
+
 if (true) {
-    module.exports = Example[Object.keys(Example)[0]];
+    module.exports = Example.friction;
 }
+
 
 /***/ }),
 /* 20 */
@@ -2570,9 +2627,12 @@ Example.gravity = function() {
     };
 };
 
+Example.gravity.for = '>=0.14.2';
+
 if (true) {
-    module.exports = Example[Object.keys(Example)[0]];
+    module.exports = Example.gravity;
 }
+
 
 /***/ }),
 /* 21 */
@@ -2710,9 +2770,12 @@ Example.gyro = function() {
     };
 };
 
+Example.gyro.for = '>=0.14.2';
+
 if (true) {
-    module.exports = Example[Object.keys(Example)[0]];
+    module.exports = Example.gyro;
 }
+
 
 /***/ }),
 /* 22 */
@@ -2860,9 +2923,12 @@ Example.manipulation = function() {
     };
 };
 
+Example.manipulation.for = '>=0.14.2';
+
 if (true) {
-    module.exports = Example[Object.keys(Example)[0]];
+    module.exports = Example.manipulation;
 }
+
 
 /***/ }),
 /* 23 */
@@ -2975,9 +3041,12 @@ Example.mixed = function() {
     };
 };
 
+Example.mixed.for = '>=0.14.2';
+
 if (true) {
-    module.exports = Example[Object.keys(Example)[0]];
+    module.exports = Example.mixed;
 }
+
 
 /***/ }),
 /* 24 */
@@ -3061,9 +3130,12 @@ Example.newtonsCradle = function() {
     };
 };
 
+Example.newtonsCradle.for = '>=0.14.2';
+
 if (true) {
-    module.exports = Example[Object.keys(Example)[0]];
+    module.exports = Example.newtonsCradle;
 }
+
 
 /***/ }),
 /* 25 */
@@ -3569,9 +3641,12 @@ Example.ragdoll.ragdoll = function(x, y, scale, options) {
     return person;
 };
 
+Example.ragdoll.for = '>=0.14.2';
+
 if (true) {
-    module.exports = Example[Object.keys(Example)[0]];
+    module.exports = Example.ragdoll;
 }
+
 
 /***/ }),
 /* 26 */
@@ -3660,9 +3735,12 @@ Example.pyramid = function() {
     };
 };
 
+Example.pyramid.for = '>=0.14.2';
+
 if (true) {
-    module.exports = Example[Object.keys(Example)[0]];
+    module.exports = Example.pyramid;
 }
+
 
 /***/ }),
 /* 27 */
@@ -3805,9 +3883,12 @@ Example.raycasting = function() {
     };
 };
 
+Example.raycasting.for = '>=0.14.2';
+
 if (true) {
-    module.exports = Example[Object.keys(Example)[0]];
+    module.exports = Example.raycasting;
 }
+
 
 /***/ }),
 /* 28 */
@@ -3900,9 +3981,12 @@ Example.restitution = function() {
     };
 };
 
+Example.restitution.for = '>=0.14.2';
+
 if (true) {
-    module.exports = Example[Object.keys(Example)[0]];
+    module.exports = Example.restitution;
 }
+
 
 /***/ }),
 /* 29 */
@@ -4019,9 +4103,12 @@ Example.rounded = function() {
     };
 };
 
+Example.rounded.for = '>=0.14.2';
+
 if (true) {
-    module.exports = Example[Object.keys(Example)[0]];
+    module.exports = Example.rounded;
 }
+
 
 /***/ }),
 /* 30 */
@@ -4159,9 +4246,12 @@ Example.sensors = function() {
     };
 };
 
+Example.sensors.for = '>=0.14.2';
+
 if (true) {
-    module.exports = Example[Object.keys(Example)[0]];
+    module.exports = Example.sensors;
 }
+
 
 /***/ }),
 /* 31 */
@@ -4273,9 +4363,12 @@ Example.sleeping = function() {
     };
 };
 
+Example.sleeping.for = '>=0.14.2';
+
 if (true) {
-    module.exports = Example[Object.keys(Example)[0]];
+    module.exports = Example.sleeping;
 }
+
 
 /***/ }),
 /* 32 */
@@ -4383,9 +4476,12 @@ Example.slingshot = function() {
     };
 };
 
+Example.slingshot.for = '>=0.14.2';
+
 if (true) {
-    module.exports = Example[Object.keys(Example)[0]];
+    module.exports = Example.slingshot;
 }
+
 
 /***/ }),
 /* 33 */
@@ -4478,9 +4574,12 @@ Example.softBody = function() {
     };
 };
 
+Example.softBody.for = '>=0.14.2';
+
 if (true) {
-    module.exports = Example[Object.keys(Example)[0]];
+    module.exports = Example.softBody;
 }
+
 
 /***/ }),
 /* 34 */
@@ -4600,9 +4699,12 @@ Example.sprites = function() {
     };
 };
 
+Example.sprites.for = '>=0.14.2';
+
 if (true) {
-    module.exports = Example[Object.keys(Example)[0]];
+    module.exports = Example.sprites;
 }
+
 
 /***/ }),
 /* 35 */
@@ -4691,9 +4793,12 @@ Example.stack = function() {
     };
 };
 
+Example.stack.for = '>=0.14.2';
+
 if (true) {
-    module.exports = Example[Object.keys(Example)[0]];
+    module.exports = Example.stack;
 }
+
 
 /***/ }),
 /* 36 */
@@ -4807,9 +4912,12 @@ Example.staticFriction = function() {
     };
 };
 
+Example.staticFriction.for = '>=0.14.2';
+
 if (true) {
-    module.exports = Example[Object.keys(Example)[0]];
+    module.exports = Example.staticFriction;
 }
+
 
 /***/ }),
 /* 37 */
@@ -4896,9 +5004,12 @@ Example.stress = function() {
     };
 };
 
+Example.stress.for = '>=0.14.2';
+
 if (true) {
-    module.exports = Example[Object.keys(Example)[0]];
+    module.exports = Example.stress;
 }
+
 
 /***/ }),
 /* 38 */
@@ -4985,9 +5096,12 @@ Example.stress2 = function() {
     };
 };
 
+Example.stress2.for = '>=0.14.2';
+
 if (true) {
-    module.exports = Example[Object.keys(Example)[0]];
+    module.exports = Example.stress2;
 }
+
 
 /***/ }),
 /* 39 */
@@ -5028,43 +5142,44 @@ Example.svg = function() {
     Runner.run(runner, engine);
 
     // add bodies
-    var svgs = [
-        'iconmonstr-check-mark-8-icon', 
-        'iconmonstr-paperclip-2-icon',
-        'iconmonstr-puzzle-icon',
-        'iconmonstr-user-icon'
-    ];
+    if (typeof fetch !== 'undefined') {
+        var select = function(root, selector) {
+            return Array.prototype.slice.call(root.querySelectorAll(selector));
+        };
 
-    if (typeof $ !== 'undefined') {
-        for (var i = 0; i < svgs.length; i += 1) {
-            (function(i) {
-                $.get('./svg/' + svgs[i] + '.svg').done(function(data) {
-                    var vertexSets = [],
-                        color = Common.choose(['#f19648', '#f5d259', '#f55a3c', '#063e7b', '#ececd1']);
+        var loadSvg = function(url) {
+            return fetch(url)
+                .then(function(response) { return response.text(); })
+                .then(function(raw) { return (new window.DOMParser()).parseFromString(raw, 'image/svg+xml'); });
+        };
 
-                    $(data).find('path').each(function(i, path) {
-                        var points = Svg.pathToVertices(path, 30);
-                        vertexSets.push(Vertices.scale(points, 0.4, 0.4));
-                    });
+        ([
+            './svg/iconmonstr-check-mark-8-icon.svg', 
+            './svg/iconmonstr-paperclip-2-icon.svg',
+            './svg/iconmonstr-puzzle-icon.svg',
+            './svg/iconmonstr-user-icon.svg'
+        ]).forEach(function(path, i) { 
+            loadSvg(path).then(function(root) {
+                var color = Common.choose(['#f19648', '#f5d259', '#f55a3c', '#063e7b', '#ececd1']);
 
-                    World.add(world, Bodies.fromVertices(100 + i * 150, 200 + i * 50, vertexSets, {
-                        render: {
-                            fillStyle: color,
-                            strokeStyle: color,
-                            lineWidth: 1
-                        }
-                    }, true));
-                });
-            })(i);
-        }
+                var vertexSets = select(root, 'path')
+                    .map(function(path) { return Vertices.scale(Svg.pathToVertices(path, 30), 0.4, 0.4); });
 
-        $.get('./svg/svg.svg').done(function(data) {
-            var vertexSets = [],
-                color = Common.choose(['#f19648', '#f5d259', '#f55a3c', '#063e7b', '#ececd1']);
-
-            $(data).find('path').each(function(i, path) {
-                vertexSets.push(Svg.pathToVertices(path, 30));
+                World.add(world, Bodies.fromVertices(100 + i * 150, 200 + i * 50, vertexSets, {
+                    render: {
+                        fillStyle: color,
+                        strokeStyle: color,
+                        lineWidth: 1
+                    }
+                }, true));
             });
+        });
+
+        loadSvg('./svg/svg.svg').then(function(root) {
+            var color = Common.choose(['#f19648', '#f5d259', '#f55a3c', '#063e7b', '#ececd1']);
+            
+            var vertexSets = select(root, 'path')
+                .map(function(path) { return Svg.pathToVertices(path, 30); });
 
             World.add(world, Bodies.fromVertices(400, 80, vertexSets, {
                 render: {
@@ -5074,6 +5189,8 @@ Example.svg = function() {
                 }
             }, true));
         });
+    } else {
+        Common.warn('Fetch is not available. Could not load SVG.');
     }
 
     World.add(world, [
@@ -5119,9 +5236,12 @@ Example.svg = function() {
     };
 };
 
+Example.svg.for = '>=0.14.2';
+
 if (true) {
-    module.exports = Example[Object.keys(Example)[0]];
+    module.exports = Example.svg;
 }
+
 
 /***/ }),
 /* 40 */
@@ -5163,39 +5283,48 @@ Example.terrain = function() {
     Runner.run(runner, engine);
 
     // add bodies
-    var terrain;
+    if (typeof fetch !== 'undefined') {
+        var select = function(root, selector) {
+            return Array.prototype.slice.call(root.querySelectorAll(selector));
+        };
 
-    if (typeof $ !== 'undefined') {
-        $.get('./svg/terrain.svg').done(function(data) {
-            var vertexSets = [];
+        var loadSvg = function(url) {
+            return fetch(url)
+                .then(function(response) { return response.text(); })
+                .then(function(raw) { return (new window.DOMParser()).parseFromString(raw, 'image/svg+xml'); });
+        };
 
-            $(data).find('path').each(function(i, path) {
-                vertexSets.push(Svg.pathToVertices(path, 30));
+        loadSvg('./svg/terrain.svg')
+            .then(function(root) {
+                var paths = select(root, 'path');
+
+                var vertexSets = paths.map(function(path) { return Svg.pathToVertices(path, 30); });
+
+                var terrain = Bodies.fromVertices(400, 350, vertexSets, {
+                    isStatic: true,
+                    render: {
+                        fillStyle: '#060a19',
+                        strokeStyle: '#060a19',
+                        lineWidth: 1
+                    }
+                }, true);
+
+                World.add(world, terrain);
+
+                var bodyOptions = {
+                    frictionAir: 0, 
+                    friction: 0.0001,
+                    restitution: 0.6
+                };
+                
+                World.add(world, Composites.stack(80, 100, 20, 20, 10, 10, function(x, y) {
+                    if (Query.point([terrain], { x: x, y: y }).length === 0) {
+                        return Bodies.polygon(x, y, 5, 12, bodyOptions);
+                    }
+                }));
             });
-
-            terrain = Bodies.fromVertices(400, 350, vertexSets, {
-                isStatic: true,
-                render: {
-                    fillStyle: '#060a19',
-                    strokeStyle: '#060a19',
-                    lineWidth: 1
-                }
-            }, true);
-
-            World.add(world, terrain);
-
-            var bodyOptions = {
-                frictionAir: 0, 
-                friction: 0.0001,
-                restitution: 0.6
-            };
-            
-            World.add(world, Composites.stack(80, 100, 20, 20, 10, 10, function(x, y) {
-                if (Query.point([terrain], { x: x, y: y }).length === 0) {
-                    return Bodies.polygon(x, y, 5, 12, bodyOptions);
-                }
-            }));
-        });
+    } else {
+        Common.warn('Fetch is not available. Could not load SVG.');
     }
 
     // add mouse control
@@ -5234,9 +5363,12 @@ Example.terrain = function() {
     };
 };
 
+Example.terrain.for = '>=0.14.2';
+
 if (true) {
-    module.exports = Example[Object.keys(Example)[0]];
+    module.exports = Example.terrain;
 }
+
 
 /***/ }),
 /* 41 */
@@ -5395,9 +5527,12 @@ Example.timescale = function() {
     };
 };
 
+Example.timescale.for = '>=0.14.2';
+
 if (true) {
-    module.exports = Example[Object.keys(Example)[0]];
+    module.exports = Example.timescale;
 }
+
 
 /***/ }),
 /* 42 */
@@ -5587,9 +5722,12 @@ Example.views = function() {
     };
 };
 
+Example.views.for = '>=0.14.2';
+
 if (true) {
-    module.exports = Example[Object.keys(Example)[0]];
+    module.exports = Example.views;
 }
+
 
 /***/ }),
 /* 43 */
@@ -5690,9 +5828,12 @@ Example.wreckingBall = function() {
     };
 };
 
+Example.wreckingBall.for = '>=0.14.2';
+
 if (true) {
-    module.exports = Example[Object.keys(Example)[0]];
+    module.exports = Example.wreckingBall;
 }
+
 
 /***/ })
 /******/ ]);
