@@ -24,7 +24,7 @@ const { engineCapture } = require('./TestTools');
 const MatterDev = stubBrowserFeatures(require('../src/module/main'));
 const MatterBuild = stubBrowserFeatures(require('../build/matter'));
 const Example = require('../examples/index');
-const decomp = require('../demo/lib/decomp');
+const decomp = require('poly-decomp');
 
 const runExample = options => {
   const Matter = options.useDev ? MatterDev : MatterBuild;
