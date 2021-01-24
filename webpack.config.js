@@ -65,9 +65,11 @@ License ${pkg.license}${!minimize ? '\n\n' + license : ''}`;
                 path.resolve(__dirname, './node_modules/matter-tools/build'),
                 path.resolve(__dirname, './node_modules/pathseg')
             ],
+            watchContentBase: true,
             open: true,
             openPage: '',
             compress: true,
+            overlay: true,
             port: 8000,
             proxy: {
                 '/build': {
