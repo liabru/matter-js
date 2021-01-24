@@ -32,7 +32,7 @@ Example.pyramid = function() {
     Runner.run(runner, engine);
 
     // add bodies
-    var stack = Composites.pyramid(100, 258, 15, 10, 0, 0, function(x, y) {
+    var stack = Composites.pyramid(100, 605 - 25 - 16 * 20, 15, 10, 0, 0, function(x, y) {
         return Bodies.rectangle(x, y, 40, 40);
     });
     

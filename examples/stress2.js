@@ -31,7 +31,7 @@ Example.stress2 = function() {
     Runner.run(runner, engine);
 
     // scene code
-    var stack = Composites.stack(100, 120, 25, 18, 0, 0, function(x, y) {
+    var stack = Composites.stack(100, 600 - 25 - 18 * 25, 25, 18, 0, 0, function(x, y) {
         return Bodies.rectangle(x, y, 25, 25);
     });
     

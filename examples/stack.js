@@ -32,7 +32,7 @@ Example.stack = function() {
     Runner.run(runner, engine);
 
     // add bodies
-    var stack = Composites.stack(200, 380, 10, 5, 0, 0, function(x, y) {
+    var stack = Composites.stack(200, 606 - 25.25 - 5 * 40, 10, 5, 0, 0, function(x, y) {
         return Bodies.rectangle(x, y, 40, 40);
     });
     

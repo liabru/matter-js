@@ -32,7 +32,7 @@ Example.circleStack = function() {
     Runner.run(runner, engine);
 
     // add bodies
-    var stack = Composites.stack(100, 185, 10, 10, 20, 0, function(x, y) {
+    var stack = Composites.stack(100, 600 - 21 - 20 * 20, 10, 10, 20, 0, function(x, y) {
         return Bodies.circle(x, y, 20);
     });
     

@@ -35,7 +35,7 @@ Example.compoundStack = function() {
     // add bodies
     var size = 50;
 
-    var stack = Composites.stack(100, 280, 12, 6, 0, 0, function(x, y) {
+    var stack = Composites.stack(100, 600 - 17 - size * 6, 12, 6, 0, 0, function(x, y) {
         var partA = Bodies.rectangle(x, y, size, size / 5),
             partB = Bodies.rectangle(x, y, size / 5, size, { render: partA.render });
 

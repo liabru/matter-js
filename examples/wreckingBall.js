@@ -34,7 +34,7 @@ Example.wreckingBall = function() {
 
     // add bodies
     var rows = 10,
-        yy = 600 - 21 - 40 * rows;
+        yy = 600 - 25 - 40 * rows;
     
     var stack = Composites.stack(400, yy, 5, rows, 0, 0, function(x, y) {
         return Bodies.rectangle(x, y, 40, 40);
