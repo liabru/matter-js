@@ -236,7 +236,10 @@ const comparisonReport = (capturesDev, capturesBuild, buildVersion, save) => {
     similarityEntries.sort((a, b) => a[1] - b[1]);
 
     let perfChange = 1 - (totalTimeDev / totalTimeBuild);
-    perfChange = perfChange < -0.05 || perfChange > 0.05 ? perfChange : 0;
+    
+    const perfChangeThreshold = 0.075;
+    const perfChangeLarge = Math.abs(perfChange) > perfChangeThreshold;
+    perfChange = perfChangeLarge ? perfChange : 0;
 
     let similarityAvg = 0;
     similarityEntries.forEach(([_, similarity]) => {
