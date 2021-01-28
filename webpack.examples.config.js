@@ -48,6 +48,12 @@ License ${pkg.license}${!minimize ? '\n\n' + license : ''}`;
                 commonjs2: 'matter-js',
                 amd: 'matter-js',
                 root: 'Matter'
+            },
+            'matter-wrap': {
+                commonjs: 'matter-wrap',
+                commonjs2: 'matter-wrap',
+                amd: 'matter-wrap',
+                root: 'MatterWrap'
             }
         }
     };

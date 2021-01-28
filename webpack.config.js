@@ -32,6 +32,12 @@ License ${pkg.license}${!minimize ? '\n\n' + license : ''}`;
             commonjs2: 'poly-decomp',
             amd: 'poly-decomp',
             root: 'decomp'
+        },
+        'matter-wrap': {
+            commonjs: 'matter-wrap',
+            commonjs2: 'matter-wrap',
+            amd: 'matter-wrap',
+            root: 'MatterWrap'
         }
     };
 
