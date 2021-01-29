@@ -37,7 +37,7 @@ Example.events = function() {
 
     // an example of using composite events on the world
     Events.on(world, 'afterAdd', function(event) {
-        console.log('added to world:', event.object);
+        // do something with event.object
     });
 
     // an example of using beforeUpdate event on an engine

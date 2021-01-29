@@ -9,7 +9,7 @@ const stubBrowserFeatures = M => {
   M.Render.run = M.Render.lookAt = noop;
   M.Runner.create = M.Runner.run = noop;
   M.MouseConstraint.create = M.Mouse.create = noop;
-  M.Common.log = M.Common.info = M.Common.warn = noop;
+  M.Common.info = M.Common.warn = M.Common.log;
   return M;
 };
 
@@ -24,16 +24,19 @@ const { engineCapture } = require('./TestTools');
 const MatterDev = stubBrowserFeatures(require('../src/module/main'));
 const MatterBuild = stubBrowserFeatures(require('../build/matter'));
 const Example = require('../examples/index');
-const decomp = require('poly-decomp');
 
 const runExample = options => {
   const Matter = options.useDev ? MatterDev : MatterBuild;
   const consoleOriginal = global.console;
+  const logs = [];
 
-  global.console = { log: () => {} };
   global.document = global.window = { addEventListener: () => {} };
-  global.decomp = decomp;
   global.Matter = Matter;
+  global.console = { 
+    log: (...args) => {
+      logs.push(args.join(' '));
+    }
+  };
 
   reset(Matter);
 
@@ -79,13 +82,13 @@ const runExample = options => {
   global.console = consoleOriginal;
   global.window = undefined;
   global.document = undefined;
-  global.decomp = undefined;
   global.Matter = undefined;
 
   return {
     name: options.name,
     duration: totalDuration,
     overlap: overlapTotal / (overlapCount || 1),
+    logs,
     ...engineCapture(engine)
   };
 };

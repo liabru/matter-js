@@ -202,6 +202,25 @@ const equals = (a, b) => {
     return true;
 };
 
+const logReport = captures => {
+    let report = '';
+
+    for (const capture of Object.values(captures)) {
+        if (!capture.logs.length) {
+            continue;
+        }
+
+        report += `  ${capture.name}\n`;
+
+        for (const log of capture.logs) {
+            report += `    ${log}\n`;
+        }
+    }
+
+    return report ? `Output logs on last run\n\n${report}`
+        : 'Output logs on last run\n\n  None\n';
+};
+
 const comparisonReport = (capturesDev, capturesBuild, buildVersion, save) => {
     const similaritys = captureSimilarityExtrinsic(capturesDev, capturesBuild);
     const similarityEntries = Object.entries(similaritys);
@@ -284,6 +303,6 @@ const comparisonReport = (capturesDev, capturesBuild, buildVersion, save) => {
 };
 
 module.exports = {
-    engineCapture, comparisonReport,
+    engineCapture, comparisonReport, logReport,
     toMatchExtrinsics, toMatchIntrinsics
 };

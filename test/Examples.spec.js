@@ -3,7 +3,12 @@
 
 jest.setTimeout(30 * 1000);
 
-const { comparisonReport, toMatchExtrinsics, toMatchIntrinsics } = require('./TestTools');
+const { 
+    comparisonReport, 
+    logReport, 
+    toMatchExtrinsics, 
+    toMatchIntrinsics 
+} = require('./TestTools');
 
 const Example = require('../examples/index');
 const MatterBuild = require('../build/matter');
@@ -47,7 +52,11 @@ afterAll(async () => {
     // Report experimental capture comparison.
     const dev = await capturesDev;
     const build = await capturesBuild;
-    console.log(comparisonReport(dev, build, MatterBuild.version, saveComparison));
+
+    console.log(
+        logReport(dev) + '\n'
+        + comparisonReport(dev, build, MatterBuild.version, saveComparison)
+    );
 });
 
 describe(`Integration checks (${examples.length})`, () => {
