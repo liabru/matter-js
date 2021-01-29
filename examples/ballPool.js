@@ -1,12 +1,12 @@
 var Example = Example || {};
 
 Example.ballPool = function() {
-    if (typeof require !== 'undefined') {
-        // either require the plugin directly (Node.js, Webpack etc.)
-        Matter.use(require('matter-wrap'));
-    } else {
-        // or by name from plugin registry (Browser global)
+    if (typeof MatterWrap !== 'undefined') {
+        // either use by name from plugin registry (Browser global)
         Matter.use('matter-wrap');
+    } else {
+        // or require and use the plugin directly (Node.js, Webpack etc.)
+        Matter.use(require('matter-wrap'));
     }
     
     var Engine = Matter.Engine,
