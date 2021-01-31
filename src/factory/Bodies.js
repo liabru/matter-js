@@ -178,14 +178,31 @@ var Vector = require('../geometry/Vector');
     };
 
     /**
-     * Creates a body using the supplied vertices (or an array containing multiple sets of vertices).
-     * If the vertices are convex, they will pass through as supplied.
-     * Otherwise if the vertices are concave, they will be decomposed if [poly-decomp.js](https://github.com/schteppe/poly-decomp.js) is available.
-     * Note that this process is not guaranteed to support complex sets of vertices (e.g. those with holes may fail).
-     * By default the decomposition will discard collinear edges (to improve performance).
-     * It can also optionally discard any parts that have an area less than `minimumArea`.
-     * If the vertices can not be decomposed, the result will fall back to using the convex hull.
-     * The options parameter is an object that specifies any `Matter.Body` properties you wish to override the defaults.
+     * Creates a body based on set(s) of vertices.
+     * 
+     * This utility builds on top of `Body.create` to automatically handle concave inputs.
+     * 
+     * To use this decomposition feature the [poly-decomp](https://github.com/schteppe/poly-decomp.js) 
+     * package should be additionally installed via npm or as a global.
+     * 
+     * The resulting vertices are reorientated about their centre of mass,
+     * and offset such that `body.position` corresponds to this point.
+     * 
+     * If needed the resulting offset may be found by subtracting `body.bounds` from the original input bounds.
+     * To later move the centre of mass see `Body.setCentre`.
+     * 
+     * Note that decomposition results are not always perfect. 
+     * 
+     * For best results, simplify the input vertices as much as possible first.
+     * By default this function applies some addtional simplification to help.
+     * 
+     * Some outputs may also require further manual processing afterwards to be robust.
+     * 
+     * In particular some parts may need to be overlapped to avoid collision gaps.
+     * Thin parts and sharp points should be avoided or removed where possible.
+     *
+     * The options parameter object specifies any `Matter.Body` properties you wish to override the defaults.
+     * 
      * See the properties section of the `Matter.Body` module for detailed information on what you can pass via the `options` object.
      * @method fromVertices
      * @param {number} x
@@ -345,6 +362,8 @@ var Vector = require('../geometry/Vector');
         if (parts.length > 1) {
             // create the parent body to be returned, that contains generated compound parts
             body = Body.create(Common.extend({ parts: parts.slice(0) }, options));
+
+            // offset such that body.position is at the centre off mass
             Body.setPosition(body, { x: x, y: y });
 
             return body;
