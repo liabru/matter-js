@@ -4,7 +4,6 @@
 
 const stubBrowserFeatures = M => {
   const noop = () => ({ collisionFilter: {}, mouse: {} });
-  M.Common._requireGlobal = name => global[name];
   M.Render.create = () => ({ options: {}, bounds: { min: { x: 0, y: 0 }, max: { x: 800, y: 600 }}});
   M.Render.run = M.Render.lookAt = noop;
   M.Runner.create = M.Runner.run = noop;
@@ -20,6 +19,7 @@ const reset = M => {
   M.Body._nextCategory = 0x0001;
 };
 
+const mock = require('mock-require');
 const { engineCapture } = require('./TestTools');
 const MatterDev = stubBrowserFeatures(require('../src/module/main'));
 const MatterBuild = stubBrowserFeatures(require('../build/matter'));
@@ -30,8 +30,10 @@ const runExample = options => {
   const consoleOriginal = global.console;
   const logs = [];
 
-  global.document = global.window = { addEventListener: () => {} };
+  mock('matter-js', Matter);
   global.Matter = Matter;
+
+  global.document = global.window = { addEventListener: () => {} };
   global.console = { 
     log: (...args) => {
       logs.push(args.join(' '));
@@ -83,6 +85,7 @@ const runExample = options => {
   global.window = undefined;
   global.document = undefined;
   global.Matter = undefined;
+  mock.stopAll();
 
   return {
     name: options.name,

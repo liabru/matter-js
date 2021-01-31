@@ -27,6 +27,7 @@
     "json-stringify-pretty-compact": "^2.0.0",
     "matter-tools": "^0.12.3",
     "matter-wrap": "^0.2.0",
+    "mock-require": "^3.0.3",
     "pathseg": "^1.2.0",
     "poly-decomp": "^0.3.0",
     "puppeteer-core": "^5.5.0",
