@@ -1,5 +1,5 @@
 /*!
- * matter-js-examples 0.16.0 by @liabru 2021-01-17
+ * matter-js-examples 0.16.1 by @liabru 2021-01-31
  * http://brm.io/matter-js/
  * License MIT
  * 
@@ -27,14 +27,14 @@
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
-		module.exports = factory();
+		module.exports = factory((function webpackLoadOptionalExternalModule() { try { return require("matter-wrap"); } catch(e) {} }()));
 	else if(typeof define === 'function' && define.amd)
-		define("Example", [], factory);
+		define("Example", ["matter-wrap"], factory);
 	else if(typeof exports === 'object')
-		exports["Example"] = factory();
+		exports["Example"] = factory((function webpackLoadOptionalExternalModule() { try { return require("matter-wrap"); } catch(e) {} }()));
 	else
-		root["Example"] = factory();
-})(this, function() {
+		root["Example"] = factory(root["MatterWrap"]);
+})(this, function(__WEBPACK_EXTERNAL_MODULE__0__) {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -118,61 +118,68 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 0);
+/******/ 	return __webpack_require__(__webpack_require__.s = 1);
 /******/ })
 /************************************************************************/
 /******/ ([
 /* 0 */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ (function(module, exports) {
 
-module.exports = {
-    airFriction: __webpack_require__(1),
-    avalanche: __webpack_require__(2),
-    ballPool: __webpack_require__(3),
-    bridge: __webpack_require__(4),
-    broadphase: __webpack_require__(5),
-    car: __webpack_require__(6),
-    catapult: __webpack_require__(7),
-    chains: __webpack_require__(8),
-    circleStack: __webpack_require__(9),
-    cloth: __webpack_require__(10),
-    collisionFiltering: __webpack_require__(11),
-    compositeManipulation: __webpack_require__(12),
-    compound: __webpack_require__(13),
-    compoundStack: __webpack_require__(14),
-    concave: __webpack_require__(15),
-    constraints: __webpack_require__(16),
-    doublePendulum: __webpack_require__(17),
-    events: __webpack_require__(18),
-    friction: __webpack_require__(19),
-    gravity: __webpack_require__(20),
-    gyro: __webpack_require__(21),
-    manipulation: __webpack_require__(22),
-    mixed: __webpack_require__(23),
-    newtonsCradle: __webpack_require__(24),
-    ragdoll: __webpack_require__(25),
-    pyramid: __webpack_require__(26),
-    raycasting: __webpack_require__(27),
-    restitution: __webpack_require__(28),
-    rounded: __webpack_require__(29),
-    sensors: __webpack_require__(30),
-    sleeping: __webpack_require__(31),
-    slingshot: __webpack_require__(32),
-    softBody: __webpack_require__(33),
-    sprites: __webpack_require__(34),
-    stack: __webpack_require__(35),
-    staticFriction: __webpack_require__(36),
-    stress: __webpack_require__(37),
-    stress2: __webpack_require__(38),
-    svg: __webpack_require__(39),
-    terrain: __webpack_require__(40),
-    timescale: __webpack_require__(41),
-    views: __webpack_require__(42),
-    wreckingBall: __webpack_require__(43)
-};
+if(typeof __WEBPACK_EXTERNAL_MODULE__0__ === 'undefined') {var e = new Error("Cannot find module 'undefined'"); e.code = 'MODULE_NOT_FOUND'; throw e;}
+module.exports = __WEBPACK_EXTERNAL_MODULE__0__;
 
 /***/ }),
 /* 1 */
+/***/ (function(module, exports, __webpack_require__) {
+
+module.exports = {
+    airFriction: __webpack_require__(2),
+    avalanche: __webpack_require__(3),
+    ballPool: __webpack_require__(4),
+    bridge: __webpack_require__(5),
+    broadphase: __webpack_require__(6),
+    car: __webpack_require__(7),
+    catapult: __webpack_require__(8),
+    chains: __webpack_require__(9),
+    circleStack: __webpack_require__(10),
+    cloth: __webpack_require__(11),
+    collisionFiltering: __webpack_require__(12),
+    compositeManipulation: __webpack_require__(13),
+    compound: __webpack_require__(14),
+    compoundStack: __webpack_require__(15),
+    concave: __webpack_require__(16),
+    constraints: __webpack_require__(17),
+    doublePendulum: __webpack_require__(18),
+    events: __webpack_require__(19),
+    friction: __webpack_require__(20),
+    gravity: __webpack_require__(21),
+    gyro: __webpack_require__(22),
+    manipulation: __webpack_require__(23),
+    mixed: __webpack_require__(24),
+    newtonsCradle: __webpack_require__(25),
+    ragdoll: __webpack_require__(26),
+    pyramid: __webpack_require__(27),
+    raycasting: __webpack_require__(28),
+    restitution: __webpack_require__(29),
+    rounded: __webpack_require__(30),
+    sensors: __webpack_require__(31),
+    sleeping: __webpack_require__(32),
+    slingshot: __webpack_require__(33),
+    softBody: __webpack_require__(34),
+    sprites: __webpack_require__(35),
+    stack: __webpack_require__(36),
+    staticFriction: __webpack_require__(37),
+    stress: __webpack_require__(38),
+    stress2: __webpack_require__(39),
+    svg: __webpack_require__(40),
+    terrain: __webpack_require__(41),
+    timescale: __webpack_require__(42),
+    views: __webpack_require__(43),
+    wreckingBall: __webpack_require__(44)
+};
+
+/***/ }),
+/* 2 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var Example = Example || {};
@@ -265,15 +272,23 @@ if (true) {
 
 
 /***/ }),
-/* 2 */
+/* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var Example = Example || {};
 
 Example.avalanche = function() {
-    Matter.use(
-        'matter-wrap'
-    );
+    try {
+        if (typeof MatterWrap !== 'undefined') {
+            // either use by name from plugin registry (Browser global)
+            Matter.use('matter-wrap');
+        } else {
+            // or require and use the plugin directly (Node.js, Webpack etc.)
+            Matter.use(__webpack_require__(0));
+        }
+    } catch (e) {
+        // could not require the plugin or install needed
+    }
     
     var Engine = Matter.Engine,
         Render = Matter.Render,
@@ -369,15 +384,23 @@ if (true) {
 
 
 /***/ }),
-/* 3 */
+/* 4 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var Example = Example || {};
 
 Example.ballPool = function() {
-    Matter.use(
-        'matter-wrap'
-    );
+    try {
+        if (typeof MatterWrap !== 'undefined') {
+            // either use by name from plugin registry (Browser global)
+            Matter.use('matter-wrap');
+        } else {
+            // or require and use the plugin directly (Node.js, Webpack etc.)
+            Matter.use(__webpack_require__(0));
+        }
+    } catch (e) {
+        // could not require the plugin or install needed
+    }
     
     var Engine = Matter.Engine,
         Render = Matter.Render,
@@ -481,7 +504,7 @@ if (true) {
 
 
 /***/ }),
-/* 4 */
+/* 5 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var Example = Example || {};
@@ -618,7 +641,7 @@ if (true) {
 
 
 /***/ }),
-/* 5 */
+/* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var Example = Example || {};
@@ -726,7 +749,7 @@ if (true) {
 
 
 /***/ }),
-/* 6 */
+/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var Example = Example || {};
@@ -828,7 +851,7 @@ if (true) {
 
 
 /***/ }),
-/* 7 */
+/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var Example = Example || {};
@@ -937,7 +960,7 @@ if (true) {
 
 
 /***/ }),
-/* 8 */
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var Example = Example || {};
@@ -1072,7 +1095,7 @@ if (true) {
 
 
 /***/ }),
-/* 9 */
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var Example = Example || {};
@@ -1109,7 +1132,7 @@ Example.circleStack = function() {
     Runner.run(runner, engine);
 
     // add bodies
-    var stack = Composites.stack(100, 185, 10, 10, 20, 0, function(x, y) {
+    var stack = Composites.stack(100, 600 - 21 - 20 * 20, 10, 10, 20, 0, function(x, y) {
         return Bodies.circle(x, y, 20);
     });
     
@@ -1166,7 +1189,7 @@ if (true) {
 
 
 /***/ }),
-/* 10 */
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var Example = Example || {};
@@ -1263,7 +1286,7 @@ if (true) {
 
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var Example = Example || {};
@@ -1430,7 +1453,7 @@ if (true) {
 
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var Example = Example || {};
@@ -1550,7 +1573,7 @@ if (true) {
 
 
 /***/ }),
-/* 13 */
+/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var Example = Example || {};
@@ -1669,7 +1692,7 @@ if (true) {
 
 
 /***/ }),
-/* 14 */
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var Example = Example || {};
@@ -1709,7 +1732,7 @@ Example.compoundStack = function() {
     // add bodies
     var size = 50;
 
-    var stack = Composites.stack(100, 280, 12, 6, 0, 0, function(x, y) {
+    var stack = Composites.stack(100, 600 - 17 - size * 6, 12, 6, 0, 0, function(x, y) {
         var partA = Bodies.rectangle(x, y, size, size / 5),
             partB = Bodies.rectangle(x, y, size / 5, size, { render: partA.render });
 
@@ -1771,7 +1794,7 @@ if (true) {
 
 
 /***/ }),
-/* 15 */
+/* 16 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var Example = Example || {};
@@ -1879,7 +1902,7 @@ if (true) {
 
 
 /***/ }),
-/* 16 */
+/* 17 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var Example = Example || {};
@@ -2071,7 +2094,7 @@ if (true) {
 
 
 /***/ }),
-/* 17 */
+/* 18 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var Example = Example || {};
@@ -2232,7 +2255,7 @@ if (true) {
 
 
 /***/ }),
-/* 18 */
+/* 19 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var Example = Example || {};
@@ -2274,7 +2297,7 @@ Example.events = function() {
 
     // an example of using composite events on the world
     Events.on(world, 'afterAdd', function(event) {
-        console.log('added to world:', event.object);
+        // do something with event.object
     });
 
     // an example of using beforeUpdate event on an engine
@@ -2423,7 +2446,7 @@ if (true) {
 
 
 /***/ }),
-/* 19 */
+/* 20 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var Example = Example || {};
@@ -2526,7 +2549,7 @@ if (true) {
 
 
 /***/ }),
-/* 20 */
+/* 21 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var Example = Example || {};
@@ -2635,7 +2658,7 @@ if (true) {
 
 
 /***/ }),
-/* 21 */
+/* 22 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var Example = Example || {};
@@ -2778,7 +2801,7 @@ if (true) {
 
 
 /***/ }),
-/* 22 */
+/* 23 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var Example = Example || {};
@@ -2931,7 +2954,7 @@ if (true) {
 
 
 /***/ }),
-/* 23 */
+/* 24 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var Example = Example || {};
@@ -3049,7 +3072,7 @@ if (true) {
 
 
 /***/ }),
-/* 24 */
+/* 25 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var Example = Example || {};
@@ -3138,7 +3161,7 @@ if (true) {
 
 
 /***/ }),
-/* 25 */
+/* 26 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var Example = Example || {};
@@ -3649,7 +3672,7 @@ if (true) {
 
 
 /***/ }),
-/* 26 */
+/* 27 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var Example = Example || {};
@@ -3686,7 +3709,7 @@ Example.pyramid = function() {
     Runner.run(runner, engine);
 
     // add bodies
-    var stack = Composites.pyramid(100, 258, 15, 10, 0, 0, function(x, y) {
+    var stack = Composites.pyramid(100, 605 - 25 - 16 * 20, 15, 10, 0, 0, function(x, y) {
         return Bodies.rectangle(x, y, 40, 40);
     });
     
@@ -3743,7 +3766,7 @@ if (true) {
 
 
 /***/ }),
-/* 27 */
+/* 28 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var Example = Example || {};
@@ -3891,7 +3914,7 @@ if (true) {
 
 
 /***/ }),
-/* 28 */
+/* 29 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var Example = Example || {};
@@ -3989,7 +4012,7 @@ if (true) {
 
 
 /***/ }),
-/* 29 */
+/* 30 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var Example = Example || {};
@@ -4111,7 +4134,7 @@ if (true) {
 
 
 /***/ }),
-/* 30 */
+/* 31 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var Example = Example || {};
@@ -4254,7 +4277,7 @@ if (true) {
 
 
 /***/ }),
-/* 31 */
+/* 32 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var Example = Example || {};
@@ -4371,7 +4394,7 @@ if (true) {
 
 
 /***/ }),
-/* 32 */
+/* 33 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var Example = Example || {};
@@ -4484,7 +4507,7 @@ if (true) {
 
 
 /***/ }),
-/* 33 */
+/* 34 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var Example = Example || {};
@@ -4582,7 +4605,7 @@ if (true) {
 
 
 /***/ }),
-/* 34 */
+/* 35 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var Example = Example || {};
@@ -4707,7 +4730,7 @@ if (true) {
 
 
 /***/ }),
-/* 35 */
+/* 36 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var Example = Example || {};
@@ -4744,7 +4767,7 @@ Example.stack = function() {
     Runner.run(runner, engine);
 
     // add bodies
-    var stack = Composites.stack(200, 380, 10, 5, 0, 0, function(x, y) {
+    var stack = Composites.stack(200, 606 - 25.25 - 5 * 40, 10, 5, 0, 0, function(x, y) {
         return Bodies.rectangle(x, y, 40, 40);
     });
     
@@ -4801,7 +4824,7 @@ if (true) {
 
 
 /***/ }),
-/* 36 */
+/* 37 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var Example = Example || {};
@@ -4920,7 +4943,7 @@ if (true) {
 
 
 /***/ }),
-/* 37 */
+/* 38 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var Example = Example || {};
@@ -4956,7 +4979,7 @@ Example.stress = function() {
     Runner.run(runner, engine);
 
     // scene code
-    var stack = Composites.stack(90, 50, 18, 15, 0, 0, function(x, y) {
+    var stack = Composites.stack(90, 600 - 25 - 15 * 35, 18, 15, 0, 0, function(x, y) {
         return Bodies.rectangle(x, y, 35, 35);
     });
     
@@ -5012,7 +5035,7 @@ if (true) {
 
 
 /***/ }),
-/* 38 */
+/* 39 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var Example = Example || {};
@@ -5048,7 +5071,7 @@ Example.stress2 = function() {
     Runner.run(runner, engine);
 
     // scene code
-    var stack = Composites.stack(100, 120, 25, 18, 0, 0, function(x, y) {
+    var stack = Composites.stack(100, 600 - 25 - 18 * 25, 25, 18, 0, 0, function(x, y) {
         return Bodies.rectangle(x, y, 25, 25);
     });
     
@@ -5104,7 +5127,7 @@ if (true) {
 
 
 /***/ }),
-/* 39 */
+/* 40 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var Example = Example || {};
@@ -5244,7 +5267,7 @@ if (true) {
 
 
 /***/ }),
-/* 40 */
+/* 41 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var Example = Example || {};
@@ -5371,7 +5394,7 @@ if (true) {
 
 
 /***/ }),
-/* 41 */
+/* 42 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var Example = Example || {};
@@ -5535,7 +5558,7 @@ if (true) {
 
 
 /***/ }),
-/* 42 */
+/* 43 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var Example = Example || {};
@@ -5730,7 +5753,7 @@ if (true) {
 
 
 /***/ }),
-/* 43 */
+/* 44 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var Example = Example || {};
@@ -5769,7 +5792,7 @@ Example.wreckingBall = function() {
 
     // add bodies
     var rows = 10,
-        yy = 600 - 21 - 40 * rows;
+        yy = 600 - 25 - 40 * rows;
     
     var stack = Composites.stack(400, yy, 5, rows, 0, 0, function(x, y) {
         return Bodies.rectangle(x, y, 40, 40);

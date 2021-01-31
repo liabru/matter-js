@@ -1,3 +1,23 @@
+## <small>0.16.1 (2021-01-31)</small>
+
+* add log capture and reporting in tests ([7bfd3c2](https://github.com/liabru/matter-js/commit/7bfd3c2))
+* add matter-wrap as dev dependency ([ef7c4c6](https://github.com/liabru/matter-js/commit/ef7c4c6))
+* catch missing plugin require in examples ([1ba1255](https://github.com/liabru/matter-js/commit/1ba1255))
+* change example matter-wrap require precedence ([aa1e4e7](https://github.com/liabru/matter-js/commit/aa1e4e7))
+* change perf threshold in test ([7b00354](https://github.com/liabru/matter-js/commit/7b00354))
+* change test worker decomp require ([5e746b0](https://github.com/liabru/matter-js/commit/5e746b0))
+* disable jest cache ([8ee0ebb](https://github.com/liabru/matter-js/commit/8ee0ebb))
+* enable useful dev server features ([839f7d9](https://github.com/liabru/matter-js/commit/839f7d9))
+* fix decomp require and improve warning message ([e87f64a](https://github.com/liabru/matter-js/commit/e87f64a))
+* fix dev server externals ([1f2f9fe](https://github.com/liabru/matter-js/commit/1f2f9fe))
+* fix named require in test ([92080ff](https://github.com/liabru/matter-js/commit/92080ff))
+* improve CI speed ([1af64eb](https://github.com/liabru/matter-js/commit/1af64eb))
+* improve docs for Bodies.fromVertices ([2ade78f](https://github.com/liabru/matter-js/commit/2ade78f))
+* improve stack examples with exact contact ([522f4e8](https://github.com/liabru/matter-js/commit/522f4e8))
+* improve test report log ([b5326f8](https://github.com/liabru/matter-js/commit/b5326f8))
+
+
+
 ## 0.16.0 (2021-01-17)
 
 * added removeDuplicatePoints option from poly-decomp 0.3.0 to Bodies.fromVertices ([#639](https://github.com/liabru/matter-js/issues/639), [947cb97](https://github.com/liabru/matter-js/commit/947cb97), [a9694e6](https://github.com/liabru/matter-js/commit/a9694e6))

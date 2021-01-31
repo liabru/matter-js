@@ -1,5 +1,5 @@
 /*!
- * matter-js 0.16.0 by @liabru 2021-01-17
+ * matter-js 0.16.1 by @liabru 2021-01-31
  * http://brm.io/matter-js/
  * License MIT
  * 
@@ -27,11 +27,11 @@
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
-		module.exports = factory(require("poly-decomp"));
+		module.exports = factory((function webpackLoadOptionalExternalModule() { try { return require("poly-decomp"); } catch(e) {} }()));
 	else if(typeof define === 'function' && define.amd)
 		define("Matter", ["poly-decomp"], factory);
 	else if(typeof exports === 'object')
-		exports["Matter"] = factory(require("poly-decomp"));
+		exports["Matter"] = factory((function webpackLoadOptionalExternalModule() { try { return require("poly-decomp"); } catch(e) {} }()));
 	else
 		root["Matter"] = factory(root["decomp"]);
 })(this, function(__WEBPACK_EXTERNAL_MODULE__27__) {
@@ -6830,6 +6830,8 @@ var Vector = __webpack_require__(2);
 
 (function() {
 
+    Bodies._decompWarned = false;
+
     /**
      * Creates a new rigid body model with a rectangle hull. 
      * The options parameter is an object that specifies any properties you wish to override the defaults.
@@ -6985,14 +6987,31 @@ var Vector = __webpack_require__(2);
     };
 
     /**
-     * Creates a body using the supplied vertices (or an array containing multiple sets of vertices).
-     * If the vertices are convex, they will pass through as supplied.
-     * Otherwise if the vertices are concave, they will be decomposed if [poly-decomp.js](https://github.com/schteppe/poly-decomp.js) is available.
-     * Note that this process is not guaranteed to support complex sets of vertices (e.g. those with holes may fail).
-     * By default the decomposition will discard collinear edges (to improve performance).
-     * It can also optionally discard any parts that have an area less than `minimumArea`.
-     * If the vertices can not be decomposed, the result will fall back to using the convex hull.
-     * The options parameter is an object that specifies any `Matter.Body` properties you wish to override the defaults.
+     * Creates a body based on set(s) of vertices.
+     * 
+     * This utility builds on top of `Body.create` to automatically handle concave inputs.
+     * 
+     * To use this decomposition feature the [poly-decomp](https://github.com/schteppe/poly-decomp.js) 
+     * package should be additionally installed via npm or as a global.
+     * 
+     * The resulting vertices are reorientated about their centre of mass,
+     * and offset such that `body.position` corresponds to this point.
+     * 
+     * If needed the resulting offset may be found by subtracting `body.bounds` from the original input bounds.
+     * To later move the centre of mass see `Body.setCentre`.
+     * 
+     * Note that decomposition results are not always perfect. 
+     * 
+     * For best results, simplify the input vertices as much as possible first.
+     * By default this function applies some addtional simplification to help.
+     * 
+     * Some outputs may also require further manual processing afterwards to be robust.
+     * 
+     * In particular some parts may need to be overlapped to avoid collision gaps.
+     * Thin parts and sharp points should be avoided or removed where possible.
+     *
+     * The options parameter object specifies any `Matter.Body` properties you wish to override the defaults.
+     * 
      * See the properties section of the `Matter.Body` module for detailed information on what you can pass via the `options` object.
      * @method fromVertices
      * @param {number} x
@@ -7006,16 +7025,28 @@ var Vector = __webpack_require__(2);
      * @return {body}
      */
     Bodies.fromVertices = function(x, y, vertexSets, options, flagInternal, removeCollinear, minimumArea, removeDuplicatePoints) {
-        var decomp = __webpack_require__(27),
+        var decomp,
+            canDecomp,
             body,
             parts,
             isConvex,
+            isConcave,
             vertices,
             i,
             j,
             k,
             v,
             z;
+
+        try {
+            decomp = __webpack_require__(27);
+        } catch (e) {
+            // continue without decomp
+            decomp = null;
+        }
+
+        // check expected decomp module was resolved
+        canDecomp = Boolean(decomp && decomp.quickDecomp);
 
         options = options || {};
         parts = [];
@@ -7025,10 +7056,6 @@ var Vector = __webpack_require__(2);
         minimumArea = typeof minimumArea !== 'undefined' ? minimumArea : 10;
         removeDuplicatePoints = typeof removeDuplicatePoints !== 'undefined' ? removeDuplicatePoints : 0.01;
 
-        if (!decomp) {
-            Common.warn('Bodies.fromVertices: poly-decomp.js required. Could not decompose vertices. Fallback to convex hull.');
-        }
-
         // ensure vertexSets is an array of arrays
         if (!Common.isArray(vertexSets[0])) {
             vertexSets = [vertexSets];
@@ -7037,8 +7064,19 @@ var Vector = __webpack_require__(2);
         for (v = 0; v < vertexSets.length; v += 1) {
             vertices = vertexSets[v];
             isConvex = Vertices.isConvex(vertices);
+            isConcave = !isConvex;
 
-            if (isConvex || !decomp) {
+            if (isConcave && !canDecomp && !Bodies._decompWarned) {
+                Common.warn(
+                    'Could not resolve the expected \'poly-decomp\' package for concave vertices in \'Bodies.fromVertices\''
+                );
+                Common.warn(
+                    'Try \'npm install poly-decomp --save\' or as a global e.g. \'window.decomp\''
+                );
+                Bodies._decompWarned = true;
+            }
+
+            if (isConvex || !canDecomp) {
                 if (isConvex) {
                     vertices = Vertices.clockwiseSort(vertices);
                 } else {
@@ -7133,6 +7171,8 @@ var Vector = __webpack_require__(2);
         if (parts.length > 1) {
             // create the parent body to be returned, that contains generated compound parts
             body = Body.create(Common.extend({ parts: parts.slice(0) }, options));
+
+            // offset such that body.position is at the centre off mass
             Body.setPosition(body, { x: x, y: y });
 
             return body;
@@ -8916,7 +8956,7 @@ var Common = __webpack_require__(0);
      * @readOnly
      * @type {String}
      */
-    Matter.version =  true ? "0.16.0" : undefined;
+    Matter.version =  true ? "0.16.1" : undefined;
 
     /**
      * A list of plugin dependencies to be installed. These are normally set and installed through `Matter.use`.
@@ -9115,6 +9155,7 @@ var Vertices = __webpack_require__(3);
 /* 27 */
 /***/ (function(module, exports) {
 
+if(typeof __WEBPACK_EXTERNAL_MODULE__27__ === 'undefined') {var e = new Error("Cannot find module 'undefined'"); e.code = 'MODULE_NOT_FOUND'; throw e;}
 module.exports = __WEBPACK_EXTERNAL_MODULE__27__;
 
 /***/ }),
