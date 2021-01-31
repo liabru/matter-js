@@ -54,7 +54,9 @@ afterAll(async () => {
     const build = await capturesBuild;
 
     console.log(
-        logReport(dev) + '\n'
+        'Examples ran against previous release and current version\n\n'
+        + logReport(build, `release`) + '\n'
+        + logReport(dev, `current`) + '\n'
         + comparisonReport(dev, build, MatterBuild.version, saveComparison)
     );
 });

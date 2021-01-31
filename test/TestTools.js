@@ -202,7 +202,7 @@ const equals = (a, b) => {
     return true;
 };
 
-const logReport = captures => {
+const logReport = (captures, version) => {
     let report = '';
 
     for (const capture of Object.values(captures)) {
@@ -217,8 +217,8 @@ const logReport = captures => {
         }
     }
 
-    return report ? `Output logs on last run\n\n${report}`
-        : 'Output logs on last run\n\n  None\n';
+    return `Output logs from ${color(version, colors.Yellow)} version on last run\n\n` 
+        + (report ? report : '  None\n');
 };
 
 const comparisonReport = (capturesDev, capturesBuild, buildVersion, save) => {
@@ -271,7 +271,7 @@ const comparisonReport = (capturesDev, capturesBuild, buildVersion, save) => {
 
     const report = (breakEvery, format) => [
         [`Output comparison of ${similarityEntries.length}`,
-         `examples against ${format('matter-js@' + buildVersion, colors.Yellow)} build on last run`
+         `examples against previous release ${format('matter-js@' + buildVersion, colors.Yellow)}`
         ].join(' '),
         `\n\n${format('Similarity', colors.White)}`,
         `${format(toPercent(similarityAvg), similarityAvg === 1 ? colors.Green : colors.Yellow)}%`,
