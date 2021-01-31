@@ -21,6 +21,8 @@ var Vector = require('../geometry/Vector');
 
 (function() {
 
+    Bodies._decompWarned = false;
+
     /**
      * Creates a new rigid body model with a rectangle hull. 
      * The options parameter is an object that specifies any properties you wish to override the defaults.
@@ -197,16 +199,28 @@ var Vector = require('../geometry/Vector');
      * @return {body}
      */
     Bodies.fromVertices = function(x, y, vertexSets, options, flagInternal, removeCollinear, minimumArea, removeDuplicatePoints) {
-        var decomp = require('poly-decomp'),
+        var decomp,
+            canDecomp,
             body,
             parts,
             isConvex,
+            isConcave,
             vertices,
             i,
             j,
             k,
             v,
             z;
+
+        try {
+            decomp = require('poly-decomp');
+        } catch (e) {
+            // continue without decomp
+            decomp = null;
+        }
+
+        // check expected decomp module was resolved
+        canDecomp = Boolean(decomp && decomp.quickDecomp);
 
         options = options || {};
         parts = [];
@@ -216,10 +230,6 @@ var Vector = require('../geometry/Vector');
         minimumArea = typeof minimumArea !== 'undefined' ? minimumArea : 10;
         removeDuplicatePoints = typeof removeDuplicatePoints !== 'undefined' ? removeDuplicatePoints : 0.01;
 
-        if (!decomp) {
-            Common.warn('Bodies.fromVertices: poly-decomp.js required. Could not decompose vertices. Fallback to convex hull.');
-        }
-
         // ensure vertexSets is an array of arrays
         if (!Common.isArray(vertexSets[0])) {
             vertexSets = [vertexSets];
@@ -228,8 +238,19 @@ var Vector = require('../geometry/Vector');
         for (v = 0; v < vertexSets.length; v += 1) {
             vertices = vertexSets[v];
             isConvex = Vertices.isConvex(vertices);
+            isConcave = !isConvex;
 
-            if (isConvex || !decomp) {
+            if (isConcave && !canDecomp && !Bodies._decompWarned) {
+                Common.warn(
+                    'Could not resolve the expected \'poly-decomp\' package for concave vertices in \'Bodies.fromVertices\''
+                );
+                Common.warn(
+                    'Try \'npm install poly-decomp --save\' or as a global e.g. \'window.decomp\''
+                );
+                Bodies._decompWarned = true;
+            }
+
+            if (isConvex || !canDecomp) {
                 if (isConvex) {
                     vertices = Vertices.clockwiseSort(vertices);
                 } else {
