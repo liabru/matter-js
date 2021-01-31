@@ -26,20 +26,29 @@ License ${pkg.license}${!minimize ? '\n\n' + license : ''}`;
 
     const entry = isDevServer ? './demo/js/Server.js' : './src/module/main.js';
 
-    const externals = isDevServer ? undefined : {
-        'poly-decomp': {
-            commonjs: 'poly-decomp',
-            commonjs2: 'poly-decomp',
-            amd: 'poly-decomp',
-            root: 'decomp'
-        },
-        'matter-wrap': {
-            commonjs: 'matter-wrap',
-            commonjs2: 'matter-wrap',
-            amd: 'matter-wrap',
-            root: 'MatterWrap'
-        }
-    };
+    const externals = isDevServer ? 
+        {
+            'matter-js': {
+                commonjs: 'matter-js',
+                commonjs2: 'matter-js',
+                amd: 'matter-js',
+                root: 'Matter'
+            }
+        } : 
+        {
+            'poly-decomp': {
+                commonjs: 'poly-decomp',
+                commonjs2: 'poly-decomp',
+                amd: 'poly-decomp',
+                root: 'decomp'
+            },
+            'matter-wrap': {
+                commonjs: 'matter-wrap',
+                commonjs2: 'matter-wrap',
+                amd: 'matter-wrap',
+                root: 'MatterWrap'
+            }
+        };
 
     return {
         entry: { [name]: entry },
@@ -69,7 +78,8 @@ License ${pkg.license}${!minimize ? '\n\n' + license : ''}`;
                 path.resolve(__dirname, './demo'),
                 path.resolve(__dirname, './examples'),
                 path.resolve(__dirname, './node_modules/matter-tools/build'),
-                path.resolve(__dirname, './node_modules/pathseg')
+                path.resolve(__dirname, './node_modules/pathseg'),
+                path.resolve(__dirname, './node_modules/matter-wrap/build')
             ],
             watchContentBase: true,
             open: true,
@@ -101,6 +111,10 @@ License ${pkg.license}${!minimize ? '\n\n' + license : ''}`;
                 '/lib/pathseg.js': {
                     target: 'http://localhost:8000/',
                     pathRewrite: { '^/lib/pathseg.js' : '/pathseg.js' }
+                },
+                '/lib/matter-wrap.js': {
+                    target: 'http://localhost:8000/',
+                    pathRewrite: { '^/lib/matter-wrap.js' : '/matter-wrap.js' }
                 }
             }
         }
