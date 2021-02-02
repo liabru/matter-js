@@ -513,17 +513,17 @@ var Mouse = require('../core/Mouse');
                 start = constraint.pointA;
             }
 
+            if (bodyB) {
+                end = Vector.add(bodyB.position, constraint.pointB);
+            } else {
+                end = constraint.pointB;
+            }
+
             if (constraint.render.type === 'pin') {
                 c.beginPath();
                 c.arc(start.x, start.y, 3, 0, 2 * Math.PI);
                 c.closePath();
             } else {
-                if (bodyB) {
-                    end = Vector.add(bodyB.position, constraint.pointB);
-                } else {
-                    end = constraint.pointB;
-                }
-
                 c.beginPath();
                 c.moveTo(start.x, start.y);
 
@@ -559,6 +559,32 @@ var Mouse = require('../core/Mouse');
                 c.arc(end.x, end.y, 3, 0, 2 * Math.PI);
                 c.closePath();
                 c.fill();
+            }
+
+            if (constraint.render.angles && constraint.angleAStiffness) {
+                var relativeAngle = (constraint.length > 0 && constraint.bodyA ? constraint.bodyA.angle : 0) + constraint.angleA;
+                c.beginPath();
+                c.moveTo(start.x, start.y);
+                c.arc(start.x, start.y, 12, relativeAngle + constraint.angleAMin, 
+                    relativeAngle + constraint.angleAMax + 0.0001, constraint.angleAMin <= constraint.angleAMax);
+                c.lineTo(start.x, start.y);
+                c.closePath();
+                c.strokeStyle = 'rgba(255,255,255,' + (0.3 + 0.3 * constraint.angleAStiffness) + ')';
+                c.lineWidth = 1.2;
+                c.stroke();
+            }
+
+            if (constraint.render.angles && constraint.angleBStiffness) {
+                var relativeAngle = (constraint.length > 0 && constraint.bodyB ? constraint.bodyB.angle : 0) + constraint.angleB;
+                c.beginPath();
+                c.moveTo(end.x, end.y);
+                c.arc(end.x, end.y, 12, relativeAngle + constraint.angleBMin,
+                    relativeAngle + constraint.angleBMax + 0.0001, constraint.angleBMin <= constraint.angleBMax);
+                c.lineTo(end.x, end.y);
+                c.closePath();
+                c.strokeStyle = 'rgba(255,255,255,' + (0.3 + 0.3 * constraint.angleBStiffness) + ')';
+                c.lineWidth = 1.2;
+                c.stroke();
             }
         }
     };
