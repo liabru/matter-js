@@ -90,6 +90,7 @@ Example.friction = function() {
     };
 };
 
+Example.friction.title = 'Friction';
 Example.friction.for = '>=0.14.2';
 
 if (typeof module !== 'undefined') {

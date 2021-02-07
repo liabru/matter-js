@@ -89,6 +89,7 @@ Example.compoundStack = function() {
     };
 };
 
+Example.compoundStack.title = 'Compound Stack';
 Example.compoundStack.for = '>=0.14.2';
 
 if (typeof module !== 'undefined') {

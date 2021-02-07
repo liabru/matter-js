@@ -130,6 +130,7 @@ Example.sensors = function() {
     };
 };
 
+Example.sensors.title = 'Sensors';
 Example.sensors.for = '>=0.14.2';
 
 if (typeof module !== 'undefined') {

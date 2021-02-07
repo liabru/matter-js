@@ -85,6 +85,7 @@ Example.restitution = function() {
     };
 };
 
+Example.restitution.title = 'Restitution';
 Example.restitution.for = '>=0.14.2';
 
 if (typeof module !== 'undefined') {

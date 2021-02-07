@@ -93,6 +93,7 @@ Example.wreckingBall = function() {
     };
 };
 
+Example.wreckingBall.title = 'Wrecking Ball';
 Example.wreckingBall.for = '>=0.14.2';
 
 if (typeof module !== 'undefined') {

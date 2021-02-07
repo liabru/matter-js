@@ -76,6 +76,7 @@ Example.newtonsCradle = function() {
     };
 };
 
+Example.newtonsCradle.title = 'Newton\'s Cradle';
 Example.newtonsCradle.for = '>=0.14.2';
 
 if (typeof module !== 'undefined') {

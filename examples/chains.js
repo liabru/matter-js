@@ -122,6 +122,7 @@ Example.chains = function() {
     };
 };
 
+Example.chains.title = 'Chains';
 Example.chains.for = '>=0.14.2';
 
 if (typeof module !== 'undefined') {

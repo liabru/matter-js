@@ -84,6 +84,7 @@ Example.cloth = function() {
     };
 };
 
+Example.cloth.title = 'Cloth';
 Example.cloth.for = '>=0.14.2';
 
 if (typeof module !== 'undefined') {

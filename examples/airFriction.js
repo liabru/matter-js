@@ -80,6 +80,7 @@ Example.airFriction = function() {
     };
 };
 
+Example.airFriction.title = 'Air Friction';
 Example.airFriction.for = '>=0.14.2';
 
 if (typeof module !== 'undefined') {

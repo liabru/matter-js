@@ -100,6 +100,7 @@ Example.slingshot = function() {
     };
 };
 
+Example.slingshot.title = 'Slingshot';
 Example.slingshot.for = '>=0.14.2';
 
 if (typeof module !== 'undefined') {

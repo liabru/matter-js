@@ -96,6 +96,7 @@ Example.catapult = function() {
     };
 };
 
+Example.catapult.title = 'Catapult';
 Example.catapult.for = '>=0.14.2';
 
 if (typeof module !== 'undefined') {

@@ -179,6 +179,7 @@ Example.constraints = function() {
     };
 };
 
+Example.constraints.title = 'Constraints';
 Example.constraints.for = '>=0.14.2';
 
 if (typeof module !== 'undefined') {

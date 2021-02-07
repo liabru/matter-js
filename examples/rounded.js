@@ -109,6 +109,7 @@ Example.rounded = function() {
     };
 };
 
+Example.rounded.title = 'Rounded Corners (Chamfering)';
 Example.rounded.for = '>=0.14.2';
 
 if (typeof module !== 'undefined') {

@@ -114,6 +114,7 @@ Example.terrain = function() {
     };
 };
 
+Example.terrain.title = 'Terrain';
 Example.terrain.for = '>=0.14.2';
 
 if (typeof module !== 'undefined') {

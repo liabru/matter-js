@@ -182,6 +182,7 @@ Example.views = function() {
     };
 };
 
+Example.views.title = 'Views';
 Example.views.for = '>=0.14.2';
 
 if (typeof module !== 'undefined') {

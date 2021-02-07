@@ -151,6 +151,7 @@ Example.timescale = function() {
     };
 };
 
+Example.timescale.title = 'Time Scaling';
 Example.timescale.for = '>=0.14.2';
 
 if (typeof module !== 'undefined') {

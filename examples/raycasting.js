@@ -135,6 +135,7 @@ Example.raycasting = function() {
     };
 };
 
+Example.raycasting.title = 'Raycasting';
 Example.raycasting.for = '>=0.14.2';
 
 if (typeof module !== 'undefined') {

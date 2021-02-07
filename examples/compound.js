@@ -106,6 +106,7 @@ Example.compound = function() {
     };
 };
 
+Example.compound.title = 'Compound Bodies';
 Example.compound.for = '>=0.14.2';
 
 if (typeof module !== 'undefined') {

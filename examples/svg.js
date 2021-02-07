@@ -127,6 +127,7 @@ Example.svg = function() {
     };
 };
 
+Example.svg.title = 'Concave SVG Paths';
 Example.svg.for = '>=0.14.2';
 
 if (typeof module !== 'undefined') {

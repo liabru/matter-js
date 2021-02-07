@@ -124,6 +124,7 @@ Example.bridge = function() {
     };
 };
 
+Example.bridge.title = 'Bridge';
 Example.bridge.for = '>=0.14.2';
 
 if (typeof module !== 'undefined') {

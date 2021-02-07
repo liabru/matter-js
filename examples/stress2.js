@@ -79,6 +79,7 @@ Example.stress2 = function() {
     };
 };
 
+Example.stress2.title = 'Stress 2';
 Example.stress2.for = '>=0.14.2';
 
 if (typeof module !== 'undefined') {

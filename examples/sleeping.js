@@ -104,6 +104,7 @@ Example.sleeping = function() {
     };
 };
 
+Example.sleeping.title = 'Sleeping';
 Example.sleeping.for = '>=0.14.2';
 
 if (typeof module !== 'undefined') {

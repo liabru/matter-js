@@ -96,6 +96,7 @@ Example.gravity = function() {
     };
 };
 
+Example.gravity.title = 'Reverse Gravity';
 Example.gravity.for = '>=0.14.2';
 
 if (typeof module !== 'undefined') {

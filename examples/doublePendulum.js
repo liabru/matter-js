@@ -148,6 +148,7 @@ Example.doublePendulum = function() {
     };
 };
 
+Example.doublePendulum.title = 'Double Pendulum';
 Example.doublePendulum.for = '>=0.14.2';
 
 if (typeof module !== 'undefined') {

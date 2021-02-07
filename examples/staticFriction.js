@@ -106,6 +106,7 @@ Example.staticFriction = function() {
     };
 };
 
+Example.staticFriction.title = 'Static Friction';
 Example.staticFriction.for = '>=0.14.2';
 
 if (typeof module !== 'undefined') {

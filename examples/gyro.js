@@ -130,6 +130,7 @@ Example.gyro = function() {
     };
 };
 
+Example.gyro.title = 'Gyroscope';
 Example.gyro.for = '>=0.14.2';
 
 if (typeof module !== 'undefined') {

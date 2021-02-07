@@ -99,6 +99,7 @@ Example.avalanche = function() {
     };
 };
 
+Example.avalanche.title = 'Avalanche';
 Example.avalanche.for = '>=0.14.2';
 
 if (typeof module !== 'undefined') {

@@ -81,6 +81,7 @@ Example.stack = function() {
     };
 };
 
+Example.stack.title = 'Stack';
 Example.stack.for = '>=0.14.2';
 
 if (typeof module !== 'undefined') {

@@ -107,6 +107,7 @@ Example.compositeManipulation = function() {
     };
 };
 
+Example.compositeManipulation.title = 'Composite Manipulation';
 Example.compositeManipulation.for = '>=0.14.2';
 
 if (typeof module !== 'undefined') {

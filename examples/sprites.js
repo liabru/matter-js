@@ -112,6 +112,7 @@ Example.sprites = function() {
     };
 };
 
+Example.sprites.title = 'Sprites';
 Example.sprites.for = '>=0.14.2';
 
 if (typeof module !== 'undefined') {

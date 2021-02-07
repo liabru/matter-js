@@ -140,6 +140,7 @@ Example.manipulation = function() {
     };
 };
 
+Example.manipulation.title = 'Manipulation';
 Example.manipulation.for = '>=0.14.2';
 
 if (typeof module !== 'undefined') {

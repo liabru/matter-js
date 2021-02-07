@@ -178,6 +178,7 @@ Example.events = function() {
     };
 };
 
+Example.events.title = 'Events';
 Example.events.for = '>=0.14.2';
 
 if (typeof module !== 'undefined') {

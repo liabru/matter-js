@@ -81,6 +81,7 @@ Example.pyramid = function() {
     };
 };
 
+Example.pyramid.title = 'Pyramid';
 Example.pyramid.for = '>=0.14.2';
 
 if (typeof module !== 'undefined') {

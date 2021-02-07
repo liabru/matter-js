@@ -154,6 +154,7 @@ Example.collisionFiltering = function() {
     };
 };
 
+Example.collisionFiltering.title = 'Collision Filtering';
 Example.collisionFiltering.for = '>=0.14.2';
 
 if (typeof module !== 'undefined') {

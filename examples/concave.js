@@ -95,6 +95,7 @@ Example.concave = function() {
     };
 };
 
+Example.concave.title = 'Concave';
 Example.concave.for = '>=0.14.2';
 
 if (typeof module !== 'undefined') {

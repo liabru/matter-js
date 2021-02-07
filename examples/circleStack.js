@@ -81,6 +81,7 @@ Example.circleStack = function() {
     };
 };
 
+Example.circleStack.title = 'Circle Stack';
 Example.circleStack.for = '>=0.14.2';
 
 if (typeof module !== 'undefined') {

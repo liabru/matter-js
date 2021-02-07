@@ -107,6 +107,7 @@ Example.ballPool = function() {
     };
 };
 
+Example.ballPool.title = 'Ball Pool';
 Example.ballPool.for = '>=0.14.2';
 
 if (typeof module !== 'undefined') {

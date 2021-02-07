@@ -105,6 +105,7 @@ Example.mixed = function() {
     };
 };
 
+Example.mixed.title = 'Mixed Shapes';
 Example.mixed.for = '>=0.14.2';
 
 if (typeof module !== 'undefined') {

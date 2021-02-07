@@ -89,6 +89,7 @@ Example.car = function() {
     };
 };
 
+Example.car.title = 'Car';
 Example.car.for = '>=0.14.2';
 
 if (typeof module !== 'undefined') {

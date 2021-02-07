@@ -498,6 +498,7 @@ Example.ragdoll.ragdoll = function(x, y, scale, options) {
     return person;
 };
 
+Example.ragdoll.title = 'Ragdoll';
 Example.ragdoll.for = '>=0.14.2';
 
 if (typeof module !== 'undefined') {

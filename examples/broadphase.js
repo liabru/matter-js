@@ -95,6 +95,7 @@ Example.broadphase = function() {
     };
 };
 
+Example.broadphase.title = 'Broadphase';
 Example.broadphase.for = '>=0.14.2';
 
 if (typeof module !== 'undefined') {
