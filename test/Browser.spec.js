@@ -84,9 +84,11 @@ const runExamplesBrowser = async updates => {
 
     // In the demo page context
     results[example] = await page.evaluate(async (example, updates) => {
+      const demo = window.MatterDemoInstance;
+
       // Set the current example
-      MatterTools.Demo.setExampleById(MatterDemo, example);
-      const instance = MatterDemo.example.instance;
+      MatterTools.Demo.setExampleById(demo, example);
+      const instance = demo.example.instance;
       let ticks = 0;
 
       // Wait while running
@@ -103,7 +105,7 @@ const runExamplesBrowser = async updates => {
 
       // Return results
       return {
-        id: MatterDemo.example.id,
+        id: demo.example.id,
         timestamp: instance.engine.timing.timestamp
       };
     }, example, updates);

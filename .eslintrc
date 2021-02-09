@@ -67,6 +67,7 @@
         "Metrics": false,
         "Example": false,
         "__MATTER_VERSION__": false,
+        "__MATTER_IS_DEV__": false,
         "jest": false,
         "test": false,
         "expect": false,
