@@ -9,27 +9,8 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="robots" content="noindex">
-
     <title>Matter.js Demo</title>
-    
-    <!-- Libs -->
-    <script src="./lib/decomp.js"></script>
-    <script src="./lib/pathseg.js"></script>
 
-    <!-- Examples -->
-    <script src="./js/Examples.js"></script>
-
-    <!-- Matter -->
-    <script src="../build/matter.js"></script>
-    
-    <!-- MatterTools -->
-    <script src="./lib/matter-tools.gui.js"></script>
-    <script src="./lib/matter-tools.inspector.js"></script>
-    <script src="./lib/matter-tools.demo.js"></script>
-
-    <!-- Plugins -->
-    <script src="./lib/matter-wrap.js"></script>
-    
     <style type="text/css">
       * {
         box-sizing: border-box;
@@ -40,7 +21,13 @@
         padding: 0;
       }
 
-      .matter-js-compare-build {
+      .matter-btn-compare.matter-btn {
+        font-size: 18px;
+        text-align: center;
+        line-height: 32px;
+      }
+
+      .matter-js-compare-build.matter-demo {
         position: absolute;
         background: none;
         top: 0;
@@ -52,17 +39,22 @@
         pointer-events: none;
       }
 
-      .matter-js-compare-build .matter-header-outer {
+      .matter-js-compare-build.matter-demo .matter-header-outer {
         display: none;
       }
 
-      .matter-js-compare-build canvas {
+      .matter-js-compare-build.matter-demo canvas {
         opacity: 0.5;
         background: transparent !important;
       }
     </style>
   </head>
   <body>
-    <script src="./js/Demo.js"></script>
+    <script src="./js/matter-demo.main.5a504f.min.js"></script>
+    <script src="./js/matter-demo.matter-tools.5e580e.min.js"></script>
+    <script src="./js/matter-demo.matter-wrap.b3a896.min.js"></script>
+    <script src="./js/matter-demo.pathseg.067c95.min.js"></script>
+    <script src="./js/matter-demo.poly-decomp.59954b.min.js"></script>
+    <script src="./js/matter-demo.9c6dd1.min.js"></script>
   </body>
 </html>
