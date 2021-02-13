@@ -132,8 +132,10 @@ var Body = require('../body/Body');
 
         // get lists of all bodies and constraints, no matter what composites they are in
         var allBodies = Composite.allBodies(world),
+			nonStaticBodies = [],
+			nonSleepingBodies = [],
             allConstraints = Composite.allConstraints(world);
-
+		
         // @if DEBUG
         // reset metrics logging
         Metrics.reset(engine.metrics);
@@ -142,19 +144,29 @@ var Body = require('../body/Body');
         // if sleeping enabled, call the sleeping controller
         if (engine.enableSleeping)
             Sleeping.update(allBodies, timing.timeScale);
-
+		
+		// Fill lists with static and sleeping bodies
+		for (var i = 0; i < allBodies.length; i++) {
+            var body = allBodies[i];
+			if(!body.isStatic) {
+				nonStaticBodies.push(body);
+				if(!body.isSleeping)
+					nonSleepingBodies.push(body);
+			}
+		}
+		
         // applies gravity to all bodies
-        Engine._bodiesApplyGravity(allBodies, world.gravity);
+        Engine._bodiesApplyGravity(nonSleepingBodies, world.gravity);
 
         // update all body position and rotation by integration
-        Engine._bodiesUpdate(allBodies, delta, timing.timeScale, correction, world.bounds);
+        Engine._bodiesUpdate(nonSleepingBodies, delta, timing.timeScale, correction, world.bounds);
 
         // update all constraints (first pass)
-        Constraint.preSolveAll(allBodies);
+        Constraint.preSolveAll(nonStaticBodies);
         for (i = 0; i < engine.constraintIterations; i++) {
             Constraint.solveAll(allConstraints, timing.timeScale);
         }
-        Constraint.postSolveAll(allBodies);
+        Constraint.postSolveAll(nonStaticBodies);
 
         // broadphase pass: find potential collision pairs
         if (broadphase.controller) {
@@ -163,7 +175,8 @@ var Body = require('../body/Body');
                 broadphase.controller.clear(broadphase);
 
             // update the grid buckets based on current bodies
-            broadphase.controller.update(broadphase, allBodies, engine, world.isModified);
+            broadphase.controller.update(broadphase, 
+					world.isModified ? allBodies : nonSleepingBodies, engine, world.isModified);
             broadphasePairs = broadphase.pairsList;
         } else {
             // if no broadphase set, we just pass all bodies
@@ -200,11 +213,11 @@ var Body = require('../body/Body');
         Resolver.postSolvePosition(allBodies);
 
         // update all constraints (second pass)
-        Constraint.preSolveAll(allBodies);
+        Constraint.preSolveAll(nonStaticBodies);
         for (i = 0; i < engine.constraintIterations; i++) {
             Constraint.solveAll(allConstraints, timing.timeScale);
         }
-        Constraint.postSolveAll(allBodies);
+        Constraint.postSolveAll(nonStaticBodies);
 
         // iteratively resolve velocity between collisions
         Resolver.preSolveVelocity(pairs.list);
@@ -225,7 +238,7 @@ var Body = require('../body/Body');
         // @endif
 
         // clear force buffers
-        Engine._bodiesClearForces(allBodies);
+        Engine._bodiesClearForces(nonSleepingBodies);
 
         Events.trigger(engine, 'afterUpdate', event);
 
