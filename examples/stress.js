@@ -21,7 +21,8 @@ Example.stress = function() {
         options: {
             width: 800,
             height: 600,
-            showDebug: true
+            showStats: true,
+            showPerformance: true
         }
     });
 

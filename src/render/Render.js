@@ -57,6 +57,7 @@ var Mouse = require('../core/Mouse');
                 deltaHistory: [],
                 lastTime: 0,
                 lastTimestamp: 0,
+                lastElapsed: 0,
                 timestampElapsed: 0,
                 timestampElapsedHistory: [],
                 engineDeltaHistory: [],
@@ -74,6 +75,8 @@ var Mouse = require('../core/Mouse');
                 wireframes: true,
                 showSleeping: true,
                 showDebug: false,
+                showStats: false,
+                showPerformance: false,
                 showBroadphase: false,
                 showBounds: false,
                 showVelocity: false,
@@ -137,11 +140,17 @@ var Mouse = require('../core/Mouse');
         (function loop(time){
             render.frameRequestId = _requestAnimationFrame(loop);
             
-            Render.world(render, time);
             _updateTiming(render, time);
 
-            if (render.options.showDebug)
-                Render.debug(render, render.context, time);
+            Render.world(render, time);
+
+            if (render.options.showStats || render.options.showDebug) {
+                Render.stats(render, render.context, time);
+            }
+
+            if (render.options.showPerformance || render.options.showDebug) {
+                Render.performance(render, render.context, time);
+            }
         })();
     };
 
@@ -444,14 +453,14 @@ var Mouse = require('../core/Mouse');
     };
 
     /**
-     * Renders debug information.
+     * Renders statistics about the engine and world useful for debugging.
      * @private
-     * @method debug
+     * @method stats
      * @param {render} render
      * @param {RenderingContext} context
      * @param {Number} time
      */
-    Render.debug = function(render, context, time) {
+    Render.stats = function(render, context, time) {
         var engine = render.engine,
             world = engine.world,
             bodies = Composite.allBodies(world),
@@ -496,18 +505,16 @@ var Mouse = require('../core/Mouse');
 
             x += width;
         }
-
-        Render.timing(render, context, time);
     };
 
     /**
-     * Renders timing information.
+     * Renders engine and render performance information.
      * @private
-     * @method timing
+     * @method performance
      * @param {render} render
      * @param {RenderingContext} context
      */
-    Render.timing = function(render, context) {
+    Render.performance = function(render, context) {
         var engine = render.engine,
             timing = render.timing,
             deltaHistory = timing.deltaHistory,
