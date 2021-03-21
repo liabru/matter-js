@@ -119,7 +119,6 @@ var Common = require('./Common');
         };
 
         Events.trigger(runner, 'beforeTick', event);
-        Events.trigger(engine, 'beforeTick', event); // back compatibility
 
         if (runner.isFixed) {
             // fixed timestep
@@ -164,7 +163,6 @@ var Common = require('./Common');
         }
 
         Events.trigger(runner, 'tick', event);
-        Events.trigger(engine, 'tick', event); // back compatibility
 
         // if world has been modified, clear the render scene graph
         if (engine.world.isModified 
@@ -192,7 +190,6 @@ var Common = require('./Common');
         }
 
         Events.trigger(runner, 'afterTick', event);
-        Events.trigger(engine, 'afterTick', event); // back compatibility
     };
 
     /**
