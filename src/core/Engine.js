@@ -15,7 +15,6 @@ module.exports = Engine;
 var World = require('../body/World');
 var Sleeping = require('./Sleeping');
 var Resolver = require('../collision/Resolver');
-var Render = require('../render/Render');
 var Pairs = require('../collision/Pairs');
 var Grid = require('../collision/Grid');
 var Events = require('./Events');
@@ -34,16 +33,9 @@ var Body = require('../body/Body');
      * @param {object} [options]
      * @return {engine} engine
      */
-    Engine.create = function(element, options) {
-        // options may be passed as the first (and only) argument
-        options = Common.isElement(element) ? options : element;
-        element = Common.isElement(element) ? element : null;
+    Engine.create = function(options) {
         options = options || {};
-
-        if (element || options.render) {
-            Common.warn('Engine.create: engine.render is deprecated (see docs)');
-        }
-
+        
         var defaults = {
             positionIterations: 6,
             velocityIterations: 4,
@@ -62,26 +54,6 @@ var Body = require('../body/Body');
         };
 
         var engine = Common.extend(defaults, options);
-
-        // back compatibility
-        if (element || engine.render) {
-            var renderDefaults = {
-                element: element,
-                controller: Render
-            };
-            
-            engine.render = Common.extend(renderDefaults, engine.render);
-        }
-
-        // back compatibility
-        if (engine.render && engine.render.controller) {
-            engine.render = engine.render.controller.create(engine.render);
-        }
-
-        // back compatibility
-        if (engine.render) {
-            engine.render.engine = engine;
-        }
 
         engine.world = options.world || World.create(engine.world);
         engine.pairs = Pairs.create();
@@ -148,13 +120,13 @@ var Body = require('../body/Body');
 
         // broadphase pass: find potential collision pairs
         if (broadphase.controller) {
-            // if world is dirty, we must flush the whole grid
-            if (world.isModified)
+        // if world is dirty, we must flush the whole grid
+        if (world.isModified)
                 broadphase.controller.clear(broadphase);
 
-            // update the grid buckets based on current bodies
+        // update the grid buckets based on current bodies
             broadphase.controller.update(broadphase, allBodies, engine, world.isModified);
-            broadphasePairs = broadphase.pairsList;
+        broadphasePairs = broadphase.pairsList;
         } else {
             // if no broadphase set, we just pass all bodies
             broadphasePairs = allBodies;
@@ -248,7 +220,7 @@ var Body = require('../body/Body');
      */
     Engine.clear = function(engine) {
         var world = engine.world;
-        
+
         Pairs.clear(engine.pairs);
 
         var broadphase = engine.broadphase;
