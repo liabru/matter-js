@@ -38,7 +38,6 @@ Matter.Vector = require('../geometry/Vector');
 Matter.Vertices = require('../geometry/Vertices');
 
 Matter.Render = require('../render/Render');
-Matter.RenderPixi = require('../render/RenderPixi');
 
 // aliases
 
