@@ -164,30 +164,10 @@ var Common = require('./Common');
 
         Events.trigger(runner, 'tick', event);
 
-        // if world has been modified, clear the render scene graph
-        if (engine.world.isModified 
-            && engine.render
-            && engine.render.controller
-            && engine.render.controller.clear) {
-            engine.render.controller.clear(engine.render); // back compatibility
-        }
-
         // update
         Events.trigger(runner, 'beforeUpdate', event);
         Engine.update(engine, delta, correction);
         Events.trigger(runner, 'afterUpdate', event);
-
-        // render
-        // back compatibility
-        if (engine.render && engine.render.controller) {
-            Events.trigger(runner, 'beforeRender', event);
-            Events.trigger(engine, 'beforeRender', event); // back compatibility
-
-            engine.render.controller.world(engine.render);
-
-            Events.trigger(runner, 'afterRender', event);
-            Events.trigger(engine, 'afterRender', event); // back compatibility
-        }
 
         Events.trigger(runner, 'afterTick', event);
     };
@@ -266,28 +246,6 @@ var Common = require('./Common');
     * @param {number} event.timestamp The engine.timing.timestamp of the event
     * @param {} event.source The source object of the event
     * @param {} event.name The name of the event
-    */
-
-    /**
-    * Fired before rendering
-    *
-    * @event beforeRender
-    * @param {} event An event object
-    * @param {number} event.timestamp The engine.timing.timestamp of the event
-    * @param {} event.source The source object of the event
-    * @param {} event.name The name of the event
-    * @deprecated
-    */
-
-    /**
-    * Fired after rendering
-    *
-    * @event afterRender
-    * @param {} event An event object
-    * @param {number} event.timestamp The engine.timing.timestamp of the event
-    * @param {} event.source The source object of the event
-    * @param {} event.name The name of the event
-    * @deprecated
     */
 
     /*
