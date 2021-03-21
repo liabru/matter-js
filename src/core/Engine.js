@@ -15,6 +15,7 @@ module.exports = Engine;
 var World = require('../body/World');
 var Sleeping = require('./Sleeping');
 var Resolver = require('../collision/Resolver');
+var Detector = require('../collision/Detector');
 var Pairs = require('../collision/Pairs');
 var Grid = require('../collision/Grid');
 var Events = require('./Events');
@@ -35,7 +36,7 @@ var Body = require('../body/Body');
      */
     Engine.create = function(options) {
         options = options || {};
-        
+
         var defaults = {
             positionIterations: 6,
             velocityIterations: 4,
@@ -43,21 +44,22 @@ var Body = require('../body/Body');
             enableSleeping: false,
             events: [],
             plugin: {},
+            grid: null,
             timing: {
                 timestamp: 0,
                 timeScale: 1
-            },
-            broadphase: {
-                controller: Grid
             }
-            metrics: {}
         };
 
         var engine = Common.extend(defaults, options);
 
         engine.world = options.world || World.create(engine.world);
         engine.pairs = Pairs.create();
-        engine.broadphase = engine.broadphase.controller.create(engine.broadphase);
+        engine.grid = Grid.create(engine.grid || engine.broadphase);
+
+        // temporary back compatibility
+        engine.broadphase = engine.grid;
+        engine.metrics = {};
 
         return engine;
     };
@@ -83,8 +85,8 @@ var Body = require('../body/Body');
 
         var world = engine.world,
             timing = engine.timing,
-            broadphase = engine.broadphase,
-            broadphasePairs = [],
+            grid = engine.grid,
+            gridPairs = [],
             i;
 
         // increment timestamp
@@ -119,18 +121,14 @@ var Body = require('../body/Body');
         Constraint.postSolveAll(allBodies);
 
         // broadphase pass: find potential collision pairs
-        if (broadphase.controller) {
+
         // if world is dirty, we must flush the whole grid
         if (world.isModified)
-                broadphase.controller.clear(broadphase);
+            Grid.clear(grid);
 
         // update the grid buckets based on current bodies
-            broadphase.controller.update(broadphase, allBodies, engine, world.isModified);
-        broadphasePairs = broadphase.pairsList;
-        } else {
-            // if no broadphase set, we just pass all bodies
-            broadphasePairs = allBodies;
-        }
+        Grid.update(grid, allBodies, engine, world.isModified);
+        gridPairs = grid.pairsList;
 
         // clear all composite modified flags
         if (world.isModified) {
@@ -138,7 +136,7 @@ var Body = require('../body/Body');
         }
 
         // narrowphase pass: find actual collisions, then create or update collision pairs
-        var collisions = broadphase.detector(broadphasePairs, engine);
+        var collisions = Detector.collisions(gridPairs, engine);
 
         // update collision pairs
         var pairs = engine.pairs,
@@ -219,16 +217,12 @@ var Body = require('../body/Body');
      * @param {engine} engine
      */
     Engine.clear = function(engine) {
-        var world = engine.world;
+        var world = engine.world,
+            bodies = Composite.allBodies(world);
 
         Pairs.clear(engine.pairs);
-
-        var broadphase = engine.broadphase;
-        if (broadphase.controller) {
-            var bodies = Composite.allBodies(world);
-            broadphase.controller.clear(broadphase);
-            broadphase.controller.update(broadphase, bodies, engine, true);
-        }
+        Grid.clear(engine.grid);
+        Grid.update(engine.grid, bodies, engine, true);
     };
 
     /**
@@ -427,21 +421,17 @@ var Body = require('../body/Body');
      */
 
     /**
-     * An instance of a `Render` controller. The default value is a `Matter.Render` instance created by `Engine.create`.
-     * One may also develop a custom renderer module based on `Matter.Render` and pass an instance of it to `Engine.create` via `options.render`.
+     * A `Matter.Grid` instance.
      *
-     * A minimal custom renderer object must define at least three functions: `create`, `clear` and `world` (see `Matter.Render`).
-     * It is also possible to instead pass the _module_ reference via `options.render.controller` and `Engine.create` will instantiate one for you.
-     *
-     * @property render
-     * @type render
-     * @deprecated see Demo.js for an example of creating a renderer
-     * @default a Matter.Render instance
+     * @property grid
+     * @type grid
+     * @default a Matter.Grid instance
      */
 
     /**
-     * An instance of a broadphase controller. The default value is a `Matter.Grid` instance created by `Engine.create`.
+     * Replaced by and now alias for `engine.grid`.
      *
+     * @deprecated use `engine.grid`
      * @property broadphase
      * @type grid
      * @default a Matter.Grid instance

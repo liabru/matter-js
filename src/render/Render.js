@@ -14,7 +14,6 @@ var Common = require('../core/Common');
 var Composite = require('../body/Composite');
 var Bounds = require('../geometry/Bounds');
 var Events = require('../core/Events');
-var Grid = require('../collision/Grid');
 var Vector = require('../geometry/Vector');
 var Mouse = require('../core/Mouse');
 
@@ -406,8 +405,8 @@ var Mouse = require('../core/Mouse');
 
         Render.constraints(constraints, context);
 
-        if (options.showBroadphase && engine.broadphase.controller === Grid)
-            Render.grid(render, engine.broadphase, context);
+        if (options.showBroadphase)
+            Render.grid(render, engine.grid, context);
 
         if (options.showDebug)
             Render.debug(render, context);

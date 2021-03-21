@@ -9,7 +9,6 @@ var Grid = {};
 module.exports = Grid;
 
 var Pair = require('./Pair');
-var Detector = require('./Detector');
 var Common = require('../core/Common');
 
 (function() {
@@ -22,8 +21,6 @@ var Common = require('../core/Common');
      */
     Grid.create = function(options) {
         var defaults = {
-            controller: Grid,
-            detector: Detector.collisions,
             buckets: {},
             pairs: {},
             pairsList: [],
