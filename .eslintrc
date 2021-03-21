@@ -62,7 +62,6 @@
         "Query": false,
         "Runner": false,
         "Svg": false,
-        "Metrics": false,
         "Example": false,
         "__MATTER_VERSION__": false,
         "__MATTER_IS_DEV__": false,

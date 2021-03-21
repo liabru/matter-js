@@ -17,7 +17,6 @@ var Sleeping = require('./Sleeping');
 var Resolver = require('../collision/Resolver');
 var Render = require('../render/Render');
 var Pairs = require('../collision/Pairs');
-var Metrics = require('./Metrics');
 var Grid = require('../collision/Grid');
 var Events = require('./Events');
 var Composite = require('../body/Composite');
@@ -59,6 +58,7 @@ var Body = require('../body/Body');
             broadphase: {
                 controller: Grid
             }
+            metrics: {}
         };
 
         var engine = Common.extend(defaults, options);
@@ -86,11 +86,6 @@ var Body = require('../body/Body');
         engine.world = options.world || World.create(engine.world);
         engine.pairs = Pairs.create();
         engine.broadphase = engine.broadphase.controller.create(engine.broadphase);
-        engine.metrics = engine.metrics || { extended: false };
-
-        // @if DEBUG
-        engine.metrics = Metrics.create(engine.metrics);
-        // @endif
 
         return engine;
     };
@@ -133,11 +128,6 @@ var Body = require('../body/Body');
         // get lists of all bodies and constraints, no matter what composites they are in
         var allBodies = Composite.allBodies(world),
             allConstraints = Composite.allConstraints(world);
-
-        // @if DEBUG
-        // reset metrics logging
-        Metrics.reset(engine.metrics);
-        // @endif
 
         // if sleeping enabled, call the sleeping controller
         if (engine.enableSleeping)
@@ -218,11 +208,6 @@ var Body = require('../body/Body');
 
         if (pairs.collisionEnd.length > 0)
             Events.trigger(engine, 'collisionEnd', { pairs: pairs.collisionEnd });
-
-        // @if DEBUG
-        // update metrics log
-        Metrics.update(engine.metrics, engine);
-        // @endif
 
         // clear force buffers
         Engine._bodiesClearForces(allBodies);

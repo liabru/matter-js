@@ -430,40 +430,10 @@ var Mouse = require('../core/Mouse');
     Render.debug = function(render, context) {
         var c = context,
             engine = render.engine,
-            world = engine.world,
-            metrics = engine.metrics,
-            options = render.options,
-            bodies = Composite.allBodies(world),
-            space = "    ";
+            options = render.options;
 
         if (engine.timing.timestamp - (render.debugTimestamp || 0) >= 500) {
             var text = "";
-
-            if (metrics.timing) {
-                text += "fps: " + Math.round(metrics.timing.fps) + space;
-            }
-
-            // @if DEBUG
-            if (metrics.extended) {
-                if (metrics.timing) {
-                    text += "delta: " + metrics.timing.delta.toFixed(3) + space;
-                    text += "correction: " + metrics.timing.correction.toFixed(3) + space;
-                }
-
-                text += "bodies: " + bodies.length + space;
-
-                if (engine.broadphase.controller === Grid)
-                    text += "buckets: " + metrics.buckets + space;
-
-                text += "\n";
-
-                text += "collisions: " + metrics.collisions + space;
-                text += "pairs: " + engine.pairs.list.length + space;
-                text += "broad: " + metrics.broadEff + space;
-                text += "mid: " + metrics.midEff + space;
-                text += "narrow: " + metrics.narrowEff + space;
-            }
-            // @endif
 
             render.debugString = text;
             render.debugTimestamp = engine.timing.timestamp;

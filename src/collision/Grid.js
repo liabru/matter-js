@@ -66,11 +66,6 @@ var Common = require('../core/Common');
             bucketId,
             gridChanged = false;
 
-        // @if DEBUG
-        var metrics = engine.metrics;
-        metrics.broadphaseTests = 0;
-        // @endif
-
         for (i = 0; i < bodies.length; i++) {
             var body = bodies[i];
 
@@ -86,10 +81,6 @@ var Common = require('../core/Common');
 
             // if the body has changed grid region
             if (!body.region || newRegion.id !== body.region.id || forceUpdate) {
-
-                // @if DEBUG
-                metrics.broadphaseTests += 1;
-                // @endif
 
                 if (!body.region || forceUpdate)
                     body.region = newRegion;

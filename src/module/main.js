@@ -24,10 +24,6 @@ Matter.Runner = require('../core/Runner');
 Matter.Sleeping = require('../core/Sleeping');
 Matter.Plugin = require('../core/Plugin');
 
-// @if DEBUG
-Matter.Metrics = require('../core/Metrics');
-// @endif
-
 Matter.Bodies = require('../factory/Bodies');
 Matter.Composites = require('../factory/Composites');
 
