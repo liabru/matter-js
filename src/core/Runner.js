@@ -101,7 +101,6 @@ var Common = require('./Common');
     /**
      * A game loop utility that updates the engine and renderer by one step (a 'tick').
      * Features delta smoothing, time correction and fixed or dynamic timing.
-     * Triggers `beforeTick`, `tick` and `afterTick` events on the engine.
      * Consider just `Engine.update(engine, delta)` if you're using your own loop.
      * @method tick
      * @param {runner} runner

@@ -98,8 +98,8 @@ Example.views = function() {
             y: 1
         };
 
-    // use the engine tick event to control our view
-    Events.on(engine, 'beforeTick', function() {
+    // use a render event to control our view
+    Events.on(render, 'beforeRender', function() {
         var world = engine.world,
             mouse = mouseConstraint.mouse,
             translate;
