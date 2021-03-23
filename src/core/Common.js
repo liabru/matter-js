@@ -13,6 +13,7 @@ module.exports = Common;
     Common._nextId = 0;
     Common._seed = 0;
     Common._nowStartTime = +(new Date());
+    Common._warnedOnce = {};
 
     /**
      * Extends the object in the first argument using the object in the second argument.
@@ -355,6 +356,20 @@ module.exports = Common;
     Common.warn = function() {
         if (console && Common.logLevel > 0 && Common.logLevel <= 3) {
             console.warn.apply(console, ['matter-js:'].concat(Array.prototype.slice.call(arguments)));
+        }
+    };
+
+    /**
+     * Uses `Common.warn` to log the given message one time only.
+     * @method warnOnce
+     * @param ...objs {} The objects to log.
+     */
+    Common.warnOnce = function() {
+        var message = Array.prototype.slice.call(arguments).join(' ');
+
+        if (!Common._warnedOnce[message]) {
+            Common.warn(message);
+            Common._warnedOnce[message] = true;
         }
     };
 
