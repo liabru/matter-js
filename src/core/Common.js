@@ -374,6 +374,21 @@ module.exports = Common;
     };
 
     /**
+     * Shows a deprecated console warning when the function on the given object is called.
+     * The target function will be replaced with a new function that first shows the warning
+     * and then calls the original function.
+     * @method deprecated
+     * @param {object} obj The object or module
+     * @param {string} name The property name of the function on obj
+     * @param {string} warning The one-time message to show if the function is called
+     */
+    Common.deprecated = function(obj, prop, warning) {
+        obj[prop] = Common.chain(function() {
+            Common.warnOnce('🔅 deprecated 🔅', warning);
+        }, obj[prop]);
+    };
+
+    /**
      * Returns the next unique sequential ID.
      * @method nextId
      * @return {Number} Unique sequential ID
