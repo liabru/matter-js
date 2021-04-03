@@ -5,15 +5,9 @@ jest.setTimeout(120 * 1000);
 
 const puppeteer = require('puppeteer-core');
 const Example = require('../examples/index');
-const MatterBuild = require('../build/matter');
-const { versionSatisfies } = require('../src/core/Plugin');
 const fs = require('fs'); 
 
-const examples = Object.keys(Example).filter(key => {
-  const buildVersion = MatterBuild.version;
-  const exampleFor = Example[key].for;
-  return versionSatisfies(buildVersion, exampleFor);
-});
+const examples = Object.keys(Example);
 
 const browserPath = '/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome';
 const demoPagePath = 'http://localhost:8000/';
