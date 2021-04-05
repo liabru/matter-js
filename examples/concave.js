@@ -12,6 +12,9 @@ Example.concave = function() {
         Vertices = Matter.Vertices,
         Bodies = Matter.Bodies;
 
+    // provide concave decomposition support library
+    Common.setDecomp(require('poly-decomp'));
+
     // create engine
     var engine = Engine.create(),
         world = engine.world;
@@ -96,7 +99,7 @@ Example.concave = function() {
 };
 
 Example.concave.title = 'Concave';
-Example.concave.for = '>=0.14.2';
+Example.concave.for = '>0.16.1';
 
 if (typeof module !== 'undefined') {
     module.exports = Example.concave;

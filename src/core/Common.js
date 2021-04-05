@@ -14,7 +14,8 @@ module.exports = Common;
     Common._seed = 0;
     Common._nowStartTime = +(new Date());
     Common._warnedOnce = {};
-
+    Common._decomp = null;
+    
     /**
      * Extends the object in the first argument using the object in the second argument.
      * @method extend
@@ -564,5 +565,43 @@ module.exports = Common;
             Common.get(base, path),
             func
         ));
+    };
+
+    /**
+     * Provide the [poly-decomp](https://github.com/schteppe/poly-decomp.js) library module to enable
+     * concave vertex decomposition support when using `Bodies.fromVertices` e.g. `Common.setDecomp(require('poly-decomp'))`.
+     * @method setDecomp
+     * @param {} decomp The [poly-decomp](https://github.com/schteppe/poly-decomp.js) library module.
+     */
+    Common.setDecomp = function(decomp) {
+        Common._decomp = decomp;
+    };
+
+    /**
+     * Returns the [poly-decomp](https://github.com/schteppe/poly-decomp.js) library module provided through `Common.setDecomp`,
+     * otherwise returns the global `decomp` if set.
+     * @method getDecomp
+     * @return {} The [poly-decomp](https://github.com/schteppe/poly-decomp.js) library module if provided.
+     */
+    Common.getDecomp = function() {
+        // get user provided decomp if set
+        var decomp = Common._decomp;
+
+        try {
+            // otherwise from window global
+            if (!decomp && typeof window !== 'undefined') {
+                decomp = window.decomp;
+            }
+    
+            // otherwise from node global
+            if (!decomp && typeof global !== 'undefined') {
+                decomp = global.decomp;
+            }
+        } catch (e) {
+            // decomp not available
+            decomp = null;
+        }
+
+        return decomp;
     };
 })();

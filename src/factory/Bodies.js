@@ -21,8 +21,6 @@ var Vector = require('../geometry/Vector');
 
 (function() {
 
-    Bodies._decompWarned = false;
-
     /**
      * Creates a new rigid body model with a rectangle hull. 
      * The options parameter is an object that specifies any properties you wish to override the defaults.
@@ -178,26 +176,22 @@ var Vector = require('../geometry/Vector');
     };
 
     /**
-     * Creates a body based on set(s) of vertices.
+     * Utility to create a compound body based on set(s) of vertices.
      * 
-     * This utility builds on top of `Body.create` to automatically handle concave inputs.
-     * 
-     * To use this decomposition feature the [poly-decomp](https://github.com/schteppe/poly-decomp.js) 
-     * package should be additionally installed via npm or as a global.
+     * _Note:_ To optionally enable automatic concave vertices decomposition the [poly-decomp](https://github.com/schteppe/poly-decomp.js) 
+     * package must be first installed and provided see `Common.setDecomp`, otherwise the convex hull of each vertex set will be used.
      * 
      * The resulting vertices are reorientated about their centre of mass,
      * and offset such that `body.position` corresponds to this point.
      * 
-     * If needed the resulting offset may be found by subtracting `body.bounds` from the original input bounds.
+     * The resulting offset may be found if needed by subtracting `body.bounds` from the original input bounds.
      * To later move the centre of mass see `Body.setCentre`.
      * 
-     * Note that decomposition results are not always perfect. 
-     * 
+     * Note that automatic conconcave decomposition results are not always optimal. 
      * For best results, simplify the input vertices as much as possible first.
      * By default this function applies some addtional simplification to help.
      * 
      * Some outputs may also require further manual processing afterwards to be robust.
-     * 
      * In particular some parts may need to be overlapped to avoid collision gaps.
      * Thin parts and sharp points should be avoided or removed where possible.
      *
@@ -207,16 +201,16 @@ var Vector = require('../geometry/Vector');
      * @method fromVertices
      * @param {number} x
      * @param {number} y
-     * @param [[vector]] vertexSets
-     * @param {object} [options]
-     * @param {bool} [flagInternal=false]
-     * @param {number} [removeCollinear=0.01]
-     * @param {number} [minimumArea=10]
-     * @param {number} [removeDuplicatePoints=0.01]
+     * @param {array} vertexSets One or more arrays of vertex points e.g. `[[{ x: 0, y: 0 }...], ...]`.
+     * @param {object} [options] The body options.
+     * @param {bool} [flagInternal=false] Optionally marks internal edges with `isInternal`.
+     * @param {number} [removeCollinear=0.01] Threshold when simplifying vertices along the same edge.
+     * @param {number} [minimumArea=10] Threshold when removing small parts.
+     * @param {number} [removeDuplicatePoints=0.01] Threshold when simplifying nearby vertices.
      * @return {body}
      */
     Bodies.fromVertices = function(x, y, vertexSets, options, flagInternal, removeCollinear, minimumArea, removeDuplicatePoints) {
-        var decomp,
+        var decomp = Common.getDecomp(),
             canDecomp,
             body,
             parts,
@@ -229,14 +223,7 @@ var Vector = require('../geometry/Vector');
             v,
             z;
 
-        try {
-            decomp = require('poly-decomp');
-        } catch (e) {
-            // continue without decomp
-            decomp = null;
-        }
-
-        // check expected decomp module was resolved
+        // check decomp is as expected
         canDecomp = Boolean(decomp && decomp.quickDecomp);
 
         options = options || {};
@@ -257,14 +244,10 @@ var Vector = require('../geometry/Vector');
             isConvex = Vertices.isConvex(vertices);
             isConcave = !isConvex;
 
-            if (isConcave && !canDecomp && !Bodies._decompWarned) {
-                Common.warn(
-                    'Could not resolve the expected \'poly-decomp\' package for concave vertices in \'Bodies.fromVertices\''
+            if (isConcave && !canDecomp) {
+                Common.warnOnce(
+                    'Bodies.fromVertices: Install the \'poly-decomp\' library and use Common.setDecomp or provide \'decomp\' as a global to decompose concave vertices.'
                 );
-                Common.warn(
-                    'Try \'npm install poly-decomp --save\' or as a global e.g. \'window.decomp\''
-                );
-                Bodies._decompWarned = true;
             }
 
             if (isConvex || !canDecomp) {

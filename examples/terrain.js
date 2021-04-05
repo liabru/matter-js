@@ -13,6 +13,9 @@ Example.terrain = function() {
         Svg = Matter.Svg,
         Bodies = Matter.Bodies;
 
+    // provide concave decomposition support library
+    Common.setDecomp(require('poly-decomp'));
+
     // create engine
     var engine = Engine.create(),
         world = engine.world;
@@ -115,7 +118,7 @@ Example.terrain = function() {
 };
 
 Example.terrain.title = 'Terrain';
-Example.terrain.for = '>=0.14.2';
+Example.terrain.for = '>0.16.1';
 
 if (typeof module !== 'undefined') {
     module.exports = Example.terrain;

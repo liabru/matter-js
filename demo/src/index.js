@@ -15,7 +15,6 @@ var compare = require('./Compare').compare;
 var demo = require('./Demo').demo;
 
 // browser globals
-window.decomp = require('poly-decomp');
 window.pathseg = require('pathseg');
 window.MatterTools = require('matter-tools');
 window.Matter = Matter;
