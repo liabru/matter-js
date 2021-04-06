@@ -21,7 +21,6 @@ Example.ballPool = function() {
         Common = Matter.Common,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
-        World = Matter.World,
         Bodies = Matter.Bodies;
 
     // create engine
@@ -46,7 +45,7 @@ Example.ballPool = function() {
     Runner.run(runner, engine);
 
     // add bodies
-    World.add(world, [
+    Composite.add(world, [
         Bodies.rectangle(400, 600, 1200, 50.5, { isStatic: true, render: { fillStyle: '#060a19' } })
     ]);
 
@@ -54,7 +53,7 @@ Example.ballPool = function() {
         return Bodies.circle(x, y, Common.random(15, 30), { restitution: 0.6, friction: 0.1 });
     });
     
-    World.add(world, [
+    Composite.add(world, [
         stack,
         Bodies.polygon(200, 460, 3, 60),
         Bodies.polygon(400, 460, 5, 60),
@@ -73,7 +72,7 @@ Example.ballPool = function() {
             }
         });
 
-    World.add(world, mouseConstraint);
+    Composite.add(world, mouseConstraint);
 
     // keep the mouse in sync with rendering
     render.mouse = mouse;

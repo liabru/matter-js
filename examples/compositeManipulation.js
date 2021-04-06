@@ -9,7 +9,6 @@ Example.compositeManipulation = function() {
         Composites = Matter.Composites,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
-        World = Matter.World,
         Bodies = Matter.Bodies;
 
     // create engine
@@ -34,7 +33,7 @@ Example.compositeManipulation = function() {
     Runner.run(runner, engine);
 
     // add bodies
-    World.add(world, [
+    Composite.add(world, [
         // walls
         Bodies.rectangle(400, 0, 800, 50, { isStatic: true }),
         Bodies.rectangle(400, 600, 800, 50, { isStatic: true }),
@@ -46,7 +45,7 @@ Example.compositeManipulation = function() {
         return Bodies.rectangle(x, y, 40, 40);
     });
 
-    World.add(world, stack);
+    Composite.add(world, stack);
 
     world.gravity.y = 0;
 
@@ -83,7 +82,7 @@ Example.compositeManipulation = function() {
             }
         });
 
-    World.add(world, mouseConstraint);
+    Composite.add(world, mouseConstraint);
 
     // keep the mouse in sync with rendering
     render.mouse = mouse;

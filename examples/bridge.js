@@ -10,7 +10,7 @@ Example.bridge = function() {
         Constraint = Matter.Constraint,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
-        World = Matter.World,
+        Composite = Matter.Composite,
         Bodies = Matter.Bodies;
 
     // create engine
@@ -61,7 +61,7 @@ Example.bridge = function() {
         return Bodies.rectangle(x, y, 50, 50, Common.random(20, 40));
     });
 
-    World.add(world, [
+    Composite.add(world, [
         bridge,
         stack,
         Bodies.rectangle(30, 490, 220, 380, { 
@@ -100,7 +100,7 @@ Example.bridge = function() {
             }
         });
 
-    World.add(world, mouseConstraint);
+    Composite.add(world, mouseConstraint);
 
     // keep the mouse in sync with rendering
     render.mouse = mouse;

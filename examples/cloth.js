@@ -8,7 +8,7 @@ Example.cloth = function() {
         Composites = Matter.Composites,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
-        World = Matter.World,
+        Composite = Matter.Composite,
         Bodies = Matter.Bodies;
 
     // create engine
@@ -38,7 +38,7 @@ Example.cloth = function() {
         cloth.bodies[i].isStatic = true;
     }
 
-    World.add(world, [
+    Composite.add(world, [
         cloth,
         Bodies.circle(300, 500, 80, { isStatic: true, render: { fillStyle: '#060a19' }}),
         Bodies.rectangle(500, 480, 80, 80, { isStatic: true, render: { fillStyle: '#060a19' }}),
@@ -57,7 +57,7 @@ Example.cloth = function() {
             }
         });
 
-    World.add(world, mouseConstraint);
+    Composite.add(world, mouseConstraint);
 
     // keep the mouse in sync with rendering
     render.mouse = mouse;

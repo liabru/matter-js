@@ -7,7 +7,7 @@ Example.pyramid = function() {
         Composites = Matter.Composites,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
-        World = Matter.World,
+        Composite = Matter.Composite,
         Bodies = Matter.Bodies;
 
     // create engine
@@ -36,7 +36,7 @@ Example.pyramid = function() {
         return Bodies.rectangle(x, y, 40, 40);
     });
     
-    World.add(world, [
+    Composite.add(world, [
         stack,
         // walls
         Bodies.rectangle(400, 0, 800, 50, { isStatic: true }),
@@ -57,7 +57,7 @@ Example.pyramid = function() {
             }
         });
 
-    World.add(world, mouseConstraint);
+    Composite.add(world, mouseConstraint);
 
     // keep the mouse in sync with rendering
     render.mouse = mouse;

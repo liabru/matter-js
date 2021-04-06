@@ -8,7 +8,7 @@ Example.concave = function() {
         Common = Matter.Common,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
-        World = Matter.World,
+        Composite = Matter.Composite,
         Vertices = Matter.Vertices,
         Bodies = Matter.Bodies;
 
@@ -36,7 +36,7 @@ Example.concave = function() {
     Runner.run(runner, engine);
 
     // add bodies
-    World.add(world, [
+    Composite.add(world, [
         // walls
         Bodies.rectangle(400, 0, 800, 50, { isStatic: true }),
         Bodies.rectangle(400, 600, 800, 50, { isStatic: true }),
@@ -60,7 +60,7 @@ Example.concave = function() {
         }, true);
     });
 
-    World.add(world, stack);
+    Composite.add(world, stack);
 
     // add mouse control
     var mouse = Mouse.create(render.canvas),
@@ -74,7 +74,7 @@ Example.concave = function() {
             }
         });
 
-    World.add(world, mouseConstraint);
+    Composite.add(world, mouseConstraint);
 
     // keep the mouse in sync with rendering
     render.mouse = mouse;

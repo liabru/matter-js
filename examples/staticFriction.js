@@ -9,7 +9,7 @@ Example.staticFriction = function() {
         Events = Matter.Events,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
-        World = Matter.World,
+        Composite = Matter.Composite,
         Bodies = Matter.Bodies;
 
     // create engine
@@ -46,7 +46,7 @@ Example.staticFriction = function() {
         });
     });
     
-    World.add(world, [
+    Composite.add(world, [
         body, 
         stack,
         // walls
@@ -82,7 +82,7 @@ Example.staticFriction = function() {
             }
         });
 
-    World.add(world, mouseConstraint);
+    Composite.add(world, mouseConstraint);
 
     // keep the mouse in sync with rendering
     render.mouse = mouse;

@@ -6,7 +6,7 @@ Example.friction = function() {
         Runner = Matter.Runner,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
-        World = Matter.World,
+        Composite = Matter.Composite,
         Bodies = Matter.Bodies;
 
     // create engine
@@ -31,7 +31,7 @@ Example.friction = function() {
     Runner.run(runner, engine);
 
     // add bodies
-    World.add(world, [
+    Composite.add(world, [
         // walls
         Bodies.rectangle(400, 0, 800, 50, { isStatic: true }),
         Bodies.rectangle(400, 600, 800, 50, { isStatic: true }),
@@ -39,17 +39,17 @@ Example.friction = function() {
         Bodies.rectangle(0, 300, 50, 600, { isStatic: true })
     ]);
 
-    World.add(world, [
+    Composite.add(world, [
         Bodies.rectangle(300, 180, 700, 20, { isStatic: true, angle: Math.PI * 0.06, render: { fillStyle: '#060a19' } }),
         Bodies.rectangle(300, 70, 40, 40, { friction: 0.001 })
     ]);
 
-    World.add(world, [
+    Composite.add(world, [
         Bodies.rectangle(300, 350, 700, 20, { isStatic: true, angle: Math.PI * 0.06, render: { fillStyle: '#060a19' } }),
         Bodies.rectangle(300, 250, 40, 40, { friction: 0.0005 })
     ]);
 
-    World.add(world, [
+    Composite.add(world, [
         Bodies.rectangle(300, 520, 700, 20, { isStatic: true, angle: Math.PI * 0.06, render: { fillStyle: '#060a19' } }),
         Bodies.rectangle(300, 430, 40, 40, { friction: 0 })
     ]);
@@ -66,7 +66,7 @@ Example.friction = function() {
             }
         });
 
-    World.add(world, mouseConstraint);
+    Composite.add(world, mouseConstraint);
 
     // keep the mouse in sync with rendering
     render.mouse = mouse;

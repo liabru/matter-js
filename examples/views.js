@@ -9,7 +9,7 @@ Example.views = function() {
         Common = Matter.Common,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
-        World = Matter.World,
+        Composite = Matter.Composite,
         Vector = Matter.Vector,
         Bounds = Matter.Bounds,
         Bodies = Matter.Bodies;
@@ -48,7 +48,7 @@ Example.views = function() {
             }
         });
 
-    World.add(world, mouseConstraint);
+    Composite.add(world, mouseConstraint);
 
     // keep the mouse in sync with rendering
     render.mouse = mouse;
@@ -70,7 +70,7 @@ Example.views = function() {
         }
     });
 
-    World.add(world, [
+    Composite.add(world, [
         stack,
         // walls
         Bodies.rectangle(400, 0, 800, 50, { isStatic: true }),

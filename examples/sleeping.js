@@ -9,7 +9,7 @@ Example.sleeping = function() {
         Events = Matter.Events,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
-        World = Matter.World,
+        Composite = Matter.Composite,
         Bodies = Matter.Bodies;
 
     // create engine
@@ -36,7 +36,7 @@ Example.sleeping = function() {
     Runner.run(runner, engine);
 
     // add bodies
-    World.add(world, [
+    Composite.add(world, [
         // walls
         Bodies.rectangle(400, 0, 800, 50, { isStatic: true }),
         Bodies.rectangle(400, 600, 800, 50, { isStatic: true }),
@@ -59,7 +59,7 @@ Example.sleeping = function() {
         }
     });
     
-    World.add(world, stack);
+    Composite.add(world, stack);
 
     for (var i = 0; i < stack.bodies.length; i++) {
         Events.on(stack.bodies[i], 'sleepStart sleepEnd', function(event) {
@@ -80,7 +80,7 @@ Example.sleeping = function() {
             }
         });
 
-    World.add(world, mouseConstraint);
+    Composite.add(world, mouseConstraint);
 
     // keep the mouse in sync with rendering
     render.mouse = mouse;

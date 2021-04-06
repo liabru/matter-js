@@ -7,7 +7,7 @@ Example.svg = function() {
         Common = Matter.Common,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
-        World = Matter.World,
+        Composite = Matter.Composite,
         Vertices = Matter.Vertices,
         Svg = Matter.Svg,
         Bodies = Matter.Bodies;
@@ -59,7 +59,7 @@ Example.svg = function() {
                 var vertexSets = select(root, 'path')
                     .map(function(path) { return Vertices.scale(Svg.pathToVertices(path, 30), 0.4, 0.4); });
 
-                World.add(world, Bodies.fromVertices(100 + i * 150, 200 + i * 50, vertexSets, {
+                Composite.add(world, Bodies.fromVertices(100 + i * 150, 200 + i * 50, vertexSets, {
                     render: {
                         fillStyle: color,
                         strokeStyle: color,
@@ -75,7 +75,7 @@ Example.svg = function() {
             var vertexSets = select(root, 'path')
                 .map(function(path) { return Svg.pathToVertices(path, 30); });
 
-            World.add(world, Bodies.fromVertices(400, 80, vertexSets, {
+            Composite.add(world, Bodies.fromVertices(400, 80, vertexSets, {
                 render: {
                     fillStyle: color,
                     strokeStyle: color,
@@ -87,7 +87,7 @@ Example.svg = function() {
         Common.warn('Fetch is not available. Could not load SVG.');
     }
 
-    World.add(world, [
+    Composite.add(world, [
         Bodies.rectangle(400, 0, 800, 50, { isStatic: true }),
         Bodies.rectangle(400, 600, 800, 50, { isStatic: true }),
         Bodies.rectangle(800, 300, 50, 600, { isStatic: true }),
@@ -106,7 +106,7 @@ Example.svg = function() {
             }
         });
 
-    World.add(world, mouseConstraint);
+    Composite.add(world, mouseConstraint);
 
     // keep the mouse in sync with rendering
     render.mouse = mouse;

@@ -7,7 +7,7 @@ Example.sensors = function() {
         Events = Matter.Events,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
-        World = Matter.World,
+        Composite = Matter.Composite,
         Bodies = Matter.Bodies;
 
     // create engine
@@ -45,7 +45,7 @@ Example.sensors = function() {
         }
     });
 
-    World.add(world, [
+    Composite.add(world, [
         collider,
         Bodies.rectangle(400, 600, 800, 50, { 
             isStatic: true,
@@ -56,7 +56,7 @@ Example.sensors = function() {
         })
     ]);
 
-    World.add(world,
+    Composite.add(world,
         Bodies.circle(400, 40, 30, {
             render: {
                 strokeStyle: colorB,
@@ -106,7 +106,7 @@ Example.sensors = function() {
             }
         });
 
-    World.add(world, mouseConstraint);
+    Composite.add(world, mouseConstraint);
 
     // keep the mouse in sync with rendering
     render.mouse = mouse;

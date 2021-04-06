@@ -7,7 +7,7 @@ Example.car = function() {
         Composites = Matter.Composites,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
-        World = Matter.World,
+        Composite = Matter.Composite,
         Bodies = Matter.Bodies;
 
     // create engine
@@ -33,7 +33,7 @@ Example.car = function() {
     Runner.run(runner, engine);
 
     // add bodies
-    World.add(world, [
+    Composite.add(world, [
         // walls
         Bodies.rectangle(400, 0, 800, 50, { isStatic: true }),
         Bodies.rectangle(400, 600, 800, 50, { isStatic: true }),
@@ -43,12 +43,12 @@ Example.car = function() {
 
     // see car function defined later in this file
     var scale = 0.9;
-    World.add(world, Example.car.car(150, 100, 150 * scale, 30 * scale, 30 * scale));
+    Composite.add(world, Example.car.car(150, 100, 150 * scale, 30 * scale, 30 * scale));
     
     scale = 0.8;
-    World.add(world, Example.car.car(350, 300, 150 * scale, 30 * scale, 30 * scale));
+    Composite.add(world, Example.car.car(350, 300, 150 * scale, 30 * scale, 30 * scale));
     
-    World.add(world, [
+    Composite.add(world, [
         Bodies.rectangle(200, 150, 400, 20, { isStatic: true, angle: Math.PI * 0.06, render: { fillStyle: '#060a19' }}),
         Bodies.rectangle(500, 350, 650, 20, { isStatic: true, angle: -Math.PI * 0.06, render: { fillStyle: '#060a19' }}),
         Bodies.rectangle(300, 560, 600, 20, { isStatic: true, angle: Math.PI * 0.04, render: { fillStyle: '#060a19' }})
@@ -66,7 +66,7 @@ Example.car = function() {
             }
         });
 
-    World.add(world, mouseConstraint);
+    Composite.add(world, mouseConstraint);
 
     // keep the mouse in sync with rendering
     render.mouse = mouse;

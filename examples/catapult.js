@@ -8,7 +8,7 @@ Example.catapult = function() {
         Constraint = Matter.Constraint,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
-        World = Matter.World,
+        Composite = Matter.Composite,
         Bodies = Matter.Bodies,
         Body = Matter.Body,
         Vector = Matter.Vector;
@@ -45,7 +45,7 @@ Example.catapult = function() {
 
     var catapult = Bodies.rectangle(400, 520, 320, 20, { collisionFilter: { group: group } });
 
-    World.add(world, [
+    Composite.add(world, [
         stack,
         catapult,
         Bodies.rectangle(400, 600, 800, 50.5, { isStatic: true, render: { fillStyle: '#060a19' } }),
@@ -72,7 +72,7 @@ Example.catapult = function() {
             }
         });
 
-    World.add(world, mouseConstraint);
+    Composite.add(world, mouseConstraint);
 
     // keep the mouse in sync with rendering
     render.mouse = mouse;

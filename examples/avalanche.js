@@ -21,7 +21,6 @@ Example.avalanche = function() {
         Common = Matter.Common,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
-        World = Matter.World,
         Bodies = Matter.Bodies;
 
     // create engine
@@ -50,9 +49,9 @@ Example.avalanche = function() {
         return Bodies.circle(x, y, Common.random(10, 20), { friction: 0.00001, restitution: 0.5, density: 0.001 });
     });
 
-    World.add(world, stack);
+    Composite.add(world, stack);
     
-    World.add(world, [
+    Composite.add(world, [
         Bodies.rectangle(200, 150, 700, 20, { isStatic: true, angle: Math.PI * 0.06, render: { fillStyle: '#060a19' } }),
         Bodies.rectangle(500, 350, 700, 20, { isStatic: true, angle: -Math.PI * 0.06, render: { fillStyle: '#060a19' } }),
         Bodies.rectangle(340, 580, 700, 20, { isStatic: true, angle: Math.PI * 0.04, render: { fillStyle: '#060a19' } })
@@ -70,7 +69,7 @@ Example.avalanche = function() {
             }
         });
 
-    World.add(world, mouseConstraint);
+    Composite.add(world, mouseConstraint);
 
     // keep the mouse in sync with rendering
     render.mouse = mouse;

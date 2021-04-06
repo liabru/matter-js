@@ -8,7 +8,7 @@ Example.newtonsCradle = function() {
         Composites = Matter.Composites,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
-        World = Matter.World;
+        Composite = Matter.Composite;
 
     // create engine
     var engine = Engine.create(),
@@ -33,11 +33,11 @@ Example.newtonsCradle = function() {
 
     // see newtonsCradle function defined later in this file
     var cradle = Example.newtonsCradle.newtonsCradle(280, 100, 5, 30, 200);
-    World.add(world, cradle);
+    Composite.add(world, cradle);
     Body.translate(cradle.bodies[0], { x: -180, y: -100 });
     
     cradle = Example.newtonsCradle.newtonsCradle(280, 380, 7, 20, 140);
-    World.add(world, cradle);
+    Composite.add(world, cradle);
     Body.translate(cradle.bodies[0], { x: -140, y: -100 });
 
     // add mouse control
@@ -52,7 +52,7 @@ Example.newtonsCradle = function() {
             }
         });
 
-    World.add(world, mouseConstraint);
+    Composite.add(world, mouseConstraint);
 
     // keep the mouse in sync with rendering
     render.mouse = mouse;

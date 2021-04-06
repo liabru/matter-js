@@ -7,7 +7,7 @@ Example.wreckingBall = function() {
         Composites = Matter.Composites,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
-        World = Matter.World,
+        Composite = Matter.Composite,
         Constraint = Matter.Constraint,
         Bodies = Matter.Bodies;
 
@@ -40,7 +40,7 @@ Example.wreckingBall = function() {
         return Bodies.rectangle(x, y, 40, 40);
     });
     
-    World.add(world, [
+    Composite.add(world, [
         stack,
         // walls
         Bodies.rectangle(400, 0, 800, 50, { isStatic: true }),
@@ -51,8 +51,8 @@ Example.wreckingBall = function() {
     
     var ball = Bodies.circle(100, 400, 50, { density: 0.04, frictionAir: 0.005});
     
-    World.add(world, ball);
-    World.add(world, Constraint.create({
+    Composite.add(world, ball);
+    Composite.add(world, Constraint.create({
         pointA: { x: 300, y: 100 },
         bodyB: ball
     }));
@@ -69,7 +69,7 @@ Example.wreckingBall = function() {
             }
         });
 
-    World.add(world, mouseConstraint);
+    Composite.add(world, mouseConstraint);
 
     // keep the mouse in sync with rendering
     render.mouse = mouse;

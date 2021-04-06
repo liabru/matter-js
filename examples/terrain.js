@@ -8,7 +8,7 @@ Example.terrain = function() {
         Common = Matter.Common,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
-        World = Matter.World,
+        Composite = Matter.Composite,
         Query = Matter.Query,
         Svg = Matter.Svg,
         Bodies = Matter.Bodies;
@@ -63,7 +63,7 @@ Example.terrain = function() {
                     }
                 }, true);
 
-                World.add(world, terrain);
+                Composite.add(world, terrain);
 
                 var bodyOptions = {
                     frictionAir: 0, 
@@ -71,7 +71,7 @@ Example.terrain = function() {
                     restitution: 0.6
                 };
                 
-                World.add(world, Composites.stack(80, 100, 20, 20, 10, 10, function(x, y) {
+                Composite.add(world, Composites.stack(80, 100, 20, 20, 10, 10, function(x, y) {
                     if (Query.point([terrain], { x: x, y: y }).length === 0) {
                         return Bodies.polygon(x, y, 5, 12, bodyOptions);
                     }
@@ -93,7 +93,7 @@ Example.terrain = function() {
             }
         });
 
-    World.add(world, mouseConstraint);
+    Composite.add(world, mouseConstraint);
 
     // keep the mouse in sync with rendering
     render.mouse = mouse;

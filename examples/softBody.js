@@ -7,7 +7,7 @@ Example.softBody = function() {
         Composites = Matter.Composites,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
-        World = Matter.World,
+        Composite = Matter.Composite,
         Bodies = Matter.Bodies;
 
     // create engine
@@ -38,7 +38,7 @@ Example.softBody = function() {
         render: { visible: true } 
     };
 
-    World.add(world, [
+    Composite.add(world, [
         // see softBody function defined later in this file
         Example.softBody.softBody(250, 100, 5, 5, 0, 0, true, 18, particleOptions),
         Example.softBody.softBody(400, 300, 8, 3, 0, 0, true, 15, particleOptions),
@@ -62,7 +62,7 @@ Example.softBody = function() {
             }
         });
 
-    World.add(world, mouseConstraint);
+    Composite.add(world, mouseConstraint);
 
     // keep the mouse in sync with rendering
     render.mouse = mouse;

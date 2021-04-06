@@ -11,7 +11,6 @@ Example.doublePendulum = function() {
         Constraint = Matter.Constraint,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
-        World = Matter.World,
         Bodies = Matter.Bodies,
         Vector = Matter.Vector;
 
@@ -82,7 +81,7 @@ Example.doublePendulum = function() {
         y: lowerArm.position.y
     });
     
-    World.add(world, pendulum);
+    Composite.add(world, pendulum);
 
     var trail = [];
 
@@ -124,7 +123,7 @@ Example.doublePendulum = function() {
             }
         });
 
-    World.add(world, mouseConstraint);
+    Composite.add(world, mouseConstraint);
 
     // keep the mouse in sync with rendering
     render.mouse = mouse;

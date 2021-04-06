@@ -7,7 +7,7 @@ Example.stress2 = function() {
         Composites = Matter.Composites,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
-        World = Matter.World,
+        Composite = Matter.Composite,
         Bodies = Matter.Bodies;
 
     // create engine
@@ -35,7 +35,7 @@ Example.stress2 = function() {
         return Bodies.rectangle(x, y, 25, 25);
     });
     
-    World.add(world, [
+    Composite.add(world, [
         stack,
         Bodies.rectangle(400, 0, 800, 50, { isStatic: true }),
         Bodies.rectangle(400, 600, 800, 50, { isStatic: true }),
@@ -55,7 +55,7 @@ Example.stress2 = function() {
             }
         });
 
-    World.add(world, mouseConstraint);
+    Composite.add(world, mouseConstraint);
 
     // keep the mouse in sync with rendering
     render.mouse = mouse;

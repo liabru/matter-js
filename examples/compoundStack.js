@@ -8,7 +8,7 @@ Example.compoundStack = function() {
         Composites = Matter.Composites,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
-        World = Matter.World,
+        Composite = Matter.Composite,
         Bodies = Matter.Bodies;
 
     // create engine
@@ -44,7 +44,7 @@ Example.compoundStack = function() {
         });
     });
 
-    World.add(world, [
+    Composite.add(world, [
         stack,
         // walls
         Bodies.rectangle(400, 0, 800, 50, { isStatic: true }),
@@ -65,7 +65,7 @@ Example.compoundStack = function() {
             }
         });
 
-    World.add(world, mouseConstraint);
+    Composite.add(world, mouseConstraint);
 
     // keep the mouse in sync with rendering
     render.mouse = mouse;

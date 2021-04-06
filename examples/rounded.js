@@ -6,7 +6,7 @@ Example.rounded = function() {
         Runner = Matter.Runner,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
-        World = Matter.World,
+        Composite = Matter.Composite,
         Bodies = Matter.Bodies;
 
     // create engine
@@ -31,7 +31,7 @@ Example.rounded = function() {
     Runner.run(runner, engine);
 
     // add bodies
-    World.add(world, [
+    Composite.add(world, [
         // walls
         Bodies.rectangle(400, 0, 800, 50, { isStatic: true }),
         Bodies.rectangle(400, 600, 800, 50, { isStatic: true }),
@@ -39,7 +39,7 @@ Example.rounded = function() {
         Bodies.rectangle(0, 300, 50, 600, { isStatic: true })
     ]);
 
-    World.add(world, [
+    Composite.add(world, [
         Bodies.rectangle(200, 200, 100, 100, { 
             chamfer: { radius: 20 }
         }),
@@ -85,7 +85,7 @@ Example.rounded = function() {
             }
         });
 
-    World.add(world, mouseConstraint);
+    Composite.add(world, mouseConstraint);
 
     // keep the mouse in sync with rendering
     render.mouse = mouse;

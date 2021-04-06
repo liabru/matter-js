@@ -8,7 +8,7 @@ Example.gravity = function() {
         Common = Matter.Common,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
-        World = Matter.World,
+        Composite = Matter.Composite,
         Bodies = Matter.Bodies;
 
     // create engine
@@ -34,7 +34,7 @@ Example.gravity = function() {
     Runner.run(runner, engine);
 
     // add bodies
-    World.add(world, [
+    Composite.add(world, [
         Bodies.rectangle(400, 0, 800, 50, { isStatic: true }),
         Bodies.rectangle(400, 600, 800, 50.5, { isStatic: true }),
         Bodies.rectangle(800, 300, 50, 600, { isStatic: true }),
@@ -58,7 +58,7 @@ Example.gravity = function() {
         }
     });
     
-    World.add(world, stack);
+    Composite.add(world, stack);
 
     // add mouse control
     var mouse = Mouse.create(render.canvas),
@@ -72,7 +72,7 @@ Example.gravity = function() {
             }
         });
 
-    World.add(world, mouseConstraint);
+    Composite.add(world, mouseConstraint);
 
     // keep the mouse in sync with rendering
     render.mouse = mouse;
