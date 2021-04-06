@@ -300,6 +300,7 @@ var deprecated = Common.deprecated;
 
     /**
      * Creates a simple soft body like object.
+     * @deprecated moved to softBody and cloth examples
      * @method softBody
      * @param {number} xx
      * @param {number} yy
@@ -328,4 +329,5 @@ var deprecated = Common.deprecated;
         return softBody;
     };
 
+    deprecated(Composites, 'softBody', 'Composites.softBody ➤ moved to softBody and cloth examples');
 })();
