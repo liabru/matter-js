@@ -204,6 +204,7 @@ var deprecated = Common.deprecated;
 
     /**
      * Creates a composite with a Newton's Cradle setup of bodies and constraints.
+     * @deprecated moved to newtonsCradle example
      * @method newtonsCradle
      * @param {number} xx
      * @param {number} yy
@@ -228,6 +229,8 @@ var deprecated = Common.deprecated;
         return newtonsCradle;
     };
 
+    deprecated(Composites, 'newtonsCradle', 'Composites.newtonsCradle ➤ moved to newtonsCradle example');
+    
     /**
      * Creates a composite with simple car setup of bodies and constraints.
      * @deprecated moved to car example
