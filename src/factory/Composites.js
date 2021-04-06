@@ -16,6 +16,7 @@ var Constraint = require('../constraint/Constraint');
 var Common = require('../core/Common');
 var Body = require('../body/Body');
 var Bodies = require('./Bodies');
+var deprecated = Common.deprecated;
 
 (function() {
 
@@ -226,9 +227,10 @@ var Bodies = require('./Bodies');
 
         return newtonsCradle;
     };
-    
+
     /**
      * Creates a composite with simple car setup of bodies and constraints.
+     * @deprecated moved to car example
      * @method car
      * @param {number} xx
      * @param {number} yy
@@ -293,6 +295,8 @@ var Bodies = require('./Bodies');
 
         return car;
     };
+
+    deprecated(Composites, 'car', 'Composites.car ➤ moved to car example');
 
     /**
      * Creates a simple soft body like object.
