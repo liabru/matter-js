@@ -1,5 +1,5 @@
 /**
-* The `Matter.Render` module is a simple HTML5 canvas based renderer for visualising instances of `Matter.Engine`.
+* The `Matter.Render` module is a simple canvas based renderer for visualising instances of `Matter.Engine`.
 * It is intended for development and debugging purposes, but may also be suitable for simple games.
 * It includes a number of drawing options including wireframe, vector with support for sprites and viewports.
 *
@@ -1425,37 +1425,6 @@ var Mouse = require('../core/Mouse');
      */
 
     /**
-     * The configuration options of the renderer.
-     *
-     * @property options
-     * @type {}
-     */
-
-    /**
-     * The target width in pixels of the `render.canvas` to be created.
-     *
-     * @property options.width
-     * @type number
-     * @default 800
-     */
-
-    /**
-     * The target height in pixels of the `render.canvas` to be created.
-     *
-     * @property options.height
-     * @type number
-     * @default 600
-     */
-
-    /**
-     * A flag that specifies if `render.bounds` should be used when rendering.
-     *
-     * @property options.hasBounds
-     * @type boolean
-     * @default false
-     */
-
-    /**
      * A `Bounds` object that specifies the drawing view region.
      * Rendering will be automatically transformed and scaled to fit within the canvas size (`render.options.width` and `render.options.height`).
      * This allows for creating views that can pan or zoom around the scene.
@@ -1477,6 +1446,209 @@ var Mouse = require('../core/Mouse');
      *
      * @property textures
      * @type {}
+     */
+
+    /**
+     * The mouse to render if `render.options.showMousePosition` is enabled.
+     *
+     * @property mouse
+     * @type mouse
+     * @default null
+     */
+
+    /**
+     * The configuration options of the renderer.
+     *
+     * @property options
+     * @type {}
+     */
+
+    /**
+     * The target width in pixels of the `render.canvas` to be created.
+     * See also the `options.pixelRatio` property to change render quality.
+     *
+     * @property options.width
+     * @type number
+     * @default 800
+     */
+
+    /**
+     * The target height in pixels of the `render.canvas` to be created.
+     * See also the `options.pixelRatio` property to change render quality.
+     *
+     * @property options.height
+     * @type number
+     * @default 600
+     */
+
+    /**
+     * The [pixel ratio](https://developer.mozilla.org/en-US/docs/Web/API/Window/devicePixelRatio) to use when rendering.
+     *
+     * @property options.pixelRatio
+     * @type number
+     * @default 1
+     */
+
+    /**
+     * A CSS background color string to use when `render.options.wireframes` is disabled.
+     * This may be also set to `'transparent'` or equivalent.
+     *
+     * @property options.background
+     * @type string
+     * @default '#14151f'
+     */
+
+    /**
+     * A CSS background color string to use when `render.options.wireframes` is enabled.
+     * This may be also set to `'transparent'` or equivalent.
+     *
+     * @property options.wireframeBackground
+     * @type string
+     * @default '#14151f'
+     */
+
+    /**
+     * A flag that specifies if `render.bounds` should be used when rendering.
+     *
+     * @property options.hasBounds
+     * @type boolean
+     * @default false
+     */
+
+    /**
+     * A flag to enable or disable rendering entirely.
+     *
+     * @property options.enabled
+     * @type boolean
+     * @default false
+     */
+
+    /**
+     * A flag to toggle wireframe rendering otherwise solid fill rendering is used.
+     *
+     * @property options.wireframes
+     * @type boolean
+     * @default true
+     */
+
+    /**
+     * A flag to enable or disable sleeping bodies indicators.
+     *
+     * @property options.showSleeping
+     * @type boolean
+     * @default true
+     */
+
+    /**
+     * A flag to enable or disable the debug information overlay.
+     *
+     * @property options.showDebug
+     * @type boolean
+     * @default false
+     */
+
+    /**
+     * A flag to enable or disable the collision broadphase debug overlay.
+     *
+     * @property options.showBroadphase
+     * @type boolean
+     * @default false
+     */
+
+    /**
+     * A flag to enable or disable the body bounds debug overlay.
+     *
+     * @property options.showBounds
+     * @type boolean
+     * @default false
+     */
+
+    /**
+     * A flag to enable or disable the body velocity debug overlay.
+     *
+     * @property options.showVelocity
+     * @type boolean
+     * @default false
+     */
+
+    /**
+     * A flag to enable or disable the body collisions debug overlay.
+     *
+     * @property options.showCollisions
+     * @type boolean
+     * @default false
+     */
+
+    /**
+     * A flag to enable or disable the collision resolver separations debug overlay.
+     *
+     * @property options.showSeparations
+     * @type boolean
+     * @default false
+     */
+
+    /**
+     * A flag to enable or disable the body axes debug overlay.
+     *
+     * @property options.showAxes
+     * @type boolean
+     * @default false
+     */
+
+    /**
+     * A flag to enable or disable the body positions debug overlay.
+     *
+     * @property options.showPositions
+     * @type boolean
+     * @default false
+     */
+
+    /**
+     * A flag to enable or disable the body angle debug overlay.
+     *
+     * @property options.showAngleIndicator
+     * @type boolean
+     * @default false
+     */
+
+    /**
+     * A flag to enable or disable the body and part ids debug overlay.
+     *
+     * @property options.showIds
+     * @type boolean
+     * @default false
+     */
+
+    /**
+     * A flag to enable or disable the body vertex numbers debug overlay.
+     *
+     * @property options.showVertexNumbers
+     * @type boolean
+     * @default false
+     */
+
+    /**
+     * A flag to enable or disable the body convex hulls debug overlay.
+     *
+     * @property options.showConvexHulls
+     * @type boolean
+     * @default false
+     */
+
+    /**
+     * A flag to enable or disable the body internal edges debug overlay.
+     *
+     * @property options.showInternalEdges
+     * @type boolean
+     * @default false
+     */
+
+    /**
+     * A flag to enable or disable the mouse position debug overlay.
+     *
+     * @property options.showMousePosition
+     * @type boolean
+     * @default false
      */
 
 })();
