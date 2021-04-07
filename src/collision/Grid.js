@@ -69,9 +69,9 @@ var Common = require('../core/Common');
             if (body.isSleeping && !forceUpdate)
                 continue;
 
-            // don't update out of world bodies
-            if (body.bounds.max.x < world.bounds.min.x || body.bounds.min.x > world.bounds.max.x
-                || body.bounds.max.y < world.bounds.min.y || body.bounds.min.y > world.bounds.max.y)
+            // temporary back compatibility bounds check
+            if (world.bounds && (body.bounds.max.x < world.bounds.min.x || body.bounds.min.x > world.bounds.max.x
+                || body.bounds.max.y < world.bounds.min.y || body.bounds.min.y > world.bounds.max.y))
                 continue;
 
             var newRegion = Grid._getRegion(grid, body);

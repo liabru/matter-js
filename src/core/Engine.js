@@ -12,7 +12,6 @@ var Engine = {};
 
 module.exports = Engine;
 
-var World = require('../body/World');
 var Sleeping = require('./Sleeping');
 var Resolver = require('../collision/Resolver');
 var Detector = require('../collision/Detector');
@@ -53,14 +52,14 @@ var Body = require('../body/Body');
 
         var engine = Common.extend(defaults, options);
 
-        engine.world = options.world || World.create(engine.world);
+        engine.world = options.world || Composite.create({ label: 'World' });
+        engine.grid = Grid.create(options.grid || options.broadphase);
         engine.pairs = Pairs.create();
-        engine.grid = Grid.create(engine.grid || engine.broadphase);
 
         // temporary back compatibility
         engine.broadphase = engine.grid;
         engine.metrics = {};
-
+        
         return engine;
     };
 
@@ -438,11 +437,11 @@ var Body = require('../body/Body');
      */
 
     /**
-     * A `World` composite object that will contain all simulated bodies and constraints.
+     * The root `Matter.Composite` instance that will contain all bodies, constraints and other composites to be simulated by this engine.
      *
      * @property world
-     * @type world
-     * @default a Matter.World instance
+     * @type composite
+     * @default a Matter.Composite instance
      */
 
     /**

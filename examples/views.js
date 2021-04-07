@@ -54,7 +54,7 @@ Example.views = function() {
     render.mouse = mouse;
 
     // add bodies
-    var stack = Composites.stack(20, 20, 15, 4, 0, 0, function(x, y) {
+    var stack = Composites.stack(20, 20, 10, 4, 0, 0, function(x, y) {
         switch (Math.round(Common.random(0, 1))) {
 
         case 0:
@@ -85,11 +85,11 @@ Example.views = function() {
         y: render.options.height * 0.5
     };
 
-    // make the world bounds a little bigger than the render bounds
-    world.bounds.min.x = -300;
-    world.bounds.min.y = -300;
-    world.bounds.max.x = 1100;
-    world.bounds.max.y = 900;
+    // create limits for the viewport
+    var extents = {
+        min: { x: -300, y: -300 },
+        max: { x: 1100, y: 900 }
+    };
 
     // keep track of current bounds scale (view zoom)
     var boundsScaleTarget = 1,
@@ -148,18 +148,18 @@ Example.views = function() {
 
             translate = Vector.mult(direction, speed);
 
-            // prevent the view moving outside the world bounds
-            if (render.bounds.min.x + translate.x < world.bounds.min.x)
-                translate.x = world.bounds.min.x - render.bounds.min.x;
+            // prevent the view moving outside the extents
+            if (render.bounds.min.x + translate.x < extents.min.x)
+                translate.x = extents.min.x - render.bounds.min.x;
 
-            if (render.bounds.max.x + translate.x > world.bounds.max.x)
-                translate.x = world.bounds.max.x - render.bounds.max.x;
+            if (render.bounds.max.x + translate.x > extents.max.x)
+                translate.x = extents.max.x - render.bounds.max.x;
 
-            if (render.bounds.min.y + translate.y < world.bounds.min.y)
-                translate.y = world.bounds.min.y - render.bounds.min.y;
+            if (render.bounds.min.y + translate.y < extents.min.y)
+                translate.y = extents.min.y - render.bounds.min.y;
 
-            if (render.bounds.max.y + translate.y > world.bounds.max.y)
-                translate.y = world.bounds.max.y - render.bounds.max.y;
+            if (render.bounds.max.y + translate.y > extents.max.y)
+                translate.y = extents.max.y - render.bounds.max.y;
 
             // move the view
             Bounds.translate(render.bounds, translate);

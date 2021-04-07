@@ -203,7 +203,7 @@ var deprecated = Common.deprecated;
     };
 
     /**
-     * Creates a composite with a Newton's Cradle setup of bodies and constraints.
+     * This has now moved to the [newtonsCradle example](https://github.com/liabru/matter-js/blob/master/examples/newtonsCradle.js), follow that instead as this function is deprecated here.
      * @deprecated moved to newtonsCradle example
      * @method newtonsCradle
      * @param {number} xx
@@ -232,7 +232,7 @@ var deprecated = Common.deprecated;
     deprecated(Composites, 'newtonsCradle', 'Composites.newtonsCradle ➤ moved to newtonsCradle example');
     
     /**
-     * Creates a composite with simple car setup of bodies and constraints.
+     * This has now moved to the [car example](https://github.com/liabru/matter-js/blob/master/examples/car.js), follow that instead as this function is deprecated here.
      * @deprecated moved to car example
      * @method car
      * @param {number} xx
@@ -302,7 +302,8 @@ var deprecated = Common.deprecated;
     deprecated(Composites, 'car', 'Composites.car ➤ moved to car example');
 
     /**
-     * Creates a simple soft body like object.
+     * This has now moved to the [softBody example](https://github.com/liabru/matter-js/blob/master/examples/softBody.js)
+     * and the [cloth example](https://github.com/liabru/matter-js/blob/master/examples/cloth.js), follow those instead as this function is deprecated here.
      * @deprecated moved to softBody and cloth examples
      * @method softBody
      * @param {number} xx
