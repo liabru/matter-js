@@ -48,6 +48,7 @@
     "build-demo": "rm -rf ./demo/js && webpack --no-hot --no-watch --config webpack.demo.config.js --mode=production && webpack --no-hot --no-watch --config webpack.demo.config.js --mode=production --env.MINIMIZE",
     "lint": "eslint 'src/**/*.js' 'demo/src/**/*.js' 'examples/*.js' 'webpack.*.js'",
     "doc": "yuidoc --config yuidoc.json --project-version $npm_package_version",
+    "doc-watch": "nodemon --delay 3 --watch 'matter-doc-theme' --watch src -e 'js,html,css,handlebars' --exec 'npm run doc'",
     "test": "npm run test-node",
     "test-all": "jest --no-cache",
     "test-save": "SAVE=true npm run test-node",
