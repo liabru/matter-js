@@ -44,6 +44,11 @@ var Body = require('../body/Body');
             events: [],
             plugin: {},
             grid: null,
+            gravity: {
+                x: 0,
+                y: 1,
+                scale: 0.001
+            },
             timing: {
                 timestamp: 0,
                 timeScale: 1
@@ -57,6 +62,7 @@ var Body = require('../body/Body');
         engine.pairs = Pairs.create();
 
         // temporary back compatibility
+        engine.world.gravity = engine.gravity;
         engine.broadphase = engine.grid;
         engine.metrics = {};
         
@@ -107,7 +113,7 @@ var Body = require('../body/Body');
             Sleeping.update(allBodies, timing.timeScale);
 
         // applies gravity to all bodies
-        Engine._bodiesApplyGravity(allBodies, world.gravity);
+        Engine._bodiesApplyGravity(allBodies, engine.gravity);
 
         // update all body position and rotation by integration
         Engine._bodiesUpdate(allBodies, delta, timing.timeScale, correction, world.bounds);
@@ -449,6 +455,37 @@ var Body = require('../body/Body');
      *
      * @property plugin
      * @type {}
+     */
+
+    /**
+     * The gravity to apply on all bodies in `engine.world`.
+     *
+     * @property gravity
+     * @type object
+     */
+
+    /**
+     * The gravity x component.
+     *
+     * @property gravity.x
+     * @type object
+     * @default 0
+     */
+
+    /**
+     * The gravity y component.
+     *
+     * @property gravity.y
+     * @type object
+     * @default 1
+     */
+
+    /**
+     * The gravity scale factor.
+     *
+     * @property gravity.scale
+     * @type object
+     * @default 0.001
      */
 
 })();

@@ -71,7 +71,7 @@ Example.gyro = function() {
     if (typeof window !== 'undefined') {
         var updateGravity = function(event) {
             var orientation = typeof window.orientation !== 'undefined' ? window.orientation : 0,
-                gravity = engine.world.gravity;
+                gravity = engine.gravity;
 
             if (orientation === 0) {
                 gravity.x = Common.clamp(event.gamma, -90, 90) / 90;

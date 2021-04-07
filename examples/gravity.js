@@ -41,7 +41,7 @@ Example.gravity = function() {
         Bodies.rectangle(0, 300, 50, 600, { isStatic: true })
     ]);
 
-    engine.world.gravity.y = -1;
+    engine.gravity.y = -1;
     
     var stack = Composites.stack(50, 120, 11, 5, 0, 0, function(x, y) {
         switch (Math.round(Common.random(0, 1))) {
@@ -97,7 +97,7 @@ Example.gravity = function() {
 };
 
 Example.gravity.title = 'Reverse Gravity';
-Example.gravity.for = '>=0.14.2';
+Example.gravity.for = '>0.16.1';
 
 if (typeof module !== 'undefined') {
     module.exports = Example.gravity;

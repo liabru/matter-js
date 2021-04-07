@@ -47,7 +47,7 @@ Example.compositeManipulation = function() {
 
     Composite.add(world, stack);
 
-    world.gravity.y = 0;
+    engine.gravity.y = 0;
 
     Events.on(engine, 'afterUpdate', function(event) {
         var time = engine.timing.timestamp;
@@ -107,7 +107,7 @@ Example.compositeManipulation = function() {
 };
 
 Example.compositeManipulation.title = 'Composite Manipulation';
-Example.compositeManipulation.for = '>=0.14.2';
+Example.compositeManipulation.for = '>0.16.1';
 
 if (typeof module !== 'undefined') {
     module.exports = Example.compositeManipulation;
