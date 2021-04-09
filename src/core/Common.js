@@ -252,9 +252,9 @@ module.exports = Common;
     
     /**
      * Returns the current timestamp since the time origin (e.g. from page load).
-     * The result will be high-resolution including decimal places if available.
+     * The result is in milliseconds and will use high-resolution timing if available.
      * @method now
-     * @return {number} the current timestamp
+     * @return {number} the current timestamp in milliseconds
      */
     Common.now = function() {
         if (typeof window !== 'undefined' && window.performance) {
@@ -263,6 +263,10 @@ module.exports = Common;
             } else if (window.performance.webkitNow) {
                 return window.performance.webkitNow();
             }
+        }
+
+        if (Date.now) {
+            return Date.now();
         }
 
         return (new Date()) - Common._nowStartTime;
