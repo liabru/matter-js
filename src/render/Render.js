@@ -31,6 +31,9 @@ var Mouse = require('../core/Mouse');
                                       || window.webkitCancelAnimationFrame || window.msCancelAnimationFrame;
     }
 
+    Render._goodFps = 30;
+    Render._goodDelta = 1000 / 60;
+
     /**
      * Creates a new renderer. The options parameter is an object that specifies any properties you wish to override the defaults.
      * All properties have default values, and many are pre-calculated automatically based on other properties.
@@ -47,6 +50,19 @@ var Mouse = require('../core/Mouse');
             canvas: null,
             mouse: null,
             frameRequestId: null,
+            timing: {
+                historySize: 60,
+                delta: 0,
+                deltaHistory: [],
+                lastTime: 0,
+                lastTimestamp: 0,
+                lastElapsed: 0,
+                timestampElapsed: 0,
+                timestampElapsedHistory: [],
+                engineDeltaHistory: [],
+                engineElapsedHistory: [],
+                elapsedHistory: []
+            },
             options: {
                 width: 800,
                 height: 600,
@@ -58,6 +74,8 @@ var Mouse = require('../core/Mouse');
                 wireframes: true,
                 showSleeping: true,
                 showDebug: false,
+                showStats: false,
+                showPerformance: false,
                 showBroadphase: false,
                 showBounds: false,
                 showVelocity: false,
@@ -119,7 +137,18 @@ var Mouse = require('../core/Mouse');
     Render.run = function(render) {
         (function loop(time){
             render.frameRequestId = _requestAnimationFrame(loop);
-            Render.world(render);
+            
+            _updateTiming(render, time);
+
+            Render.world(render, time);
+
+            if (render.options.showStats || render.options.showDebug) {
+                Render.stats(render, render.context, time);
+            }
+
+            if (render.options.showPerformance || render.options.showDebug) {
+                Render.performance(render, render.context, time);
+            }
         })();
     };
 
@@ -287,13 +316,16 @@ var Mouse = require('../core/Mouse');
      * @method world
      * @param {render} render
      */
-    Render.world = function(render) {
-        var engine = render.engine,
+    Render.world = function(render, time) {
+        var startTime = Common.now(),
+            engine = render.engine,
             world = engine.world,
             canvas = render.canvas,
             context = render.context,
             options = render.options,
-            allBodies = Composite.allBodies(world),
+            timing = render.timing;
+
+        var allBodies = Composite.allBodies(world),
             allConstraints = Composite.allConstraints(world),
             background = options.wireframes ? options.wireframeBackground : options.background,
             bodies = [],
@@ -407,51 +439,188 @@ var Mouse = require('../core/Mouse');
         if (options.showBroadphase)
             Render.grid(render, engine.grid, context);
 
-        if (options.showDebug)
-            Render.debug(render, context);
-
         if (options.hasBounds) {
             // revert view transforms
             Render.endViewTransform(render);
         }
 
         Events.trigger(render, 'afterRender', event);
+
+        // log the time elapsed computing this update
+        timing.lastElapsed = Common.now() - startTime;
     };
 
     /**
-     * Description
+     * Renders statistics about the engine and world useful for debugging.
      * @private
-     * @method debug
+     * @method stats
+     * @param {render} render
+     * @param {RenderingContext} context
+     * @param {Number} time
+     */
+    Render.stats = function(render, context, time) {
+        var engine = render.engine,
+            world = engine.world,
+            bodies = Composite.allBodies(world),
+            parts = 0,
+            width = 55,
+            height = 44,
+            x = 0,
+            y = 0;
+        
+        // count parts
+        for (var i = 0; i < bodies.length; i += 1) {
+            parts += bodies[i].parts.length;
+        }
+
+        // sections
+        var sections = {
+            'Part': parts,
+            'Body': bodies.length,
+            'Cons': Composite.allConstraints(world).length,
+            'Comp': Composite.allComposites(world).length,
+            'Pair': engine.pairs.list.length
+        };
+
+        // background
+        context.fillStyle = '#0e0f19';
+        context.fillRect(x, y, width * 5.5, height);
+
+        context.font = '12px Arial';
+        context.textBaseline = 'top';
+        context.textAlign = 'right';
+
+        // sections
+        for (var key in sections) {
+            var section = sections[key];
+            // label
+            context.fillStyle = '#aaa';
+            context.fillText(key, x + width, y + 8);
+
+            // value
+            context.fillStyle = '#eee';
+            context.fillText(section, x + width, y + 26);
+
+            x += width;
+        }
+    };
+
+    /**
+     * Renders engine and render performance information.
+     * @private
+     * @method performance
      * @param {render} render
      * @param {RenderingContext} context
      */
-    Render.debug = function(render, context) {
-        var c = context,
-            engine = render.engine,
-            options = render.options;
+    Render.performance = function(render, context) {
+        var engine = render.engine,
+            timing = render.timing,
+            deltaHistory = timing.deltaHistory,
+            elapsedHistory = timing.elapsedHistory,
+            timestampElapsedHistory = timing.timestampElapsedHistory,
+            engineDeltaHistory = timing.engineDeltaHistory,
+            engineElapsedHistory = timing.engineElapsedHistory,
+            lastEngineDelta = engine.timing.lastDelta;
+        
+        var deltaMean = _mean(deltaHistory),
+            elapsedMean = _mean(elapsedHistory),
+            engineDeltaMean = _mean(engineDeltaHistory),
+            engineElapsedMean = _mean(engineElapsedHistory),
+            timestampElapsedMean = _mean(timestampElapsedHistory),
+            rateMean = (timestampElapsedMean / deltaMean) || 0,
+            fps = (1000 / deltaMean) || 0;
 
-        if (engine.timing.timestamp - (render.debugTimestamp || 0) >= 500) {
-            var text = "";
+        var graphHeight = 4,
+            gap = 12,
+            width = 60,
+            height = 34,
+            x = 10,
+            y = 69;
 
-            render.debugString = text;
-            render.debugTimestamp = engine.timing.timestamp;
+        // background
+        context.fillStyle = '#0e0f19';
+        context.fillRect(0, 50, gap * 4 + width * 5 + 22, height);
+
+        // show FPS
+        Render.status(
+            context, x, y, width, graphHeight, deltaHistory.length, 
+            Math.round(fps) + ' fps', 
+            fps / Render._goodFps,
+            function(i) { return (deltaHistory[i] / deltaMean) - 1; }
+        );
+
+        // show engine delta
+        Render.status(
+            context, x + gap + width, y, width, graphHeight, engineDeltaHistory.length,
+            lastEngineDelta.toFixed(2) + ' dt', 
+            Render._goodDelta / lastEngineDelta,
+            function(i) { return (engineDeltaHistory[i] / engineDeltaMean) - 1; }
+        );
+
+        // show engine update time
+        Render.status(
+            context, x + (gap + width) * 2, y, width, graphHeight, engineElapsedHistory.length,
+            engineElapsedMean.toFixed(2) + ' ut', 
+            1 - (engineElapsedMean / Render._goodFps),
+            function(i) { return (engineElapsedHistory[i] / engineElapsedMean) - 1; }
+        );
+
+        // show render time
+        Render.status(
+            context, x + (gap + width) * 3, y, width, graphHeight, elapsedHistory.length,
+            elapsedMean.toFixed(2) + ' rt', 
+            1 - (elapsedMean / Render._goodFps),
+            function(i) { return (elapsedHistory[i] / elapsedMean) - 1; }
+        );
+
+        // show effective speed
+        Render.status(
+            context, x + (gap + width) * 4, y, width, graphHeight, timestampElapsedHistory.length, 
+            rateMean.toFixed(2) + ' x', 
+            rateMean * rateMean * rateMean,
+            function(i) { return (((timestampElapsedHistory[i] / deltaHistory[i]) / rateMean) || 0) - 1; }
+        );
+    };
+
+    /**
+     * Renders a label, indicator and a chart.
+     * @private
+     * @method status
+     * @param {RenderingContext} context
+     * @param {number} x
+     * @param {number} y
+     * @param {number} width
+     * @param {number} height
+     * @param {number} count
+     * @param {string} label
+     * @param {string} indicator
+     * @param {function} plotY
+     */
+    Render.status = function(context, x, y, width, height, count, label, indicator, plotY) {
+        // background
+        context.strokeStyle = '#888';
+        context.fillStyle = '#444';
+        context.lineWidth = 1;
+        context.fillRect(x, y + 7, width, 1);
+
+        // chart
+        context.beginPath();
+        context.moveTo(x, y + 7 - height * Common.clamp(0.4 * plotY(0), -2, 2));
+        for (var i = 0; i < width; i += 1) {
+            context.lineTo(x + i, y + 7 - (i < count ? height * Common.clamp(0.4 * plotY(i), -2, 2) : 0));
         }
+        context.stroke();
 
-        if (render.debugString) {
-            c.font = "12px Arial";
+        // indicator
+        context.fillStyle = 'hsl(' + Common.clamp(25 + 95 * indicator, 0, 120) + ',100%,60%)';
+        context.fillRect(x, y - 7, 4, 4);
 
-            if (options.wireframes) {
-                c.fillStyle = 'rgba(255,255,255,0.5)';
-            } else {
-                c.fillStyle = 'rgba(0,0,0,0.5)';
-            }
-
-            var split = render.debugString.split('\n');
-
-            for (var i = 0; i < split.length; i++) {
-                c.fillText(split[i], 50, 50 + i * 18);
-            }
-        }
+        // label
+        context.font = '12px Arial';
+        context.textBaseline = 'middle';
+        context.textAlign = 'right';
+        context.fillStyle = '#eee';
+        context.fillText(label, x + width, y - 5);
     };
 
     /**
@@ -1241,7 +1410,56 @@ var Mouse = require('../core/Mouse');
     };
 
     /**
-     * Description
+     * Updates render timing.
+     * @method _updateTiming
+     * @private
+     * @param {render} render
+     * @param {number} time
+     */
+    var _updateTiming = function(render, time) {
+        var engine = render.engine,
+            timing = render.timing,
+            historySize = timing.historySize,
+            timestamp = engine.timing.timestamp;
+
+        timing.delta = time - timing.lastTime || Render._goodDelta;
+        timing.lastTime = time;
+
+        timing.timestampElapsed = timestamp - timing.lastTimestamp || 0;
+        timing.lastTimestamp = timestamp;
+
+        timing.deltaHistory.unshift(timing.delta);
+        timing.deltaHistory.length = Math.min(timing.deltaHistory.length, historySize);
+
+        timing.engineDeltaHistory.unshift(engine.timing.lastDelta);
+        timing.engineDeltaHistory.length = Math.min(timing.engineDeltaHistory.length, historySize);
+
+        timing.timestampElapsedHistory.unshift(timing.timestampElapsed);
+        timing.timestampElapsedHistory.length = Math.min(timing.timestampElapsedHistory.length, historySize);
+
+        timing.engineElapsedHistory.unshift(engine.timing.lastElapsed);
+        timing.engineElapsedHistory.length = Math.min(timing.engineElapsedHistory.length, historySize);
+
+        timing.elapsedHistory.unshift(timing.lastElapsed);
+        timing.elapsedHistory.length = Math.min(timing.elapsedHistory.length, historySize);
+    };
+
+    /**
+     * Returns the mean value of the given numbers.
+     * @method _mean
+     * @private
+     * @param {Number[]} values
+     * @return {Number} the mean of given values
+     */
+    var _mean = function(values) {
+        var result = 0;
+        for (var i = 0; i < values.length; i += 1) {
+            result += values[i];
+        }
+        return (result / values.length) || 0;
+    };
+
+    /**
      * @method _createCanvas
      * @private
      * @param {} width

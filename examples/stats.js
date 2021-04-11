@@ -1,13 +1,14 @@
 var Example = Example || {};
 
-Example.stress = function() {
+Example.stats = function() {
     var Engine = Matter.Engine,
         Render = Matter.Render,
         Runner = Matter.Runner,
+        Common = Matter.Common,
         Composites = Matter.Composites,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
-        Composite = Matter.Composite,
+        World = Matter.World,
         Bodies = Matter.Bodies;
 
     // create engine
@@ -21,6 +22,7 @@ Example.stress = function() {
         options: {
             width: 800,
             height: 600,
+            // show stats and performance monitors
             showStats: true,
             showPerformance: true
         }
@@ -33,11 +35,11 @@ Example.stress = function() {
     Runner.run(runner, engine);
 
     // scene code
-    var stack = Composites.stack(90, 600 - 25 - 15 * 35, 18, 15, 0, 0, function(x, y) {
-        return Bodies.rectangle(x, y, 35, 35);
+    var stack = Composites.stack(70, 30, 13, 9, 5, 5, function(x, y) {
+        return Bodies.circle(x, y, 10 + Common.random() * 20);
     });
     
-    Composite.add(world, [
+    World.add(world, [
         stack,
         Bodies.rectangle(400, 0, 800, 50, { isStatic: true }),
         Bodies.rectangle(400, 600, 800, 50, { isStatic: true }),
@@ -57,7 +59,7 @@ Example.stress = function() {
             }
         });
 
-    Composite.add(world, mouseConstraint);
+    World.add(world, mouseConstraint);
 
     // keep the mouse in sync with rendering
     render.mouse = mouse;
@@ -81,9 +83,9 @@ Example.stress = function() {
     };
 };
 
-Example.stress.title = 'Stress';
-Example.stress.for = '>=0.14.2';
+Example.stats.title = 'Stats & Performance';
+Example.stats.for = '>=0.16.1';
 
 if (typeof module !== 'undefined') {
-    module.exports = Example.stress;
+    module.exports = Example.stats;
 }

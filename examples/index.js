@@ -35,6 +35,7 @@ module.exports = {
     sprites: require('./sprites.js'),
     stack: require('./stack.js'),
     staticFriction: require('./staticFriction.js'),
+    stats: require('./stats.js'),
     stress: require('./stress.js'),
     stress2: require('./stress2.js'),
     svg: require('./svg.js'),

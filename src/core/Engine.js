@@ -51,7 +51,9 @@ var Body = require('../body/Body');
             },
             timing: {
                 timestamp: 0,
-                timeScale: 1
+                timeScale: 1,
+                lastDelta: 0,
+                lastElapsed: 0
             }
         };
 
@@ -85,6 +87,8 @@ var Body = require('../body/Body');
      * @param {number} [correction=1]
      */
     Engine.update = function(engine, delta, correction) {
+        var startTime = Common.now();
+
         delta = delta || 1000 / 60;
         correction = correction || 1;
 
@@ -96,6 +100,7 @@ var Body = require('../body/Body');
 
         // increment timestamp
         timing.timestamp += delta * timing.timeScale;
+        timing.lastDelta = delta * timing.timeScale;
 
         // create an event object
         var event = {
@@ -188,6 +193,9 @@ var Body = require('../body/Body');
         Engine._bodiesClearForces(allBodies);
 
         Events.trigger(engine, 'afterUpdate', event);
+
+        // log the time elapsed computing this update
+        engine.timing.lastElapsed = Common.now() - startTime;
 
         return engine;
     };
