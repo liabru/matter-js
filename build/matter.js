@@ -1,5 +1,5 @@
 /*!
- * matter-js 0.16.1 by @liabru 2021-01-31
+ * matter-js 0.17.0 by @liabru
  * http://brm.io/matter-js/
  * License MIT
  * 
@@ -27,14 +27,14 @@
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
-		module.exports = factory((function webpackLoadOptionalExternalModule() { try { return require("poly-decomp"); } catch(e) {} }()));
+		module.exports = factory();
 	else if(typeof define === 'function' && define.amd)
-		define("Matter", ["poly-decomp"], factory);
+		define("Matter", [], factory);
 	else if(typeof exports === 'object')
-		exports["Matter"] = factory((function webpackLoadOptionalExternalModule() { try { return require("poly-decomp"); } catch(e) {} }()));
+		exports["Matter"] = factory();
 	else
-		root["Matter"] = factory(root["decomp"]);
-})(this, function(__WEBPACK_EXTERNAL_MODULE__27__) {
+		root["Matter"] = factory();
+})(this, function() {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -118,7 +118,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 24);
+/******/ 	return __webpack_require__(__webpack_require__.s = 22);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -140,7 +140,9 @@ module.exports = Common;
     Common._nextId = 0;
     Common._seed = 0;
     Common._nowStartTime = +(new Date());
-
+    Common._warnedOnce = {};
+    Common._decomp = null;
+    
     /**
      * Extends the object in the first argument using the object in the second argument.
      * @method extend
@@ -379,9 +381,9 @@ module.exports = Common;
     
     /**
      * Returns the current timestamp since the time origin (e.g. from page load).
-     * The result will be high-resolution including decimal places if available.
+     * The result is in milliseconds and will use high-resolution timing if available.
      * @method now
-     * @return {number} the current timestamp
+     * @return {number} the current timestamp in milliseconds
      */
     Common.now = function() {
         if (typeof window !== 'undefined' && window.performance) {
@@ -390,6 +392,10 @@ module.exports = Common;
             } else if (window.performance.webkitNow) {
                 return window.performance.webkitNow();
             }
+        }
+
+        if (Date.now) {
+            return Date.now();
         }
 
         return (new Date()) - Common._nowStartTime;
@@ -483,6 +489,35 @@ module.exports = Common;
         if (console && Common.logLevel > 0 && Common.logLevel <= 3) {
             console.warn.apply(console, ['matter-js:'].concat(Array.prototype.slice.call(arguments)));
         }
+    };
+
+    /**
+     * Uses `Common.warn` to log the given message one time only.
+     * @method warnOnce
+     * @param ...objs {} The objects to log.
+     */
+    Common.warnOnce = function() {
+        var message = Array.prototype.slice.call(arguments).join(' ');
+
+        if (!Common._warnedOnce[message]) {
+            Common.warn(message);
+            Common._warnedOnce[message] = true;
+        }
+    };
+
+    /**
+     * Shows a deprecated console warning when the function on the given object is called.
+     * The target function will be replaced with a new function that first shows the warning
+     * and then calls the original function.
+     * @method deprecated
+     * @param {object} obj The object or module
+     * @param {string} name The property name of the function on obj
+     * @param {string} warning The one-time message to show if the function is called
+     */
+    Common.deprecated = function(obj, prop, warning) {
+        obj[prop] = Common.chain(function() {
+            Common.warnOnce('🔅 deprecated 🔅', warning);
+        }, obj[prop]);
     };
 
     /**
@@ -661,6 +696,44 @@ module.exports = Common;
             Common.get(base, path),
             func
         ));
+    };
+
+    /**
+     * Provide the [poly-decomp](https://github.com/schteppe/poly-decomp.js) library module to enable
+     * concave vertex decomposition support when using `Bodies.fromVertices` e.g. `Common.setDecomp(require('poly-decomp'))`.
+     * @method setDecomp
+     * @param {} decomp The [poly-decomp](https://github.com/schteppe/poly-decomp.js) library module.
+     */
+    Common.setDecomp = function(decomp) {
+        Common._decomp = decomp;
+    };
+
+    /**
+     * Returns the [poly-decomp](https://github.com/schteppe/poly-decomp.js) library module provided through `Common.setDecomp`,
+     * otherwise returns the global `decomp` if set.
+     * @method getDecomp
+     * @return {} The [poly-decomp](https://github.com/schteppe/poly-decomp.js) library module if provided.
+     */
+    Common.getDecomp = function() {
+        // get user provided decomp if set
+        var decomp = Common._decomp;
+
+        try {
+            // otherwise from window global
+            if (!decomp && typeof window !== 'undefined') {
+                decomp = window.decomp;
+            }
+    
+            // otherwise from node global
+            if (!decomp && typeof global !== 'undefined') {
+                decomp = global.decomp;
+            }
+        } catch (e) {
+            // decomp not available
+            decomp = null;
+        }
+
+        return decomp;
     };
 })();
 
@@ -1611,10 +1684,12 @@ var Common = __webpack_require__(0);
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
-* The `Matter.Composite` module contains methods for creating and manipulating composite bodies.
-* A composite body is a collection of `Matter.Body`, `Matter.Constraint` and other `Matter.Composite`, therefore composites form a tree structure.
-* It is important to use the functions in this module to modify composites, rather than directly modifying their properties.
-* Note that the `Matter.World` object is also a type of `Matter.Composite` and as such all composite methods here can also operate on a `Matter.World`.
+* A composite is a collection of `Matter.Body`, `Matter.Constraint` and other `Matter.Composite` objects.
+*
+* They are a container that can represent complex objects made of multiple parts, even if they are not physically connected.
+* A composite could contain anything from a single body all the way up to a whole world.
+* 
+* When making any changes to composites, use the included functions rather than changing their properties directly.
 *
 * See the included usage [examples](https://github.com/liabru/matter-js/tree/master/examples).
 *
@@ -1679,11 +1754,11 @@ var Body = __webpack_require__(6);
     };
 
     /**
-     * Generic add function. Adds one or many body(s), constraint(s) or a composite(s) to the given composite.
+     * Generic single or multi-add function. Adds a single or an array of body(s), constraint(s) or composite(s) to the given composite.
      * Triggers `beforeAdd` and `afterAdd` events on the `composite`.
      * @method add
      * @param {composite} composite
-     * @param {} object
+     * @param {object|array} object A single or an array of body(s), constraint(s) or composite(s)
      * @return {composite} The original composite with the objects added
      */
     Composite.add = function(composite, object) {
@@ -1729,7 +1804,7 @@ var Body = __webpack_require__(6);
      * Triggers `beforeRemove` and `afterRemove` events on the `composite`.
      * @method remove
      * @param {composite} composite
-     * @param {} object
+     * @param {object|array} object
      * @param {boolean} [deep=false]
      * @return {composite} The original composite with the objects removed
      */
@@ -2318,10 +2393,10 @@ module.exports = Body;
 var Vertices = __webpack_require__(3);
 var Vector = __webpack_require__(2);
 var Sleeping = __webpack_require__(7);
-var Render = __webpack_require__(10);
+var Render = __webpack_require__(16);
 var Common = __webpack_require__(0);
 var Bounds = __webpack_require__(1);
-var Axes = __webpack_require__(15);
+var Axes = __webpack_require__(10);
 
 (function() {
 
@@ -3695,7 +3770,7 @@ var Vertices = __webpack_require__(3);
 var Vector = __webpack_require__(2);
 var Sleeping = __webpack_require__(7);
 var Bounds = __webpack_require__(1);
-var Axes = __webpack_require__(15);
+var Axes = __webpack_require__(10);
 var Common = __webpack_require__(0);
 
 (function() {
@@ -4172,7 +4247,7 @@ var Pair = {};
 
 module.exports = Pair;
 
-var Contact = __webpack_require__(18);
+var Contact = __webpack_require__(17);
 
 (function() {
     
@@ -4296,7 +4371,1377 @@ var Contact = __webpack_require__(18);
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
-* The `Matter.Render` module is a simple HTML5 canvas based renderer for visualising instances of `Matter.Engine`.
+* The `Matter.Axes` module contains methods for creating and manipulating sets of axes.
+*
+* @class Axes
+*/
+
+var Axes = {};
+
+module.exports = Axes;
+
+var Vector = __webpack_require__(2);
+var Common = __webpack_require__(0);
+
+(function() {
+
+    /**
+     * Creates a new set of axes from the given vertices.
+     * @method fromVertices
+     * @param {vertices} vertices
+     * @return {axes} A new axes from the given vertices
+     */
+    Axes.fromVertices = function(vertices) {
+        var axes = {};
+
+        // find the unique axes, using edge normal gradients
+        for (var i = 0; i < vertices.length; i++) {
+            var j = (i + 1) % vertices.length, 
+                normal = Vector.normalise({ 
+                    x: vertices[j].y - vertices[i].y, 
+                    y: vertices[i].x - vertices[j].x
+                }),
+                gradient = (normal.y === 0) ? Infinity : (normal.x / normal.y);
+            
+            // limit precision
+            gradient = gradient.toFixed(3).toString();
+            axes[gradient] = normal;
+        }
+
+        return Common.values(axes);
+    };
+
+    /**
+     * Rotates a set of axes by the given angle.
+     * @method rotate
+     * @param {axes} axes
+     * @param {number} angle
+     */
+    Axes.rotate = function(axes, angle) {
+        if (angle === 0)
+            return;
+        
+        var cos = Math.cos(angle),
+            sin = Math.sin(angle);
+
+        for (var i = 0; i < axes.length; i++) {
+            var axis = axes[i],
+                xx;
+            xx = axis.x * cos - axis.y * sin;
+            axis.y = axis.x * sin + axis.y * cos;
+            axis.x = xx;
+        }
+    };
+
+})();
+
+
+/***/ }),
+/* 11 */
+/***/ (function(module, exports, __webpack_require__) {
+
+/**
+* The `Matter.Bodies` module contains factory methods for creating rigid body models 
+* with commonly used body configurations (such as rectangles, circles and other polygons).
+*
+* See the included usage [examples](https://github.com/liabru/matter-js/tree/master/examples).
+*
+* @class Bodies
+*/
+
+// TODO: true circle bodies
+
+var Bodies = {};
+
+module.exports = Bodies;
+
+var Vertices = __webpack_require__(3);
+var Common = __webpack_require__(0);
+var Body = __webpack_require__(6);
+var Bounds = __webpack_require__(1);
+var Vector = __webpack_require__(2);
+
+(function() {
+
+    /**
+     * Creates a new rigid body model with a rectangle hull. 
+     * The options parameter is an object that specifies any properties you wish to override the defaults.
+     * See the properties section of the `Matter.Body` module for detailed information on what you can pass via the `options` object.
+     * @method rectangle
+     * @param {number} x
+     * @param {number} y
+     * @param {number} width
+     * @param {number} height
+     * @param {object} [options]
+     * @return {body} A new rectangle body
+     */
+    Bodies.rectangle = function(x, y, width, height, options) {
+        options = options || {};
+
+        var rectangle = { 
+            label: 'Rectangle Body',
+            position: { x: x, y: y },
+            vertices: Vertices.fromPath('L 0 0 L ' + width + ' 0 L ' + width + ' ' + height + ' L 0 ' + height)
+        };
+
+        if (options.chamfer) {
+            var chamfer = options.chamfer;
+            rectangle.vertices = Vertices.chamfer(rectangle.vertices, chamfer.radius, 
+                chamfer.quality, chamfer.qualityMin, chamfer.qualityMax);
+            delete options.chamfer;
+        }
+
+        return Body.create(Common.extend({}, rectangle, options));
+    };
+    
+    /**
+     * Creates a new rigid body model with a trapezoid hull. 
+     * The options parameter is an object that specifies any properties you wish to override the defaults.
+     * See the properties section of the `Matter.Body` module for detailed information on what you can pass via the `options` object.
+     * @method trapezoid
+     * @param {number} x
+     * @param {number} y
+     * @param {number} width
+     * @param {number} height
+     * @param {number} slope
+     * @param {object} [options]
+     * @return {body} A new trapezoid body
+     */
+    Bodies.trapezoid = function(x, y, width, height, slope, options) {
+        options = options || {};
+
+        slope *= 0.5;
+        var roof = (1 - (slope * 2)) * width;
+        
+        var x1 = width * slope,
+            x2 = x1 + roof,
+            x3 = x2 + x1,
+            verticesPath;
+
+        if (slope < 0.5) {
+            verticesPath = 'L 0 0 L ' + x1 + ' ' + (-height) + ' L ' + x2 + ' ' + (-height) + ' L ' + x3 + ' 0';
+        } else {
+            verticesPath = 'L 0 0 L ' + x2 + ' ' + (-height) + ' L ' + x3 + ' 0';
+        }
+
+        var trapezoid = { 
+            label: 'Trapezoid Body',
+            position: { x: x, y: y },
+            vertices: Vertices.fromPath(verticesPath)
+        };
+
+        if (options.chamfer) {
+            var chamfer = options.chamfer;
+            trapezoid.vertices = Vertices.chamfer(trapezoid.vertices, chamfer.radius, 
+                chamfer.quality, chamfer.qualityMin, chamfer.qualityMax);
+            delete options.chamfer;
+        }
+
+        return Body.create(Common.extend({}, trapezoid, options));
+    };
+
+    /**
+     * Creates a new rigid body model with a circle hull. 
+     * The options parameter is an object that specifies any properties you wish to override the defaults.
+     * See the properties section of the `Matter.Body` module for detailed information on what you can pass via the `options` object.
+     * @method circle
+     * @param {number} x
+     * @param {number} y
+     * @param {number} radius
+     * @param {object} [options]
+     * @param {number} [maxSides]
+     * @return {body} A new circle body
+     */
+    Bodies.circle = function(x, y, radius, options, maxSides) {
+        options = options || {};
+
+        var circle = {
+            label: 'Circle Body',
+            circleRadius: radius
+        };
+        
+        // approximate circles with polygons until true circles implemented in SAT
+        maxSides = maxSides || 25;
+        var sides = Math.ceil(Math.max(10, Math.min(maxSides, radius)));
+
+        // optimisation: always use even number of sides (half the number of unique axes)
+        if (sides % 2 === 1)
+            sides += 1;
+
+        return Bodies.polygon(x, y, sides, radius, Common.extend({}, circle, options));
+    };
+
+    /**
+     * Creates a new rigid body model with a regular polygon hull with the given number of sides. 
+     * The options parameter is an object that specifies any properties you wish to override the defaults.
+     * See the properties section of the `Matter.Body` module for detailed information on what you can pass via the `options` object.
+     * @method polygon
+     * @param {number} x
+     * @param {number} y
+     * @param {number} sides
+     * @param {number} radius
+     * @param {object} [options]
+     * @return {body} A new regular polygon body
+     */
+    Bodies.polygon = function(x, y, sides, radius, options) {
+        options = options || {};
+
+        if (sides < 3)
+            return Bodies.circle(x, y, radius, options);
+
+        var theta = 2 * Math.PI / sides,
+            path = '',
+            offset = theta * 0.5;
+
+        for (var i = 0; i < sides; i += 1) {
+            var angle = offset + (i * theta),
+                xx = Math.cos(angle) * radius,
+                yy = Math.sin(angle) * radius;
+
+            path += 'L ' + xx.toFixed(3) + ' ' + yy.toFixed(3) + ' ';
+        }
+
+        var polygon = { 
+            label: 'Polygon Body',
+            position: { x: x, y: y },
+            vertices: Vertices.fromPath(path)
+        };
+
+        if (options.chamfer) {
+            var chamfer = options.chamfer;
+            polygon.vertices = Vertices.chamfer(polygon.vertices, chamfer.radius, 
+                chamfer.quality, chamfer.qualityMin, chamfer.qualityMax);
+            delete options.chamfer;
+        }
+
+        return Body.create(Common.extend({}, polygon, options));
+    };
+
+    /**
+     * Utility to create a compound body based on set(s) of vertices.
+     * 
+     * _Note:_ To optionally enable automatic concave vertices decomposition the [poly-decomp](https://github.com/schteppe/poly-decomp.js) 
+     * package must be first installed and provided see `Common.setDecomp`, otherwise the convex hull of each vertex set will be used.
+     * 
+     * The resulting vertices are reorientated about their centre of mass,
+     * and offset such that `body.position` corresponds to this point.
+     * 
+     * The resulting offset may be found if needed by subtracting `body.bounds` from the original input bounds.
+     * To later move the centre of mass see `Body.setCentre`.
+     * 
+     * Note that automatic conconcave decomposition results are not always optimal. 
+     * For best results, simplify the input vertices as much as possible first.
+     * By default this function applies some addtional simplification to help.
+     * 
+     * Some outputs may also require further manual processing afterwards to be robust.
+     * In particular some parts may need to be overlapped to avoid collision gaps.
+     * Thin parts and sharp points should be avoided or removed where possible.
+     *
+     * The options parameter object specifies any `Matter.Body` properties you wish to override the defaults.
+     * 
+     * See the properties section of the `Matter.Body` module for detailed information on what you can pass via the `options` object.
+     * @method fromVertices
+     * @param {number} x
+     * @param {number} y
+     * @param {array} vertexSets One or more arrays of vertex points e.g. `[[{ x: 0, y: 0 }...], ...]`.
+     * @param {object} [options] The body options.
+     * @param {bool} [flagInternal=false] Optionally marks internal edges with `isInternal`.
+     * @param {number} [removeCollinear=0.01] Threshold when simplifying vertices along the same edge.
+     * @param {number} [minimumArea=10] Threshold when removing small parts.
+     * @param {number} [removeDuplicatePoints=0.01] Threshold when simplifying nearby vertices.
+     * @return {body}
+     */
+    Bodies.fromVertices = function(x, y, vertexSets, options, flagInternal, removeCollinear, minimumArea, removeDuplicatePoints) {
+        var decomp = Common.getDecomp(),
+            canDecomp,
+            body,
+            parts,
+            isConvex,
+            isConcave,
+            vertices,
+            i,
+            j,
+            k,
+            v,
+            z;
+
+        // check decomp is as expected
+        canDecomp = Boolean(decomp && decomp.quickDecomp);
+
+        options = options || {};
+        parts = [];
+
+        flagInternal = typeof flagInternal !== 'undefined' ? flagInternal : false;
+        removeCollinear = typeof removeCollinear !== 'undefined' ? removeCollinear : 0.01;
+        minimumArea = typeof minimumArea !== 'undefined' ? minimumArea : 10;
+        removeDuplicatePoints = typeof removeDuplicatePoints !== 'undefined' ? removeDuplicatePoints : 0.01;
+
+        // ensure vertexSets is an array of arrays
+        if (!Common.isArray(vertexSets[0])) {
+            vertexSets = [vertexSets];
+        }
+
+        for (v = 0; v < vertexSets.length; v += 1) {
+            vertices = vertexSets[v];
+            isConvex = Vertices.isConvex(vertices);
+            isConcave = !isConvex;
+
+            if (isConcave && !canDecomp) {
+                Common.warnOnce(
+                    'Bodies.fromVertices: Install the \'poly-decomp\' library and use Common.setDecomp or provide \'decomp\' as a global to decompose concave vertices.'
+                );
+            }
+
+            if (isConvex || !canDecomp) {
+                if (isConvex) {
+                    vertices = Vertices.clockwiseSort(vertices);
+                } else {
+                    // fallback to convex hull when decomposition is not possible
+                    vertices = Vertices.hull(vertices);
+                }
+
+                parts.push({
+                    position: { x: x, y: y },
+                    vertices: vertices
+                });
+            } else {
+                // initialise a decomposition
+                var concave = vertices.map(function(vertex) {
+                    return [vertex.x, vertex.y];
+                });
+
+                // vertices are concave and simple, we can decompose into parts
+                decomp.makeCCW(concave);
+                if (removeCollinear !== false)
+                    decomp.removeCollinearPoints(concave, removeCollinear);
+                if (removeDuplicatePoints !== false && decomp.removeDuplicatePoints)
+                    decomp.removeDuplicatePoints(concave, removeDuplicatePoints);
+
+                // use the quick decomposition algorithm (Bayazit)
+                var decomposed = decomp.quickDecomp(concave);
+
+                // for each decomposed chunk
+                for (i = 0; i < decomposed.length; i++) {
+                    var chunk = decomposed[i];
+
+                    // convert vertices into the correct structure
+                    var chunkVertices = chunk.map(function(vertices) {
+                        return {
+                            x: vertices[0],
+                            y: vertices[1]
+                        };
+                    });
+
+                    // skip small chunks
+                    if (minimumArea > 0 && Vertices.area(chunkVertices) < minimumArea)
+                        continue;
+
+                    // create a compound part
+                    parts.push({
+                        position: Vertices.centre(chunkVertices),
+                        vertices: chunkVertices
+                    });
+                }
+            }
+        }
+
+        // create body parts
+        for (i = 0; i < parts.length; i++) {
+            parts[i] = Body.create(Common.extend(parts[i], options));
+        }
+
+        // flag internal edges (coincident part edges)
+        if (flagInternal) {
+            var coincident_max_dist = 5;
+
+            for (i = 0; i < parts.length; i++) {
+                var partA = parts[i];
+
+                for (j = i + 1; j < parts.length; j++) {
+                    var partB = parts[j];
+
+                    if (Bounds.overlaps(partA.bounds, partB.bounds)) {
+                        var pav = partA.vertices,
+                            pbv = partB.vertices;
+
+                        // iterate vertices of both parts
+                        for (k = 0; k < partA.vertices.length; k++) {
+                            for (z = 0; z < partB.vertices.length; z++) {
+                                // find distances between the vertices
+                                var da = Vector.magnitudeSquared(Vector.sub(pav[(k + 1) % pav.length], pbv[z])),
+                                    db = Vector.magnitudeSquared(Vector.sub(pav[k], pbv[(z + 1) % pbv.length]));
+
+                                // if both vertices are very close, consider the edge concident (internal)
+                                if (da < coincident_max_dist && db < coincident_max_dist) {
+                                    pav[k].isInternal = true;
+                                    pbv[z].isInternal = true;
+                                }
+                            }
+                        }
+
+                    }
+                }
+            }
+        }
+
+        if (parts.length > 1) {
+            // create the parent body to be returned, that contains generated compound parts
+            body = Body.create(Common.extend({ parts: parts.slice(0) }, options));
+
+            // offset such that body.position is at the centre off mass
+            Body.setPosition(body, { x: x, y: y });
+
+            return body;
+        } else {
+            return parts[0];
+        }
+    };
+
+})();
+
+
+/***/ }),
+/* 12 */
+/***/ (function(module, exports, __webpack_require__) {
+
+/**
+* The `Matter.Mouse` module contains methods for creating and manipulating mouse inputs.
+*
+* @class Mouse
+*/
+
+var Mouse = {};
+
+module.exports = Mouse;
+
+var Common = __webpack_require__(0);
+
+(function() {
+
+    /**
+     * Creates a mouse input.
+     * @method create
+     * @param {HTMLElement} element
+     * @return {mouse} A new mouse
+     */
+    Mouse.create = function(element) {
+        var mouse = {};
+
+        if (!element) {
+            Common.log('Mouse.create: element was undefined, defaulting to document.body', 'warn');
+        }
+        
+        mouse.element = element || document.body;
+        mouse.absolute = { x: 0, y: 0 };
+        mouse.position = { x: 0, y: 0 };
+        mouse.mousedownPosition = { x: 0, y: 0 };
+        mouse.mouseupPosition = { x: 0, y: 0 };
+        mouse.offset = { x: 0, y: 0 };
+        mouse.scale = { x: 1, y: 1 };
+        mouse.wheelDelta = 0;
+        mouse.button = -1;
+        mouse.pixelRatio = parseInt(mouse.element.getAttribute('data-pixel-ratio'), 10) || 1;
+
+        mouse.sourceEvents = {
+            mousemove: null,
+            mousedown: null,
+            mouseup: null,
+            mousewheel: null
+        };
+        
+        mouse.mousemove = function(event) { 
+            var position = Mouse._getRelativeMousePosition(event, mouse.element, mouse.pixelRatio),
+                touches = event.changedTouches;
+
+            if (touches) {
+                mouse.button = 0;
+                event.preventDefault();
+            }
+
+            mouse.absolute.x = position.x;
+            mouse.absolute.y = position.y;
+            mouse.position.x = mouse.absolute.x * mouse.scale.x + mouse.offset.x;
+            mouse.position.y = mouse.absolute.y * mouse.scale.y + mouse.offset.y;
+            mouse.sourceEvents.mousemove = event;
+        };
+        
+        mouse.mousedown = function(event) {
+            var position = Mouse._getRelativeMousePosition(event, mouse.element, mouse.pixelRatio),
+                touches = event.changedTouches;
+
+            if (touches) {
+                mouse.button = 0;
+                event.preventDefault();
+            } else {
+                mouse.button = event.button;
+            }
+
+            mouse.absolute.x = position.x;
+            mouse.absolute.y = position.y;
+            mouse.position.x = mouse.absolute.x * mouse.scale.x + mouse.offset.x;
+            mouse.position.y = mouse.absolute.y * mouse.scale.y + mouse.offset.y;
+            mouse.mousedownPosition.x = mouse.position.x;
+            mouse.mousedownPosition.y = mouse.position.y;
+            mouse.sourceEvents.mousedown = event;
+        };
+        
+        mouse.mouseup = function(event) {
+            var position = Mouse._getRelativeMousePosition(event, mouse.element, mouse.pixelRatio),
+                touches = event.changedTouches;
+
+            if (touches) {
+                event.preventDefault();
+            }
+            
+            mouse.button = -1;
+            mouse.absolute.x = position.x;
+            mouse.absolute.y = position.y;
+            mouse.position.x = mouse.absolute.x * mouse.scale.x + mouse.offset.x;
+            mouse.position.y = mouse.absolute.y * mouse.scale.y + mouse.offset.y;
+            mouse.mouseupPosition.x = mouse.position.x;
+            mouse.mouseupPosition.y = mouse.position.y;
+            mouse.sourceEvents.mouseup = event;
+        };
+
+        mouse.mousewheel = function(event) {
+            mouse.wheelDelta = Math.max(-1, Math.min(1, event.wheelDelta || -event.detail));
+            event.preventDefault();
+        };
+
+        Mouse.setElement(mouse, mouse.element);
+
+        return mouse;
+    };
+
+    /**
+     * Sets the element the mouse is bound to (and relative to).
+     * @method setElement
+     * @param {mouse} mouse
+     * @param {HTMLElement} element
+     */
+    Mouse.setElement = function(mouse, element) {
+        mouse.element = element;
+
+        element.addEventListener('mousemove', mouse.mousemove);
+        element.addEventListener('mousedown', mouse.mousedown);
+        element.addEventListener('mouseup', mouse.mouseup);
+        
+        element.addEventListener('mousewheel', mouse.mousewheel);
+        element.addEventListener('DOMMouseScroll', mouse.mousewheel);
+
+        element.addEventListener('touchmove', mouse.mousemove);
+        element.addEventListener('touchstart', mouse.mousedown);
+        element.addEventListener('touchend', mouse.mouseup);
+    };
+
+    /**
+     * Clears all captured source events.
+     * @method clearSourceEvents
+     * @param {mouse} mouse
+     */
+    Mouse.clearSourceEvents = function(mouse) {
+        mouse.sourceEvents.mousemove = null;
+        mouse.sourceEvents.mousedown = null;
+        mouse.sourceEvents.mouseup = null;
+        mouse.sourceEvents.mousewheel = null;
+        mouse.wheelDelta = 0;
+    };
+
+    /**
+     * Sets the mouse position offset.
+     * @method setOffset
+     * @param {mouse} mouse
+     * @param {vector} offset
+     */
+    Mouse.setOffset = function(mouse, offset) {
+        mouse.offset.x = offset.x;
+        mouse.offset.y = offset.y;
+        mouse.position.x = mouse.absolute.x * mouse.scale.x + mouse.offset.x;
+        mouse.position.y = mouse.absolute.y * mouse.scale.y + mouse.offset.y;
+    };
+
+    /**
+     * Sets the mouse position scale.
+     * @method setScale
+     * @param {mouse} mouse
+     * @param {vector} scale
+     */
+    Mouse.setScale = function(mouse, scale) {
+        mouse.scale.x = scale.x;
+        mouse.scale.y = scale.y;
+        mouse.position.x = mouse.absolute.x * mouse.scale.x + mouse.offset.x;
+        mouse.position.y = mouse.absolute.y * mouse.scale.y + mouse.offset.y;
+    };
+    
+    /**
+     * Gets the mouse position relative to an element given a screen pixel ratio.
+     * @method _getRelativeMousePosition
+     * @private
+     * @param {} event
+     * @param {} element
+     * @param {number} pixelRatio
+     * @return {}
+     */
+    Mouse._getRelativeMousePosition = function(event, element, pixelRatio) {
+        var elementBounds = element.getBoundingClientRect(),
+            rootNode = (document.documentElement || document.body.parentNode || document.body),
+            scrollX = (window.pageXOffset !== undefined) ? window.pageXOffset : rootNode.scrollLeft,
+            scrollY = (window.pageYOffset !== undefined) ? window.pageYOffset : rootNode.scrollTop,
+            touches = event.changedTouches,
+            x, y;
+        
+        if (touches) {
+            x = touches[0].pageX - elementBounds.left - scrollX;
+            y = touches[0].pageY - elementBounds.top - scrollY;
+        } else {
+            x = event.pageX - elementBounds.left - scrollX;
+            y = event.pageY - elementBounds.top - scrollY;
+        }
+
+        return { 
+            x: x / (element.clientWidth / (element.width || element.clientWidth) * pixelRatio),
+            y: y / (element.clientHeight / (element.height || element.clientHeight) * pixelRatio)
+        };
+    };
+
+})();
+
+
+/***/ }),
+/* 13 */
+/***/ (function(module, exports, __webpack_require__) {
+
+/**
+* The `Matter.Detector` module contains methods for detecting collisions given a set of pairs.
+*
+* @class Detector
+*/
+
+// TODO: speculative contacts
+
+var Detector = {};
+
+module.exports = Detector;
+
+var SAT = __webpack_require__(14);
+var Pair = __webpack_require__(9);
+var Bounds = __webpack_require__(1);
+
+(function() {
+
+    /**
+     * Finds all collisions given a list of pairs.
+     * @method collisions
+     * @param {pair[]} broadphasePairs
+     * @param {engine} engine
+     * @return {array} collisions
+     */
+    Detector.collisions = function(broadphasePairs, engine) {
+        var collisions = [],
+            pairsTable = engine.pairs.table;
+
+        for (var i = 0; i < broadphasePairs.length; i++) {
+            var bodyA = broadphasePairs[i][0], 
+                bodyB = broadphasePairs[i][1];
+
+            if ((bodyA.isStatic || bodyA.isSleeping) && (bodyB.isStatic || bodyB.isSleeping))
+                continue;
+            
+            if (!Detector.canCollide(bodyA.collisionFilter, bodyB.collisionFilter))
+                continue;
+
+            // mid phase
+            if (Bounds.overlaps(bodyA.bounds, bodyB.bounds)) {
+                for (var j = bodyA.parts.length > 1 ? 1 : 0; j < bodyA.parts.length; j++) {
+                    var partA = bodyA.parts[j];
+
+                    for (var k = bodyB.parts.length > 1 ? 1 : 0; k < bodyB.parts.length; k++) {
+                        var partB = bodyB.parts[k];
+
+                        if ((partA === bodyA && partB === bodyB) || Bounds.overlaps(partA.bounds, partB.bounds)) {
+                            // find a previous collision we could reuse
+                            var pairId = Pair.id(partA, partB),
+                                pair = pairsTable[pairId],
+                                previousCollision;
+
+                            if (pair && pair.isActive) {
+                                previousCollision = pair.collision;
+                            } else {
+                                previousCollision = null;
+                            }
+
+                            // narrow phase
+                            var collision = SAT.collides(partA, partB, previousCollision);
+
+                            if (collision.collided) {
+                                collisions.push(collision);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return collisions;
+    };
+
+    /**
+     * Returns `true` if both supplied collision filters will allow a collision to occur.
+     * See `body.collisionFilter` for more information.
+     * @method canCollide
+     * @param {} filterA
+     * @param {} filterB
+     * @return {bool} `true` if collision can occur
+     */
+    Detector.canCollide = function(filterA, filterB) {
+        if (filterA.group === filterB.group && filterA.group !== 0)
+            return filterA.group > 0;
+
+        return (filterA.mask & filterB.category) !== 0 && (filterB.mask & filterA.category) !== 0;
+    };
+
+})();
+
+
+/***/ }),
+/* 14 */
+/***/ (function(module, exports, __webpack_require__) {
+
+/**
+* The `Matter.SAT` module contains methods for detecting collisions using the Separating Axis Theorem.
+*
+* @class SAT
+*/
+
+// TODO: true circles and curves
+
+var SAT = {};
+
+module.exports = SAT;
+
+var Vertices = __webpack_require__(3);
+var Vector = __webpack_require__(2);
+
+(function() {
+
+    /**
+     * Detect collision between two bodies using the Separating Axis Theorem.
+     * @method collides
+     * @param {body} bodyA
+     * @param {body} bodyB
+     * @param {collision} previousCollision
+     * @return {collision} collision
+     */
+    SAT.collides = function(bodyA, bodyB, previousCollision) {
+        var overlapAB,
+            overlapBA, 
+            minOverlap,
+            collision,
+            canReusePrevCol = false;
+
+        if (previousCollision) {
+            // estimate total motion
+            var parentA = bodyA.parent,
+                parentB = bodyB.parent,
+                motion = parentA.speed * parentA.speed + parentA.angularSpeed * parentA.angularSpeed
+                       + parentB.speed * parentB.speed + parentB.angularSpeed * parentB.angularSpeed;
+
+            // we may be able to (partially) reuse collision result 
+            // but only safe if collision was resting
+            canReusePrevCol = previousCollision && previousCollision.collided && motion < 0.2;
+
+            // reuse collision object
+            collision = previousCollision;
+        } else {
+            collision = { collided: false, bodyA: bodyA, bodyB: bodyB };
+        }
+
+        if (previousCollision && canReusePrevCol) {
+            // if we can reuse the collision result
+            // we only need to test the previously found axis
+            var axisBodyA = collision.axisBody,
+                axisBodyB = axisBodyA === bodyA ? bodyB : bodyA,
+                axes = [axisBodyA.axes[previousCollision.axisNumber]];
+
+            minOverlap = SAT._overlapAxes(axisBodyA.vertices, axisBodyB.vertices, axes);
+            collision.reused = true;
+
+            if (minOverlap.overlap <= 0) {
+                collision.collided = false;
+                return collision;
+            }
+        } else {
+            // if we can't reuse a result, perform a full SAT test
+
+            overlapAB = SAT._overlapAxes(bodyA.vertices, bodyB.vertices, bodyA.axes);
+
+            if (overlapAB.overlap <= 0) {
+                collision.collided = false;
+                return collision;
+            }
+
+            overlapBA = SAT._overlapAxes(bodyB.vertices, bodyA.vertices, bodyB.axes);
+
+            if (overlapBA.overlap <= 0) {
+                collision.collided = false;
+                return collision;
+            }
+
+            if (overlapAB.overlap < overlapBA.overlap) {
+                minOverlap = overlapAB;
+                collision.axisBody = bodyA;
+            } else {
+                minOverlap = overlapBA;
+                collision.axisBody = bodyB;
+            }
+
+            // important for reuse later
+            collision.axisNumber = minOverlap.axisNumber;
+        }
+
+        collision.bodyA = bodyA.id < bodyB.id ? bodyA : bodyB;
+        collision.bodyB = bodyA.id < bodyB.id ? bodyB : bodyA;
+        collision.collided = true;
+        collision.depth = minOverlap.overlap;
+        collision.parentA = collision.bodyA.parent;
+        collision.parentB = collision.bodyB.parent;
+        
+        bodyA = collision.bodyA;
+        bodyB = collision.bodyB;
+
+        // ensure normal is facing away from bodyA
+        if (Vector.dot(minOverlap.axis, Vector.sub(bodyB.position, bodyA.position)) < 0) {
+            collision.normal = {
+                x: minOverlap.axis.x,
+                y: minOverlap.axis.y
+            };
+        } else {
+            collision.normal = {
+                x: -minOverlap.axis.x,
+                y: -minOverlap.axis.y
+            };
+        }
+
+        collision.tangent = Vector.perp(collision.normal);
+
+        collision.penetration = collision.penetration || {};
+        collision.penetration.x = collision.normal.x * collision.depth;
+        collision.penetration.y = collision.normal.y * collision.depth; 
+
+        // find support points, there is always either exactly one or two
+        var verticesB = SAT._findSupports(bodyA, bodyB, collision.normal),
+            supports = [];
+
+        // find the supports from bodyB that are inside bodyA
+        if (Vertices.contains(bodyA.vertices, verticesB[0]))
+            supports.push(verticesB[0]);
+
+        if (Vertices.contains(bodyA.vertices, verticesB[1]))
+            supports.push(verticesB[1]);
+
+        // find the supports from bodyA that are inside bodyB
+        if (supports.length < 2) {
+            var verticesA = SAT._findSupports(bodyB, bodyA, Vector.neg(collision.normal));
+                
+            if (Vertices.contains(bodyB.vertices, verticesA[0]))
+                supports.push(verticesA[0]);
+
+            if (supports.length < 2 && Vertices.contains(bodyB.vertices, verticesA[1]))
+                supports.push(verticesA[1]);
+        }
+
+        // account for the edge case of overlapping but no vertex containment
+        if (supports.length < 1)
+            supports = [verticesB[0]];
+        
+        collision.supports = supports;
+
+        return collision;
+    };
+
+    /**
+     * Find the overlap between two sets of vertices.
+     * @method _overlapAxes
+     * @private
+     * @param {} verticesA
+     * @param {} verticesB
+     * @param {} axes
+     * @return result
+     */
+    SAT._overlapAxes = function(verticesA, verticesB, axes) {
+        var projectionA = Vector._temp[0], 
+            projectionB = Vector._temp[1],
+            result = { overlap: Number.MAX_VALUE },
+            overlap,
+            axis;
+
+        for (var i = 0; i < axes.length; i++) {
+            axis = axes[i];
+
+            SAT._projectToAxis(projectionA, verticesA, axis);
+            SAT._projectToAxis(projectionB, verticesB, axis);
+
+            overlap = Math.min(projectionA.max - projectionB.min, projectionB.max - projectionA.min);
+
+            if (overlap <= 0) {
+                result.overlap = overlap;
+                return result;
+            }
+
+            if (overlap < result.overlap) {
+                result.overlap = overlap;
+                result.axis = axis;
+                result.axisNumber = i;
+            }
+        }
+
+        return result;
+    };
+
+    /**
+     * Projects vertices on an axis and returns an interval.
+     * @method _projectToAxis
+     * @private
+     * @param {} projection
+     * @param {} vertices
+     * @param {} axis
+     */
+    SAT._projectToAxis = function(projection, vertices, axis) {
+        var min = Vector.dot(vertices[0], axis),
+            max = min;
+
+        for (var i = 1; i < vertices.length; i += 1) {
+            var dot = Vector.dot(vertices[i], axis);
+
+            if (dot > max) { 
+                max = dot; 
+            } else if (dot < min) { 
+                min = dot; 
+            }
+        }
+
+        projection.min = min;
+        projection.max = max;
+    };
+    
+    /**
+     * Finds supporting vertices given two bodies along a given direction using hill-climbing.
+     * @method _findSupports
+     * @private
+     * @param {} bodyA
+     * @param {} bodyB
+     * @param {} normal
+     * @return [vector]
+     */
+    SAT._findSupports = function(bodyA, bodyB, normal) {
+        var nearestDistance = Number.MAX_VALUE,
+            vertexToBody = Vector._temp[0],
+            vertices = bodyB.vertices,
+            bodyAPosition = bodyA.position,
+            distance,
+            vertex,
+            vertexA,
+            vertexB;
+
+        // find closest vertex on bodyB
+        for (var i = 0; i < vertices.length; i++) {
+            vertex = vertices[i];
+            vertexToBody.x = vertex.x - bodyAPosition.x;
+            vertexToBody.y = vertex.y - bodyAPosition.y;
+            distance = -Vector.dot(normal, vertexToBody);
+
+            if (distance < nearestDistance) {
+                nearestDistance = distance;
+                vertexA = vertex;
+            }
+        }
+
+        // find next closest vertex using the two connected to it
+        var prevIndex = vertexA.index - 1 >= 0 ? vertexA.index - 1 : vertices.length - 1;
+        vertex = vertices[prevIndex];
+        vertexToBody.x = vertex.x - bodyAPosition.x;
+        vertexToBody.y = vertex.y - bodyAPosition.y;
+        nearestDistance = -Vector.dot(normal, vertexToBody);
+        vertexB = vertex;
+
+        var nextIndex = (vertexA.index + 1) % vertices.length;
+        vertex = vertices[nextIndex];
+        vertexToBody.x = vertex.x - bodyAPosition.x;
+        vertexToBody.y = vertex.y - bodyAPosition.y;
+        distance = -Vector.dot(normal, vertexToBody);
+        if (distance < nearestDistance) {
+            vertexB = vertex;
+        }
+
+        return [vertexA, vertexB];
+    };
+
+})();
+
+
+/***/ }),
+/* 15 */
+/***/ (function(module, exports, __webpack_require__) {
+
+/**
+* The `Matter.Plugin` module contains functions for registering and installing plugins on modules.
+*
+* @class Plugin
+*/
+
+var Plugin = {};
+
+module.exports = Plugin;
+
+var Common = __webpack_require__(0);
+
+(function() {
+
+    Plugin._registry = {};
+
+    /**
+     * Registers a plugin object so it can be resolved later by name.
+     * @method register
+     * @param plugin {} The plugin to register.
+     * @return {object} The plugin.
+     */
+    Plugin.register = function(plugin) {
+        if (!Plugin.isPlugin(plugin)) {
+            Common.warn('Plugin.register:', Plugin.toString(plugin), 'does not implement all required fields.');
+        }
+
+        if (plugin.name in Plugin._registry) {
+            var registered = Plugin._registry[plugin.name],
+                pluginVersion = Plugin.versionParse(plugin.version).number,
+                registeredVersion = Plugin.versionParse(registered.version).number;
+
+            if (pluginVersion > registeredVersion) {
+                Common.warn('Plugin.register:', Plugin.toString(registered), 'was upgraded to', Plugin.toString(plugin));
+                Plugin._registry[plugin.name] = plugin;
+            } else if (pluginVersion < registeredVersion) {
+                Common.warn('Plugin.register:', Plugin.toString(registered), 'can not be downgraded to', Plugin.toString(plugin));
+            } else if (plugin !== registered) {
+                Common.warn('Plugin.register:', Plugin.toString(plugin), 'is already registered to different plugin object');
+            }
+        } else {
+            Plugin._registry[plugin.name] = plugin;
+        }
+
+        return plugin;
+    };
+
+    /**
+     * Resolves a dependency to a plugin object from the registry if it exists. 
+     * The `dependency` may contain a version, but only the name matters when resolving.
+     * @method resolve
+     * @param dependency {string} The dependency.
+     * @return {object} The plugin if resolved, otherwise `undefined`.
+     */
+    Plugin.resolve = function(dependency) {
+        return Plugin._registry[Plugin.dependencyParse(dependency).name];
+    };
+
+    /**
+     * Returns a pretty printed plugin name and version.
+     * @method toString
+     * @param plugin {} The plugin.
+     * @return {string} Pretty printed plugin name and version.
+     */
+    Plugin.toString = function(plugin) {
+        return typeof plugin === 'string' ? plugin : (plugin.name || 'anonymous') + '@' + (plugin.version || plugin.range || '0.0.0');
+    };
+
+    /**
+     * Returns `true` if the object meets the minimum standard to be considered a plugin.
+     * This means it must define the following properties:
+     * - `name`
+     * - `version`
+     * - `install`
+     * @method isPlugin
+     * @param obj {} The obj to test.
+     * @return {boolean} `true` if the object can be considered a plugin otherwise `false`.
+     */
+    Plugin.isPlugin = function(obj) {
+        return obj && obj.name && obj.version && obj.install;
+    };
+
+    /**
+     * Returns `true` if a plugin with the given `name` been installed on `module`.
+     * @method isUsed
+     * @param module {} The module.
+     * @param name {string} The plugin name.
+     * @return {boolean} `true` if a plugin with the given `name` been installed on `module`, otherwise `false`.
+     */
+    Plugin.isUsed = function(module, name) {
+        return module.used.indexOf(name) > -1;
+    };
+
+    /**
+     * Returns `true` if `plugin.for` is applicable to `module` by comparing against `module.name` and `module.version`.
+     * If `plugin.for` is not specified then it is assumed to be applicable.
+     * The value of `plugin.for` is a string of the format `'module-name'` or `'module-name@version'`.
+     * @method isFor
+     * @param plugin {} The plugin.
+     * @param module {} The module.
+     * @return {boolean} `true` if `plugin.for` is applicable to `module`, otherwise `false`.
+     */
+    Plugin.isFor = function(plugin, module) {
+        var parsed = plugin.for && Plugin.dependencyParse(plugin.for);
+        return !plugin.for || (module.name === parsed.name && Plugin.versionSatisfies(module.version, parsed.range));
+    };
+
+    /**
+     * Installs the plugins by calling `plugin.install` on each plugin specified in `plugins` if passed, otherwise `module.uses`.
+     * For installing plugins on `Matter` see the convenience function `Matter.use`.
+     * Plugins may be specified either by their name or a reference to the plugin object.
+     * Plugins themselves may specify further dependencies, but each plugin is installed only once.
+     * Order is important, a topological sort is performed to find the best resulting order of installation.
+     * This sorting attempts to satisfy every dependency's requested ordering, but may not be exact in all cases.
+     * This function logs the resulting status of each dependency in the console, along with any warnings.
+     * - A green tick ✅ indicates a dependency was resolved and installed.
+     * - An orange diamond 🔶 indicates a dependency was resolved but a warning was thrown for it or one if its dependencies.
+     * - A red cross ❌ indicates a dependency could not be resolved.
+     * Avoid calling this function multiple times on the same module unless you intend to manually control installation order.
+     * @method use
+     * @param module {} The module install plugins on.
+     * @param [plugins=module.uses] {} The plugins to install on module (optional, defaults to `module.uses`).
+     */
+    Plugin.use = function(module, plugins) {
+        module.uses = (module.uses || []).concat(plugins || []);
+
+        if (module.uses.length === 0) {
+            Common.warn('Plugin.use:', Plugin.toString(module), 'does not specify any dependencies to install.');
+            return;
+        }
+
+        var dependencies = Plugin.dependencies(module),
+            sortedDependencies = Common.topologicalSort(dependencies),
+            status = [];
+
+        for (var i = 0; i < sortedDependencies.length; i += 1) {
+            if (sortedDependencies[i] === module.name) {
+                continue;
+            }
+
+            var plugin = Plugin.resolve(sortedDependencies[i]);
+
+            if (!plugin) {
+                status.push('❌ ' + sortedDependencies[i]);
+                continue;
+            }
+
+            if (Plugin.isUsed(module, plugin.name)) {
+                continue;
+            }
+
+            if (!Plugin.isFor(plugin, module)) {
+                Common.warn('Plugin.use:', Plugin.toString(plugin), 'is for', plugin.for, 'but installed on', Plugin.toString(module) + '.');
+                plugin._warned = true;
+            }
+
+            if (plugin.install) {
+                plugin.install(module);
+            } else {
+                Common.warn('Plugin.use:', Plugin.toString(plugin), 'does not specify an install function.');
+                plugin._warned = true;
+            }
+
+            if (plugin._warned) {
+                status.push('🔶 ' + Plugin.toString(plugin));
+                delete plugin._warned;
+            } else {
+                status.push('✅ ' + Plugin.toString(plugin));
+            }
+
+            module.used.push(plugin.name);
+        }
+
+        if (status.length > 0) {
+            Common.info(status.join('  '));
+        }
+    };
+
+    /**
+     * Recursively finds all of a module's dependencies and returns a flat dependency graph.
+     * @method dependencies
+     * @param module {} The module.
+     * @return {object} A dependency graph.
+     */
+    Plugin.dependencies = function(module, tracked) {
+        var parsedBase = Plugin.dependencyParse(module),
+            name = parsedBase.name;
+
+        tracked = tracked || {};
+
+        if (name in tracked) {
+            return;
+        }
+
+        module = Plugin.resolve(module) || module;
+
+        tracked[name] = Common.map(module.uses || [], function(dependency) {
+            if (Plugin.isPlugin(dependency)) {
+                Plugin.register(dependency);
+            }
+
+            var parsed = Plugin.dependencyParse(dependency),
+                resolved = Plugin.resolve(dependency);
+
+            if (resolved && !Plugin.versionSatisfies(resolved.version, parsed.range)) {
+                Common.warn(
+                    'Plugin.dependencies:', Plugin.toString(resolved), 'does not satisfy',
+                    Plugin.toString(parsed), 'used by', Plugin.toString(parsedBase) + '.'
+                );
+
+                resolved._warned = true;
+                module._warned = true;
+            } else if (!resolved) {
+                Common.warn(
+                    'Plugin.dependencies:', Plugin.toString(dependency), 'used by',
+                    Plugin.toString(parsedBase), 'could not be resolved.'
+                );
+
+                module._warned = true;
+            }
+
+            return parsed.name;
+        });
+
+        for (var i = 0; i < tracked[name].length; i += 1) {
+            Plugin.dependencies(tracked[name][i], tracked);
+        }
+
+        return tracked;
+    };
+
+    /**
+     * Parses a dependency string into its components.
+     * The `dependency` is a string of the format `'module-name'` or `'module-name@version'`.
+     * See documentation for `Plugin.versionParse` for a description of the format.
+     * This function can also handle dependencies that are already resolved (e.g. a module object).
+     * @method dependencyParse
+     * @param dependency {string} The dependency of the format `'module-name'` or `'module-name@version'`.
+     * @return {object} The dependency parsed into its components.
+     */
+    Plugin.dependencyParse = function(dependency) {
+        if (Common.isString(dependency)) {
+            var pattern = /^[\w-]+(@(\*|[\^~]?\d+\.\d+\.\d+(-[0-9A-Za-z-]+)?))?$/;
+
+            if (!pattern.test(dependency)) {
+                Common.warn('Plugin.dependencyParse:', dependency, 'is not a valid dependency string.');
+            }
+
+            return {
+                name: dependency.split('@')[0],
+                range: dependency.split('@')[1] || '*'
+            };
+        }
+
+        return {
+            name: dependency.name,
+            range: dependency.range || dependency.version
+        };
+    };
+
+    /**
+     * Parses a version string into its components.  
+     * Versions are strictly of the format `x.y.z` (as in [semver](http://semver.org/)).
+     * Versions may optionally have a prerelease tag in the format `x.y.z-alpha`.
+     * Ranges are a strict subset of [npm ranges](https://docs.npmjs.com/misc/semver#advanced-range-syntax).
+     * Only the following range types are supported:
+     * - Tilde ranges e.g. `~1.2.3`
+     * - Caret ranges e.g. `^1.2.3`
+     * - Greater than ranges e.g. `>1.2.3`
+     * - Greater than or equal ranges e.g. `>=1.2.3`
+     * - Exact version e.g. `1.2.3`
+     * - Any version `*`
+     * @method versionParse
+     * @param range {string} The version string.
+     * @return {object} The version range parsed into its components.
+     */
+    Plugin.versionParse = function(range) {
+        var pattern = /^(\*)|(\^|~|>=|>)?\s*((\d+)\.(\d+)\.(\d+))(-[0-9A-Za-z-]+)?$/;
+
+        if (!pattern.test(range)) {
+            Common.warn('Plugin.versionParse:', range, 'is not a valid version or range.');
+        }
+
+        var parts = pattern.exec(range);
+        var major = Number(parts[4]);
+        var minor = Number(parts[5]);
+        var patch = Number(parts[6]);
+
+        return {
+            isRange: Boolean(parts[1] || parts[2]),
+            version: parts[3],
+            range: range,
+            operator: parts[1] || parts[2] || '',
+            major: major,
+            minor: minor,
+            patch: patch,
+            parts: [major, minor, patch],
+            prerelease: parts[7],
+            number: major * 1e8 + minor * 1e4 + patch
+        };
+    };
+
+    /**
+     * Returns `true` if `version` satisfies the given `range`.
+     * See documentation for `Plugin.versionParse` for a description of the format.
+     * If a version or range is not specified, then any version (`*`) is assumed to satisfy.
+     * @method versionSatisfies
+     * @param version {string} The version string.
+     * @param range {string} The range string.
+     * @return {boolean} `true` if `version` satisfies `range`, otherwise `false`.
+     */
+    Plugin.versionSatisfies = function(version, range) {
+        range = range || '*';
+
+        var r = Plugin.versionParse(range),
+            v = Plugin.versionParse(version);
+
+        if (r.isRange) {
+            if (r.operator === '*' || version === '*') {
+                return true;
+            }
+
+            if (r.operator === '>') {
+                return v.number > r.number;
+            }
+
+            if (r.operator === '>=') {
+                return v.number >= r.number;
+            }
+
+            if (r.operator === '~') {
+                return v.major === r.major && v.minor === r.minor && v.patch >= r.patch;
+            }
+
+            if (r.operator === '^') {
+                if (r.major > 0) {
+                    return v.major === r.major && v.number >= r.number;
+                }
+
+                if (r.minor > 0) {
+                    return v.minor === r.minor && v.patch >= r.patch;
+                }
+
+                return v.patch === r.patch;
+            }
+        }
+
+        return version === range || version === '*';
+    };
+
+})();
+
+
+/***/ }),
+/* 16 */
+/***/ (function(module, exports, __webpack_require__) {
+
+/**
+* The `Matter.Render` module is a simple canvas based renderer for visualising instances of `Matter.Engine`.
 * It is intended for development and debugging purposes, but may also be suitable for simple games.
 * It includes a number of drawing options including wireframe, vector with support for sprites and viewports.
 *
@@ -4311,9 +5756,8 @@ var Common = __webpack_require__(0);
 var Composite = __webpack_require__(5);
 var Bounds = __webpack_require__(1);
 var Events = __webpack_require__(4);
-var Grid = __webpack_require__(11);
 var Vector = __webpack_require__(2);
-var Mouse = __webpack_require__(14);
+var Mouse = __webpack_require__(12);
 
 (function() {
 
@@ -4328,6 +5772,9 @@ var Mouse = __webpack_require__(14);
         _cancelAnimationFrame = window.cancelAnimationFrame || window.mozCancelAnimationFrame
                                       || window.webkitCancelAnimationFrame || window.msCancelAnimationFrame;
     }
+
+    Render._goodFps = 30;
+    Render._goodDelta = 1000 / 60;
 
     /**
      * Creates a new renderer. The options parameter is an object that specifies any properties you wish to override the defaults.
@@ -4345,6 +5792,19 @@ var Mouse = __webpack_require__(14);
             canvas: null,
             mouse: null,
             frameRequestId: null,
+            timing: {
+                historySize: 60,
+                delta: 0,
+                deltaHistory: [],
+                lastTime: 0,
+                lastTimestamp: 0,
+                lastElapsed: 0,
+                timestampElapsed: 0,
+                timestampElapsedHistory: [],
+                engineDeltaHistory: [],
+                engineElapsedHistory: [],
+                elapsedHistory: []
+            },
             options: {
                 width: 800,
                 height: 600,
@@ -4356,6 +5816,8 @@ var Mouse = __webpack_require__(14);
                 wireframes: true,
                 showSleeping: true,
                 showDebug: false,
+                showStats: false,
+                showPerformance: false,
                 showBroadphase: false,
                 showBounds: false,
                 showVelocity: false,
@@ -4365,7 +5827,6 @@ var Mouse = __webpack_require__(14);
                 showPositions: false,
                 showAngleIndicator: false,
                 showIds: false,
-                showShadows: false,
                 showVertexNumbers: false,
                 showConvexHulls: false,
                 showInternalEdges: false,
@@ -4418,7 +5879,18 @@ var Mouse = __webpack_require__(14);
     Render.run = function(render) {
         (function loop(time){
             render.frameRequestId = _requestAnimationFrame(loop);
-            Render.world(render);
+            
+            _updateTiming(render, time);
+
+            Render.world(render, time);
+
+            if (render.options.showStats || render.options.showDebug) {
+                Render.stats(render, render.context, time);
+            }
+
+            if (render.options.showPerformance || render.options.showDebug) {
+                Render.performance(render, render.context, time);
+            }
         })();
     };
 
@@ -4586,13 +6058,16 @@ var Mouse = __webpack_require__(14);
      * @method world
      * @param {render} render
      */
-    Render.world = function(render) {
-        var engine = render.engine,
+    Render.world = function(render, time) {
+        var startTime = Common.now(),
+            engine = render.engine,
             world = engine.world,
             canvas = render.canvas,
             context = render.context,
             options = render.options,
-            allBodies = Composite.allBodies(world),
+            timing = render.timing;
+
+        var allBodies = Composite.allBodies(world),
             allConstraints = Composite.allConstraints(world),
             background = options.wireframes ? options.wireframeBackground : options.background,
             bodies = [],
@@ -4703,11 +6178,8 @@ var Mouse = __webpack_require__(14);
 
         Render.constraints(constraints, context);
 
-        if (options.showBroadphase && engine.broadphase.controller === Grid)
-            Render.grid(render, engine.broadphase, context);
-
-        if (options.showDebug)
-            Render.debug(render, context);
+        if (options.showBroadphase)
+            Render.grid(render, engine.grid, context);
 
         if (options.hasBounds) {
             // revert view transforms
@@ -4715,72 +6187,182 @@ var Mouse = __webpack_require__(14);
         }
 
         Events.trigger(render, 'afterRender', event);
+
+        // log the time elapsed computing this update
+        timing.lastElapsed = Common.now() - startTime;
     };
 
     /**
-     * Description
+     * Renders statistics about the engine and world useful for debugging.
      * @private
-     * @method debug
+     * @method stats
+     * @param {render} render
+     * @param {RenderingContext} context
+     * @param {Number} time
+     */
+    Render.stats = function(render, context, time) {
+        var engine = render.engine,
+            world = engine.world,
+            bodies = Composite.allBodies(world),
+            parts = 0,
+            width = 55,
+            height = 44,
+            x = 0,
+            y = 0;
+        
+        // count parts
+        for (var i = 0; i < bodies.length; i += 1) {
+            parts += bodies[i].parts.length;
+        }
+
+        // sections
+        var sections = {
+            'Part': parts,
+            'Body': bodies.length,
+            'Cons': Composite.allConstraints(world).length,
+            'Comp': Composite.allComposites(world).length,
+            'Pair': engine.pairs.list.length
+        };
+
+        // background
+        context.fillStyle = '#0e0f19';
+        context.fillRect(x, y, width * 5.5, height);
+
+        context.font = '12px Arial';
+        context.textBaseline = 'top';
+        context.textAlign = 'right';
+
+        // sections
+        for (var key in sections) {
+            var section = sections[key];
+            // label
+            context.fillStyle = '#aaa';
+            context.fillText(key, x + width, y + 8);
+
+            // value
+            context.fillStyle = '#eee';
+            context.fillText(section, x + width, y + 26);
+
+            x += width;
+        }
+    };
+
+    /**
+     * Renders engine and render performance information.
+     * @private
+     * @method performance
      * @param {render} render
      * @param {RenderingContext} context
      */
-    Render.debug = function(render, context) {
-        var c = context,
-            engine = render.engine,
-            world = engine.world,
-            metrics = engine.metrics,
-            options = render.options,
-            bodies = Composite.allBodies(world),
-            space = "    ";
+    Render.performance = function(render, context) {
+        var engine = render.engine,
+            timing = render.timing,
+            deltaHistory = timing.deltaHistory,
+            elapsedHistory = timing.elapsedHistory,
+            timestampElapsedHistory = timing.timestampElapsedHistory,
+            engineDeltaHistory = timing.engineDeltaHistory,
+            engineElapsedHistory = timing.engineElapsedHistory,
+            lastEngineDelta = engine.timing.lastDelta;
+        
+        var deltaMean = _mean(deltaHistory),
+            elapsedMean = _mean(elapsedHistory),
+            engineDeltaMean = _mean(engineDeltaHistory),
+            engineElapsedMean = _mean(engineElapsedHistory),
+            timestampElapsedMean = _mean(timestampElapsedHistory),
+            rateMean = (timestampElapsedMean / deltaMean) || 0,
+            fps = (1000 / deltaMean) || 0;
 
-        if (engine.timing.timestamp - (render.debugTimestamp || 0) >= 500) {
-            var text = "";
+        var graphHeight = 4,
+            gap = 12,
+            width = 60,
+            height = 34,
+            x = 10,
+            y = 69;
 
-            if (metrics.timing) {
-                text += "fps: " + Math.round(metrics.timing.fps) + space;
-            }
+        // background
+        context.fillStyle = '#0e0f19';
+        context.fillRect(0, 50, gap * 4 + width * 5 + 22, height);
 
-            // @if DEBUG
-            if (metrics.extended) {
-                if (metrics.timing) {
-                    text += "delta: " + metrics.timing.delta.toFixed(3) + space;
-                    text += "correction: " + metrics.timing.correction.toFixed(3) + space;
-                }
+        // show FPS
+        Render.status(
+            context, x, y, width, graphHeight, deltaHistory.length, 
+            Math.round(fps) + ' fps', 
+            fps / Render._goodFps,
+            function(i) { return (deltaHistory[i] / deltaMean) - 1; }
+        );
 
-                text += "bodies: " + bodies.length + space;
+        // show engine delta
+        Render.status(
+            context, x + gap + width, y, width, graphHeight, engineDeltaHistory.length,
+            lastEngineDelta.toFixed(2) + ' dt', 
+            Render._goodDelta / lastEngineDelta,
+            function(i) { return (engineDeltaHistory[i] / engineDeltaMean) - 1; }
+        );
 
-                if (engine.broadphase.controller === Grid)
-                    text += "buckets: " + metrics.buckets + space;
+        // show engine update time
+        Render.status(
+            context, x + (gap + width) * 2, y, width, graphHeight, engineElapsedHistory.length,
+            engineElapsedMean.toFixed(2) + ' ut', 
+            1 - (engineElapsedMean / Render._goodFps),
+            function(i) { return (engineElapsedHistory[i] / engineElapsedMean) - 1; }
+        );
 
-                text += "\n";
+        // show render time
+        Render.status(
+            context, x + (gap + width) * 3, y, width, graphHeight, elapsedHistory.length,
+            elapsedMean.toFixed(2) + ' rt', 
+            1 - (elapsedMean / Render._goodFps),
+            function(i) { return (elapsedHistory[i] / elapsedMean) - 1; }
+        );
 
-                text += "collisions: " + metrics.collisions + space;
-                text += "pairs: " + engine.pairs.list.length + space;
-                text += "broad: " + metrics.broadEff + space;
-                text += "mid: " + metrics.midEff + space;
-                text += "narrow: " + metrics.narrowEff + space;
-            }
-            // @endif
+        // show effective speed
+        Render.status(
+            context, x + (gap + width) * 4, y, width, graphHeight, timestampElapsedHistory.length, 
+            rateMean.toFixed(2) + ' x', 
+            rateMean * rateMean * rateMean,
+            function(i) { return (((timestampElapsedHistory[i] / deltaHistory[i]) / rateMean) || 0) - 1; }
+        );
+    };
 
-            render.debugString = text;
-            render.debugTimestamp = engine.timing.timestamp;
+    /**
+     * Renders a label, indicator and a chart.
+     * @private
+     * @method status
+     * @param {RenderingContext} context
+     * @param {number} x
+     * @param {number} y
+     * @param {number} width
+     * @param {number} height
+     * @param {number} count
+     * @param {string} label
+     * @param {string} indicator
+     * @param {function} plotY
+     */
+    Render.status = function(context, x, y, width, height, count, label, indicator, plotY) {
+        // background
+        context.strokeStyle = '#888';
+        context.fillStyle = '#444';
+        context.lineWidth = 1;
+        context.fillRect(x, y + 7, width, 1);
+
+        // chart
+        context.beginPath();
+        context.moveTo(x, y + 7 - height * Common.clamp(0.4 * plotY(0), -2, 2));
+        for (var i = 0; i < width; i += 1) {
+            context.lineTo(x + i, y + 7 - (i < count ? height * Common.clamp(0.4 * plotY(i), -2, 2) : 0));
         }
+        context.stroke();
 
-        if (render.debugString) {
-            c.font = "12px Arial";
+        // indicator
+        context.fillStyle = 'hsl(' + Common.clamp(25 + 95 * indicator, 0, 120) + ',100%,60%)';
+        context.fillRect(x, y - 7, 4, 4);
 
-            if (options.wireframes) {
-                c.fillStyle = 'rgba(255,255,255,0.5)';
-            } else {
-                c.fillStyle = 'rgba(0,0,0,0.5)';
-            }
-
-            var split = render.debugString.split('\n');
-
-            for (var i = 0; i < split.length; i++) {
-                c.fillText(split[i], 50, 50 + i * 18);
-            }
-        }
+        // label
+        context.font = '12px Arial';
+        context.textBaseline = 'middle';
+        context.textAlign = 'right';
+        context.fillStyle = '#eee';
+        context.fillText(label, x + width, y - 5);
     };
 
     /**
@@ -4857,55 +6439,6 @@ var Mouse = __webpack_require__(14);
                 c.closePath();
                 c.fill();
             }
-        }
-    };
-
-    /**
-     * Description
-     * @private
-     * @method bodyShadows
-     * @param {render} render
-     * @param {body[]} bodies
-     * @param {RenderingContext} context
-     */
-    Render.bodyShadows = function(render, bodies, context) {
-        var c = context,
-            engine = render.engine;
-
-        for (var i = 0; i < bodies.length; i++) {
-            var body = bodies[i];
-
-            if (!body.render.visible)
-                continue;
-
-            if (body.circleRadius) {
-                c.beginPath();
-                c.arc(body.position.x, body.position.y, body.circleRadius, 0, 2 * Math.PI);
-                c.closePath();
-            } else {
-                c.beginPath();
-                c.moveTo(body.vertices[0].x, body.vertices[0].y);
-                for (var j = 1; j < body.vertices.length; j++) {
-                    c.lineTo(body.vertices[j].x, body.vertices[j].y);
-                }
-                c.closePath();
-            }
-
-            var distanceX = body.position.x - render.options.width * 0.5,
-                distanceY = body.position.y - render.options.height * 0.2,
-                distance = Math.abs(distanceX) + Math.abs(distanceY);
-
-            c.shadowColor = 'rgba(0,0,0,0.15)';
-            c.shadowOffsetX = 0.05 * distanceX;
-            c.shadowOffsetY = 0.05 * distanceY;
-            c.shadowBlur = 1 + 12 * Math.min(1, distance / 1000);
-
-            c.fill();
-
-            c.shadowColor = null;
-            c.shadowOffsetX = null;
-            c.shadowOffsetY = null;
-            c.shadowBlur = null;
         }
     };
 
@@ -5619,7 +7152,56 @@ var Mouse = __webpack_require__(14);
     };
 
     /**
-     * Description
+     * Updates render timing.
+     * @method _updateTiming
+     * @private
+     * @param {render} render
+     * @param {number} time
+     */
+    var _updateTiming = function(render, time) {
+        var engine = render.engine,
+            timing = render.timing,
+            historySize = timing.historySize,
+            timestamp = engine.timing.timestamp;
+
+        timing.delta = time - timing.lastTime || Render._goodDelta;
+        timing.lastTime = time;
+
+        timing.timestampElapsed = timestamp - timing.lastTimestamp || 0;
+        timing.lastTimestamp = timestamp;
+
+        timing.deltaHistory.unshift(timing.delta);
+        timing.deltaHistory.length = Math.min(timing.deltaHistory.length, historySize);
+
+        timing.engineDeltaHistory.unshift(engine.timing.lastDelta);
+        timing.engineDeltaHistory.length = Math.min(timing.engineDeltaHistory.length, historySize);
+
+        timing.timestampElapsedHistory.unshift(timing.timestampElapsed);
+        timing.timestampElapsedHistory.length = Math.min(timing.timestampElapsedHistory.length, historySize);
+
+        timing.engineElapsedHistory.unshift(engine.timing.lastElapsed);
+        timing.engineElapsedHistory.length = Math.min(timing.engineElapsedHistory.length, historySize);
+
+        timing.elapsedHistory.unshift(timing.lastElapsed);
+        timing.elapsedHistory.length = Math.min(timing.elapsedHistory.length, historySize);
+    };
+
+    /**
+     * Returns the mean value of the given numbers.
+     * @method _mean
+     * @private
+     * @param {Number[]} values
+     * @return {Number} the mean of given values
+     */
+    var _mean = function(values) {
+        var result = 0;
+        for (var i = 0; i < values.length; i += 1) {
+            result += values[i];
+        }
+        return (result / values.length) || 0;
+    };
+
+    /**
      * @method _createCanvas
      * @private
      * @param {} width
@@ -5753,37 +7335,6 @@ var Mouse = __webpack_require__(14);
      */
 
     /**
-     * The configuration options of the renderer.
-     *
-     * @property options
-     * @type {}
-     */
-
-    /**
-     * The target width in pixels of the `render.canvas` to be created.
-     *
-     * @property options.width
-     * @type number
-     * @default 800
-     */
-
-    /**
-     * The target height in pixels of the `render.canvas` to be created.
-     *
-     * @property options.height
-     * @type number
-     * @default 600
-     */
-
-    /**
-     * A flag that specifies if `render.bounds` should be used when rendering.
-     *
-     * @property options.hasBounds
-     * @type boolean
-     * @default false
-     */
-
-    /**
      * A `Bounds` object that specifies the drawing view region.
      * Rendering will be automatically transformed and scaled to fit within the canvas size (`render.options.width` and `render.options.height`).
      * This allows for creating views that can pan or zoom around the scene.
@@ -5807,1742 +7358,261 @@ var Mouse = __webpack_require__(14);
      * @type {}
      */
 
-})();
-
-
-/***/ }),
-/* 11 */
-/***/ (function(module, exports, __webpack_require__) {
-
-/**
-* The `Matter.Grid` module contains methods for creating and manipulating collision broadphase grid structures.
-*
-* @class Grid
-*/
-
-var Grid = {};
-
-module.exports = Grid;
-
-var Pair = __webpack_require__(9);
-var Detector = __webpack_require__(12);
-var Common = __webpack_require__(0);
-
-(function() {
-
     /**
-     * Creates a new grid.
-     * @method create
-     * @param {} options
-     * @return {grid} A new grid
-     */
-    Grid.create = function(options) {
-        var defaults = {
-            controller: Grid,
-            detector: Detector.collisions,
-            buckets: {},
-            pairs: {},
-            pairsList: [],
-            bucketWidth: 48,
-            bucketHeight: 48
-        };
-
-        return Common.extend(defaults, options);
-    };
-
-    /**
-     * The width of a single grid bucket.
+     * The mouse to render if `render.options.showMousePosition` is enabled.
      *
-     * @property bucketWidth
+     * @property mouse
+     * @type mouse
+     * @default null
+     */
+
+    /**
+     * The configuration options of the renderer.
+     *
+     * @property options
+     * @type {}
+     */
+
+    /**
+     * The target width in pixels of the `render.canvas` to be created.
+     * See also the `options.pixelRatio` property to change render quality.
+     *
+     * @property options.width
      * @type number
-     * @default 48
+     * @default 800
      */
 
     /**
-     * The height of a single grid bucket.
+     * The target height in pixels of the `render.canvas` to be created.
+     * See also the `options.pixelRatio` property to change render quality.
      *
-     * @property bucketHeight
+     * @property options.height
      * @type number
-     * @default 48
+     * @default 600
      */
 
     /**
-     * Updates the grid.
-     * @method update
-     * @param {grid} grid
-     * @param {body[]} bodies
-     * @param {engine} engine
-     * @param {boolean} forceUpdate
-     */
-    Grid.update = function(grid, bodies, engine, forceUpdate) {
-        var i, col, row,
-            world = engine.world,
-            buckets = grid.buckets,
-            bucket,
-            bucketId,
-            gridChanged = false;
-
-        // @if DEBUG
-        var metrics = engine.metrics;
-        metrics.broadphaseTests = 0;
-        // @endif
-
-        for (i = 0; i < bodies.length; i++) {
-            var body = bodies[i];
-
-            if (body.isSleeping && !forceUpdate)
-                continue;
-
-            // don't update out of world bodies
-            if (body.bounds.max.x < world.bounds.min.x || body.bounds.min.x > world.bounds.max.x
-                || body.bounds.max.y < world.bounds.min.y || body.bounds.min.y > world.bounds.max.y)
-                continue;
-
-            var newRegion = Grid._getRegion(grid, body);
-
-            // if the body has changed grid region
-            if (!body.region || newRegion.id !== body.region.id || forceUpdate) {
-
-                // @if DEBUG
-                metrics.broadphaseTests += 1;
-                // @endif
-
-                if (!body.region || forceUpdate)
-                    body.region = newRegion;
-
-                var union = Grid._regionUnion(newRegion, body.region);
-
-                // update grid buckets affected by region change
-                // iterate over the union of both regions
-                for (col = union.startCol; col <= union.endCol; col++) {
-                    for (row = union.startRow; row <= union.endRow; row++) {
-                        bucketId = Grid._getBucketId(col, row);
-                        bucket = buckets[bucketId];
-
-                        var isInsideNewRegion = (col >= newRegion.startCol && col <= newRegion.endCol
-                                                && row >= newRegion.startRow && row <= newRegion.endRow);
-
-                        var isInsideOldRegion = (col >= body.region.startCol && col <= body.region.endCol
-                                                && row >= body.region.startRow && row <= body.region.endRow);
-
-                        // remove from old region buckets
-                        if (!isInsideNewRegion && isInsideOldRegion) {
-                            if (isInsideOldRegion) {
-                                if (bucket)
-                                    Grid._bucketRemoveBody(grid, bucket, body);
-                            }
-                        }
-
-                        // add to new region buckets
-                        if (body.region === newRegion || (isInsideNewRegion && !isInsideOldRegion) || forceUpdate) {
-                            if (!bucket)
-                                bucket = Grid._createBucket(buckets, bucketId);
-                            Grid._bucketAddBody(grid, bucket, body);
-                        }
-                    }
-                }
-
-                // set the new region
-                body.region = newRegion;
-
-                // flag changes so we can update pairs
-                gridChanged = true;
-            }
-        }
-
-        // update pairs list only if pairs changed (i.e. a body changed region)
-        if (gridChanged)
-            grid.pairsList = Grid._createActivePairsList(grid);
-    };
-
-    /**
-     * Clears the grid.
-     * @method clear
-     * @param {grid} grid
-     */
-    Grid.clear = function(grid) {
-        grid.buckets = {};
-        grid.pairs = {};
-        grid.pairsList = [];
-    };
-
-    /**
-     * Finds the union of two regions.
-     * @method _regionUnion
-     * @private
-     * @param {} regionA
-     * @param {} regionB
-     * @return {} region
-     */
-    Grid._regionUnion = function(regionA, regionB) {
-        var startCol = Math.min(regionA.startCol, regionB.startCol),
-            endCol = Math.max(regionA.endCol, regionB.endCol),
-            startRow = Math.min(regionA.startRow, regionB.startRow),
-            endRow = Math.max(regionA.endRow, regionB.endRow);
-
-        return Grid._createRegion(startCol, endCol, startRow, endRow);
-    };
-
-    /**
-     * Gets the region a given body falls in for a given grid.
-     * @method _getRegion
-     * @private
-     * @param {} grid
-     * @param {} body
-     * @return {} region
-     */
-    Grid._getRegion = function(grid, body) {
-        var bounds = body.bounds,
-            startCol = Math.floor(bounds.min.x / grid.bucketWidth),
-            endCol = Math.floor(bounds.max.x / grid.bucketWidth),
-            startRow = Math.floor(bounds.min.y / grid.bucketHeight),
-            endRow = Math.floor(bounds.max.y / grid.bucketHeight);
-
-        return Grid._createRegion(startCol, endCol, startRow, endRow);
-    };
-
-    /**
-     * Creates a region.
-     * @method _createRegion
-     * @private
-     * @param {} startCol
-     * @param {} endCol
-     * @param {} startRow
-     * @param {} endRow
-     * @return {} region
-     */
-    Grid._createRegion = function(startCol, endCol, startRow, endRow) {
-        return { 
-            id: startCol + ',' + endCol + ',' + startRow + ',' + endRow,
-            startCol: startCol, 
-            endCol: endCol, 
-            startRow: startRow, 
-            endRow: endRow 
-        };
-    };
-
-    /**
-     * Gets the bucket id at the given position.
-     * @method _getBucketId
-     * @private
-     * @param {} column
-     * @param {} row
-     * @return {string} bucket id
-     */
-    Grid._getBucketId = function(column, row) {
-        return 'C' + column + 'R' + row;
-    };
-
-    /**
-     * Creates a bucket.
-     * @method _createBucket
-     * @private
-     * @param {} buckets
-     * @param {} bucketId
-     * @return {} bucket
-     */
-    Grid._createBucket = function(buckets, bucketId) {
-        var bucket = buckets[bucketId] = [];
-        return bucket;
-    };
-
-    /**
-     * Adds a body to a bucket.
-     * @method _bucketAddBody
-     * @private
-     * @param {} grid
-     * @param {} bucket
-     * @param {} body
-     */
-    Grid._bucketAddBody = function(grid, bucket, body) {
-        // add new pairs
-        for (var i = 0; i < bucket.length; i++) {
-            var bodyB = bucket[i];
-
-            if (body.id === bodyB.id || (body.isStatic && bodyB.isStatic))
-                continue;
-
-            // keep track of the number of buckets the pair exists in
-            // important for Grid.update to work
-            var pairId = Pair.id(body, bodyB),
-                pair = grid.pairs[pairId];
-
-            if (pair) {
-                pair[2] += 1;
-            } else {
-                grid.pairs[pairId] = [body, bodyB, 1];
-            }
-        }
-
-        // add to bodies (after pairs, otherwise pairs with self)
-        bucket.push(body);
-    };
-
-    /**
-     * Removes a body from a bucket.
-     * @method _bucketRemoveBody
-     * @private
-     * @param {} grid
-     * @param {} bucket
-     * @param {} body
-     */
-    Grid._bucketRemoveBody = function(grid, bucket, body) {
-        // remove from bucket
-        bucket.splice(Common.indexOf(bucket, body), 1);
-
-        // update pair counts
-        for (var i = 0; i < bucket.length; i++) {
-            // keep track of the number of buckets the pair exists in
-            // important for _createActivePairsList to work
-            var bodyB = bucket[i],
-                pairId = Pair.id(body, bodyB),
-                pair = grid.pairs[pairId];
-
-            if (pair)
-                pair[2] -= 1;
-        }
-    };
-
-    /**
-     * Generates a list of the active pairs in the grid.
-     * @method _createActivePairsList
-     * @private
-     * @param {} grid
-     * @return [] pairs
-     */
-    Grid._createActivePairsList = function(grid) {
-        var pairKeys,
-            pair,
-            pairs = [];
-
-        // grid.pairs is used as a hashmap
-        pairKeys = Common.keys(grid.pairs);
-
-        // iterate over grid.pairs
-        for (var k = 0; k < pairKeys.length; k++) {
-            pair = grid.pairs[pairKeys[k]];
-
-            // if pair exists in at least one bucket
-            // it is a pair that needs further collision testing so push it
-            if (pair[2] > 0) {
-                pairs.push(pair);
-            } else {
-                delete grid.pairs[pairKeys[k]];
-            }
-        }
-
-        return pairs;
-    };
-    
-})();
-
-
-/***/ }),
-/* 12 */
-/***/ (function(module, exports, __webpack_require__) {
-
-/**
-* The `Matter.Detector` module contains methods for detecting collisions given a set of pairs.
-*
-* @class Detector
-*/
-
-// TODO: speculative contacts
-
-var Detector = {};
-
-module.exports = Detector;
-
-var SAT = __webpack_require__(13);
-var Pair = __webpack_require__(9);
-var Bounds = __webpack_require__(1);
-
-(function() {
-
-    /**
-     * Finds all collisions given a list of pairs.
-     * @method collisions
-     * @param {pair[]} broadphasePairs
-     * @param {engine} engine
-     * @return {array} collisions
-     */
-    Detector.collisions = function(broadphasePairs, engine) {
-        var collisions = [],
-            pairsTable = engine.pairs.table;
-
-        // @if DEBUG
-        var metrics = engine.metrics;
-        // @endif
-        
-        for (var i = 0; i < broadphasePairs.length; i++) {
-            var bodyA = broadphasePairs[i][0], 
-                bodyB = broadphasePairs[i][1];
-
-            if ((bodyA.isStatic || bodyA.isSleeping) && (bodyB.isStatic || bodyB.isSleeping))
-                continue;
-            
-            if (!Detector.canCollide(bodyA.collisionFilter, bodyB.collisionFilter))
-                continue;
-
-            // @if DEBUG
-            metrics.midphaseTests += 1;
-            // @endif
-
-            // mid phase
-            if (Bounds.overlaps(bodyA.bounds, bodyB.bounds)) {
-                for (var j = bodyA.parts.length > 1 ? 1 : 0; j < bodyA.parts.length; j++) {
-                    var partA = bodyA.parts[j];
-
-                    for (var k = bodyB.parts.length > 1 ? 1 : 0; k < bodyB.parts.length; k++) {
-                        var partB = bodyB.parts[k];
-
-                        if ((partA === bodyA && partB === bodyB) || Bounds.overlaps(partA.bounds, partB.bounds)) {
-                            // find a previous collision we could reuse
-                            var pairId = Pair.id(partA, partB),
-                                pair = pairsTable[pairId],
-                                previousCollision;
-
-                            if (pair && pair.isActive) {
-                                previousCollision = pair.collision;
-                            } else {
-                                previousCollision = null;
-                            }
-
-                            // narrow phase
-                            var collision = SAT.collides(partA, partB, previousCollision);
-
-                            // @if DEBUG
-                            metrics.narrowphaseTests += 1;
-                            if (collision.reused)
-                                metrics.narrowReuseCount += 1;
-                            // @endif
-
-                            if (collision.collided) {
-                                collisions.push(collision);
-                                // @if DEBUG
-                                metrics.narrowDetections += 1;
-                                // @endif
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        return collisions;
-    };
-
-    /**
-     * Returns `true` if both supplied collision filters will allow a collision to occur.
-     * See `body.collisionFilter` for more information.
-     * @method canCollide
-     * @param {} filterA
-     * @param {} filterB
-     * @return {bool} `true` if collision can occur
-     */
-    Detector.canCollide = function(filterA, filterB) {
-        if (filterA.group === filterB.group && filterA.group !== 0)
-            return filterA.group > 0;
-
-        return (filterA.mask & filterB.category) !== 0 && (filterB.mask & filterA.category) !== 0;
-    };
-
-})();
-
-
-/***/ }),
-/* 13 */
-/***/ (function(module, exports, __webpack_require__) {
-
-/**
-* The `Matter.SAT` module contains methods for detecting collisions using the Separating Axis Theorem.
-*
-* @class SAT
-*/
-
-// TODO: true circles and curves
-
-var SAT = {};
-
-module.exports = SAT;
-
-var Vertices = __webpack_require__(3);
-var Vector = __webpack_require__(2);
-
-(function() {
-
-    /**
-     * Detect collision between two bodies using the Separating Axis Theorem.
-     * @method collides
-     * @param {body} bodyA
-     * @param {body} bodyB
-     * @param {collision} previousCollision
-     * @return {collision} collision
-     */
-    SAT.collides = function(bodyA, bodyB, previousCollision) {
-        var overlapAB,
-            overlapBA, 
-            minOverlap,
-            collision,
-            canReusePrevCol = false;
-
-        if (previousCollision) {
-            // estimate total motion
-            var parentA = bodyA.parent,
-                parentB = bodyB.parent,
-                motion = parentA.speed * parentA.speed + parentA.angularSpeed * parentA.angularSpeed
-                       + parentB.speed * parentB.speed + parentB.angularSpeed * parentB.angularSpeed;
-
-            // we may be able to (partially) reuse collision result 
-            // but only safe if collision was resting
-            canReusePrevCol = previousCollision && previousCollision.collided && motion < 0.2;
-
-            // reuse collision object
-            collision = previousCollision;
-        } else {
-            collision = { collided: false, bodyA: bodyA, bodyB: bodyB };
-        }
-
-        if (previousCollision && canReusePrevCol) {
-            // if we can reuse the collision result
-            // we only need to test the previously found axis
-            var axisBodyA = collision.axisBody,
-                axisBodyB = axisBodyA === bodyA ? bodyB : bodyA,
-                axes = [axisBodyA.axes[previousCollision.axisNumber]];
-
-            minOverlap = SAT._overlapAxes(axisBodyA.vertices, axisBodyB.vertices, axes);
-            collision.reused = true;
-
-            if (minOverlap.overlap <= 0) {
-                collision.collided = false;
-                return collision;
-            }
-        } else {
-            // if we can't reuse a result, perform a full SAT test
-
-            overlapAB = SAT._overlapAxes(bodyA.vertices, bodyB.vertices, bodyA.axes);
-
-            if (overlapAB.overlap <= 0) {
-                collision.collided = false;
-                return collision;
-            }
-
-            overlapBA = SAT._overlapAxes(bodyB.vertices, bodyA.vertices, bodyB.axes);
-
-            if (overlapBA.overlap <= 0) {
-                collision.collided = false;
-                return collision;
-            }
-
-            if (overlapAB.overlap < overlapBA.overlap) {
-                minOverlap = overlapAB;
-                collision.axisBody = bodyA;
-            } else {
-                minOverlap = overlapBA;
-                collision.axisBody = bodyB;
-            }
-
-            // important for reuse later
-            collision.axisNumber = minOverlap.axisNumber;
-        }
-
-        collision.bodyA = bodyA.id < bodyB.id ? bodyA : bodyB;
-        collision.bodyB = bodyA.id < bodyB.id ? bodyB : bodyA;
-        collision.collided = true;
-        collision.depth = minOverlap.overlap;
-        collision.parentA = collision.bodyA.parent;
-        collision.parentB = collision.bodyB.parent;
-        
-        bodyA = collision.bodyA;
-        bodyB = collision.bodyB;
-
-        // ensure normal is facing away from bodyA
-        if (Vector.dot(minOverlap.axis, Vector.sub(bodyB.position, bodyA.position)) < 0) {
-            collision.normal = {
-                x: minOverlap.axis.x,
-                y: minOverlap.axis.y
-            };
-        } else {
-            collision.normal = {
-                x: -minOverlap.axis.x,
-                y: -minOverlap.axis.y
-            };
-        }
-
-        collision.tangent = Vector.perp(collision.normal);
-
-        collision.penetration = collision.penetration || {};
-        collision.penetration.x = collision.normal.x * collision.depth;
-        collision.penetration.y = collision.normal.y * collision.depth; 
-
-        // find support points, there is always either exactly one or two
-        var verticesB = SAT._findSupports(bodyA, bodyB, collision.normal),
-            supports = [];
-
-        // find the supports from bodyB that are inside bodyA
-        if (Vertices.contains(bodyA.vertices, verticesB[0]))
-            supports.push(verticesB[0]);
-
-        if (Vertices.contains(bodyA.vertices, verticesB[1]))
-            supports.push(verticesB[1]);
-
-        // find the supports from bodyA that are inside bodyB
-        if (supports.length < 2) {
-            var verticesA = SAT._findSupports(bodyB, bodyA, Vector.neg(collision.normal));
-                
-            if (Vertices.contains(bodyB.vertices, verticesA[0]))
-                supports.push(verticesA[0]);
-
-            if (supports.length < 2 && Vertices.contains(bodyB.vertices, verticesA[1]))
-                supports.push(verticesA[1]);
-        }
-
-        // account for the edge case of overlapping but no vertex containment
-        if (supports.length < 1)
-            supports = [verticesB[0]];
-        
-        collision.supports = supports;
-
-        return collision;
-    };
-
-    /**
-     * Find the overlap between two sets of vertices.
-     * @method _overlapAxes
-     * @private
-     * @param {} verticesA
-     * @param {} verticesB
-     * @param {} axes
-     * @return result
-     */
-    SAT._overlapAxes = function(verticesA, verticesB, axes) {
-        var projectionA = Vector._temp[0], 
-            projectionB = Vector._temp[1],
-            result = { overlap: Number.MAX_VALUE },
-            overlap,
-            axis;
-
-        for (var i = 0; i < axes.length; i++) {
-            axis = axes[i];
-
-            SAT._projectToAxis(projectionA, verticesA, axis);
-            SAT._projectToAxis(projectionB, verticesB, axis);
-
-            overlap = Math.min(projectionA.max - projectionB.min, projectionB.max - projectionA.min);
-
-            if (overlap <= 0) {
-                result.overlap = overlap;
-                return result;
-            }
-
-            if (overlap < result.overlap) {
-                result.overlap = overlap;
-                result.axis = axis;
-                result.axisNumber = i;
-            }
-        }
-
-        return result;
-    };
-
-    /**
-     * Projects vertices on an axis and returns an interval.
-     * @method _projectToAxis
-     * @private
-     * @param {} projection
-     * @param {} vertices
-     * @param {} axis
-     */
-    SAT._projectToAxis = function(projection, vertices, axis) {
-        var min = Vector.dot(vertices[0], axis),
-            max = min;
-
-        for (var i = 1; i < vertices.length; i += 1) {
-            var dot = Vector.dot(vertices[i], axis);
-
-            if (dot > max) { 
-                max = dot; 
-            } else if (dot < min) { 
-                min = dot; 
-            }
-        }
-
-        projection.min = min;
-        projection.max = max;
-    };
-    
-    /**
-     * Finds supporting vertices given two bodies along a given direction using hill-climbing.
-     * @method _findSupports
-     * @private
-     * @param {} bodyA
-     * @param {} bodyB
-     * @param {} normal
-     * @return [vector]
-     */
-    SAT._findSupports = function(bodyA, bodyB, normal) {
-        var nearestDistance = Number.MAX_VALUE,
-            vertexToBody = Vector._temp[0],
-            vertices = bodyB.vertices,
-            bodyAPosition = bodyA.position,
-            distance,
-            vertex,
-            vertexA,
-            vertexB;
-
-        // find closest vertex on bodyB
-        for (var i = 0; i < vertices.length; i++) {
-            vertex = vertices[i];
-            vertexToBody.x = vertex.x - bodyAPosition.x;
-            vertexToBody.y = vertex.y - bodyAPosition.y;
-            distance = -Vector.dot(normal, vertexToBody);
-
-            if (distance < nearestDistance) {
-                nearestDistance = distance;
-                vertexA = vertex;
-            }
-        }
-
-        // find next closest vertex using the two connected to it
-        var prevIndex = vertexA.index - 1 >= 0 ? vertexA.index - 1 : vertices.length - 1;
-        vertex = vertices[prevIndex];
-        vertexToBody.x = vertex.x - bodyAPosition.x;
-        vertexToBody.y = vertex.y - bodyAPosition.y;
-        nearestDistance = -Vector.dot(normal, vertexToBody);
-        vertexB = vertex;
-
-        var nextIndex = (vertexA.index + 1) % vertices.length;
-        vertex = vertices[nextIndex];
-        vertexToBody.x = vertex.x - bodyAPosition.x;
-        vertexToBody.y = vertex.y - bodyAPosition.y;
-        distance = -Vector.dot(normal, vertexToBody);
-        if (distance < nearestDistance) {
-            vertexB = vertex;
-        }
-
-        return [vertexA, vertexB];
-    };
-
-})();
-
-
-/***/ }),
-/* 14 */
-/***/ (function(module, exports, __webpack_require__) {
-
-/**
-* The `Matter.Mouse` module contains methods for creating and manipulating mouse inputs.
-*
-* @class Mouse
-*/
-
-var Mouse = {};
-
-module.exports = Mouse;
-
-var Common = __webpack_require__(0);
-
-(function() {
-
-    /**
-     * Creates a mouse input.
-     * @method create
-     * @param {HTMLElement} element
-     * @return {mouse} A new mouse
-     */
-    Mouse.create = function(element) {
-        var mouse = {};
-
-        if (!element) {
-            Common.log('Mouse.create: element was undefined, defaulting to document.body', 'warn');
-        }
-        
-        mouse.element = element || document.body;
-        mouse.absolute = { x: 0, y: 0 };
-        mouse.position = { x: 0, y: 0 };
-        mouse.mousedownPosition = { x: 0, y: 0 };
-        mouse.mouseupPosition = { x: 0, y: 0 };
-        mouse.offset = { x: 0, y: 0 };
-        mouse.scale = { x: 1, y: 1 };
-        mouse.wheelDelta = 0;
-        mouse.button = -1;
-        mouse.pixelRatio = parseInt(mouse.element.getAttribute('data-pixel-ratio'), 10) || 1;
-
-        mouse.sourceEvents = {
-            mousemove: null,
-            mousedown: null,
-            mouseup: null,
-            mousewheel: null
-        };
-        
-        mouse.mousemove = function(event) { 
-            var position = Mouse._getRelativeMousePosition(event, mouse.element, mouse.pixelRatio),
-                touches = event.changedTouches;
-
-            if (touches) {
-                mouse.button = 0;
-                event.preventDefault();
-            }
-
-            mouse.absolute.x = position.x;
-            mouse.absolute.y = position.y;
-            mouse.position.x = mouse.absolute.x * mouse.scale.x + mouse.offset.x;
-            mouse.position.y = mouse.absolute.y * mouse.scale.y + mouse.offset.y;
-            mouse.sourceEvents.mousemove = event;
-        };
-        
-        mouse.mousedown = function(event) {
-            var position = Mouse._getRelativeMousePosition(event, mouse.element, mouse.pixelRatio),
-                touches = event.changedTouches;
-
-            if (touches) {
-                mouse.button = 0;
-                event.preventDefault();
-            } else {
-                mouse.button = event.button;
-            }
-
-            mouse.absolute.x = position.x;
-            mouse.absolute.y = position.y;
-            mouse.position.x = mouse.absolute.x * mouse.scale.x + mouse.offset.x;
-            mouse.position.y = mouse.absolute.y * mouse.scale.y + mouse.offset.y;
-            mouse.mousedownPosition.x = mouse.position.x;
-            mouse.mousedownPosition.y = mouse.position.y;
-            mouse.sourceEvents.mousedown = event;
-        };
-        
-        mouse.mouseup = function(event) {
-            var position = Mouse._getRelativeMousePosition(event, mouse.element, mouse.pixelRatio),
-                touches = event.changedTouches;
-
-            if (touches) {
-                event.preventDefault();
-            }
-            
-            mouse.button = -1;
-            mouse.absolute.x = position.x;
-            mouse.absolute.y = position.y;
-            mouse.position.x = mouse.absolute.x * mouse.scale.x + mouse.offset.x;
-            mouse.position.y = mouse.absolute.y * mouse.scale.y + mouse.offset.y;
-            mouse.mouseupPosition.x = mouse.position.x;
-            mouse.mouseupPosition.y = mouse.position.y;
-            mouse.sourceEvents.mouseup = event;
-        };
-
-        mouse.mousewheel = function(event) {
-            mouse.wheelDelta = Math.max(-1, Math.min(1, event.wheelDelta || -event.detail));
-            event.preventDefault();
-        };
-
-        Mouse.setElement(mouse, mouse.element);
-
-        return mouse;
-    };
-
-    /**
-     * Sets the element the mouse is bound to (and relative to).
-     * @method setElement
-     * @param {mouse} mouse
-     * @param {HTMLElement} element
-     */
-    Mouse.setElement = function(mouse, element) {
-        mouse.element = element;
-
-        element.addEventListener('mousemove', mouse.mousemove);
-        element.addEventListener('mousedown', mouse.mousedown);
-        element.addEventListener('mouseup', mouse.mouseup);
-        
-        element.addEventListener('mousewheel', mouse.mousewheel);
-        element.addEventListener('DOMMouseScroll', mouse.mousewheel);
-
-        element.addEventListener('touchmove', mouse.mousemove);
-        element.addEventListener('touchstart', mouse.mousedown);
-        element.addEventListener('touchend', mouse.mouseup);
-    };
-
-    /**
-     * Clears all captured source events.
-     * @method clearSourceEvents
-     * @param {mouse} mouse
-     */
-    Mouse.clearSourceEvents = function(mouse) {
-        mouse.sourceEvents.mousemove = null;
-        mouse.sourceEvents.mousedown = null;
-        mouse.sourceEvents.mouseup = null;
-        mouse.sourceEvents.mousewheel = null;
-        mouse.wheelDelta = 0;
-    };
-
-    /**
-     * Sets the mouse position offset.
-     * @method setOffset
-     * @param {mouse} mouse
-     * @param {vector} offset
-     */
-    Mouse.setOffset = function(mouse, offset) {
-        mouse.offset.x = offset.x;
-        mouse.offset.y = offset.y;
-        mouse.position.x = mouse.absolute.x * mouse.scale.x + mouse.offset.x;
-        mouse.position.y = mouse.absolute.y * mouse.scale.y + mouse.offset.y;
-    };
-
-    /**
-     * Sets the mouse position scale.
-     * @method setScale
-     * @param {mouse} mouse
-     * @param {vector} scale
-     */
-    Mouse.setScale = function(mouse, scale) {
-        mouse.scale.x = scale.x;
-        mouse.scale.y = scale.y;
-        mouse.position.x = mouse.absolute.x * mouse.scale.x + mouse.offset.x;
-        mouse.position.y = mouse.absolute.y * mouse.scale.y + mouse.offset.y;
-    };
-    
-    /**
-     * Gets the mouse position relative to an element given a screen pixel ratio.
-     * @method _getRelativeMousePosition
-     * @private
-     * @param {} event
-     * @param {} element
-     * @param {number} pixelRatio
-     * @return {}
-     */
-    Mouse._getRelativeMousePosition = function(event, element, pixelRatio) {
-        var elementBounds = element.getBoundingClientRect(),
-            rootNode = (document.documentElement || document.body.parentNode || document.body),
-            scrollX = (window.pageXOffset !== undefined) ? window.pageXOffset : rootNode.scrollLeft,
-            scrollY = (window.pageYOffset !== undefined) ? window.pageYOffset : rootNode.scrollTop,
-            touches = event.changedTouches,
-            x, y;
-        
-        if (touches) {
-            x = touches[0].pageX - elementBounds.left - scrollX;
-            y = touches[0].pageY - elementBounds.top - scrollY;
-        } else {
-            x = event.pageX - elementBounds.left - scrollX;
-            y = event.pageY - elementBounds.top - scrollY;
-        }
-
-        return { 
-            x: x / (element.clientWidth / (element.width || element.clientWidth) * pixelRatio),
-            y: y / (element.clientHeight / (element.height || element.clientHeight) * pixelRatio)
-        };
-    };
-
-})();
-
-
-/***/ }),
-/* 15 */
-/***/ (function(module, exports, __webpack_require__) {
-
-/**
-* The `Matter.Axes` module contains methods for creating and manipulating sets of axes.
-*
-* @class Axes
-*/
-
-var Axes = {};
-
-module.exports = Axes;
-
-var Vector = __webpack_require__(2);
-var Common = __webpack_require__(0);
-
-(function() {
-
-    /**
-     * Creates a new set of axes from the given vertices.
-     * @method fromVertices
-     * @param {vertices} vertices
-     * @return {axes} A new axes from the given vertices
-     */
-    Axes.fromVertices = function(vertices) {
-        var axes = {};
-
-        // find the unique axes, using edge normal gradients
-        for (var i = 0; i < vertices.length; i++) {
-            var j = (i + 1) % vertices.length, 
-                normal = Vector.normalise({ 
-                    x: vertices[j].y - vertices[i].y, 
-                    y: vertices[i].x - vertices[j].x
-                }),
-                gradient = (normal.y === 0) ? Infinity : (normal.x / normal.y);
-            
-            // limit precision
-            gradient = gradient.toFixed(3).toString();
-            axes[gradient] = normal;
-        }
-
-        return Common.values(axes);
-    };
-
-    /**
-     * Rotates a set of axes by the given angle.
-     * @method rotate
-     * @param {axes} axes
-     * @param {number} angle
-     */
-    Axes.rotate = function(axes, angle) {
-        if (angle === 0)
-            return;
-        
-        var cos = Math.cos(angle),
-            sin = Math.sin(angle);
-
-        for (var i = 0; i < axes.length; i++) {
-            var axis = axes[i],
-                xx;
-            xx = axis.x * cos - axis.y * sin;
-            axis.y = axis.x * sin + axis.y * cos;
-            axis.x = xx;
-        }
-    };
-
-})();
-
-
-/***/ }),
-/* 16 */
-/***/ (function(module, exports, __webpack_require__) {
-
-/**
-* The `Matter.Bodies` module contains factory methods for creating rigid body models 
-* with commonly used body configurations (such as rectangles, circles and other polygons).
-*
-* See the included usage [examples](https://github.com/liabru/matter-js/tree/master/examples).
-*
-* @class Bodies
-*/
-
-// TODO: true circle bodies
-
-var Bodies = {};
-
-module.exports = Bodies;
-
-var Vertices = __webpack_require__(3);
-var Common = __webpack_require__(0);
-var Body = __webpack_require__(6);
-var Bounds = __webpack_require__(1);
-var Vector = __webpack_require__(2);
-
-(function() {
-
-    Bodies._decompWarned = false;
-
-    /**
-     * Creates a new rigid body model with a rectangle hull. 
-     * The options parameter is an object that specifies any properties you wish to override the defaults.
-     * See the properties section of the `Matter.Body` module for detailed information on what you can pass via the `options` object.
-     * @method rectangle
-     * @param {number} x
-     * @param {number} y
-     * @param {number} width
-     * @param {number} height
-     * @param {object} [options]
-     * @return {body} A new rectangle body
-     */
-    Bodies.rectangle = function(x, y, width, height, options) {
-        options = options || {};
-
-        var rectangle = { 
-            label: 'Rectangle Body',
-            position: { x: x, y: y },
-            vertices: Vertices.fromPath('L 0 0 L ' + width + ' 0 L ' + width + ' ' + height + ' L 0 ' + height)
-        };
-
-        if (options.chamfer) {
-            var chamfer = options.chamfer;
-            rectangle.vertices = Vertices.chamfer(rectangle.vertices, chamfer.radius, 
-                chamfer.quality, chamfer.qualityMin, chamfer.qualityMax);
-            delete options.chamfer;
-        }
-
-        return Body.create(Common.extend({}, rectangle, options));
-    };
-    
-    /**
-     * Creates a new rigid body model with a trapezoid hull. 
-     * The options parameter is an object that specifies any properties you wish to override the defaults.
-     * See the properties section of the `Matter.Body` module for detailed information on what you can pass via the `options` object.
-     * @method trapezoid
-     * @param {number} x
-     * @param {number} y
-     * @param {number} width
-     * @param {number} height
-     * @param {number} slope
-     * @param {object} [options]
-     * @return {body} A new trapezoid body
-     */
-    Bodies.trapezoid = function(x, y, width, height, slope, options) {
-        options = options || {};
-
-        slope *= 0.5;
-        var roof = (1 - (slope * 2)) * width;
-        
-        var x1 = width * slope,
-            x2 = x1 + roof,
-            x3 = x2 + x1,
-            verticesPath;
-
-        if (slope < 0.5) {
-            verticesPath = 'L 0 0 L ' + x1 + ' ' + (-height) + ' L ' + x2 + ' ' + (-height) + ' L ' + x3 + ' 0';
-        } else {
-            verticesPath = 'L 0 0 L ' + x2 + ' ' + (-height) + ' L ' + x3 + ' 0';
-        }
-
-        var trapezoid = { 
-            label: 'Trapezoid Body',
-            position: { x: x, y: y },
-            vertices: Vertices.fromPath(verticesPath)
-        };
-
-        if (options.chamfer) {
-            var chamfer = options.chamfer;
-            trapezoid.vertices = Vertices.chamfer(trapezoid.vertices, chamfer.radius, 
-                chamfer.quality, chamfer.qualityMin, chamfer.qualityMax);
-            delete options.chamfer;
-        }
-
-        return Body.create(Common.extend({}, trapezoid, options));
-    };
-
-    /**
-     * Creates a new rigid body model with a circle hull. 
-     * The options parameter is an object that specifies any properties you wish to override the defaults.
-     * See the properties section of the `Matter.Body` module for detailed information on what you can pass via the `options` object.
-     * @method circle
-     * @param {number} x
-     * @param {number} y
-     * @param {number} radius
-     * @param {object} [options]
-     * @param {number} [maxSides]
-     * @return {body} A new circle body
-     */
-    Bodies.circle = function(x, y, radius, options, maxSides) {
-        options = options || {};
-
-        var circle = {
-            label: 'Circle Body',
-            circleRadius: radius
-        };
-        
-        // approximate circles with polygons until true circles implemented in SAT
-        maxSides = maxSides || 25;
-        var sides = Math.ceil(Math.max(10, Math.min(maxSides, radius)));
-
-        // optimisation: always use even number of sides (half the number of unique axes)
-        if (sides % 2 === 1)
-            sides += 1;
-
-        return Bodies.polygon(x, y, sides, radius, Common.extend({}, circle, options));
-    };
-
-    /**
-     * Creates a new rigid body model with a regular polygon hull with the given number of sides. 
-     * The options parameter is an object that specifies any properties you wish to override the defaults.
-     * See the properties section of the `Matter.Body` module for detailed information on what you can pass via the `options` object.
-     * @method polygon
-     * @param {number} x
-     * @param {number} y
-     * @param {number} sides
-     * @param {number} radius
-     * @param {object} [options]
-     * @return {body} A new regular polygon body
-     */
-    Bodies.polygon = function(x, y, sides, radius, options) {
-        options = options || {};
-
-        if (sides < 3)
-            return Bodies.circle(x, y, radius, options);
-
-        var theta = 2 * Math.PI / sides,
-            path = '',
-            offset = theta * 0.5;
-
-        for (var i = 0; i < sides; i += 1) {
-            var angle = offset + (i * theta),
-                xx = Math.cos(angle) * radius,
-                yy = Math.sin(angle) * radius;
-
-            path += 'L ' + xx.toFixed(3) + ' ' + yy.toFixed(3) + ' ';
-        }
-
-        var polygon = { 
-            label: 'Polygon Body',
-            position: { x: x, y: y },
-            vertices: Vertices.fromPath(path)
-        };
-
-        if (options.chamfer) {
-            var chamfer = options.chamfer;
-            polygon.vertices = Vertices.chamfer(polygon.vertices, chamfer.radius, 
-                chamfer.quality, chamfer.qualityMin, chamfer.qualityMax);
-            delete options.chamfer;
-        }
-
-        return Body.create(Common.extend({}, polygon, options));
-    };
-
-    /**
-     * Creates a body based on set(s) of vertices.
-     * 
-     * This utility builds on top of `Body.create` to automatically handle concave inputs.
-     * 
-     * To use this decomposition feature the [poly-decomp](https://github.com/schteppe/poly-decomp.js) 
-     * package should be additionally installed via npm or as a global.
-     * 
-     * The resulting vertices are reorientated about their centre of mass,
-     * and offset such that `body.position` corresponds to this point.
-     * 
-     * If needed the resulting offset may be found by subtracting `body.bounds` from the original input bounds.
-     * To later move the centre of mass see `Body.setCentre`.
-     * 
-     * Note that decomposition results are not always perfect. 
-     * 
-     * For best results, simplify the input vertices as much as possible first.
-     * By default this function applies some addtional simplification to help.
-     * 
-     * Some outputs may also require further manual processing afterwards to be robust.
-     * 
-     * In particular some parts may need to be overlapped to avoid collision gaps.
-     * Thin parts and sharp points should be avoided or removed where possible.
+     * The [pixel ratio](https://developer.mozilla.org/en-US/docs/Web/API/Window/devicePixelRatio) to use when rendering.
      *
-     * The options parameter object specifies any `Matter.Body` properties you wish to override the defaults.
-     * 
-     * See the properties section of the `Matter.Body` module for detailed information on what you can pass via the `options` object.
-     * @method fromVertices
-     * @param {number} x
-     * @param {number} y
-     * @param [[vector]] vertexSets
-     * @param {object} [options]
-     * @param {bool} [flagInternal=false]
-     * @param {number} [removeCollinear=0.01]
-     * @param {number} [minimumArea=10]
-     * @param {number} [removeDuplicatePoints=0.01]
-     * @return {body}
+     * @property options.pixelRatio
+     * @type number
+     * @default 1
      */
-    Bodies.fromVertices = function(x, y, vertexSets, options, flagInternal, removeCollinear, minimumArea, removeDuplicatePoints) {
-        var decomp,
-            canDecomp,
-            body,
-            parts,
-            isConvex,
-            isConcave,
-            vertices,
-            i,
-            j,
-            k,
-            v,
-            z;
 
-        try {
-            decomp = __webpack_require__(27);
-        } catch (e) {
-            // continue without decomp
-            decomp = null;
-        }
+    /**
+     * A CSS background color string to use when `render.options.wireframes` is disabled.
+     * This may be also set to `'transparent'` or equivalent.
+     *
+     * @property options.background
+     * @type string
+     * @default '#14151f'
+     */
 
-        // check expected decomp module was resolved
-        canDecomp = Boolean(decomp && decomp.quickDecomp);
+    /**
+     * A CSS background color string to use when `render.options.wireframes` is enabled.
+     * This may be also set to `'transparent'` or equivalent.
+     *
+     * @property options.wireframeBackground
+     * @type string
+     * @default '#14151f'
+     */
 
-        options = options || {};
-        parts = [];
+    /**
+     * A flag that specifies if `render.bounds` should be used when rendering.
+     *
+     * @property options.hasBounds
+     * @type boolean
+     * @default false
+     */
 
-        flagInternal = typeof flagInternal !== 'undefined' ? flagInternal : false;
-        removeCollinear = typeof removeCollinear !== 'undefined' ? removeCollinear : 0.01;
-        minimumArea = typeof minimumArea !== 'undefined' ? minimumArea : 10;
-        removeDuplicatePoints = typeof removeDuplicatePoints !== 'undefined' ? removeDuplicatePoints : 0.01;
+    /**
+     * A flag to enable or disable all debug information overlays together.  
+     * This includes and has priority over the values of:
+     *
+     * - `render.options.showStats`
+     * - `render.options.showPerformance`
+     *
+     * @property options.showDebug
+     * @type boolean
+     * @default false
+     */
 
-        // ensure vertexSets is an array of arrays
-        if (!Common.isArray(vertexSets[0])) {
-            vertexSets = [vertexSets];
-        }
+    /**
+     * A flag to enable or disable the engine stats info overlay.  
+     * From left to right, the values shown are:
+     *
+     * - body parts total
+     * - body total
+     * - constraints total
+     * - composites total
+     * - collision pairs total
+     *
+     * @property options.showStats
+     * @type boolean
+     * @default false
+     */
 
-        for (v = 0; v < vertexSets.length; v += 1) {
-            vertices = vertexSets[v];
-            isConvex = Vertices.isConvex(vertices);
-            isConcave = !isConvex;
+    /**
+     * A flag to enable or disable performance charts.  
+     * From left to right, the values shown are:
+     *
+     * - average render frequency (e.g. 60 fps)
+     * - exact engine delta time used for last update (e.g. 16.66ms)
+     * - average engine execution duration (e.g. 5.00ms)
+     * - average render execution duration (e.g. 0.40ms)
+     * - average effective play speed (e.g. '1.00x' is 'real-time')
+     *
+     * Each value is recorded over a fixed sample of past frames (60 frames).
+     *
+     * A chart shown below each value indicates the variance from the average over the sample.
+     * The more stable or fixed the value is the flatter the chart will appear.
+     *
+     * @property options.showPerformance
+     * @type boolean
+     * @default false
+     */
+    
+    /**
+     * A flag to enable or disable rendering entirely.
+     *
+     * @property options.enabled
+     * @type boolean
+     * @default false
+     */
 
-            if (isConcave && !canDecomp && !Bodies._decompWarned) {
-                Common.warn(
-                    'Could not resolve the expected \'poly-decomp\' package for concave vertices in \'Bodies.fromVertices\''
-                );
-                Common.warn(
-                    'Try \'npm install poly-decomp --save\' or as a global e.g. \'window.decomp\''
-                );
-                Bodies._decompWarned = true;
-            }
+    /**
+     * A flag to toggle wireframe rendering otherwise solid fill rendering is used.
+     *
+     * @property options.wireframes
+     * @type boolean
+     * @default true
+     */
 
-            if (isConvex || !canDecomp) {
-                if (isConvex) {
-                    vertices = Vertices.clockwiseSort(vertices);
-                } else {
-                    // fallback to convex hull when decomposition is not possible
-                    vertices = Vertices.hull(vertices);
-                }
+    /**
+     * A flag to enable or disable sleeping bodies indicators.
+     *
+     * @property options.showSleeping
+     * @type boolean
+     * @default true
+     */
 
-                parts.push({
-                    position: { x: x, y: y },
-                    vertices: vertices
-                });
-            } else {
-                // initialise a decomposition
-                var concave = vertices.map(function(vertex) {
-                    return [vertex.x, vertex.y];
-                });
+    /**
+     * A flag to enable or disable the debug information overlay.
+     *
+     * @property options.showDebug
+     * @type boolean
+     * @default false
+     */
 
-                // vertices are concave and simple, we can decompose into parts
-                decomp.makeCCW(concave);
-                if (removeCollinear !== false)
-                    decomp.removeCollinearPoints(concave, removeCollinear);
-                if (removeDuplicatePoints !== false && decomp.removeDuplicatePoints)
-                    decomp.removeDuplicatePoints(concave, removeDuplicatePoints);
+    /**
+     * A flag to enable or disable the collision broadphase debug overlay.
+     *
+     * @property options.showBroadphase
+     * @type boolean
+     * @default false
+     */
 
-                // use the quick decomposition algorithm (Bayazit)
-                var decomposed = decomp.quickDecomp(concave);
+    /**
+     * A flag to enable or disable the body bounds debug overlay.
+     *
+     * @property options.showBounds
+     * @type boolean
+     * @default false
+     */
 
-                // for each decomposed chunk
-                for (i = 0; i < decomposed.length; i++) {
-                    var chunk = decomposed[i];
+    /**
+     * A flag to enable or disable the body velocity debug overlay.
+     *
+     * @property options.showVelocity
+     * @type boolean
+     * @default false
+     */
 
-                    // convert vertices into the correct structure
-                    var chunkVertices = chunk.map(function(vertices) {
-                        return {
-                            x: vertices[0],
-                            y: vertices[1]
-                        };
-                    });
+    /**
+     * A flag to enable or disable the body collisions debug overlay.
+     *
+     * @property options.showCollisions
+     * @type boolean
+     * @default false
+     */
 
-                    // skip small chunks
-                    if (minimumArea > 0 && Vertices.area(chunkVertices) < minimumArea)
-                        continue;
+    /**
+     * A flag to enable or disable the collision resolver separations debug overlay.
+     *
+     * @property options.showSeparations
+     * @type boolean
+     * @default false
+     */
 
-                    // create a compound part
-                    parts.push({
-                        position: Vertices.centre(chunkVertices),
-                        vertices: chunkVertices
-                    });
-                }
-            }
-        }
+    /**
+     * A flag to enable or disable the body axes debug overlay.
+     *
+     * @property options.showAxes
+     * @type boolean
+     * @default false
+     */
 
-        // create body parts
-        for (i = 0; i < parts.length; i++) {
-            parts[i] = Body.create(Common.extend(parts[i], options));
-        }
+    /**
+     * A flag to enable or disable the body positions debug overlay.
+     *
+     * @property options.showPositions
+     * @type boolean
+     * @default false
+     */
 
-        // flag internal edges (coincident part edges)
-        if (flagInternal) {
-            var coincident_max_dist = 5;
+    /**
+     * A flag to enable or disable the body angle debug overlay.
+     *
+     * @property options.showAngleIndicator
+     * @type boolean
+     * @default false
+     */
 
-            for (i = 0; i < parts.length; i++) {
-                var partA = parts[i];
+    /**
+     * A flag to enable or disable the body and part ids debug overlay.
+     *
+     * @property options.showIds
+     * @type boolean
+     * @default false
+     */
 
-                for (j = i + 1; j < parts.length; j++) {
-                    var partB = parts[j];
+    /**
+     * A flag to enable or disable the body vertex numbers debug overlay.
+     *
+     * @property options.showVertexNumbers
+     * @type boolean
+     * @default false
+     */
 
-                    if (Bounds.overlaps(partA.bounds, partB.bounds)) {
-                        var pav = partA.vertices,
-                            pbv = partB.vertices;
+    /**
+     * A flag to enable or disable the body convex hulls debug overlay.
+     *
+     * @property options.showConvexHulls
+     * @type boolean
+     * @default false
+     */
 
-                        // iterate vertices of both parts
-                        for (k = 0; k < partA.vertices.length; k++) {
-                            for (z = 0; z < partB.vertices.length; z++) {
-                                // find distances between the vertices
-                                var da = Vector.magnitudeSquared(Vector.sub(pav[(k + 1) % pav.length], pbv[z])),
-                                    db = Vector.magnitudeSquared(Vector.sub(pav[k], pbv[(z + 1) % pbv.length]));
+    /**
+     * A flag to enable or disable the body internal edges debug overlay.
+     *
+     * @property options.showInternalEdges
+     * @type boolean
+     * @default false
+     */
 
-                                // if both vertices are very close, consider the edge concident (internal)
-                                if (da < coincident_max_dist && db < coincident_max_dist) {
-                                    pav[k].isInternal = true;
-                                    pbv[z].isInternal = true;
-                                }
-                            }
-                        }
-
-                    }
-                }
-            }
-        }
-
-        if (parts.length > 1) {
-            // create the parent body to be returned, that contains generated compound parts
-            body = Body.create(Common.extend({ parts: parts.slice(0) }, options));
-
-            // offset such that body.position is at the centre off mass
-            Body.setPosition(body, { x: x, y: y });
-
-            return body;
-        } else {
-            return parts[0];
-        }
-    };
+    /**
+     * A flag to enable or disable the mouse position debug overlay.
+     *
+     * @property options.showMousePosition
+     * @type boolean
+     * @default false
+     */
 
 })();
 
 
 /***/ }),
 /* 17 */
-/***/ (function(module, exports, __webpack_require__) {
-
-/**
-* The `Matter.Plugin` module contains functions for registering and installing plugins on modules.
-*
-* @class Plugin
-*/
-
-var Plugin = {};
-
-module.exports = Plugin;
-
-var Common = __webpack_require__(0);
-
-(function() {
-
-    Plugin._registry = {};
-
-    /**
-     * Registers a plugin object so it can be resolved later by name.
-     * @method register
-     * @param plugin {} The plugin to register.
-     * @return {object} The plugin.
-     */
-    Plugin.register = function(plugin) {
-        if (!Plugin.isPlugin(plugin)) {
-            Common.warn('Plugin.register:', Plugin.toString(plugin), 'does not implement all required fields.');
-        }
-
-        if (plugin.name in Plugin._registry) {
-            var registered = Plugin._registry[plugin.name],
-                pluginVersion = Plugin.versionParse(plugin.version).number,
-                registeredVersion = Plugin.versionParse(registered.version).number;
-
-            if (pluginVersion > registeredVersion) {
-                Common.warn('Plugin.register:', Plugin.toString(registered), 'was upgraded to', Plugin.toString(plugin));
-                Plugin._registry[plugin.name] = plugin;
-            } else if (pluginVersion < registeredVersion) {
-                Common.warn('Plugin.register:', Plugin.toString(registered), 'can not be downgraded to', Plugin.toString(plugin));
-            } else if (plugin !== registered) {
-                Common.warn('Plugin.register:', Plugin.toString(plugin), 'is already registered to different plugin object');
-            }
-        } else {
-            Plugin._registry[plugin.name] = plugin;
-        }
-
-        return plugin;
-    };
-
-    /**
-     * Resolves a dependency to a plugin object from the registry if it exists. 
-     * The `dependency` may contain a version, but only the name matters when resolving.
-     * @method resolve
-     * @param dependency {string} The dependency.
-     * @return {object} The plugin if resolved, otherwise `undefined`.
-     */
-    Plugin.resolve = function(dependency) {
-        return Plugin._registry[Plugin.dependencyParse(dependency).name];
-    };
-
-    /**
-     * Returns a pretty printed plugin name and version.
-     * @method toString
-     * @param plugin {} The plugin.
-     * @return {string} Pretty printed plugin name and version.
-     */
-    Plugin.toString = function(plugin) {
-        return typeof plugin === 'string' ? plugin : (plugin.name || 'anonymous') + '@' + (plugin.version || plugin.range || '0.0.0');
-    };
-
-    /**
-     * Returns `true` if the object meets the minimum standard to be considered a plugin.
-     * This means it must define the following properties:
-     * - `name`
-     * - `version`
-     * - `install`
-     * @method isPlugin
-     * @param obj {} The obj to test.
-     * @return {boolean} `true` if the object can be considered a plugin otherwise `false`.
-     */
-    Plugin.isPlugin = function(obj) {
-        return obj && obj.name && obj.version && obj.install;
-    };
-
-    /**
-     * Returns `true` if a plugin with the given `name` been installed on `module`.
-     * @method isUsed
-     * @param module {} The module.
-     * @param name {string} The plugin name.
-     * @return {boolean} `true` if a plugin with the given `name` been installed on `module`, otherwise `false`.
-     */
-    Plugin.isUsed = function(module, name) {
-        return module.used.indexOf(name) > -1;
-    };
-
-    /**
-     * Returns `true` if `plugin.for` is applicable to `module` by comparing against `module.name` and `module.version`.
-     * If `plugin.for` is not specified then it is assumed to be applicable.
-     * The value of `plugin.for` is a string of the format `'module-name'` or `'module-name@version'`.
-     * @method isFor
-     * @param plugin {} The plugin.
-     * @param module {} The module.
-     * @return {boolean} `true` if `plugin.for` is applicable to `module`, otherwise `false`.
-     */
-    Plugin.isFor = function(plugin, module) {
-        var parsed = plugin.for && Plugin.dependencyParse(plugin.for);
-        return !plugin.for || (module.name === parsed.name && Plugin.versionSatisfies(module.version, parsed.range));
-    };
-
-    /**
-     * Installs the plugins by calling `plugin.install` on each plugin specified in `plugins` if passed, otherwise `module.uses`.
-     * For installing plugins on `Matter` see the convenience function `Matter.use`.
-     * Plugins may be specified either by their name or a reference to the plugin object.
-     * Plugins themselves may specify further dependencies, but each plugin is installed only once.
-     * Order is important, a topological sort is performed to find the best resulting order of installation.
-     * This sorting attempts to satisfy every dependency's requested ordering, but may not be exact in all cases.
-     * This function logs the resulting status of each dependency in the console, along with any warnings.
-     * - A green tick ✅ indicates a dependency was resolved and installed.
-     * - An orange diamond 🔶 indicates a dependency was resolved but a warning was thrown for it or one if its dependencies.
-     * - A red cross ❌ indicates a dependency could not be resolved.
-     * Avoid calling this function multiple times on the same module unless you intend to manually control installation order.
-     * @method use
-     * @param module {} The module install plugins on.
-     * @param [plugins=module.uses] {} The plugins to install on module (optional, defaults to `module.uses`).
-     */
-    Plugin.use = function(module, plugins) {
-        module.uses = (module.uses || []).concat(plugins || []);
-
-        if (module.uses.length === 0) {
-            Common.warn('Plugin.use:', Plugin.toString(module), 'does not specify any dependencies to install.');
-            return;
-        }
-
-        var dependencies = Plugin.dependencies(module),
-            sortedDependencies = Common.topologicalSort(dependencies),
-            status = [];
-
-        for (var i = 0; i < sortedDependencies.length; i += 1) {
-            if (sortedDependencies[i] === module.name) {
-                continue;
-            }
-
-            var plugin = Plugin.resolve(sortedDependencies[i]);
-
-            if (!plugin) {
-                status.push('❌ ' + sortedDependencies[i]);
-                continue;
-            }
-
-            if (Plugin.isUsed(module, plugin.name)) {
-                continue;
-            }
-
-            if (!Plugin.isFor(plugin, module)) {
-                Common.warn('Plugin.use:', Plugin.toString(plugin), 'is for', plugin.for, 'but installed on', Plugin.toString(module) + '.');
-                plugin._warned = true;
-            }
-
-            if (plugin.install) {
-                plugin.install(module);
-            } else {
-                Common.warn('Plugin.use:', Plugin.toString(plugin), 'does not specify an install function.');
-                plugin._warned = true;
-            }
-
-            if (plugin._warned) {
-                status.push('🔶 ' + Plugin.toString(plugin));
-                delete plugin._warned;
-            } else {
-                status.push('✅ ' + Plugin.toString(plugin));
-            }
-
-            module.used.push(plugin.name);
-        }
-
-        if (status.length > 0) {
-            Common.info(status.join('  '));
-        }
-    };
-
-    /**
-     * Recursively finds all of a module's dependencies and returns a flat dependency graph.
-     * @method dependencies
-     * @param module {} The module.
-     * @return {object} A dependency graph.
-     */
-    Plugin.dependencies = function(module, tracked) {
-        var parsedBase = Plugin.dependencyParse(module),
-            name = parsedBase.name;
-
-        tracked = tracked || {};
-
-        if (name in tracked) {
-            return;
-        }
-
-        module = Plugin.resolve(module) || module;
-
-        tracked[name] = Common.map(module.uses || [], function(dependency) {
-            if (Plugin.isPlugin(dependency)) {
-                Plugin.register(dependency);
-            }
-
-            var parsed = Plugin.dependencyParse(dependency),
-                resolved = Plugin.resolve(dependency);
-
-            if (resolved && !Plugin.versionSatisfies(resolved.version, parsed.range)) {
-                Common.warn(
-                    'Plugin.dependencies:', Plugin.toString(resolved), 'does not satisfy',
-                    Plugin.toString(parsed), 'used by', Plugin.toString(parsedBase) + '.'
-                );
-
-                resolved._warned = true;
-                module._warned = true;
-            } else if (!resolved) {
-                Common.warn(
-                    'Plugin.dependencies:', Plugin.toString(dependency), 'used by',
-                    Plugin.toString(parsedBase), 'could not be resolved.'
-                );
-
-                module._warned = true;
-            }
-
-            return parsed.name;
-        });
-
-        for (var i = 0; i < tracked[name].length; i += 1) {
-            Plugin.dependencies(tracked[name][i], tracked);
-        }
-
-        return tracked;
-    };
-
-    /**
-     * Parses a dependency string into its components.
-     * The `dependency` is a string of the format `'module-name'` or `'module-name@version'`.
-     * See documentation for `Plugin.versionParse` for a description of the format.
-     * This function can also handle dependencies that are already resolved (e.g. a module object).
-     * @method dependencyParse
-     * @param dependency {string} The dependency of the format `'module-name'` or `'module-name@version'`.
-     * @return {object} The dependency parsed into its components.
-     */
-    Plugin.dependencyParse = function(dependency) {
-        if (Common.isString(dependency)) {
-            var pattern = /^[\w-]+(@(\*|[\^~]?\d+\.\d+\.\d+(-[0-9A-Za-z-]+)?))?$/;
-
-            if (!pattern.test(dependency)) {
-                Common.warn('Plugin.dependencyParse:', dependency, 'is not a valid dependency string.');
-            }
-
-            return {
-                name: dependency.split('@')[0],
-                range: dependency.split('@')[1] || '*'
-            };
-        }
-
-        return {
-            name: dependency.name,
-            range: dependency.range || dependency.version
-        };
-    };
-
-    /**
-     * Parses a version string into its components.  
-     * Versions are strictly of the format `x.y.z` (as in [semver](http://semver.org/)).
-     * Versions may optionally have a prerelease tag in the format `x.y.z-alpha`.
-     * Ranges are a strict subset of [npm ranges](https://docs.npmjs.com/misc/semver#advanced-range-syntax).
-     * Only the following range types are supported:
-     * - Tilde ranges e.g. `~1.2.3`
-     * - Caret ranges e.g. `^1.2.3`
-     * - Greater than ranges e.g. `>1.2.3`
-     * - Greater than or equal ranges e.g. `>=1.2.3`
-     * - Exact version e.g. `1.2.3`
-     * - Any version `*`
-     * @method versionParse
-     * @param range {string} The version string.
-     * @return {object} The version range parsed into its components.
-     */
-    Plugin.versionParse = function(range) {
-        var pattern = /^(\*)|(\^|~|>=|>)?\s*((\d+)\.(\d+)\.(\d+))(-[0-9A-Za-z-]+)?$/;
-
-        if (!pattern.test(range)) {
-            Common.warn('Plugin.versionParse:', range, 'is not a valid version or range.');
-        }
-
-        var parts = pattern.exec(range);
-        var major = Number(parts[4]);
-        var minor = Number(parts[5]);
-        var patch = Number(parts[6]);
-
-        return {
-            isRange: Boolean(parts[1] || parts[2]),
-            version: parts[3],
-            range: range,
-            operator: parts[1] || parts[2] || '',
-            major: major,
-            minor: minor,
-            patch: patch,
-            parts: [major, minor, patch],
-            prerelease: parts[7],
-            number: major * 1e8 + minor * 1e4 + patch
-        };
-    };
-
-    /**
-     * Returns `true` if `version` satisfies the given `range`.
-     * See documentation for `Plugin.versionParse` for a description of the format.
-     * If a version or range is not specified, then any version (`*`) is assumed to satisfy.
-     * @method versionSatisfies
-     * @param version {string} The version string.
-     * @param range {string} The range string.
-     * @return {boolean} `true` if `version` satisfies `range`, otherwise `false`.
-     */
-    Plugin.versionSatisfies = function(version, range) {
-        range = range || '*';
-
-        var r = Plugin.versionParse(range),
-            v = Plugin.versionParse(version);
-
-        if (r.isRange) {
-            if (r.operator === '*' || version === '*') {
-                return true;
-            }
-
-            if (r.operator === '>') {
-                return v.number > r.number;
-            }
-
-            if (r.operator === '>=') {
-                return v.number >= r.number;
-            }
-
-            if (r.operator === '~') {
-                return v.major === r.major && v.minor === r.minor && v.patch >= r.patch;
-            }
-
-            if (r.operator === '^') {
-                if (r.major > 0) {
-                    return v.major === r.major && v.number >= r.number;
-                }
-
-                if (r.minor > 0) {
-                    return v.minor === r.minor && v.patch >= r.patch;
-                }
-
-                return v.patch === r.patch;
-            }
-        }
-
-        return version === range || version === '*';
-    };
-
-})();
-
-
-/***/ }),
-/* 18 */
 /***/ (function(module, exports) {
 
 /**
@@ -7586,58 +7656,373 @@ module.exports = Contact;
 
 
 /***/ }),
-/* 19 */
+/* 18 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
-* The `Matter.World` module contains methods for creating and manipulating the world composite.
-* A `Matter.World` is a `Matter.Composite` body, which is a collection of `Matter.Body`, `Matter.Constraint` and other `Matter.Composite`.
-* A `Matter.World` has a few additional properties including `gravity` and `bounds`.
-* It is important to use the functions in the `Matter.Composite` module to modify the world composite, rather than directly modifying its properties.
-* There are also a few methods here that alias those in `Matter.Composite` for easier readability.
+* The `Matter.Engine` module contains methods for creating and manipulating engines.
+* An engine is a controller that manages updating the simulation of the world.
+* See `Matter.Runner` for an optional game loop utility.
 *
 * See the included usage [examples](https://github.com/liabru/matter-js/tree/master/examples).
 *
-* @class World
-* @extends Composite
+* @class Engine
 */
 
-var World = {};
+var Engine = {};
 
-module.exports = World;
+module.exports = Engine;
 
+var Sleeping = __webpack_require__(7);
+var Resolver = __webpack_require__(19);
+var Detector = __webpack_require__(13);
+var Pairs = __webpack_require__(20);
+var Grid = __webpack_require__(21);
+var Events = __webpack_require__(4);
 var Composite = __webpack_require__(5);
 var Constraint = __webpack_require__(8);
 var Common = __webpack_require__(0);
+var Body = __webpack_require__(6);
 
 (function() {
 
     /**
-     * Creates a new world composite. The options parameter is an object that specifies any properties you wish to override the defaults.
+     * Creates a new engine. The options parameter is an object that specifies any properties you wish to override the defaults.
+     * All properties have default values, and many are pre-calculated automatically based on other properties.
      * See the properties section below for detailed information on what you can pass via the `options` object.
      * @method create
-     * @constructor
-     * @param {} options
-     * @return {world} A new world
+     * @param {object} [options]
+     * @return {engine} engine
      */
-    World.create = function(options) {
-        var composite = Composite.create();
+    Engine.create = function(options) {
+        options = options || {};
 
         var defaults = {
-            label: 'World',
+            positionIterations: 6,
+            velocityIterations: 4,
+            constraintIterations: 2,
+            enableSleeping: false,
+            events: [],
+            plugin: {},
+            grid: null,
             gravity: {
                 x: 0,
                 y: 1,
                 scale: 0.001
             },
-            bounds: { 
-                min: { x: -Infinity, y: -Infinity }, 
-                max: { x: Infinity, y: Infinity } 
+            timing: {
+                timestamp: 0,
+                timeScale: 1,
+                lastDelta: 0,
+                lastElapsed: 0
             }
         };
+
+        var engine = Common.extend(defaults, options);
+
+        engine.world = options.world || Composite.create({ label: 'World' });
+        engine.grid = Grid.create(options.grid || options.broadphase);
+        engine.pairs = Pairs.create();
+
+        // temporary back compatibility
+        engine.world.gravity = engine.gravity;
+        engine.broadphase = engine.grid;
+        engine.metrics = {};
         
-        return Common.extend(composite, defaults, options);
+        return engine;
     };
+
+    /**
+     * Moves the simulation forward in time by `delta` ms.
+     * The `correction` argument is an optional `Number` that specifies the time correction factor to apply to the update.
+     * This can help improve the accuracy of the simulation in cases where `delta` is changing between updates.
+     * The value of `correction` is defined as `delta / lastDelta`, i.e. the percentage change of `delta` over the last step.
+     * Therefore the value is always `1` (no correction) when `delta` constant (or when no correction is desired, which is the default).
+     * See the paper on <a href="http://lonesock.net/article/verlet.html">Time Corrected Verlet</a> for more information.
+     *
+     * Triggers `beforeUpdate` and `afterUpdate` events.
+     * Triggers `collisionStart`, `collisionActive` and `collisionEnd` events.
+     * @method update
+     * @param {engine} engine
+     * @param {number} [delta=16.666]
+     * @param {number} [correction=1]
+     */
+    Engine.update = function(engine, delta, correction) {
+        var startTime = Common.now();
+
+        delta = delta || 1000 / 60;
+        correction = correction || 1;
+
+        var world = engine.world,
+            timing = engine.timing,
+            grid = engine.grid,
+            gridPairs = [],
+            i;
+
+        // increment timestamp
+        timing.timestamp += delta * timing.timeScale;
+        timing.lastDelta = delta * timing.timeScale;
+
+        // create an event object
+        var event = {
+            timestamp: timing.timestamp
+        };
+
+        Events.trigger(engine, 'beforeUpdate', event);
+
+        // get lists of all bodies and constraints, no matter what composites they are in
+        var allBodies = Composite.allBodies(world),
+            allConstraints = Composite.allConstraints(world);
+
+        // if sleeping enabled, call the sleeping controller
+        if (engine.enableSleeping)
+            Sleeping.update(allBodies, timing.timeScale);
+
+        // applies gravity to all bodies
+        Engine._bodiesApplyGravity(allBodies, engine.gravity);
+
+        // update all body position and rotation by integration
+        Engine._bodiesUpdate(allBodies, delta, timing.timeScale, correction, world.bounds);
+
+        // update all constraints (first pass)
+        Constraint.preSolveAll(allBodies);
+        for (i = 0; i < engine.constraintIterations; i++) {
+            Constraint.solveAll(allConstraints, timing.timeScale);
+        }
+        Constraint.postSolveAll(allBodies);
+
+        // broadphase pass: find potential collision pairs
+
+        // if world is dirty, we must flush the whole grid
+        if (world.isModified)
+            Grid.clear(grid);
+
+        // update the grid buckets based on current bodies
+        Grid.update(grid, allBodies, engine, world.isModified);
+        gridPairs = grid.pairsList;
+
+        // clear all composite modified flags
+        if (world.isModified) {
+            Composite.setModified(world, false, false, true);
+        }
+
+        // narrowphase pass: find actual collisions, then create or update collision pairs
+        var collisions = Detector.collisions(gridPairs, engine);
+
+        // update collision pairs
+        var pairs = engine.pairs,
+            timestamp = timing.timestamp;
+        Pairs.update(pairs, collisions, timestamp);
+        Pairs.removeOld(pairs, timestamp);
+
+        // wake up bodies involved in collisions
+        if (engine.enableSleeping)
+            Sleeping.afterCollisions(pairs.list, timing.timeScale);
+
+        // trigger collision events
+        if (pairs.collisionStart.length > 0)
+            Events.trigger(engine, 'collisionStart', { pairs: pairs.collisionStart });
+
+        // iteratively resolve position between collisions
+        Resolver.preSolvePosition(pairs.list);
+        for (i = 0; i < engine.positionIterations; i++) {
+            Resolver.solvePosition(pairs.list, timing.timeScale);
+        }
+        Resolver.postSolvePosition(allBodies);
+
+        // update all constraints (second pass)
+        Constraint.preSolveAll(allBodies);
+        for (i = 0; i < engine.constraintIterations; i++) {
+            Constraint.solveAll(allConstraints, timing.timeScale);
+        }
+        Constraint.postSolveAll(allBodies);
+
+        // iteratively resolve velocity between collisions
+        Resolver.preSolveVelocity(pairs.list);
+        for (i = 0; i < engine.velocityIterations; i++) {
+            Resolver.solveVelocity(pairs.list, timing.timeScale);
+        }
+
+        // trigger collision events
+        if (pairs.collisionActive.length > 0)
+            Events.trigger(engine, 'collisionActive', { pairs: pairs.collisionActive });
+
+        if (pairs.collisionEnd.length > 0)
+            Events.trigger(engine, 'collisionEnd', { pairs: pairs.collisionEnd });
+
+        // clear force buffers
+        Engine._bodiesClearForces(allBodies);
+
+        Events.trigger(engine, 'afterUpdate', event);
+
+        // log the time elapsed computing this update
+        engine.timing.lastElapsed = Common.now() - startTime;
+
+        return engine;
+    };
+    
+    /**
+     * Merges two engines by keeping the configuration of `engineA` but replacing the world with the one from `engineB`.
+     * @method merge
+     * @param {engine} engineA
+     * @param {engine} engineB
+     */
+    Engine.merge = function(engineA, engineB) {
+        Common.extend(engineA, engineB);
+        
+        if (engineB.world) {
+            engineA.world = engineB.world;
+
+            Engine.clear(engineA);
+
+            var bodies = Composite.allBodies(engineA.world);
+
+            for (var i = 0; i < bodies.length; i++) {
+                var body = bodies[i];
+                Sleeping.set(body, false);
+                body.id = Common.nextId();
+            }
+        }
+    };
+
+    /**
+     * Clears the engine including the world, pairs and broadphase.
+     * @method clear
+     * @param {engine} engine
+     */
+    Engine.clear = function(engine) {
+        var world = engine.world,
+            bodies = Composite.allBodies(world);
+
+        Pairs.clear(engine.pairs);
+        Grid.clear(engine.grid);
+        Grid.update(engine.grid, bodies, engine, true);
+    };
+
+    /**
+     * Zeroes the `body.force` and `body.torque` force buffers.
+     * @method _bodiesClearForces
+     * @private
+     * @param {body[]} bodies
+     */
+    Engine._bodiesClearForces = function(bodies) {
+        for (var i = 0; i < bodies.length; i++) {
+            var body = bodies[i];
+
+            // reset force buffers
+            body.force.x = 0;
+            body.force.y = 0;
+            body.torque = 0;
+        }
+    };
+
+    /**
+     * Applys a mass dependant force to all given bodies.
+     * @method _bodiesApplyGravity
+     * @private
+     * @param {body[]} bodies
+     * @param {vector} gravity
+     */
+    Engine._bodiesApplyGravity = function(bodies, gravity) {
+        var gravityScale = typeof gravity.scale !== 'undefined' ? gravity.scale : 0.001;
+
+        if ((gravity.x === 0 && gravity.y === 0) || gravityScale === 0) {
+            return;
+        }
+        
+        for (var i = 0; i < bodies.length; i++) {
+            var body = bodies[i];
+
+            if (body.isStatic || body.isSleeping)
+                continue;
+
+            // apply gravity
+            body.force.y += body.mass * gravity.y * gravityScale;
+            body.force.x += body.mass * gravity.x * gravityScale;
+        }
+    };
+
+    /**
+     * Applys `Body.update` to all given `bodies`.
+     * @method _bodiesUpdate
+     * @private
+     * @param {body[]} bodies
+     * @param {number} deltaTime 
+     * The amount of time elapsed between updates
+     * @param {number} timeScale
+     * @param {number} correction 
+     * The Verlet correction factor (deltaTime / lastDeltaTime)
+     * @param {bounds} worldBounds
+     */
+    Engine._bodiesUpdate = function(bodies, deltaTime, timeScale, correction, worldBounds) {
+        for (var i = 0; i < bodies.length; i++) {
+            var body = bodies[i];
+
+            if (body.isStatic || body.isSleeping)
+                continue;
+
+            Body.update(body, deltaTime, timeScale, correction);
+        }
+    };
+
+    /**
+     * An alias for `Runner.run`, see `Matter.Runner` for more information.
+     * @method run
+     * @param {engine} engine
+     */
+
+    /**
+    * Fired just before an update
+    *
+    * @event beforeUpdate
+    * @param {} event An event object
+    * @param {number} event.timestamp The engine.timing.timestamp of the event
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired after engine update and all collision events
+    *
+    * @event afterUpdate
+    * @param {} event An event object
+    * @param {number} event.timestamp The engine.timing.timestamp of the event
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired after engine update, provides a list of all pairs that have started to collide in the current tick (if any)
+    *
+    * @event collisionStart
+    * @param {} event An event object
+    * @param {} event.pairs List of affected pairs
+    * @param {number} event.timestamp The engine.timing.timestamp of the event
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired after engine update, provides a list of all pairs that are colliding in the current tick (if any)
+    *
+    * @event collisionActive
+    * @param {} event An event object
+    * @param {} event.pairs List of affected pairs
+    * @param {number} event.timestamp The engine.timing.timestamp of the event
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired after engine update, provides a list of all pairs that have ended collision in the current tick (if any)
+    *
+    * @event collisionEnd
+    * @param {} event An event object
+    * @param {} event.pairs List of affected pairs
+    * @param {number} event.timestamp The engine.timing.timestamp of the event
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
 
     /*
     *
@@ -7646,7 +8031,122 @@ var Common = __webpack_require__(0);
     */
 
     /**
-     * The gravity to apply on the world.
+     * An integer `Number` that specifies the number of position iterations to perform each update.
+     * The higher the value, the higher quality the simulation will be at the expense of performance.
+     *
+     * @property positionIterations
+     * @type number
+     * @default 6
+     */
+
+    /**
+     * An integer `Number` that specifies the number of velocity iterations to perform each update.
+     * The higher the value, the higher quality the simulation will be at the expense of performance.
+     *
+     * @property velocityIterations
+     * @type number
+     * @default 4
+     */
+
+    /**
+     * An integer `Number` that specifies the number of constraint iterations to perform each update.
+     * The higher the value, the higher quality the simulation will be at the expense of performance.
+     * The default value of `2` is usually very adequate.
+     *
+     * @property constraintIterations
+     * @type number
+     * @default 2
+     */
+
+    /**
+     * A flag that specifies whether the engine should allow sleeping via the `Matter.Sleeping` module.
+     * Sleeping can improve stability and performance, but often at the expense of accuracy.
+     *
+     * @property enableSleeping
+     * @type boolean
+     * @default false
+     */
+
+    /**
+     * An `Object` containing properties regarding the timing systems of the engine. 
+     *
+     * @property timing
+     * @type object
+     */
+
+    /**
+     * A `Number` that specifies the global scaling factor of time for all bodies.
+     * A value of `0` freezes the simulation.
+     * A value of `0.1` gives a slow-motion effect.
+     * A value of `1.2` gives a speed-up effect.
+     *
+     * @property timing.timeScale
+     * @type number
+     * @default 1
+     */
+
+    /**
+     * A `Number` that specifies the current simulation-time in milliseconds starting from `0`. 
+     * It is incremented on every `Engine.update` by the given `delta` argument. 
+     *
+     * @property timing.timestamp
+     * @type number
+     * @default 0
+     */
+
+    /**
+     * A `Number` that represents the total execution time elapsed during the last `Engine.update` in milliseconds.
+     * It is updated by timing from the start of the last `Engine.update` call until it ends.
+     *
+     * This value will also include the total execution time of all event handlers directly or indirectly triggered by the engine update.
+     *
+     * @property timing.lastElapsed
+     * @type number
+     * @default 0
+     */
+
+    /**
+     * A `Number` that represents the `delta` value used in the last engine update.
+     *
+     * @property timing.lastDelta
+     * @type number
+     * @default 0
+     */
+
+    /**
+     * A `Matter.Grid` instance.
+     *
+     * @property grid
+     * @type grid
+     * @default a Matter.Grid instance
+     */
+
+    /**
+     * Replaced by and now alias for `engine.grid`.
+     *
+     * @deprecated use `engine.grid`
+     * @property broadphase
+     * @type grid
+     * @default a Matter.Grid instance
+     */
+
+    /**
+     * The root `Matter.Composite` instance that will contain all bodies, constraints and other composites to be simulated by this engine.
+     *
+     * @property world
+     * @type composite
+     * @default a Matter.Composite instance
+     */
+
+    /**
+     * An object reserved for storing plugin-specific properties.
+     *
+     * @property plugin
+     * @type {}
+     */
+
+    /**
+     * The gravity to apply on all bodies in `engine.world`.
      *
      * @property gravity
      * @type object
@@ -7676,235 +8176,11 @@ var Common = __webpack_require__(0);
      * @default 0.001
      */
 
-    /**
-     * A `Bounds` object that defines the world bounds for collision detection.
-     *
-     * @property bounds
-     * @type bounds
-     * @default { min: { x: -Infinity, y: -Infinity }, max: { x: Infinity, y: Infinity } }
-     */
-
-    // World is a Composite body
-    // see src/module/Outro.js for these aliases:
-    
-    /**
-     * An alias for Composite.add
-     * @method add
-     * @param {world} world
-     * @param {} object
-     * @return {composite} The original world with the objects added
-     */
-
-    /**
-     * An alias for Composite.remove
-     * @method remove
-     * @param {world} world
-     * @param {} object
-     * @param {boolean} [deep=false]
-     * @return {composite} The original world with the objects removed
-     */
-
-    /**
-     * An alias for Composite.clear
-     * @method clear
-     * @param {world} world
-     * @param {boolean} keepStatic
-     */
-
-    /**
-     * An alias for Composite.addComposite
-     * @method addComposite
-     * @param {world} world
-     * @param {composite} composite
-     * @return {world} The original world with the objects from composite added
-     */
-    
-    /**
-      * An alias for Composite.addBody
-      * @method addBody
-      * @param {world} world
-      * @param {body} body
-      * @return {world} The original world with the body added
-      */
-
-    /**
-      * An alias for Composite.addConstraint
-      * @method addConstraint
-      * @param {world} world
-      * @param {constraint} constraint
-      * @return {world} The original world with the constraint added
-      */
-
 })();
 
 
 /***/ }),
-/* 20 */
-/***/ (function(module, exports, __webpack_require__) {
-
-/**
-* The `Matter.Pairs` module contains methods for creating and manipulating collision pair sets.
-*
-* @class Pairs
-*/
-
-var Pairs = {};
-
-module.exports = Pairs;
-
-var Pair = __webpack_require__(9);
-var Common = __webpack_require__(0);
-
-(function() {
-    
-    Pairs._pairMaxIdleLife = 1000;
-
-    /**
-     * Creates a new pairs structure.
-     * @method create
-     * @param {object} options
-     * @return {pairs} A new pairs structure
-     */
-    Pairs.create = function(options) {
-        return Common.extend({ 
-            table: {},
-            list: [],
-            collisionStart: [],
-            collisionActive: [],
-            collisionEnd: []
-        }, options);
-    };
-
-    /**
-     * Updates pairs given a list of collisions.
-     * @method update
-     * @param {object} pairs
-     * @param {collision[]} collisions
-     * @param {number} timestamp
-     */
-    Pairs.update = function(pairs, collisions, timestamp) {
-        var pairsList = pairs.list,
-            pairsTable = pairs.table,
-            collisionStart = pairs.collisionStart,
-            collisionEnd = pairs.collisionEnd,
-            collisionActive = pairs.collisionActive,
-            collision,
-            pairId,
-            pair,
-            i;
-
-        // clear collision state arrays, but maintain old reference
-        collisionStart.length = 0;
-        collisionEnd.length = 0;
-        collisionActive.length = 0;
-
-        for (i = 0; i < pairsList.length; i++) {
-            pairsList[i].confirmedActive = false;
-        }
-
-        for (i = 0; i < collisions.length; i++) {
-            collision = collisions[i];
-
-            if (collision.collided) {
-                pairId = Pair.id(collision.bodyA, collision.bodyB);
-
-                pair = pairsTable[pairId];
-                
-                if (pair) {
-                    // pair already exists (but may or may not be active)
-                    if (pair.isActive) {
-                        // pair exists and is active
-                        collisionActive.push(pair);
-                    } else {
-                        // pair exists but was inactive, so a collision has just started again
-                        collisionStart.push(pair);
-                    }
-
-                    // update the pair
-                    Pair.update(pair, collision, timestamp);
-                    pair.confirmedActive = true;
-                } else {
-                    // pair did not exist, create a new pair
-                    pair = Pair.create(collision, timestamp);
-                    pairsTable[pairId] = pair;
-
-                    // push the new pair
-                    collisionStart.push(pair);
-                    pairsList.push(pair);
-                }
-            }
-        }
-
-        // deactivate previously active pairs that are now inactive
-        for (i = 0; i < pairsList.length; i++) {
-            pair = pairsList[i];
-            if (pair.isActive && !pair.confirmedActive) {
-                Pair.setActive(pair, false, timestamp);
-                collisionEnd.push(pair);
-            }
-        }
-    };
-    
-    /**
-     * Finds and removes pairs that have been inactive for a set amount of time.
-     * @method removeOld
-     * @param {object} pairs
-     * @param {number} timestamp
-     */
-    Pairs.removeOld = function(pairs, timestamp) {
-        var pairsList = pairs.list,
-            pairsTable = pairs.table,
-            indexesToRemove = [],
-            pair,
-            collision,
-            pairIndex,
-            i;
-
-        for (i = 0; i < pairsList.length; i++) {
-            pair = pairsList[i];
-            collision = pair.collision;
-            
-            // never remove sleeping pairs
-            if (collision.bodyA.isSleeping || collision.bodyB.isSleeping) {
-                pair.timeUpdated = timestamp;
-                continue;
-            }
-
-            // if pair is inactive for too long, mark it to be removed
-            if (timestamp - pair.timeUpdated > Pairs._pairMaxIdleLife) {
-                indexesToRemove.push(i);
-            }
-        }
-
-        // remove marked pairs
-        for (i = 0; i < indexesToRemove.length; i++) {
-            pairIndex = indexesToRemove[i] - i;
-            pair = pairsList[pairIndex];
-            delete pairsTable[pair.id];
-            pairsList.splice(pairIndex, 1);
-        }
-    };
-
-    /**
-     * Clears the given pairs structure.
-     * @method clear
-     * @param {pairs} pairs
-     * @return {pairs} pairs
-     */
-    Pairs.clear = function(pairs) {
-        pairs.table = {};
-        pairs.list.length = 0;
-        pairs.collisionStart.length = 0;
-        pairs.collisionActive.length = 0;
-        pairs.collisionEnd.length = 0;
-        return pairs;
-    };
-
-})();
-
-
-/***/ }),
-/* 21 */
+/* 19 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -8254,677 +8530,523 @@ var Bounds = __webpack_require__(1);
 
 
 /***/ }),
-/* 22 */
+/* 20 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
-* The `Matter.Engine` module contains methods for creating and manipulating engines.
-* An engine is a controller that manages updating the simulation of the world.
-* See `Matter.Runner` for an optional game loop utility.
+* The `Matter.Pairs` module contains methods for creating and manipulating collision pair sets.
 *
-* See the included usage [examples](https://github.com/liabru/matter-js/tree/master/examples).
-*
-* @class Engine
+* @class Pairs
 */
 
-var Engine = {};
+var Pairs = {};
 
-module.exports = Engine;
+module.exports = Pairs;
 
-var World = __webpack_require__(19);
-var Sleeping = __webpack_require__(7);
-var Resolver = __webpack_require__(21);
-var Render = __webpack_require__(10);
-var Pairs = __webpack_require__(20);
-var Metrics = __webpack_require__(23);
-var Grid = __webpack_require__(11);
-var Events = __webpack_require__(4);
-var Composite = __webpack_require__(5);
-var Constraint = __webpack_require__(8);
+var Pair = __webpack_require__(9);
 var Common = __webpack_require__(0);
-var Body = __webpack_require__(6);
+
+(function() {
+    
+    Pairs._pairMaxIdleLife = 1000;
+
+    /**
+     * Creates a new pairs structure.
+     * @method create
+     * @param {object} options
+     * @return {pairs} A new pairs structure
+     */
+    Pairs.create = function(options) {
+        return Common.extend({ 
+            table: {},
+            list: [],
+            collisionStart: [],
+            collisionActive: [],
+            collisionEnd: []
+        }, options);
+    };
+
+    /**
+     * Updates pairs given a list of collisions.
+     * @method update
+     * @param {object} pairs
+     * @param {collision[]} collisions
+     * @param {number} timestamp
+     */
+    Pairs.update = function(pairs, collisions, timestamp) {
+        var pairsList = pairs.list,
+            pairsTable = pairs.table,
+            collisionStart = pairs.collisionStart,
+            collisionEnd = pairs.collisionEnd,
+            collisionActive = pairs.collisionActive,
+            collision,
+            pairId,
+            pair,
+            i;
+
+        // clear collision state arrays, but maintain old reference
+        collisionStart.length = 0;
+        collisionEnd.length = 0;
+        collisionActive.length = 0;
+
+        for (i = 0; i < pairsList.length; i++) {
+            pairsList[i].confirmedActive = false;
+        }
+
+        for (i = 0; i < collisions.length; i++) {
+            collision = collisions[i];
+
+            if (collision.collided) {
+                pairId = Pair.id(collision.bodyA, collision.bodyB);
+
+                pair = pairsTable[pairId];
+                
+                if (pair) {
+                    // pair already exists (but may or may not be active)
+                    if (pair.isActive) {
+                        // pair exists and is active
+                        collisionActive.push(pair);
+                    } else {
+                        // pair exists but was inactive, so a collision has just started again
+                        collisionStart.push(pair);
+                    }
+
+                    // update the pair
+                    Pair.update(pair, collision, timestamp);
+                    pair.confirmedActive = true;
+                } else {
+                    // pair did not exist, create a new pair
+                    pair = Pair.create(collision, timestamp);
+                    pairsTable[pairId] = pair;
+
+                    // push the new pair
+                    collisionStart.push(pair);
+                    pairsList.push(pair);
+                }
+            }
+        }
+
+        // deactivate previously active pairs that are now inactive
+        for (i = 0; i < pairsList.length; i++) {
+            pair = pairsList[i];
+            if (pair.isActive && !pair.confirmedActive) {
+                Pair.setActive(pair, false, timestamp);
+                collisionEnd.push(pair);
+            }
+        }
+    };
+    
+    /**
+     * Finds and removes pairs that have been inactive for a set amount of time.
+     * @method removeOld
+     * @param {object} pairs
+     * @param {number} timestamp
+     */
+    Pairs.removeOld = function(pairs, timestamp) {
+        var pairsList = pairs.list,
+            pairsTable = pairs.table,
+            indexesToRemove = [],
+            pair,
+            collision,
+            pairIndex,
+            i;
+
+        for (i = 0; i < pairsList.length; i++) {
+            pair = pairsList[i];
+            collision = pair.collision;
+            
+            // never remove sleeping pairs
+            if (collision.bodyA.isSleeping || collision.bodyB.isSleeping) {
+                pair.timeUpdated = timestamp;
+                continue;
+            }
+
+            // if pair is inactive for too long, mark it to be removed
+            if (timestamp - pair.timeUpdated > Pairs._pairMaxIdleLife) {
+                indexesToRemove.push(i);
+            }
+        }
+
+        // remove marked pairs
+        for (i = 0; i < indexesToRemove.length; i++) {
+            pairIndex = indexesToRemove[i] - i;
+            pair = pairsList[pairIndex];
+            delete pairsTable[pair.id];
+            pairsList.splice(pairIndex, 1);
+        }
+    };
+
+    /**
+     * Clears the given pairs structure.
+     * @method clear
+     * @param {pairs} pairs
+     * @return {pairs} pairs
+     */
+    Pairs.clear = function(pairs) {
+        pairs.table = {};
+        pairs.list.length = 0;
+        pairs.collisionStart.length = 0;
+        pairs.collisionActive.length = 0;
+        pairs.collisionEnd.length = 0;
+        return pairs;
+    };
+
+})();
+
+
+/***/ }),
+/* 21 */
+/***/ (function(module, exports, __webpack_require__) {
+
+/**
+* The `Matter.Grid` module contains methods for creating and manipulating collision broadphase grid structures.
+*
+* @class Grid
+*/
+
+var Grid = {};
+
+module.exports = Grid;
+
+var Pair = __webpack_require__(9);
+var Common = __webpack_require__(0);
 
 (function() {
 
     /**
-     * Creates a new engine. The options parameter is an object that specifies any properties you wish to override the defaults.
-     * All properties have default values, and many are pre-calculated automatically based on other properties.
-     * See the properties section below for detailed information on what you can pass via the `options` object.
+     * Creates a new grid.
      * @method create
-     * @param {object} [options]
-     * @return {engine} engine
+     * @param {} options
+     * @return {grid} A new grid
      */
-    Engine.create = function(element, options) {
-        // options may be passed as the first (and only) argument
-        options = Common.isElement(element) ? options : element;
-        element = Common.isElement(element) ? element : null;
-        options = options || {};
-
-        if (element || options.render) {
-            Common.warn('Engine.create: engine.render is deprecated (see docs)');
-        }
-
+    Grid.create = function(options) {
         var defaults = {
-            positionIterations: 6,
-            velocityIterations: 4,
-            constraintIterations: 2,
-            enableSleeping: false,
-            events: [],
-            plugin: {},
-            timing: {
-                timestamp: 0,
-                timeScale: 1
-            },
-            broadphase: {
-                controller: Grid
-            }
+            buckets: {},
+            pairs: {},
+            pairsList: [],
+            bucketWidth: 48,
+            bucketHeight: 48
         };
 
-        var engine = Common.extend(defaults, options);
-
-        // back compatibility
-        if (element || engine.render) {
-            var renderDefaults = {
-                element: element,
-                controller: Render
-            };
-            
-            engine.render = Common.extend(renderDefaults, engine.render);
-        }
-
-        // back compatibility
-        if (engine.render && engine.render.controller) {
-            engine.render = engine.render.controller.create(engine.render);
-        }
-
-        // back compatibility
-        if (engine.render) {
-            engine.render.engine = engine;
-        }
-
-        engine.world = options.world || World.create(engine.world);
-        engine.pairs = Pairs.create();
-        engine.broadphase = engine.broadphase.controller.create(engine.broadphase);
-        engine.metrics = engine.metrics || { extended: false };
-
-        // @if DEBUG
-        engine.metrics = Metrics.create(engine.metrics);
-        // @endif
-
-        return engine;
+        return Common.extend(defaults, options);
     };
 
     /**
-     * Moves the simulation forward in time by `delta` ms.
-     * The `correction` argument is an optional `Number` that specifies the time correction factor to apply to the update.
-     * This can help improve the accuracy of the simulation in cases where `delta` is changing between updates.
-     * The value of `correction` is defined as `delta / lastDelta`, i.e. the percentage change of `delta` over the last step.
-     * Therefore the value is always `1` (no correction) when `delta` constant (or when no correction is desired, which is the default).
-     * See the paper on <a href="http://lonesock.net/article/verlet.html">Time Corrected Verlet</a> for more information.
+     * The width of a single grid bucket.
      *
-     * Triggers `beforeUpdate` and `afterUpdate` events.
-     * Triggers `collisionStart`, `collisionActive` and `collisionEnd` events.
-     * @method update
-     * @param {engine} engine
-     * @param {number} [delta=16.666]
-     * @param {number} [correction=1]
+     * @property bucketWidth
+     * @type number
+     * @default 48
      */
-    Engine.update = function(engine, delta, correction) {
-        delta = delta || 1000 / 60;
-        correction = correction || 1;
 
-        var world = engine.world,
-            timing = engine.timing,
-            broadphase = engine.broadphase,
-            broadphasePairs = [],
-            i;
+    /**
+     * The height of a single grid bucket.
+     *
+     * @property bucketHeight
+     * @type number
+     * @default 48
+     */
 
-        // increment timestamp
-        timing.timestamp += delta * timing.timeScale;
+    /**
+     * Updates the grid.
+     * @method update
+     * @param {grid} grid
+     * @param {body[]} bodies
+     * @param {engine} engine
+     * @param {boolean} forceUpdate
+     */
+    Grid.update = function(grid, bodies, engine, forceUpdate) {
+        var i, col, row,
+            world = engine.world,
+            buckets = grid.buckets,
+            bucket,
+            bucketId,
+            gridChanged = false;
 
-        // create an event object
-        var event = {
-            timestamp: timing.timestamp
+        for (i = 0; i < bodies.length; i++) {
+            var body = bodies[i];
+
+            if (body.isSleeping && !forceUpdate)
+                continue;
+
+            // temporary back compatibility bounds check
+            if (world.bounds && (body.bounds.max.x < world.bounds.min.x || body.bounds.min.x > world.bounds.max.x
+                || body.bounds.max.y < world.bounds.min.y || body.bounds.min.y > world.bounds.max.y))
+                continue;
+
+            var newRegion = Grid._getRegion(grid, body);
+
+            // if the body has changed grid region
+            if (!body.region || newRegion.id !== body.region.id || forceUpdate) {
+
+                if (!body.region || forceUpdate)
+                    body.region = newRegion;
+
+                var union = Grid._regionUnion(newRegion, body.region);
+
+                // update grid buckets affected by region change
+                // iterate over the union of both regions
+                for (col = union.startCol; col <= union.endCol; col++) {
+                    for (row = union.startRow; row <= union.endRow; row++) {
+                        bucketId = Grid._getBucketId(col, row);
+                        bucket = buckets[bucketId];
+
+                        var isInsideNewRegion = (col >= newRegion.startCol && col <= newRegion.endCol
+                                                && row >= newRegion.startRow && row <= newRegion.endRow);
+
+                        var isInsideOldRegion = (col >= body.region.startCol && col <= body.region.endCol
+                                                && row >= body.region.startRow && row <= body.region.endRow);
+
+                        // remove from old region buckets
+                        if (!isInsideNewRegion && isInsideOldRegion) {
+                            if (isInsideOldRegion) {
+                                if (bucket)
+                                    Grid._bucketRemoveBody(grid, bucket, body);
+                            }
+                        }
+
+                        // add to new region buckets
+                        if (body.region === newRegion || (isInsideNewRegion && !isInsideOldRegion) || forceUpdate) {
+                            if (!bucket)
+                                bucket = Grid._createBucket(buckets, bucketId);
+                            Grid._bucketAddBody(grid, bucket, body);
+                        }
+                    }
+                }
+
+                // set the new region
+                body.region = newRegion;
+
+                // flag changes so we can update pairs
+                gridChanged = true;
+            }
+        }
+
+        // update pairs list only if pairs changed (i.e. a body changed region)
+        if (gridChanged)
+            grid.pairsList = Grid._createActivePairsList(grid);
+    };
+
+    /**
+     * Clears the grid.
+     * @method clear
+     * @param {grid} grid
+     */
+    Grid.clear = function(grid) {
+        grid.buckets = {};
+        grid.pairs = {};
+        grid.pairsList = [];
+    };
+
+    /**
+     * Finds the union of two regions.
+     * @method _regionUnion
+     * @private
+     * @param {} regionA
+     * @param {} regionB
+     * @return {} region
+     */
+    Grid._regionUnion = function(regionA, regionB) {
+        var startCol = Math.min(regionA.startCol, regionB.startCol),
+            endCol = Math.max(regionA.endCol, regionB.endCol),
+            startRow = Math.min(regionA.startRow, regionB.startRow),
+            endRow = Math.max(regionA.endRow, regionB.endRow);
+
+        return Grid._createRegion(startCol, endCol, startRow, endRow);
+    };
+
+    /**
+     * Gets the region a given body falls in for a given grid.
+     * @method _getRegion
+     * @private
+     * @param {} grid
+     * @param {} body
+     * @return {} region
+     */
+    Grid._getRegion = function(grid, body) {
+        var bounds = body.bounds,
+            startCol = Math.floor(bounds.min.x / grid.bucketWidth),
+            endCol = Math.floor(bounds.max.x / grid.bucketWidth),
+            startRow = Math.floor(bounds.min.y / grid.bucketHeight),
+            endRow = Math.floor(bounds.max.y / grid.bucketHeight);
+
+        return Grid._createRegion(startCol, endCol, startRow, endRow);
+    };
+
+    /**
+     * Creates a region.
+     * @method _createRegion
+     * @private
+     * @param {} startCol
+     * @param {} endCol
+     * @param {} startRow
+     * @param {} endRow
+     * @return {} region
+     */
+    Grid._createRegion = function(startCol, endCol, startRow, endRow) {
+        return { 
+            id: startCol + ',' + endCol + ',' + startRow + ',' + endRow,
+            startCol: startCol, 
+            endCol: endCol, 
+            startRow: startRow, 
+            endRow: endRow 
         };
+    };
 
-        Events.trigger(engine, 'beforeUpdate', event);
+    /**
+     * Gets the bucket id at the given position.
+     * @method _getBucketId
+     * @private
+     * @param {} column
+     * @param {} row
+     * @return {string} bucket id
+     */
+    Grid._getBucketId = function(column, row) {
+        return 'C' + column + 'R' + row;
+    };
 
-        // get lists of all bodies and constraints, no matter what composites they are in
-        var allBodies = Composite.allBodies(world),
-            allConstraints = Composite.allConstraints(world);
+    /**
+     * Creates a bucket.
+     * @method _createBucket
+     * @private
+     * @param {} buckets
+     * @param {} bucketId
+     * @return {} bucket
+     */
+    Grid._createBucket = function(buckets, bucketId) {
+        var bucket = buckets[bucketId] = [];
+        return bucket;
+    };
 
-        // @if DEBUG
-        // reset metrics logging
-        Metrics.reset(engine.metrics);
-        // @endif
+    /**
+     * Adds a body to a bucket.
+     * @method _bucketAddBody
+     * @private
+     * @param {} grid
+     * @param {} bucket
+     * @param {} body
+     */
+    Grid._bucketAddBody = function(grid, bucket, body) {
+        // add new pairs
+        for (var i = 0; i < bucket.length; i++) {
+            var bodyB = bucket[i];
 
-        // if sleeping enabled, call the sleeping controller
-        if (engine.enableSleeping)
-            Sleeping.update(allBodies, timing.timeScale);
+            if (body.id === bodyB.id || (body.isStatic && bodyB.isStatic))
+                continue;
 
-        // applies gravity to all bodies
-        Engine._bodiesApplyGravity(allBodies, world.gravity);
+            // keep track of the number of buckets the pair exists in
+            // important for Grid.update to work
+            var pairId = Pair.id(body, bodyB),
+                pair = grid.pairs[pairId];
 
-        // update all body position and rotation by integration
-        Engine._bodiesUpdate(allBodies, delta, timing.timeScale, correction, world.bounds);
-
-        // update all constraints (first pass)
-        Constraint.preSolveAll(allBodies);
-        for (i = 0; i < engine.constraintIterations; i++) {
-            Constraint.solveAll(allConstraints, timing.timeScale);
-        }
-        Constraint.postSolveAll(allBodies);
-
-        // broadphase pass: find potential collision pairs
-        if (broadphase.controller) {
-            // if world is dirty, we must flush the whole grid
-            if (world.isModified)
-                broadphase.controller.clear(broadphase);
-
-            // update the grid buckets based on current bodies
-            broadphase.controller.update(broadphase, allBodies, engine, world.isModified);
-            broadphasePairs = broadphase.pairsList;
-        } else {
-            // if no broadphase set, we just pass all bodies
-            broadphasePairs = allBodies;
-        }
-
-        // clear all composite modified flags
-        if (world.isModified) {
-            Composite.setModified(world, false, false, true);
-        }
-
-        // narrowphase pass: find actual collisions, then create or update collision pairs
-        var collisions = broadphase.detector(broadphasePairs, engine);
-
-        // update collision pairs
-        var pairs = engine.pairs,
-            timestamp = timing.timestamp;
-        Pairs.update(pairs, collisions, timestamp);
-        Pairs.removeOld(pairs, timestamp);
-
-        // wake up bodies involved in collisions
-        if (engine.enableSleeping)
-            Sleeping.afterCollisions(pairs.list, timing.timeScale);
-
-        // trigger collision events
-        if (pairs.collisionStart.length > 0)
-            Events.trigger(engine, 'collisionStart', { pairs: pairs.collisionStart });
-
-        // iteratively resolve position between collisions
-        Resolver.preSolvePosition(pairs.list);
-        for (i = 0; i < engine.positionIterations; i++) {
-            Resolver.solvePosition(pairs.list, timing.timeScale);
-        }
-        Resolver.postSolvePosition(allBodies);
-
-        // update all constraints (second pass)
-        Constraint.preSolveAll(allBodies);
-        for (i = 0; i < engine.constraintIterations; i++) {
-            Constraint.solveAll(allConstraints, timing.timeScale);
-        }
-        Constraint.postSolveAll(allBodies);
-
-        // iteratively resolve velocity between collisions
-        Resolver.preSolveVelocity(pairs.list);
-        for (i = 0; i < engine.velocityIterations; i++) {
-            Resolver.solveVelocity(pairs.list, timing.timeScale);
+            if (pair) {
+                pair[2] += 1;
+            } else {
+                grid.pairs[pairId] = [body, bodyB, 1];
+            }
         }
 
-        // trigger collision events
-        if (pairs.collisionActive.length > 0)
-            Events.trigger(engine, 'collisionActive', { pairs: pairs.collisionActive });
+        // add to bodies (after pairs, otherwise pairs with self)
+        bucket.push(body);
+    };
 
-        if (pairs.collisionEnd.length > 0)
-            Events.trigger(engine, 'collisionEnd', { pairs: pairs.collisionEnd });
+    /**
+     * Removes a body from a bucket.
+     * @method _bucketRemoveBody
+     * @private
+     * @param {} grid
+     * @param {} bucket
+     * @param {} body
+     */
+    Grid._bucketRemoveBody = function(grid, bucket, body) {
+        // remove from bucket
+        bucket.splice(Common.indexOf(bucket, body), 1);
 
-        // @if DEBUG
-        // update metrics log
-        Metrics.update(engine.metrics, engine);
-        // @endif
+        // update pair counts
+        for (var i = 0; i < bucket.length; i++) {
+            // keep track of the number of buckets the pair exists in
+            // important for _createActivePairsList to work
+            var bodyB = bucket[i],
+                pairId = Pair.id(body, bodyB),
+                pair = grid.pairs[pairId];
 
-        // clear force buffers
-        Engine._bodiesClearForces(allBodies);
+            if (pair)
+                pair[2] -= 1;
+        }
+    };
 
-        Events.trigger(engine, 'afterUpdate', event);
+    /**
+     * Generates a list of the active pairs in the grid.
+     * @method _createActivePairsList
+     * @private
+     * @param {} grid
+     * @return [] pairs
+     */
+    Grid._createActivePairsList = function(grid) {
+        var pairKeys,
+            pair,
+            pairs = [];
 
-        return engine;
+        // grid.pairs is used as a hashmap
+        pairKeys = Common.keys(grid.pairs);
+
+        // iterate over grid.pairs
+        for (var k = 0; k < pairKeys.length; k++) {
+            pair = grid.pairs[pairKeys[k]];
+
+            // if pair exists in at least one bucket
+            // it is a pair that needs further collision testing so push it
+            if (pair[2] > 0) {
+                pairs.push(pair);
+            } else {
+                delete grid.pairs[pairKeys[k]];
+            }
+        }
+
+        return pairs;
     };
     
-    /**
-     * Merges two engines by keeping the configuration of `engineA` but replacing the world with the one from `engineB`.
-     * @method merge
-     * @param {engine} engineA
-     * @param {engine} engineB
-     */
-    Engine.merge = function(engineA, engineB) {
-        Common.extend(engineA, engineB);
-        
-        if (engineB.world) {
-            engineA.world = engineB.world;
-
-            Engine.clear(engineA);
-
-            var bodies = Composite.allBodies(engineA.world);
-
-            for (var i = 0; i < bodies.length; i++) {
-                var body = bodies[i];
-                Sleeping.set(body, false);
-                body.id = Common.nextId();
-            }
-        }
-    };
-
-    /**
-     * Clears the engine including the world, pairs and broadphase.
-     * @method clear
-     * @param {engine} engine
-     */
-    Engine.clear = function(engine) {
-        var world = engine.world;
-        
-        Pairs.clear(engine.pairs);
-
-        var broadphase = engine.broadphase;
-        if (broadphase.controller) {
-            var bodies = Composite.allBodies(world);
-            broadphase.controller.clear(broadphase);
-            broadphase.controller.update(broadphase, bodies, engine, true);
-        }
-    };
-
-    /**
-     * Zeroes the `body.force` and `body.torque` force buffers.
-     * @method _bodiesClearForces
-     * @private
-     * @param {body[]} bodies
-     */
-    Engine._bodiesClearForces = function(bodies) {
-        for (var i = 0; i < bodies.length; i++) {
-            var body = bodies[i];
-
-            // reset force buffers
-            body.force.x = 0;
-            body.force.y = 0;
-            body.torque = 0;
-        }
-    };
-
-    /**
-     * Applys a mass dependant force to all given bodies.
-     * @method _bodiesApplyGravity
-     * @private
-     * @param {body[]} bodies
-     * @param {vector} gravity
-     */
-    Engine._bodiesApplyGravity = function(bodies, gravity) {
-        var gravityScale = typeof gravity.scale !== 'undefined' ? gravity.scale : 0.001;
-
-        if ((gravity.x === 0 && gravity.y === 0) || gravityScale === 0) {
-            return;
-        }
-        
-        for (var i = 0; i < bodies.length; i++) {
-            var body = bodies[i];
-
-            if (body.isStatic || body.isSleeping)
-                continue;
-
-            // apply gravity
-            body.force.y += body.mass * gravity.y * gravityScale;
-            body.force.x += body.mass * gravity.x * gravityScale;
-        }
-    };
-
-    /**
-     * Applys `Body.update` to all given `bodies`.
-     * @method _bodiesUpdate
-     * @private
-     * @param {body[]} bodies
-     * @param {number} deltaTime 
-     * The amount of time elapsed between updates
-     * @param {number} timeScale
-     * @param {number} correction 
-     * The Verlet correction factor (deltaTime / lastDeltaTime)
-     * @param {bounds} worldBounds
-     */
-    Engine._bodiesUpdate = function(bodies, deltaTime, timeScale, correction, worldBounds) {
-        for (var i = 0; i < bodies.length; i++) {
-            var body = bodies[i];
-
-            if (body.isStatic || body.isSleeping)
-                continue;
-
-            Body.update(body, deltaTime, timeScale, correction);
-        }
-    };
-
-    /**
-     * An alias for `Runner.run`, see `Matter.Runner` for more information.
-     * @method run
-     * @param {engine} engine
-     */
-
-    /**
-    * Fired just before an update
-    *
-    * @event beforeUpdate
-    * @param {} event An event object
-    * @param {number} event.timestamp The engine.timing.timestamp of the event
-    * @param {} event.source The source object of the event
-    * @param {} event.name The name of the event
-    */
-
-    /**
-    * Fired after engine update and all collision events
-    *
-    * @event afterUpdate
-    * @param {} event An event object
-    * @param {number} event.timestamp The engine.timing.timestamp of the event
-    * @param {} event.source The source object of the event
-    * @param {} event.name The name of the event
-    */
-
-    /**
-    * Fired after engine update, provides a list of all pairs that have started to collide in the current tick (if any)
-    *
-    * @event collisionStart
-    * @param {} event An event object
-    * @param {} event.pairs List of affected pairs
-    * @param {number} event.timestamp The engine.timing.timestamp of the event
-    * @param {} event.source The source object of the event
-    * @param {} event.name The name of the event
-    */
-
-    /**
-    * Fired after engine update, provides a list of all pairs that are colliding in the current tick (if any)
-    *
-    * @event collisionActive
-    * @param {} event An event object
-    * @param {} event.pairs List of affected pairs
-    * @param {number} event.timestamp The engine.timing.timestamp of the event
-    * @param {} event.source The source object of the event
-    * @param {} event.name The name of the event
-    */
-
-    /**
-    * Fired after engine update, provides a list of all pairs that have ended collision in the current tick (if any)
-    *
-    * @event collisionEnd
-    * @param {} event An event object
-    * @param {} event.pairs List of affected pairs
-    * @param {number} event.timestamp The engine.timing.timestamp of the event
-    * @param {} event.source The source object of the event
-    * @param {} event.name The name of the event
-    */
-
-    /*
-    *
-    *  Properties Documentation
-    *
-    */
-
-    /**
-     * An integer `Number` that specifies the number of position iterations to perform each update.
-     * The higher the value, the higher quality the simulation will be at the expense of performance.
-     *
-     * @property positionIterations
-     * @type number
-     * @default 6
-     */
-
-    /**
-     * An integer `Number` that specifies the number of velocity iterations to perform each update.
-     * The higher the value, the higher quality the simulation will be at the expense of performance.
-     *
-     * @property velocityIterations
-     * @type number
-     * @default 4
-     */
-
-    /**
-     * An integer `Number` that specifies the number of constraint iterations to perform each update.
-     * The higher the value, the higher quality the simulation will be at the expense of performance.
-     * The default value of `2` is usually very adequate.
-     *
-     * @property constraintIterations
-     * @type number
-     * @default 2
-     */
-
-    /**
-     * A flag that specifies whether the engine should allow sleeping via the `Matter.Sleeping` module.
-     * Sleeping can improve stability and performance, but often at the expense of accuracy.
-     *
-     * @property enableSleeping
-     * @type boolean
-     * @default false
-     */
-
-    /**
-     * An `Object` containing properties regarding the timing systems of the engine. 
-     *
-     * @property timing
-     * @type object
-     */
-
-    /**
-     * A `Number` that specifies the global scaling factor of time for all bodies.
-     * A value of `0` freezes the simulation.
-     * A value of `0.1` gives a slow-motion effect.
-     * A value of `1.2` gives a speed-up effect.
-     *
-     * @property timing.timeScale
-     * @type number
-     * @default 1
-     */
-
-    /**
-     * A `Number` that specifies the current simulation-time in milliseconds starting from `0`. 
-     * It is incremented on every `Engine.update` by the given `delta` argument. 
-     *
-     * @property timing.timestamp
-     * @type number
-     * @default 0
-     */
-
-    /**
-     * An instance of a `Render` controller. The default value is a `Matter.Render` instance created by `Engine.create`.
-     * One may also develop a custom renderer module based on `Matter.Render` and pass an instance of it to `Engine.create` via `options.render`.
-     *
-     * A minimal custom renderer object must define at least three functions: `create`, `clear` and `world` (see `Matter.Render`).
-     * It is also possible to instead pass the _module_ reference via `options.render.controller` and `Engine.create` will instantiate one for you.
-     *
-     * @property render
-     * @type render
-     * @deprecated see Demo.js for an example of creating a renderer
-     * @default a Matter.Render instance
-     */
-
-    /**
-     * An instance of a broadphase controller. The default value is a `Matter.Grid` instance created by `Engine.create`.
-     *
-     * @property broadphase
-     * @type grid
-     * @default a Matter.Grid instance
-     */
-
-    /**
-     * A `World` composite object that will contain all simulated bodies and constraints.
-     *
-     * @property world
-     * @type world
-     * @default a Matter.World instance
-     */
-
-    /**
-     * An object reserved for storing plugin-specific properties.
-     *
-     * @property plugin
-     * @type {}
-     */
-
 })();
+
+
+/***/ }),
+/* 22 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var Matter = module.exports = __webpack_require__(23);
+
+Matter.Axes = __webpack_require__(10);
+Matter.Bodies = __webpack_require__(11);
+Matter.Body = __webpack_require__(6);
+Matter.Bounds = __webpack_require__(1);
+Matter.Common = __webpack_require__(0);
+Matter.Composite = __webpack_require__(5);
+Matter.Composites = __webpack_require__(24);
+Matter.Constraint = __webpack_require__(8);
+Matter.Contact = __webpack_require__(17);
+Matter.Detector = __webpack_require__(13);
+Matter.Engine = __webpack_require__(18);
+Matter.Events = __webpack_require__(4);
+Matter.Grid = __webpack_require__(21);
+Matter.Mouse = __webpack_require__(12);
+Matter.MouseConstraint = __webpack_require__(25);
+Matter.Pair = __webpack_require__(9);
+Matter.Pairs = __webpack_require__(20);
+Matter.Plugin = __webpack_require__(15);
+Matter.Query = __webpack_require__(26);
+Matter.Render = __webpack_require__(16);
+Matter.Resolver = __webpack_require__(19);
+Matter.Runner = __webpack_require__(27);
+Matter.SAT = __webpack_require__(14);
+Matter.Sleeping = __webpack_require__(7);
+Matter.Svg = __webpack_require__(28);
+Matter.Vector = __webpack_require__(2);
+Matter.Vertices = __webpack_require__(3);
+Matter.World = __webpack_require__(29);
 
 
 /***/ }),
 /* 23 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// @if DEBUG
-/**
-* _Internal Class_, not generally used outside of the engine's internals.
-*
-*/
-
-var Metrics = {};
-
-module.exports = Metrics;
-
-var Composite = __webpack_require__(5);
-var Common = __webpack_require__(0);
-
-(function() {
-
-    /**
-     * Creates a new metrics.
-     * @method create
-     * @private
-     * @return {metrics} A new metrics
-     */
-    Metrics.create = function(options) {
-        var defaults = {
-            extended: false,
-            narrowDetections: 0,
-            narrowphaseTests: 0,
-            narrowReuse: 0,
-            narrowReuseCount: 0,
-            midphaseTests: 0,
-            broadphaseTests: 0,
-            narrowEff: 0.0001,
-            midEff: 0.0001,
-            broadEff: 0.0001,
-            collisions: 0,
-            buckets: 0,
-            bodies: 0,
-            pairs: 0
-        };
-
-        return Common.extend(defaults, false, options);
-    };
-
-    /**
-     * Resets metrics.
-     * @method reset
-     * @private
-     * @param {metrics} metrics
-     */
-    Metrics.reset = function(metrics) {
-        if (metrics.extended) {
-            metrics.narrowDetections = 0;
-            metrics.narrowphaseTests = 0;
-            metrics.narrowReuse = 0;
-            metrics.narrowReuseCount = 0;
-            metrics.midphaseTests = 0;
-            metrics.broadphaseTests = 0;
-            metrics.narrowEff = 0;
-            metrics.midEff = 0;
-            metrics.broadEff = 0;
-            metrics.collisions = 0;
-            metrics.buckets = 0;
-            metrics.pairs = 0;
-            metrics.bodies = 0;
-        }
-    };
-
-    /**
-     * Updates metrics.
-     * @method update
-     * @private
-     * @param {metrics} metrics
-     * @param {engine} engine
-     */
-    Metrics.update = function(metrics, engine) {
-        if (metrics.extended) {
-            var world = engine.world,
-                bodies = Composite.allBodies(world);
-
-            metrics.collisions = metrics.narrowDetections;
-            metrics.pairs = engine.pairs.list.length;
-            metrics.bodies = bodies.length;
-            metrics.midEff = (metrics.narrowDetections / (metrics.midphaseTests || 1)).toFixed(2);
-            metrics.narrowEff = (metrics.narrowDetections / (metrics.narrowphaseTests || 1)).toFixed(2);
-            metrics.broadEff = (1 - (metrics.broadphaseTests / (bodies.length || 1))).toFixed(2);
-            metrics.narrowReuse = (metrics.narrowReuseCount / (metrics.narrowphaseTests || 1)).toFixed(2);
-            //var broadphase = engine.broadphase[engine.broadphase.current];
-            //if (broadphase.instance)
-            //    metrics.buckets = Common.keys(broadphase.instance.buckets).length;
-        }
-    };
-
-})();
-// @endif
-
-
-/***/ }),
-/* 24 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var Matter = module.exports = __webpack_require__(25);
-
-Matter.Body = __webpack_require__(6);
-Matter.Composite = __webpack_require__(5);
-Matter.World = __webpack_require__(19);
-
-Matter.Contact = __webpack_require__(18);
-Matter.Detector = __webpack_require__(12);
-Matter.Grid = __webpack_require__(11);
-Matter.Pairs = __webpack_require__(20);
-Matter.Pair = __webpack_require__(9);
-Matter.Query = __webpack_require__(26);
-Matter.Resolver = __webpack_require__(21);
-Matter.SAT = __webpack_require__(13);
-
-Matter.Constraint = __webpack_require__(8);
-Matter.MouseConstraint = __webpack_require__(28);
-
-Matter.Common = __webpack_require__(0);
-Matter.Engine = __webpack_require__(22);
-Matter.Events = __webpack_require__(4);
-Matter.Mouse = __webpack_require__(14);
-Matter.Runner = __webpack_require__(29);
-Matter.Sleeping = __webpack_require__(7);
-Matter.Plugin = __webpack_require__(17);
-
-// @if DEBUG
-Matter.Metrics = __webpack_require__(23);
-// @endif
-
-Matter.Bodies = __webpack_require__(16);
-Matter.Composites = __webpack_require__(30);
-
-Matter.Axes = __webpack_require__(15);
-Matter.Bounds = __webpack_require__(1);
-Matter.Svg = __webpack_require__(31);
-Matter.Vector = __webpack_require__(2);
-Matter.Vertices = __webpack_require__(3);
-
-Matter.Render = __webpack_require__(10);
-Matter.RenderPixi = __webpack_require__(32);
-
-// aliases
-
-Matter.World.add = Matter.Composite.add;
-Matter.World.remove = Matter.Composite.remove;
-Matter.World.addComposite = Matter.Composite.addComposite;
-Matter.World.addBody = Matter.Composite.addBody;
-Matter.World.addConstraint = Matter.Composite.addConstraint;
-Matter.World.clear = Matter.Composite.clear;
-Matter.Engine.run = Matter.Runner.run;
-
-
-/***/ }),
-/* 25 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -8937,7 +9059,7 @@ var Matter = {};
 
 module.exports = Matter;
 
-var Plugin = __webpack_require__(17);
+var Plugin = __webpack_require__(15);
 var Common = __webpack_require__(0);
 
 (function() {
@@ -8956,7 +9078,7 @@ var Common = __webpack_require__(0);
      * @readOnly
      * @type {String}
      */
-    Matter.version =  true ? "0.16.1" : undefined;
+    Matter.version =  true ? "0.17.0" : undefined;
 
     /**
      * A list of plugin dependencies to be installed. These are normally set and installed through `Matter.use`.
@@ -9016,150 +9138,350 @@ var Common = __webpack_require__(0);
 
 
 /***/ }),
-/* 26 */
+/* 24 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
-* The `Matter.Query` module contains methods for performing collision queries.
+* The `Matter.Composites` module contains factory methods for creating composite bodies
+* with commonly used configurations (such as stacks and chains).
 *
 * See the included usage [examples](https://github.com/liabru/matter-js/tree/master/examples).
 *
-* @class Query
+* @class Composites
 */
 
-var Query = {};
+var Composites = {};
 
-module.exports = Query;
+module.exports = Composites;
 
-var Vector = __webpack_require__(2);
-var SAT = __webpack_require__(13);
-var Bounds = __webpack_require__(1);
-var Bodies = __webpack_require__(16);
-var Vertices = __webpack_require__(3);
+var Composite = __webpack_require__(5);
+var Constraint = __webpack_require__(8);
+var Common = __webpack_require__(0);
+var Body = __webpack_require__(6);
+var Bodies = __webpack_require__(11);
+var deprecated = Common.deprecated;
 
 (function() {
 
     /**
-     * Returns a list of collisions between `body` and `bodies`.
-     * @method collides
-     * @param {body} body
-     * @param {body[]} bodies
-     * @return {object[]} Collisions
+     * Create a new composite containing bodies created in the callback in a grid arrangement.
+     * This function uses the body's bounds to prevent overlaps.
+     * @method stack
+     * @param {number} xx
+     * @param {number} yy
+     * @param {number} columns
+     * @param {number} rows
+     * @param {number} columnGap
+     * @param {number} rowGap
+     * @param {function} callback
+     * @return {composite} A new composite containing objects created in the callback
      */
-    Query.collides = function(body, bodies) {
-        var collisions = [];
+    Composites.stack = function(xx, yy, columns, rows, columnGap, rowGap, callback) {
+        var stack = Composite.create({ label: 'Stack' }),
+            x = xx,
+            y = yy,
+            lastBody,
+            i = 0;
 
-        for (var i = 0; i < bodies.length; i++) {
-            var bodyA = bodies[i];
+        for (var row = 0; row < rows; row++) {
+            var maxHeight = 0;
             
-            if (Bounds.overlaps(bodyA.bounds, body.bounds)) {
-                for (var j = bodyA.parts.length === 1 ? 0 : 1; j < bodyA.parts.length; j++) {
-                    var part = bodyA.parts[j];
+            for (var column = 0; column < columns; column++) {
+                var body = callback(x, y, column, row, lastBody, i);
+                    
+                if (body) {
+                    var bodyHeight = body.bounds.max.y - body.bounds.min.y,
+                        bodyWidth = body.bounds.max.x - body.bounds.min.x; 
 
-                    if (Bounds.overlaps(part.bounds, body.bounds)) {
-                        var collision = SAT.collides(part, body);
+                    if (bodyHeight > maxHeight)
+                        maxHeight = bodyHeight;
+                    
+                    Body.translate(body, { x: bodyWidth * 0.5, y: bodyHeight * 0.5 });
 
-                        if (collision.collided) {
-                            collisions.push(collision);
-                            break;
-                        }
+                    x = body.bounds.max.x + columnGap;
+
+                    Composite.addBody(stack, body);
+                    
+                    lastBody = body;
+                    i += 1;
+                } else {
+                    x += columnGap;
+                }
+            }
+            
+            y += maxHeight + rowGap;
+            x = xx;
+        }
+
+        return stack;
+    };
+    
+    /**
+     * Chains all bodies in the given composite together using constraints.
+     * @method chain
+     * @param {composite} composite
+     * @param {number} xOffsetA
+     * @param {number} yOffsetA
+     * @param {number} xOffsetB
+     * @param {number} yOffsetB
+     * @param {object} options
+     * @return {composite} A new composite containing objects chained together with constraints
+     */
+    Composites.chain = function(composite, xOffsetA, yOffsetA, xOffsetB, yOffsetB, options) {
+        var bodies = composite.bodies;
+        
+        for (var i = 1; i < bodies.length; i++) {
+            var bodyA = bodies[i - 1],
+                bodyB = bodies[i],
+                bodyAHeight = bodyA.bounds.max.y - bodyA.bounds.min.y,
+                bodyAWidth = bodyA.bounds.max.x - bodyA.bounds.min.x, 
+                bodyBHeight = bodyB.bounds.max.y - bodyB.bounds.min.y,
+                bodyBWidth = bodyB.bounds.max.x - bodyB.bounds.min.x;
+        
+            var defaults = {
+                bodyA: bodyA,
+                pointA: { x: bodyAWidth * xOffsetA, y: bodyAHeight * yOffsetA },
+                bodyB: bodyB,
+                pointB: { x: bodyBWidth * xOffsetB, y: bodyBHeight * yOffsetB }
+            };
+            
+            var constraint = Common.extend(defaults, options);
+        
+            Composite.addConstraint(composite, Constraint.create(constraint));
+        }
+
+        composite.label += ' Chain';
+        
+        return composite;
+    };
+
+    /**
+     * Connects bodies in the composite with constraints in a grid pattern, with optional cross braces.
+     * @method mesh
+     * @param {composite} composite
+     * @param {number} columns
+     * @param {number} rows
+     * @param {boolean} crossBrace
+     * @param {object} options
+     * @return {composite} The composite containing objects meshed together with constraints
+     */
+    Composites.mesh = function(composite, columns, rows, crossBrace, options) {
+        var bodies = composite.bodies,
+            row,
+            col,
+            bodyA,
+            bodyB,
+            bodyC;
+        
+        for (row = 0; row < rows; row++) {
+            for (col = 1; col < columns; col++) {
+                bodyA = bodies[(col - 1) + (row * columns)];
+                bodyB = bodies[col + (row * columns)];
+                Composite.addConstraint(composite, Constraint.create(Common.extend({ bodyA: bodyA, bodyB: bodyB }, options)));
+            }
+
+            if (row > 0) {
+                for (col = 0; col < columns; col++) {
+                    bodyA = bodies[col + ((row - 1) * columns)];
+                    bodyB = bodies[col + (row * columns)];
+                    Composite.addConstraint(composite, Constraint.create(Common.extend({ bodyA: bodyA, bodyB: bodyB }, options)));
+
+                    if (crossBrace && col > 0) {
+                        bodyC = bodies[(col - 1) + ((row - 1) * columns)];
+                        Composite.addConstraint(composite, Constraint.create(Common.extend({ bodyA: bodyC, bodyB: bodyB }, options)));
+                    }
+
+                    if (crossBrace && col < columns - 1) {
+                        bodyC = bodies[(col + 1) + ((row - 1) * columns)];
+                        Composite.addConstraint(composite, Constraint.create(Common.extend({ bodyA: bodyC, bodyB: bodyB }, options)));
                     }
                 }
             }
         }
 
-        return collisions;
+        composite.label += ' Mesh';
+        
+        return composite;
     };
-
+    
     /**
-     * Casts a ray segment against a set of bodies and returns all collisions, ray width is optional. Intersection points are not provided.
-     * @method ray
-     * @param {body[]} bodies
-     * @param {vector} startPoint
-     * @param {vector} endPoint
-     * @param {number} [rayWidth]
-     * @return {object[]} Collisions
+     * Create a new composite containing bodies created in the callback in a pyramid arrangement.
+     * This function uses the body's bounds to prevent overlaps.
+     * @method pyramid
+     * @param {number} xx
+     * @param {number} yy
+     * @param {number} columns
+     * @param {number} rows
+     * @param {number} columnGap
+     * @param {number} rowGap
+     * @param {function} callback
+     * @return {composite} A new composite containing objects created in the callback
      */
-    Query.ray = function(bodies, startPoint, endPoint, rayWidth) {
-        rayWidth = rayWidth || 1e-100;
-
-        var rayAngle = Vector.angle(startPoint, endPoint),
-            rayLength = Vector.magnitude(Vector.sub(startPoint, endPoint)),
-            rayX = (endPoint.x + startPoint.x) * 0.5,
-            rayY = (endPoint.y + startPoint.y) * 0.5,
-            ray = Bodies.rectangle(rayX, rayY, rayLength, rayWidth, { angle: rayAngle }),
-            collisions = Query.collides(ray, bodies);
-
-        for (var i = 0; i < collisions.length; i += 1) {
-            var collision = collisions[i];
-            collision.body = collision.bodyB = collision.bodyA;            
-        }
-
-        return collisions;
-    };
-
-    /**
-     * Returns all bodies whose bounds are inside (or outside if set) the given set of bounds, from the given set of bodies.
-     * @method region
-     * @param {body[]} bodies
-     * @param {bounds} bounds
-     * @param {bool} [outside=false]
-     * @return {body[]} The bodies matching the query
-     */
-    Query.region = function(bodies, bounds, outside) {
-        var result = [];
-
-        for (var i = 0; i < bodies.length; i++) {
-            var body = bodies[i],
-                overlaps = Bounds.overlaps(body.bounds, bounds);
-            if ((overlaps && !outside) || (!overlaps && outside))
-                result.push(body);
-        }
-
-        return result;
-    };
-
-    /**
-     * Returns all bodies whose vertices contain the given point, from the given set of bodies.
-     * @method point
-     * @param {body[]} bodies
-     * @param {vector} point
-     * @return {body[]} The bodies matching the query
-     */
-    Query.point = function(bodies, point) {
-        var result = [];
-
-        for (var i = 0; i < bodies.length; i++) {
-            var body = bodies[i];
+    Composites.pyramid = function(xx, yy, columns, rows, columnGap, rowGap, callback) {
+        return Composites.stack(xx, yy, columns, rows, columnGap, rowGap, function(x, y, column, row, lastBody, i) {
+            var actualRows = Math.min(rows, Math.ceil(columns / 2)),
+                lastBodyWidth = lastBody ? lastBody.bounds.max.x - lastBody.bounds.min.x : 0;
             
-            if (Bounds.contains(body.bounds, point)) {
-                for (var j = body.parts.length === 1 ? 0 : 1; j < body.parts.length; j++) {
-                    var part = body.parts[j];
+            if (row > actualRows)
+                return;
+            
+            // reverse row order
+            row = actualRows - row;
+            
+            var start = row,
+                end = columns - 1 - row;
 
-                    if (Bounds.contains(part.bounds, point)
-                        && Vertices.contains(part.vertices, point)) {
-                        result.push(body);
-                        break;
-                    }
-                }
+            if (column < start || column > end)
+                return;
+            
+            // retroactively fix the first body's position, since width was unknown
+            if (i === 1) {
+                Body.translate(lastBody, { x: (column + (columns % 2 === 1 ? 1 : -1)) * lastBodyWidth, y: 0 });
             }
-        }
 
-        return result;
+            var xOffset = lastBody ? column * lastBodyWidth : 0;
+            
+            return callback(xx + xOffset + column * columnGap, y, column, row, lastBody, i);
+        });
     };
 
+    /**
+     * This has now moved to the [newtonsCradle example](https://github.com/liabru/matter-js/blob/master/examples/newtonsCradle.js), follow that instead as this function is deprecated here.
+     * @deprecated moved to newtonsCradle example
+     * @method newtonsCradle
+     * @param {number} xx
+     * @param {number} yy
+     * @param {number} number
+     * @param {number} size
+     * @param {number} length
+     * @return {composite} A new composite newtonsCradle body
+     */
+    Composites.newtonsCradle = function(xx, yy, number, size, length) {
+        var newtonsCradle = Composite.create({ label: 'Newtons Cradle' });
+
+        for (var i = 0; i < number; i++) {
+            var separation = 1.9,
+                circle = Bodies.circle(xx + i * (size * separation), yy + length, size, 
+                    { inertia: Infinity, restitution: 1, friction: 0, frictionAir: 0.0001, slop: 1 }),
+                constraint = Constraint.create({ pointA: { x: xx + i * (size * separation), y: yy }, bodyB: circle });
+
+            Composite.addBody(newtonsCradle, circle);
+            Composite.addConstraint(newtonsCradle, constraint);
+        }
+
+        return newtonsCradle;
+    };
+
+    deprecated(Composites, 'newtonsCradle', 'Composites.newtonsCradle ➤ moved to newtonsCradle example');
+    
+    /**
+     * This has now moved to the [car example](https://github.com/liabru/matter-js/blob/master/examples/car.js), follow that instead as this function is deprecated here.
+     * @deprecated moved to car example
+     * @method car
+     * @param {number} xx
+     * @param {number} yy
+     * @param {number} width
+     * @param {number} height
+     * @param {number} wheelSize
+     * @return {composite} A new composite car body
+     */
+    Composites.car = function(xx, yy, width, height, wheelSize) {
+        var group = Body.nextGroup(true),
+            wheelBase = 20,
+            wheelAOffset = -width * 0.5 + wheelBase,
+            wheelBOffset = width * 0.5 - wheelBase,
+            wheelYOffset = 0;
+    
+        var car = Composite.create({ label: 'Car' }),
+            body = Bodies.rectangle(xx, yy, width, height, { 
+                collisionFilter: {
+                    group: group
+                },
+                chamfer: {
+                    radius: height * 0.5
+                },
+                density: 0.0002
+            });
+    
+        var wheelA = Bodies.circle(xx + wheelAOffset, yy + wheelYOffset, wheelSize, { 
+            collisionFilter: {
+                group: group
+            },
+            friction: 0.8
+        });
+                    
+        var wheelB = Bodies.circle(xx + wheelBOffset, yy + wheelYOffset, wheelSize, { 
+            collisionFilter: {
+                group: group
+            },
+            friction: 0.8
+        });
+                    
+        var axelA = Constraint.create({
+            bodyB: body,
+            pointB: { x: wheelAOffset, y: wheelYOffset },
+            bodyA: wheelA,
+            stiffness: 1,
+            length: 0
+        });
+                        
+        var axelB = Constraint.create({
+            bodyB: body,
+            pointB: { x: wheelBOffset, y: wheelYOffset },
+            bodyA: wheelB,
+            stiffness: 1,
+            length: 0
+        });
+        
+        Composite.addBody(car, body);
+        Composite.addBody(car, wheelA);
+        Composite.addBody(car, wheelB);
+        Composite.addConstraint(car, axelA);
+        Composite.addConstraint(car, axelB);
+
+        return car;
+    };
+
+    deprecated(Composites, 'car', 'Composites.car ➤ moved to car example');
+
+    /**
+     * This has now moved to the [softBody example](https://github.com/liabru/matter-js/blob/master/examples/softBody.js)
+     * and the [cloth example](https://github.com/liabru/matter-js/blob/master/examples/cloth.js), follow those instead as this function is deprecated here.
+     * @deprecated moved to softBody and cloth examples
+     * @method softBody
+     * @param {number} xx
+     * @param {number} yy
+     * @param {number} columns
+     * @param {number} rows
+     * @param {number} columnGap
+     * @param {number} rowGap
+     * @param {boolean} crossBrace
+     * @param {number} particleRadius
+     * @param {} particleOptions
+     * @param {} constraintOptions
+     * @return {composite} A new composite softBody
+     */
+    Composites.softBody = function(xx, yy, columns, rows, columnGap, rowGap, crossBrace, particleRadius, particleOptions, constraintOptions) {
+        particleOptions = Common.extend({ inertia: Infinity }, particleOptions);
+        constraintOptions = Common.extend({ stiffness: 0.2, render: { type: 'line', anchors: false } }, constraintOptions);
+
+        var softBody = Composites.stack(xx, yy, columns, rows, columnGap, rowGap, function(x, y) {
+            return Bodies.circle(x, y, particleRadius, particleOptions);
+        });
+
+        Composites.mesh(softBody, columns, rows, crossBrace, constraintOptions);
+
+        softBody.label = 'Soft Body';
+
+        return softBody;
+    };
+
+    deprecated(Composites, 'softBody', 'Composites.softBody ➤ moved to softBody and cloth examples');
 })();
 
 
 /***/ }),
-/* 27 */
-/***/ (function(module, exports) {
-
-if(typeof __WEBPACK_EXTERNAL_MODULE__27__ === 'undefined') {var e = new Error("Cannot find module 'undefined'"); e.code = 'MODULE_NOT_FOUND'; throw e;}
-module.exports = __WEBPACK_EXTERNAL_MODULE__27__;
-
-/***/ }),
-/* 28 */
+/* 25 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -9177,9 +9499,9 @@ module.exports = MouseConstraint;
 
 var Vertices = __webpack_require__(3);
 var Sleeping = __webpack_require__(7);
-var Mouse = __webpack_require__(14);
+var Mouse = __webpack_require__(12);
 var Events = __webpack_require__(4);
-var Detector = __webpack_require__(12);
+var Detector = __webpack_require__(13);
 var Constraint = __webpack_require__(8);
 var Composite = __webpack_require__(5);
 var Common = __webpack_require__(0);
@@ -9426,7 +9748,143 @@ var Bounds = __webpack_require__(1);
 
 
 /***/ }),
-/* 29 */
+/* 26 */
+/***/ (function(module, exports, __webpack_require__) {
+
+/**
+* The `Matter.Query` module contains methods for performing collision queries.
+*
+* See the included usage [examples](https://github.com/liabru/matter-js/tree/master/examples).
+*
+* @class Query
+*/
+
+var Query = {};
+
+module.exports = Query;
+
+var Vector = __webpack_require__(2);
+var SAT = __webpack_require__(14);
+var Bounds = __webpack_require__(1);
+var Bodies = __webpack_require__(11);
+var Vertices = __webpack_require__(3);
+
+(function() {
+
+    /**
+     * Returns a list of collisions between `body` and `bodies`.
+     * @method collides
+     * @param {body} body
+     * @param {body[]} bodies
+     * @return {object[]} Collisions
+     */
+    Query.collides = function(body, bodies) {
+        var collisions = [];
+
+        for (var i = 0; i < bodies.length; i++) {
+            var bodyA = bodies[i];
+            
+            if (Bounds.overlaps(bodyA.bounds, body.bounds)) {
+                for (var j = bodyA.parts.length === 1 ? 0 : 1; j < bodyA.parts.length; j++) {
+                    var part = bodyA.parts[j];
+
+                    if (Bounds.overlaps(part.bounds, body.bounds)) {
+                        var collision = SAT.collides(part, body);
+
+                        if (collision.collided) {
+                            collisions.push(collision);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        return collisions;
+    };
+
+    /**
+     * Casts a ray segment against a set of bodies and returns all collisions, ray width is optional. Intersection points are not provided.
+     * @method ray
+     * @param {body[]} bodies
+     * @param {vector} startPoint
+     * @param {vector} endPoint
+     * @param {number} [rayWidth]
+     * @return {object[]} Collisions
+     */
+    Query.ray = function(bodies, startPoint, endPoint, rayWidth) {
+        rayWidth = rayWidth || 1e-100;
+
+        var rayAngle = Vector.angle(startPoint, endPoint),
+            rayLength = Vector.magnitude(Vector.sub(startPoint, endPoint)),
+            rayX = (endPoint.x + startPoint.x) * 0.5,
+            rayY = (endPoint.y + startPoint.y) * 0.5,
+            ray = Bodies.rectangle(rayX, rayY, rayLength, rayWidth, { angle: rayAngle }),
+            collisions = Query.collides(ray, bodies);
+
+        for (var i = 0; i < collisions.length; i += 1) {
+            var collision = collisions[i];
+            collision.body = collision.bodyB = collision.bodyA;            
+        }
+
+        return collisions;
+    };
+
+    /**
+     * Returns all bodies whose bounds are inside (or outside if set) the given set of bounds, from the given set of bodies.
+     * @method region
+     * @param {body[]} bodies
+     * @param {bounds} bounds
+     * @param {bool} [outside=false]
+     * @return {body[]} The bodies matching the query
+     */
+    Query.region = function(bodies, bounds, outside) {
+        var result = [];
+
+        for (var i = 0; i < bodies.length; i++) {
+            var body = bodies[i],
+                overlaps = Bounds.overlaps(body.bounds, bounds);
+            if ((overlaps && !outside) || (!overlaps && outside))
+                result.push(body);
+        }
+
+        return result;
+    };
+
+    /**
+     * Returns all bodies whose vertices contain the given point, from the given set of bodies.
+     * @method point
+     * @param {body[]} bodies
+     * @param {vector} point
+     * @return {body[]} The bodies matching the query
+     */
+    Query.point = function(bodies, point) {
+        var result = [];
+
+        for (var i = 0; i < bodies.length; i++) {
+            var body = bodies[i];
+            
+            if (Bounds.contains(body.bounds, point)) {
+                for (var j = body.parts.length === 1 ? 0 : 1; j < body.parts.length; j++) {
+                    var part = body.parts[j];
+
+                    if (Bounds.contains(part.bounds, point)
+                        && Vertices.contains(part.vertices, point)) {
+                        result.push(body);
+                        break;
+                    }
+                }
+            }
+        }
+
+        return result;
+    };
+
+})();
+
+
+/***/ }),
+/* 27 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -9446,7 +9904,7 @@ var Runner = {};
 module.exports = Runner;
 
 var Events = __webpack_require__(4);
-var Engine = __webpack_require__(22);
+var Engine = __webpack_require__(18);
 var Common = __webpack_require__(0);
 
 (function() {
@@ -9532,7 +9990,6 @@ var Common = __webpack_require__(0);
     /**
      * A game loop utility that updates the engine and renderer by one step (a 'tick').
      * Features delta smoothing, time correction and fixed or dynamic timing.
-     * Triggers `beforeTick`, `tick` and `afterTick` events on the engine.
      * Consider just `Engine.update(engine, delta)` if you're using your own loop.
      * @method tick
      * @param {runner} runner
@@ -9550,7 +10007,6 @@ var Common = __webpack_require__(0);
         };
 
         Events.trigger(runner, 'beforeTick', event);
-        Events.trigger(engine, 'beforeTick', event); // back compatibility
 
         if (runner.isFixed) {
             // fixed timestep
@@ -9595,35 +10051,13 @@ var Common = __webpack_require__(0);
         }
 
         Events.trigger(runner, 'tick', event);
-        Events.trigger(engine, 'tick', event); // back compatibility
-
-        // if world has been modified, clear the render scene graph
-        if (engine.world.isModified 
-            && engine.render
-            && engine.render.controller
-            && engine.render.controller.clear) {
-            engine.render.controller.clear(engine.render); // back compatibility
-        }
 
         // update
         Events.trigger(runner, 'beforeUpdate', event);
         Engine.update(engine, delta, correction);
         Events.trigger(runner, 'afterUpdate', event);
 
-        // render
-        // back compatibility
-        if (engine.render && engine.render.controller) {
-            Events.trigger(runner, 'beforeRender', event);
-            Events.trigger(engine, 'beforeRender', event); // back compatibility
-
-            engine.render.controller.world(engine.render);
-
-            Events.trigger(runner, 'afterRender', event);
-            Events.trigger(engine, 'afterRender', event); // back compatibility
-        }
-
         Events.trigger(runner, 'afterTick', event);
-        Events.trigger(engine, 'afterTick', event); // back compatibility
     };
 
     /**
@@ -9702,28 +10136,6 @@ var Common = __webpack_require__(0);
     * @param {} event.name The name of the event
     */
 
-    /**
-    * Fired before rendering
-    *
-    * @event beforeRender
-    * @param {} event An event object
-    * @param {number} event.timestamp The engine.timing.timestamp of the event
-    * @param {} event.source The source object of the event
-    * @param {} event.name The name of the event
-    * @deprecated
-    */
-
-    /**
-    * Fired after rendering
-    *
-    * @event afterRender
-    * @param {} event An event object
-    * @param {number} event.timestamp The engine.timing.timestamp of the event
-    * @param {} event.source The source object of the event
-    * @param {} event.name The name of the event
-    * @deprecated
-    */
-
     /*
     *
     *  Properties Documentation
@@ -9762,340 +10174,7 @@ var Common = __webpack_require__(0);
 
 
 /***/ }),
-/* 30 */
-/***/ (function(module, exports, __webpack_require__) {
-
-/**
-* The `Matter.Composites` module contains factory methods for creating composite bodies
-* with commonly used configurations (such as stacks and chains).
-*
-* See the included usage [examples](https://github.com/liabru/matter-js/tree/master/examples).
-*
-* @class Composites
-*/
-
-var Composites = {};
-
-module.exports = Composites;
-
-var Composite = __webpack_require__(5);
-var Constraint = __webpack_require__(8);
-var Common = __webpack_require__(0);
-var Body = __webpack_require__(6);
-var Bodies = __webpack_require__(16);
-
-(function() {
-
-    /**
-     * Create a new composite containing bodies created in the callback in a grid arrangement.
-     * This function uses the body's bounds to prevent overlaps.
-     * @method stack
-     * @param {number} xx
-     * @param {number} yy
-     * @param {number} columns
-     * @param {number} rows
-     * @param {number} columnGap
-     * @param {number} rowGap
-     * @param {function} callback
-     * @return {composite} A new composite containing objects created in the callback
-     */
-    Composites.stack = function(xx, yy, columns, rows, columnGap, rowGap, callback) {
-        var stack = Composite.create({ label: 'Stack' }),
-            x = xx,
-            y = yy,
-            lastBody,
-            i = 0;
-
-        for (var row = 0; row < rows; row++) {
-            var maxHeight = 0;
-            
-            for (var column = 0; column < columns; column++) {
-                var body = callback(x, y, column, row, lastBody, i);
-                    
-                if (body) {
-                    var bodyHeight = body.bounds.max.y - body.bounds.min.y,
-                        bodyWidth = body.bounds.max.x - body.bounds.min.x; 
-
-                    if (bodyHeight > maxHeight)
-                        maxHeight = bodyHeight;
-                    
-                    Body.translate(body, { x: bodyWidth * 0.5, y: bodyHeight * 0.5 });
-
-                    x = body.bounds.max.x + columnGap;
-
-                    Composite.addBody(stack, body);
-                    
-                    lastBody = body;
-                    i += 1;
-                } else {
-                    x += columnGap;
-                }
-            }
-            
-            y += maxHeight + rowGap;
-            x = xx;
-        }
-
-        return stack;
-    };
-    
-    /**
-     * Chains all bodies in the given composite together using constraints.
-     * @method chain
-     * @param {composite} composite
-     * @param {number} xOffsetA
-     * @param {number} yOffsetA
-     * @param {number} xOffsetB
-     * @param {number} yOffsetB
-     * @param {object} options
-     * @return {composite} A new composite containing objects chained together with constraints
-     */
-    Composites.chain = function(composite, xOffsetA, yOffsetA, xOffsetB, yOffsetB, options) {
-        var bodies = composite.bodies;
-        
-        for (var i = 1; i < bodies.length; i++) {
-            var bodyA = bodies[i - 1],
-                bodyB = bodies[i],
-                bodyAHeight = bodyA.bounds.max.y - bodyA.bounds.min.y,
-                bodyAWidth = bodyA.bounds.max.x - bodyA.bounds.min.x, 
-                bodyBHeight = bodyB.bounds.max.y - bodyB.bounds.min.y,
-                bodyBWidth = bodyB.bounds.max.x - bodyB.bounds.min.x;
-        
-            var defaults = {
-                bodyA: bodyA,
-                pointA: { x: bodyAWidth * xOffsetA, y: bodyAHeight * yOffsetA },
-                bodyB: bodyB,
-                pointB: { x: bodyBWidth * xOffsetB, y: bodyBHeight * yOffsetB }
-            };
-            
-            var constraint = Common.extend(defaults, options);
-        
-            Composite.addConstraint(composite, Constraint.create(constraint));
-        }
-
-        composite.label += ' Chain';
-        
-        return composite;
-    };
-
-    /**
-     * Connects bodies in the composite with constraints in a grid pattern, with optional cross braces.
-     * @method mesh
-     * @param {composite} composite
-     * @param {number} columns
-     * @param {number} rows
-     * @param {boolean} crossBrace
-     * @param {object} options
-     * @return {composite} The composite containing objects meshed together with constraints
-     */
-    Composites.mesh = function(composite, columns, rows, crossBrace, options) {
-        var bodies = composite.bodies,
-            row,
-            col,
-            bodyA,
-            bodyB,
-            bodyC;
-        
-        for (row = 0; row < rows; row++) {
-            for (col = 1; col < columns; col++) {
-                bodyA = bodies[(col - 1) + (row * columns)];
-                bodyB = bodies[col + (row * columns)];
-                Composite.addConstraint(composite, Constraint.create(Common.extend({ bodyA: bodyA, bodyB: bodyB }, options)));
-            }
-
-            if (row > 0) {
-                for (col = 0; col < columns; col++) {
-                    bodyA = bodies[col + ((row - 1) * columns)];
-                    bodyB = bodies[col + (row * columns)];
-                    Composite.addConstraint(composite, Constraint.create(Common.extend({ bodyA: bodyA, bodyB: bodyB }, options)));
-
-                    if (crossBrace && col > 0) {
-                        bodyC = bodies[(col - 1) + ((row - 1) * columns)];
-                        Composite.addConstraint(composite, Constraint.create(Common.extend({ bodyA: bodyC, bodyB: bodyB }, options)));
-                    }
-
-                    if (crossBrace && col < columns - 1) {
-                        bodyC = bodies[(col + 1) + ((row - 1) * columns)];
-                        Composite.addConstraint(composite, Constraint.create(Common.extend({ bodyA: bodyC, bodyB: bodyB }, options)));
-                    }
-                }
-            }
-        }
-
-        composite.label += ' Mesh';
-        
-        return composite;
-    };
-    
-    /**
-     * Create a new composite containing bodies created in the callback in a pyramid arrangement.
-     * This function uses the body's bounds to prevent overlaps.
-     * @method pyramid
-     * @param {number} xx
-     * @param {number} yy
-     * @param {number} columns
-     * @param {number} rows
-     * @param {number} columnGap
-     * @param {number} rowGap
-     * @param {function} callback
-     * @return {composite} A new composite containing objects created in the callback
-     */
-    Composites.pyramid = function(xx, yy, columns, rows, columnGap, rowGap, callback) {
-        return Composites.stack(xx, yy, columns, rows, columnGap, rowGap, function(x, y, column, row, lastBody, i) {
-            var actualRows = Math.min(rows, Math.ceil(columns / 2)),
-                lastBodyWidth = lastBody ? lastBody.bounds.max.x - lastBody.bounds.min.x : 0;
-            
-            if (row > actualRows)
-                return;
-            
-            // reverse row order
-            row = actualRows - row;
-            
-            var start = row,
-                end = columns - 1 - row;
-
-            if (column < start || column > end)
-                return;
-            
-            // retroactively fix the first body's position, since width was unknown
-            if (i === 1) {
-                Body.translate(lastBody, { x: (column + (columns % 2 === 1 ? 1 : -1)) * lastBodyWidth, y: 0 });
-            }
-
-            var xOffset = lastBody ? column * lastBodyWidth : 0;
-            
-            return callback(xx + xOffset + column * columnGap, y, column, row, lastBody, i);
-        });
-    };
-
-    /**
-     * Creates a composite with a Newton's Cradle setup of bodies and constraints.
-     * @method newtonsCradle
-     * @param {number} xx
-     * @param {number} yy
-     * @param {number} number
-     * @param {number} size
-     * @param {number} length
-     * @return {composite} A new composite newtonsCradle body
-     */
-    Composites.newtonsCradle = function(xx, yy, number, size, length) {
-        var newtonsCradle = Composite.create({ label: 'Newtons Cradle' });
-
-        for (var i = 0; i < number; i++) {
-            var separation = 1.9,
-                circle = Bodies.circle(xx + i * (size * separation), yy + length, size, 
-                    { inertia: Infinity, restitution: 1, friction: 0, frictionAir: 0.0001, slop: 1 }),
-                constraint = Constraint.create({ pointA: { x: xx + i * (size * separation), y: yy }, bodyB: circle });
-
-            Composite.addBody(newtonsCradle, circle);
-            Composite.addConstraint(newtonsCradle, constraint);
-        }
-
-        return newtonsCradle;
-    };
-    
-    /**
-     * Creates a composite with simple car setup of bodies and constraints.
-     * @method car
-     * @param {number} xx
-     * @param {number} yy
-     * @param {number} width
-     * @param {number} height
-     * @param {number} wheelSize
-     * @return {composite} A new composite car body
-     */
-    Composites.car = function(xx, yy, width, height, wheelSize) {
-        var group = Body.nextGroup(true),
-            wheelBase = 20,
-            wheelAOffset = -width * 0.5 + wheelBase,
-            wheelBOffset = width * 0.5 - wheelBase,
-            wheelYOffset = 0;
-    
-        var car = Composite.create({ label: 'Car' }),
-            body = Bodies.rectangle(xx, yy, width, height, { 
-                collisionFilter: {
-                    group: group
-                },
-                chamfer: {
-                    radius: height * 0.5
-                },
-                density: 0.0002
-            });
-    
-        var wheelA = Bodies.circle(xx + wheelAOffset, yy + wheelYOffset, wheelSize, { 
-            collisionFilter: {
-                group: group
-            },
-            friction: 0.8
-        });
-                    
-        var wheelB = Bodies.circle(xx + wheelBOffset, yy + wheelYOffset, wheelSize, { 
-            collisionFilter: {
-                group: group
-            },
-            friction: 0.8
-        });
-                    
-        var axelA = Constraint.create({
-            bodyB: body,
-            pointB: { x: wheelAOffset, y: wheelYOffset },
-            bodyA: wheelA,
-            stiffness: 1,
-            length: 0
-        });
-                        
-        var axelB = Constraint.create({
-            bodyB: body,
-            pointB: { x: wheelBOffset, y: wheelYOffset },
-            bodyA: wheelB,
-            stiffness: 1,
-            length: 0
-        });
-        
-        Composite.addBody(car, body);
-        Composite.addBody(car, wheelA);
-        Composite.addBody(car, wheelB);
-        Composite.addConstraint(car, axelA);
-        Composite.addConstraint(car, axelB);
-
-        return car;
-    };
-
-    /**
-     * Creates a simple soft body like object.
-     * @method softBody
-     * @param {number} xx
-     * @param {number} yy
-     * @param {number} columns
-     * @param {number} rows
-     * @param {number} columnGap
-     * @param {number} rowGap
-     * @param {boolean} crossBrace
-     * @param {number} particleRadius
-     * @param {} particleOptions
-     * @param {} constraintOptions
-     * @return {composite} A new composite softBody
-     */
-    Composites.softBody = function(xx, yy, columns, rows, columnGap, rowGap, crossBrace, particleRadius, particleOptions, constraintOptions) {
-        particleOptions = Common.extend({ inertia: Infinity }, particleOptions);
-        constraintOptions = Common.extend({ stiffness: 0.2, render: { type: 'line', anchors: false } }, constraintOptions);
-
-        var softBody = Composites.stack(xx, yy, columns, rows, columnGap, rowGap, function(x, y) {
-            return Bodies.circle(x, y, particleRadius, particleOptions);
-        });
-
-        Composites.mesh(softBody, columns, rows, crossBrace, constraintOptions);
-
-        softBody.label = 'Soft Body';
-
-        return softBody;
-    };
-
-})();
-
-
-/***/ }),
-/* 31 */
+/* 28 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -10326,522 +10405,42 @@ var Common = __webpack_require__(0);
 })();
 
 /***/ }),
-/* 32 */
+/* 29 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
-* The `Matter.RenderPixi` module is an example renderer using pixi.js.
-* See also `Matter.Render` for a canvas based renderer.
+* This module has now been replaced by `Matter.Composite`.
 *
-* @class RenderPixi
-* @deprecated the Matter.RenderPixi module will soon be removed from the Matter.js core.
-* It will likely be moved to its own repository (but maintenance will be limited).
+* All usage should be migrated to the equivalent functions found on `Matter.Composite`.
+* For example `World.add(world, body)` now becomes `Composite.add(world, body)`.
+*
+* The property `world.gravity` has been moved to `engine.gravity`.
+*
+* For back-compatibility purposes this module will remain as a direct alias to `Matter.Composite` in the short term during migration.
+* Eventually this alias module will be marked as deprecated and then later removed in a future release.
+*
+* @class World
 */
 
-var RenderPixi = {};
+var World = {};
 
-module.exports = RenderPixi;
+module.exports = World;
 
-var Bounds = __webpack_require__(1);
 var Composite = __webpack_require__(5);
 var Common = __webpack_require__(0);
-var Events = __webpack_require__(4);
-var Vector = __webpack_require__(2);
 
 (function() {
 
-    var _requestAnimationFrame,
-        _cancelAnimationFrame;
-
-    if (typeof window !== 'undefined') {
-        _requestAnimationFrame = window.requestAnimationFrame || window.webkitRequestAnimationFrame
-                                      || window.mozRequestAnimationFrame || window.msRequestAnimationFrame 
-                                      || function(callback){ window.setTimeout(function() { callback(Common.now()); }, 1000 / 60); };
-   
-        _cancelAnimationFrame = window.cancelAnimationFrame || window.mozCancelAnimationFrame 
-                                      || window.webkitCancelAnimationFrame || window.msCancelAnimationFrame;
-    }
-    
     /**
-     * Creates a new Pixi.js WebGL renderer
-     * @method create
-     * @param {object} options
-     * @return {RenderPixi} A new renderer
-     * @deprecated
+     * See above, aliases for back compatibility only
      */
-    RenderPixi.create = function(options) {
-        Common.warn('RenderPixi.create: Matter.RenderPixi is deprecated (see docs)');
-
-        var defaults = {
-            controller: RenderPixi,
-            engine: null,
-            element: null,
-            frameRequestId: null,
-            canvas: null,
-            renderer: null,
-            container: null,
-            spriteContainer: null,
-            pixiOptions: null,
-            options: {
-                width: 800,
-                height: 600,
-                background: '#fafafa',
-                wireframeBackground: '#222',
-                hasBounds: false,
-                enabled: true,
-                wireframes: true,
-                showSleeping: true,
-                showDebug: false,
-                showBroadphase: false,
-                showBounds: false,
-                showVelocity: false,
-                showCollisions: false,
-                showAxes: false,
-                showPositions: false,
-                showAngleIndicator: false,
-                showIds: false,
-                showShadows: false
-            }
-        };
-
-        var render = Common.extend(defaults, options),
-            transparent = !render.options.wireframes && render.options.background === 'transparent';
-
-        // init pixi
-        render.pixiOptions = render.pixiOptions || {
-            view: render.canvas,
-            transparent: transparent,
-            antialias: true,
-            backgroundColor: options.background
-        };
-
-        render.mouse = options.mouse;
-        render.engine = options.engine;
-        render.renderer = render.renderer || new PIXI.WebGLRenderer(render.options.width, render.options.height, render.pixiOptions);
-        render.container = render.container || new PIXI.Container();
-        render.spriteContainer = render.spriteContainer || new PIXI.Container();
-        render.canvas = render.canvas || render.renderer.view;
-        render.bounds = render.bounds || { 
-            min: {
-                x: 0,
-                y: 0
-            }, 
-            max: { 
-                x: render.options.width,
-                y: render.options.height
-            }
-        };
-
-        // event listeners
-        Events.on(render.engine, 'beforeUpdate', function() {
-            RenderPixi.clear(render);
-        });
-
-        // caches
-        render.textures = {};
-        render.sprites = {};
-        render.primitives = {};
-
-        // use a sprite batch for performance
-        render.container.addChild(render.spriteContainer);
-
-        // insert canvas
-        if (Common.isElement(render.element)) {
-            render.element.appendChild(render.canvas);
-        } else {
-            Common.warn('No "render.element" passed, "render.canvas" was not inserted into document.');
-        }
-
-        // prevent menus on canvas
-        render.canvas.oncontextmenu = function() { return false; };
-        render.canvas.onselectstart = function() { return false; };
-
-        return render;
-    };
-
-    /**
-     * Continuously updates the render canvas on the `requestAnimationFrame` event.
-     * @method run
-     * @param {render} render
-     * @deprecated
-     */
-    RenderPixi.run = function(render) {
-        (function loop(time){
-            render.frameRequestId = _requestAnimationFrame(loop);
-            RenderPixi.world(render);
-        })();
-    };
-
-    /**
-     * Ends execution of `Render.run` on the given `render`, by canceling the animation frame request event loop.
-     * @method stop
-     * @param {render} render
-     * @deprecated
-     */
-    RenderPixi.stop = function(render) {
-        _cancelAnimationFrame(render.frameRequestId);
-    };
-
-    /**
-     * Clears the scene graph
-     * @method clear
-     * @param {RenderPixi} render
-     * @deprecated
-     */
-    RenderPixi.clear = function(render) {
-        var container = render.container,
-            spriteContainer = render.spriteContainer;
-
-        // clear stage container
-        while (container.children[0]) { 
-            container.removeChild(container.children[0]); 
-        }
-
-        // clear sprite batch
-        while (spriteContainer.children[0]) { 
-            spriteContainer.removeChild(spriteContainer.children[0]); 
-        }
-
-        var bgSprite = render.sprites['bg-0'];
-
-        // clear caches
-        render.textures = {};
-        render.sprites = {};
-        render.primitives = {};
-
-        // set background sprite
-        render.sprites['bg-0'] = bgSprite;
-        if (bgSprite)
-            container.addChildAt(bgSprite, 0);
-
-        // add sprite batch back into container
-        render.container.addChild(render.spriteContainer);
-
-        // reset background state
-        render.currentBackground = null;
-
-        // reset bounds transforms
-        container.scale.set(1, 1);
-        container.position.set(0, 0);
-    };
-
-    /**
-     * Sets the background of the canvas 
-     * @method setBackground
-     * @param {RenderPixi} render
-     * @param {string} background
-     * @deprecated
-     */
-    RenderPixi.setBackground = function(render, background) {
-        if (render.currentBackground !== background) {
-            var isColor = background.indexOf && background.indexOf('#') !== -1,
-                bgSprite = render.sprites['bg-0'];
-
-            if (isColor) {
-                // if solid background color
-                var color = Common.colorToNumber(background);
-                render.renderer.backgroundColor = color;
-
-                // remove background sprite if existing
-                if (bgSprite)
-                    render.container.removeChild(bgSprite); 
-            } else {
-                // initialise background sprite if needed
-                if (!bgSprite) {
-                    var texture = _getTexture(render, background);
-
-                    bgSprite = render.sprites['bg-0'] = new PIXI.Sprite(texture);
-                    bgSprite.position.x = 0;
-                    bgSprite.position.y = 0;
-                    render.container.addChildAt(bgSprite, 0);
-                }
-            }
-
-            render.currentBackground = background;
-        }
-    };
-
-    /**
-     * Description
-     * @method world
-     * @param {engine} engine
-     * @deprecated
-     */
-    RenderPixi.world = function(render) {
-        var engine = render.engine,
-            world = engine.world,
-            renderer = render.renderer,
-            container = render.container,
-            options = render.options,
-            bodies = Composite.allBodies(world),
-            allConstraints = Composite.allConstraints(world),
-            constraints = [],
-            i;
-
-        if (options.wireframes) {
-            RenderPixi.setBackground(render, options.wireframeBackground);
-        } else {
-            RenderPixi.setBackground(render, options.background);
-        }
-
-        // handle bounds
-        var boundsWidth = render.bounds.max.x - render.bounds.min.x,
-            boundsHeight = render.bounds.max.y - render.bounds.min.y,
-            boundsScaleX = boundsWidth / render.options.width,
-            boundsScaleY = boundsHeight / render.options.height;
-
-        if (options.hasBounds) {
-            // Hide bodies that are not in view
-            for (i = 0; i < bodies.length; i++) {
-                var body = bodies[i];
-                body.render.sprite.visible = Bounds.overlaps(body.bounds, render.bounds);
-            }
-
-            // filter out constraints that are not in view
-            for (i = 0; i < allConstraints.length; i++) {
-                var constraint = allConstraints[i],
-                    bodyA = constraint.bodyA,
-                    bodyB = constraint.bodyB,
-                    pointAWorld = constraint.pointA,
-                    pointBWorld = constraint.pointB;
-
-                if (bodyA) pointAWorld = Vector.add(bodyA.position, constraint.pointA);
-                if (bodyB) pointBWorld = Vector.add(bodyB.position, constraint.pointB);
-
-                if (!pointAWorld || !pointBWorld)
-                    continue;
-
-                if (Bounds.contains(render.bounds, pointAWorld) || Bounds.contains(render.bounds, pointBWorld))
-                    constraints.push(constraint);
-            }
-
-            // transform the view
-            container.scale.set(1 / boundsScaleX, 1 / boundsScaleY);
-            container.position.set(-render.bounds.min.x * (1 / boundsScaleX), -render.bounds.min.y * (1 / boundsScaleY));
-        } else {
-            constraints = allConstraints;
-        }
-
-        for (i = 0; i < bodies.length; i++)
-            RenderPixi.body(render, bodies[i]);
-
-        for (i = 0; i < constraints.length; i++)
-            RenderPixi.constraint(render, constraints[i]);
-
-        renderer.render(container);
-    };
-
-
-    /**
-     * Description
-     * @method constraint
-     * @param {engine} engine
-     * @param {constraint} constraint
-     * @deprecated
-     */
-    RenderPixi.constraint = function(render, constraint) {
-        var engine = render.engine,
-            bodyA = constraint.bodyA,
-            bodyB = constraint.bodyB,
-            pointA = constraint.pointA,
-            pointB = constraint.pointB,
-            container = render.container,
-            constraintRender = constraint.render,
-            primitiveId = 'c-' + constraint.id,
-            primitive = render.primitives[primitiveId];
-
-        // initialise constraint primitive if not existing
-        if (!primitive)
-            primitive = render.primitives[primitiveId] = new PIXI.Graphics();
-
-        // don't render if constraint does not have two end points
-        if (!constraintRender.visible || !constraint.pointA || !constraint.pointB) {
-            primitive.clear();
-            return;
-        }
-
-        // add to scene graph if not already there
-        if (Common.indexOf(container.children, primitive) === -1)
-            container.addChild(primitive);
-
-        // render the constraint on every update, since they can change dynamically
-        primitive.clear();
-        primitive.beginFill(0, 0);
-        primitive.lineStyle(constraintRender.lineWidth, Common.colorToNumber(constraintRender.strokeStyle), 1);
-        
-        if (bodyA) {
-            primitive.moveTo(bodyA.position.x + pointA.x, bodyA.position.y + pointA.y);
-        } else {
-            primitive.moveTo(pointA.x, pointA.y);
-        }
-
-        if (bodyB) {
-            primitive.lineTo(bodyB.position.x + pointB.x, bodyB.position.y + pointB.y);
-        } else {
-            primitive.lineTo(pointB.x, pointB.y);
-        }
-
-        primitive.endFill();
-    };
-    
-    /**
-     * Description
-     * @method body
-     * @param {engine} engine
-     * @param {body} body
-     * @deprecated
-     */
-    RenderPixi.body = function(render, body) {
-        var engine = render.engine,
-            bodyRender = body.render;
-
-        if (!bodyRender.visible)
-            return;
-
-        if (bodyRender.sprite && bodyRender.sprite.texture) {
-            var spriteId = 'b-' + body.id,
-                sprite = render.sprites[spriteId],
-                spriteContainer = render.spriteContainer;
-
-            // initialise body sprite if not existing
-            if (!sprite)
-                sprite = render.sprites[spriteId] = _createBodySprite(render, body);
-
-            // add to scene graph if not already there
-            if (Common.indexOf(spriteContainer.children, sprite) === -1)
-                spriteContainer.addChild(sprite);
-
-            // update body sprite
-            sprite.position.x = body.position.x;
-            sprite.position.y = body.position.y;
-            sprite.rotation = body.angle;
-            sprite.scale.x = bodyRender.sprite.xScale || 1;
-            sprite.scale.y = bodyRender.sprite.yScale || 1;
-        } else {
-            var primitiveId = 'b-' + body.id,
-                primitive = render.primitives[primitiveId],
-                container = render.container;
-
-            // initialise body primitive if not existing
-            if (!primitive) {
-                primitive = render.primitives[primitiveId] = _createBodyPrimitive(render, body);
-                primitive.initialAngle = body.angle;
-            }
-
-            // add to scene graph if not already there
-            if (Common.indexOf(container.children, primitive) === -1)
-                container.addChild(primitive);
-
-            // update body primitive
-            primitive.position.x = body.position.x;
-            primitive.position.y = body.position.y;
-            primitive.rotation = body.angle - primitive.initialAngle;
-        }
-    };
-
-    /**
-     * Creates a body sprite
-     * @method _createBodySprite
-     * @private
-     * @param {RenderPixi} render
-     * @param {body} body
-     * @return {PIXI.Sprite} sprite
-     * @deprecated
-     */
-    var _createBodySprite = function(render, body) {
-        var bodyRender = body.render,
-            texturePath = bodyRender.sprite.texture,
-            texture = _getTexture(render, texturePath),
-            sprite = new PIXI.Sprite(texture);
-
-        sprite.anchor.x = body.render.sprite.xOffset;
-        sprite.anchor.y = body.render.sprite.yOffset;
-
-        return sprite;
-    };
-
-    /**
-     * Creates a body primitive
-     * @method _createBodyPrimitive
-     * @private
-     * @param {RenderPixi} render
-     * @param {body} body
-     * @return {PIXI.Graphics} graphics
-     * @deprecated
-     */
-    var _createBodyPrimitive = function(render, body) {
-        var bodyRender = body.render,
-            options = render.options,
-            primitive = new PIXI.Graphics(),
-            fillStyle = Common.colorToNumber(bodyRender.fillStyle),
-            strokeStyle = Common.colorToNumber(bodyRender.strokeStyle),
-            strokeStyleIndicator = Common.colorToNumber(bodyRender.strokeStyle),
-            strokeStyleWireframe = Common.colorToNumber('#bbb'),
-            strokeStyleWireframeIndicator = Common.colorToNumber('#CD5C5C'),
-            part;
-
-        primitive.clear();
-
-        // handle compound parts
-        for (var k = body.parts.length > 1 ? 1 : 0; k < body.parts.length; k++) {
-            part = body.parts[k];
-
-            if (!options.wireframes) {
-                primitive.beginFill(fillStyle, 1);
-                primitive.lineStyle(bodyRender.lineWidth, strokeStyle, 1);
-            } else {
-                primitive.beginFill(0, 0);
-                primitive.lineStyle(1, strokeStyleWireframe, 1);
-            }
-
-            primitive.moveTo(part.vertices[0].x - body.position.x, part.vertices[0].y - body.position.y);
-
-            for (var j = 1; j < part.vertices.length; j++) {
-                primitive.lineTo(part.vertices[j].x - body.position.x, part.vertices[j].y - body.position.y);
-            }
-
-            primitive.lineTo(part.vertices[0].x - body.position.x, part.vertices[0].y - body.position.y);
-
-            primitive.endFill();
-
-            // angle indicator
-            if (options.showAngleIndicator || options.showAxes) {
-                primitive.beginFill(0, 0);
-
-                if (options.wireframes) {
-                    primitive.lineStyle(1, strokeStyleWireframeIndicator, 1);
-                } else {
-                    primitive.lineStyle(1, strokeStyleIndicator);
-                }
-
-                primitive.moveTo(part.position.x - body.position.x, part.position.y - body.position.y);
-                primitive.lineTo(((part.vertices[0].x + part.vertices[part.vertices.length-1].x) / 2 - body.position.x), 
-                    ((part.vertices[0].y + part.vertices[part.vertices.length-1].y) / 2 - body.position.y));
-
-                primitive.endFill();
-            }
-        }
-
-        return primitive;
-    };
-
-    /**
-     * Gets the requested texture (a PIXI.Texture) via its path
-     * @method _getTexture
-     * @private
-     * @param {RenderPixi} render
-     * @param {string} imagePath
-     * @return {PIXI.Texture} texture
-     * @deprecated
-     */
-    var _getTexture = function(render, imagePath) {
-        var texture = render.textures[imagePath];
-
-        if (!texture)
-            texture = render.textures[imagePath] = PIXI.Texture.fromImage(imagePath);
-
-        return texture;
-    };
+    World.create = Composite.create;
+    World.add = Composite.add;
+    World.remove = Composite.remove;
+    World.clear = Composite.clear;
+    World.addComposite = Composite.addComposite;
+    World.addBody = Composite.addBody;
+    World.addConstraint = Composite.addConstraint;
 
 })();
 
