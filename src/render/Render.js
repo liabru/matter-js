@@ -1684,6 +1684,53 @@ var Mouse = require('../core/Mouse');
      */
 
     /**
+     * A flag to enable or disable all debug information overlays together.  
+     * This includes and has priority over the values of:
+     *
+     * - `render.options.showStats`
+     * - `render.options.showPerformance`
+     *
+     * @property options.showDebug
+     * @type boolean
+     * @default false
+     */
+
+    /**
+     * A flag to enable or disable the engine stats info overlay.  
+     * From left to right, the values shown are:
+     *
+     * - body parts total
+     * - body total
+     * - constraints total
+     * - composites total
+     * - collision pairs total
+     *
+     * @property options.showStats
+     * @type boolean
+     * @default false
+     */
+
+    /**
+     * A flag to enable or disable performance charts.  
+     * From left to right, the values shown are:
+     *
+     * - average render frequency (e.g. 60 fps)
+     * - exact engine delta time used for last update (e.g. 16.66ms)
+     * - average engine execution duration (e.g. 5.00ms)
+     * - average render execution duration (e.g. 0.40ms)
+     * - average effective play speed (e.g. '1.00x' is 'real-time')
+     *
+     * Each value is recorded over a fixed sample of past frames (60 frames).
+     *
+     * A chart shown below each value indicates the variance from the average over the sample.
+     * The more stable or fixed the value is the flatter the chart will appear.
+     *
+     * @property options.showPerformance
+     * @type boolean
+     * @default false
+     */
+    
+    /**
      * A flag to enable or disable rendering entirely.
      *
      * @property options.enabled

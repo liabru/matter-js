@@ -434,6 +434,25 @@ var Body = require('../body/Body');
      */
 
     /**
+     * A `Number` that represents the total execution time elapsed during the last `Engine.update` in milliseconds.
+     * It is updated by timing from the start of the last `Engine.update` call until it ends.
+     *
+     * This value will also include the total execution time of all event handlers directly or indirectly triggered by the engine update.
+     *
+     * @property timing.lastElapsed
+     * @type number
+     * @default 0
+     */
+
+    /**
+     * A `Number` that represents the `delta` value used in the last engine update.
+     *
+     * @property timing.lastDelta
+     * @type number
+     * @default 0
+     */
+
+    /**
      * A `Matter.Grid` instance.
      *
      * @property grid
