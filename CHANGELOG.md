@@ -1,3 +1,9 @@
+## <small>0.17.1 (2021-04-14)</small>
+
+* deprecate Engine.run alias replaced by Runner.run ([5817046](https://github.com/liabru/matter-js/commit/5817046))
+
+
+
 ## 0.17.0 (2021-04-11)
 
 * add Common.setDecomp and Common.getDecomp ([313c150](https://github.com/liabru/matter-js/commit/313c150))

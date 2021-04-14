@@ -1,5 +1,5 @@
 /*!
- * matter-js 0.17.0 by @liabru
+ * matter-js 0.17.1 by @liabru
  * http://brm.io/matter-js/
  * License MIT
  * 
@@ -7966,7 +7966,8 @@ var Body = __webpack_require__(6);
     };
 
     /**
-     * An alias for `Runner.run`, see `Matter.Runner` for more information.
+     * A deprecated alias for `Runner.run`, use `Matter.Runner.run(engine)` instead and see `Matter.Runner` for more information.
+     * @deprecated use Matter.Runner.run(engine) instead
      * @method run
      * @param {engine} engine
      */
@@ -9044,6 +9045,10 @@ Matter.Vector = __webpack_require__(2);
 Matter.Vertices = __webpack_require__(3);
 Matter.World = __webpack_require__(29);
 
+// temporary back compatibility
+Matter.Engine.run = Matter.Runner.run;
+Matter.Common.deprecated(Matter.Engine, 'run', 'Engine.run ➤ use Matter.Runner.run(engine) instead');
+
 
 /***/ }),
 /* 23 */
@@ -9078,7 +9083,7 @@ var Common = __webpack_require__(0);
      * @readOnly
      * @type {String}
      */
-    Matter.version =  true ? "0.17.0" : undefined;
+    Matter.version =  true ? "0.17.1" : undefined;
 
     /**
      * A list of plugin dependencies to be installed. These are normally set and installed through `Matter.use`.
