@@ -22,20 +22,21 @@ var compare = function(examples, isDev) {
             url: 'https://github.com/liabru/matter-js',
             reset: true,
             source: true,
-            inspector: true,
-            tools: true,
+            inspector: false,
+            tools: false,
             fullscreen: true,
             exampleSelect: true
         },
+        // tools disabled to keep sync between instances
         tools: {
-            inspector: true,
-            gui: true
+            inspector: false,
+            gui: false
         },
         inline: false,
         preventZoom: true,
         resetOnOrientation: true,
         routing: true,
-        startExample: 'mixed',
+        startExample: false,
         examples: examples
     });
 
@@ -50,6 +51,7 @@ var compare = function(examples, isDev) {
             fullscreen: false,
             exampleSelect: false
         },
+        // tools disabled to keep sync between instances
         tools: {
             inspector: false,
             gui: false
@@ -58,7 +60,7 @@ var compare = function(examples, isDev) {
         preventZoom: true,
         resetOnOrientation: true,
         routing: false,
-        startExample: 'mixed',
+        startExample: false,
         examples: examples.map(function(example) { 
             return Matter.Common.extend({}, example); 
         })
