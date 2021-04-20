@@ -38,6 +38,7 @@ module.exports = {
     stats: require('./stats.js'),
     stress: require('./stress.js'),
     stress2: require('./stress2.js'),
+    stress3: require('./stress3.js'),
     svg: require('./svg.js'),
     terrain: require('./terrain.js'),
     timescale: require('./timescale.js'),
