@@ -121,34 +121,40 @@ var Bounds = require('../geometry/Bounds');
      * @param {body[]} bodies
      */
     Resolver.postSolvePosition = function(bodies) {
+        var positionWarming = Resolver._positionWarming;
+
         for (var i = 0; i < bodies.length; i++) {
-            var body = bodies[i];
+            var body = bodies[i],
+                positionImpulse = body.positionImpulse,
+                positionImpulseX = positionImpulse.x,
+                positionImpulseY = positionImpulse.y,
+                velocity = body.velocity;
 
             // reset contact count
             body.totalContacts = 0;
 
-            if (body.positionImpulse.x !== 0 || body.positionImpulse.y !== 0) {
+            if (positionImpulseX !== 0 || positionImpulseY !== 0) {
                 // update body geometry
                 for (var j = 0; j < body.parts.length; j++) {
                     var part = body.parts[j];
-                    Vertices.translate(part.vertices, body.positionImpulse);
-                    Bounds.update(part.bounds, part.vertices, body.velocity);
-                    part.position.x += body.positionImpulse.x;
-                    part.position.y += body.positionImpulse.y;
+                    Vertices.translate(part.vertices, positionImpulse);
+                    Bounds.update(part.bounds, part.vertices, velocity);
+                    part.position.x += positionImpulseX;
+                    part.position.y += positionImpulseY;
                 }
 
                 // move the body without changing velocity
-                body.positionPrev.x += body.positionImpulse.x;
-                body.positionPrev.y += body.positionImpulse.y;
+                body.positionPrev.x += positionImpulseX;
+                body.positionPrev.y += positionImpulseY;
 
-                if (Vector.dot(body.positionImpulse, body.velocity) < 0) {
+                if (positionImpulseX * velocity.x + positionImpulseY * velocity.y < 0) {
                     // reset cached impulse if the body has velocity along it
-                    body.positionImpulse.x = 0;
-                    body.positionImpulse.y = 0;
+                    positionImpulse.x = 0;
+                    positionImpulse.y = 0;
                 } else {
                     // warm the next iteration
-                    body.positionImpulse.x *= Resolver._positionWarming;
-                    body.positionImpulse.y *= Resolver._positionWarming;
+                    positionImpulse.x *= positionWarming;
+                    positionImpulse.y *= positionWarming;
                 }
             }
         }
