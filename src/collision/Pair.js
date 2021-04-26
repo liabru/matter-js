@@ -38,10 +38,10 @@ var Contact = require('./Contact');
             timeCreated: timestamp,
             timeUpdated: timestamp,
             inverseMass: parentA.inverseMass + parentB.inverseMass,
-            friction: Math.min(parentA.friction, parentB.friction),
-            frictionStatic: Math.max(parentA.frictionStatic, parentB.frictionStatic),
-            restitution: Math.max(parentA.restitution, parentB.restitution),
-            slop: Math.max(parentA.slop, parentB.slop)
+            friction: parentA.friction < parentB.friction ? parentA.friction : parentB.friction,
+            frictionStatic: parentA.frictionStatic > parentB.frictionStatic ? parentA.frictionStatic : parentB.frictionStatic,
+            restitution: parentA.restitution > parentB.restitution ? parentA.restitution : parentB.restitution,
+            slop: parentA.slop > parentB.slop ? parentA.slop : parentB.slop
         };
 
         Pair.update(pair, collision, timestamp);
