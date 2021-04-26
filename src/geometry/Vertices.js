@@ -196,15 +196,21 @@ var Common = require('../core/Common');
             return;
 
         var cos = Math.cos(angle),
-            sin = Math.sin(angle);
+            sin = Math.sin(angle),
+            pointX = point.x,
+            pointY = point.y,
+            verticesLength = vertices.length,
+            vertex,
+            dx,
+            dy,
+            i;
 
-        for (var i = 0; i < vertices.length; i++) {
-            var vertice = vertices[i],
-                dx = vertice.x - point.x,
-                dy = vertice.y - point.y;
-                
-            vertice.x = point.x + (dx * cos - dy * sin);
-            vertice.y = point.y + (dx * sin + dy * cos);
+        for (i = 0; i < verticesLength; i++) {
+            vertex = vertices[i];
+            dx = vertex.x - pointX;
+            dy = vertex.y - pointY;
+            vertex.x = pointX + (dx * cos - dy * sin);
+            vertex.y = pointY + (dx * sin + dy * cos);
         }
 
         return vertices;
