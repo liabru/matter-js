@@ -29,10 +29,11 @@ var Bounds = require('../geometry/Bounds');
     Resolver.preSolvePosition = function(pairs) {
         var i,
             pair,
-            activeCount;
+            activeCount,
+            pairsLength = pairs.length;
 
         // find total contacts on each body
-        for (i = 0; i < pairs.length; i++) {
+        for (i = 0; i < pairsLength; i++) {
             pair = pairs[i];
             
             if (!pair.isActive)
@@ -57,17 +58,13 @@ var Bounds = require('../geometry/Bounds');
             bodyA,
             bodyB,
             normal,
-            bodyBtoA,
             contactShare,
             positionImpulse,
-            contactCount = {},
-            tempA = Vector._temp[0],
-            tempB = Vector._temp[1],
-            tempC = Vector._temp[2],
-            tempD = Vector._temp[3];
+            positionDampen = Resolver._positionDampen,
+            pairsLength = pairs.length;
 
         // find impulses required to resolve penetration
-        for (i = 0; i < pairs.length; i++) {
+        for (i = 0; i < pairsLength; i++) {
             pair = pairs[i];
             
             if (!pair.isActive || pair.isSensor)
@@ -78,15 +75,18 @@ var Bounds = require('../geometry/Bounds');
             bodyB = collision.parentB;
             normal = collision.normal;
 
+            // TODO: behaviour change: replace with fully simplified version
             // get current separation between body edges involved in collision
-            bodyBtoA = Vector.sub(Vector.add(bodyB.positionImpulse, bodyB.position, tempA), 
-                Vector.add(bodyA.positionImpulse, 
-                    Vector.sub(bodyB.position, collision.penetration, tempB), tempC), tempD);
-
-            pair.separation = Vector.dot(normal, bodyBtoA);
+            pair.separation = 
+                normal.x * (
+                    (bodyB.positionImpulse.x + bodyB.position.x) - (bodyA.positionImpulse.x + (bodyB.position.x - collision.penetration.x))
+                )
+                + normal.y * (
+                    (bodyB.positionImpulse.y + bodyB.position.y) - (bodyA.positionImpulse.y + (bodyB.position.y - collision.penetration.y))
+                );
         }
         
-        for (i = 0; i < pairs.length; i++) {
+        for (i = 0; i < pairsLength; i++) {
             pair = pairs[i];
 
             if (!pair.isActive || pair.isSensor)
@@ -102,13 +102,13 @@ var Bounds = require('../geometry/Bounds');
                 positionImpulse *= 2;
             
             if (!(bodyA.isStatic || bodyA.isSleeping)) {
-                contactShare = Resolver._positionDampen / bodyA.totalContacts;
+                contactShare = positionDampen / bodyA.totalContacts;
                 bodyA.positionImpulse.x += normal.x * positionImpulse * contactShare;
                 bodyA.positionImpulse.y += normal.y * positionImpulse * contactShare;
             }
 
             if (!(bodyB.isStatic || bodyB.isSleeping)) {
-                contactShare = Resolver._positionDampen / bodyB.totalContacts;
+                contactShare = positionDampen / bodyB.totalContacts;
                 bodyB.positionImpulse.x -= normal.x * positionImpulse * contactShare;
                 bodyB.positionImpulse.y -= normal.y * positionImpulse * contactShare;
             }
