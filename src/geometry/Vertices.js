@@ -169,17 +169,16 @@ var Common = require('../core/Common');
      * @param {number} scalar
      */
     Vertices.translate = function(vertices, vector, scalar) {
-        var i;
-        if (scalar) {
-            for (i = 0; i < vertices.length; i++) {
-                vertices[i].x += vector.x * scalar;
-                vertices[i].y += vector.y * scalar;
-            }
-        } else {
-            for (i = 0; i < vertices.length; i++) {
-                vertices[i].x += vector.x;
-                vertices[i].y += vector.y;
-            }
+        scalar = typeof scalar !== 'undefined' ? scalar : 1;
+
+        var verticesLength = vertices.length,
+            translateX = vector.x * scalar,
+            translateY = vector.y * scalar,
+            i;
+        
+        for (i = 0; i < verticesLength; i++) {
+            vertices[i].x += translateX;
+            vertices[i].y += translateY;
         }
 
         return vertices;
