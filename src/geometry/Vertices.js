@@ -224,12 +224,21 @@ var Common = require('../core/Common');
      * @return {boolean} True if the vertices contains point, otherwise false
      */
     Vertices.contains = function(vertices, point) {
-        for (var i = 0; i < vertices.length; i++) {
-            var vertice = vertices[i],
-                nextVertice = vertices[(i + 1) % vertices.length];
-            if ((point.x - vertice.x) * (nextVertice.y - vertice.y) + (point.y - vertice.y) * (vertice.x - nextVertice.x) > 0) {
+        var pointX = point.x,
+            pointY = point.y,
+            verticesLength = vertices.length,
+            vertex = vertices[verticesLength - 1],
+            nextVertex;
+
+        for (var i = 0; i < verticesLength; i++) {
+            nextVertex = vertices[i];
+
+            if ((pointX - vertex.x) * (nextVertex.y - vertex.y) 
+                + (pointY - vertex.y) * (vertex.x - nextVertex.x) > 0) {
                 return false;
             }
+
+            vertex = nextVertex;
         }
 
         return true;
