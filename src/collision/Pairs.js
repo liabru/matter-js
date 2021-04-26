@@ -111,6 +111,7 @@ var Common = require('../core/Common');
         var pairsList = pairs.list,
             pairsTable = pairs.table,
             indexesToRemove = [],
+            pairMaxIdleLife = Pairs._pairMaxIdleLife,
             pair,
             collision,
             pairIndex,
@@ -127,7 +128,7 @@ var Common = require('../core/Common');
             }
 
             // if pair is inactive for too long, mark it to be removed
-            if (timestamp - pair.timeUpdated > Pairs._pairMaxIdleLife) {
+            if (timestamp - pair.timeUpdated > pairMaxIdleLife) {
                 indexesToRemove.push(i);
             }
         }
