@@ -65,10 +65,10 @@ var Contact = require('./Contact');
         
         pair.collision = collision;
         pair.inverseMass = parentA.inverseMass + parentB.inverseMass;
-        pair.friction = Math.min(parentA.friction, parentB.friction);
-        pair.frictionStatic = Math.max(parentA.frictionStatic, parentB.frictionStatic);
-        pair.restitution = Math.max(parentA.restitution, parentB.restitution);
-        pair.slop = Math.max(parentA.slop, parentB.slop);
+        pair.friction = parentA.friction < parentB.friction ? parentA.friction : parentB.friction;
+        pair.frictionStatic = parentA.frictionStatic > parentB.frictionStatic ? parentA.frictionStatic : parentB.frictionStatic;
+        pair.restitution = parentA.restitution > parentB.restitution ? parentA.restitution : parentB.restitution;
+        pair.slop = parentA.slop > parentB.slop ? parentA.slop : parentB.slop;
         activeContacts.length = 0;
         
         if (collision.collided) {
