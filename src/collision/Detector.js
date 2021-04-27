@@ -39,26 +39,22 @@ var Bounds = require('../geometry/Bounds');
 
             // mid phase
             if (Bounds.overlaps(bodyA.bounds, bodyB.bounds)) {
-                for (var j = bodyA.parts.length > 1 ? 1 : 0; j < bodyA.parts.length; j++) {
+                var partsALength = bodyA.parts.length,
+                    partsBLength = bodyB.parts.length;
+                
+                for (var j = partsALength > 1 ? 1 : 0; j < partsALength; j++) {
                     var partA = bodyA.parts[j];
 
-                    for (var k = bodyB.parts.length > 1 ? 1 : 0; k < bodyB.parts.length; k++) {
+                    for (var k = partsBLength > 1 ? 1 : 0; k < partsBLength; k++) {
                         var partB = bodyB.parts[k];
 
                         if ((partA === bodyA && partB === bodyB) || Bounds.overlaps(partA.bounds, partB.bounds)) {
                             // find a previous collision we could reuse
                             var pairId = Pair.id(partA, partB),
-                                pair = pairsTable[pairId],
-                                previousCollision;
-
-                            if (pair && pair.isActive) {
-                                previousCollision = pair.collision;
-                            } else {
-                                previousCollision = null;
-                            }
+                                pair = pairsTable[pairId];
 
                             // narrow phase
-                            var collision = SAT.collides(partA, partB, previousCollision);
+                            var collision = SAT.collides(partA, partB, pair && pair.isActive ? pair.collision : null);
 
                             if (collision.collided) {
                                 collisions.push(collision);
