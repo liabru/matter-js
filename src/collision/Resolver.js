@@ -121,9 +121,12 @@ var Bounds = require('../geometry/Bounds');
      * @param {body[]} bodies
      */
     Resolver.postSolvePosition = function(bodies) {
-        var positionWarming = Resolver._positionWarming;
+        var positionWarming = Resolver._positionWarming,
+            bodiesLength = bodies.length,
+            verticesTranslate = Vertices.translate,
+            boundsUpdate = Bounds.update;
 
-        for (var i = 0; i < bodies.length; i++) {
+        for (var i = 0; i < bodiesLength; i++) {
             var body = bodies[i],
                 positionImpulse = body.positionImpulse,
                 positionImpulseX = positionImpulse.x,
@@ -137,8 +140,8 @@ var Bounds = require('../geometry/Bounds');
                 // update body geometry
                 for (var j = 0; j < body.parts.length; j++) {
                     var part = body.parts[j];
-                    Vertices.translate(part.vertices, positionImpulse);
-                    Bounds.update(part.bounds, part.vertices, velocity);
+                    verticesTranslate(part.vertices, positionImpulse);
+                    boundsUpdate(part.bounds, part.vertices, velocity);
                     part.position.x += positionImpulseX;
                     part.position.y += positionImpulseY;
                 }
