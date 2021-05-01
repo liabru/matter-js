@@ -25,20 +25,26 @@ var Bounds = require('../geometry/Bounds');
      */
     Detector.collisions = function(broadphasePairs, engine) {
         var collisions = [],
-            pairsTable = engine.pairs.table;
+            pairsTable = engine.pairs.table,
+            broadphasePairsLength = broadphasePairs.length,
+            canCollide = Detector.canCollide,
+            overlaps = Bounds.overlaps,
+            collides = SAT.collides,
+            pairId = Pair.id,
+            i;
 
-        for (var i = 0; i < broadphasePairs.length; i++) {
+        for (i = 0; i < broadphasePairsLength; i++) {
             var bodyA = broadphasePairs[i][0], 
                 bodyB = broadphasePairs[i][1];
 
             if ((bodyA.isStatic || bodyA.isSleeping) && (bodyB.isStatic || bodyB.isSleeping))
                 continue;
             
-            if (!Detector.canCollide(bodyA.collisionFilter, bodyB.collisionFilter))
+            if (!canCollide(bodyA.collisionFilter, bodyB.collisionFilter))
                 continue;
 
             // mid phase
-            if (Bounds.overlaps(bodyA.bounds, bodyB.bounds)) {
+            if (overlaps(bodyA.bounds, bodyB.bounds)) {
                 var partsALength = bodyA.parts.length,
                     partsBLength = bodyB.parts.length;
                 
@@ -48,13 +54,12 @@ var Bounds = require('../geometry/Bounds');
                     for (var k = partsBLength > 1 ? 1 : 0; k < partsBLength; k++) {
                         var partB = bodyB.parts[k];
 
-                        if ((partA === bodyA && partB === bodyB) || Bounds.overlaps(partA.bounds, partB.bounds)) {
+                        if ((partA === bodyA && partB === bodyB) || overlaps(partA.bounds, partB.bounds)) {
                             // find a previous collision we could reuse
-                            var pairId = Pair.id(partA, partB),
-                                pair = pairsTable[pairId];
+                            var pair = pairsTable[pairId(partA, partB)];
 
                             // narrow phase
-                            var collision = SAT.collides(partA, partB, pair && pair.isActive ? pair.collision : null);
+                            var collision = collides(partA, partB, pair && pair.isActive ? pair.collision : null);
 
                             if (collision.collided) {
                                 collisions.push(collision);
