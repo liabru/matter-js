@@ -120,7 +120,7 @@ var Vector = require('../geometry/Vector');
         collision.penetration.y = collision.normal.y * collision.depth; 
 
         // find support points, there is always either exactly one or two
-        var verticesB = SAT._findSupports(bodyA, bodyB, collision.normal),
+        var verticesB = SAT._findSupports(bodyA, bodyB, collision.normal, 1),
             supports = [];
 
         // find the supports from bodyB that are inside bodyA
@@ -132,8 +132,8 @@ var Vector = require('../geometry/Vector');
 
         // find the supports from bodyA that are inside bodyB
         if (supports.length < 2) {
-            var verticesA = SAT._findSupports(bodyB, bodyA, Vector.neg(collision.normal));
-                
+            var verticesA = SAT._findSupports(bodyB, bodyA, collision.normal, -1);
+
             if (Vertices.contains(bodyB.vertices, verticesA[0]))
                 supports.push(verticesA[0]);
 
@@ -183,7 +183,7 @@ var Vector = require('../geometry/Vector');
                 result.overlap = overlap;
                 result.axis = axis;
                 result.axisNumber = i;
-            }
+            } 
         }
 
         return result;
@@ -214,57 +214,54 @@ var Vector = require('../geometry/Vector');
         projection.min = min;
         projection.max = max;
     };
-    
+
     /**
      * Finds supporting vertices given two bodies along a given direction using hill-climbing.
      * @method _findSupports
      * @private
-     * @param {} bodyA
-     * @param {} bodyB
-     * @param {} normal
+     * @param {body} bodyA
+     * @param {body} bodyB
+     * @param {vector} normal
+     * @param {number} direction
      * @return [vector]
      */
-    SAT._findSupports = function(bodyA, bodyB, normal) {
-        var nearestDistance = Number.MAX_VALUE,
-            vertexToBody = Vector._temp[0],
-            vertices = bodyB.vertices,
-            bodyAPosition = bodyA.position,
-            distance,
-            vertex,
+    SAT._findSupports = function(bodyA, bodyB, normal, direction) {
+        var vertices = bodyB.vertices,
+            verticesLength = vertices.length,
+            bodyAPositionX = bodyA.position.x,
+            bodyAPositionY = bodyA.position.y,
+            normalX = normal.x * direction,
+            normalY = normal.y * direction,
+            nearestDistance = Infinity,
             vertexA,
-            vertexB;
+            vertexB,
+            vertexC,
+            distance,
+            j;
 
-        // find closest vertex on bodyB
-        for (var i = 0; i < vertices.length; i++) {
-            vertex = vertices[i];
-            vertexToBody.x = vertex.x - bodyAPosition.x;
-            vertexToBody.y = vertex.y - bodyAPosition.y;
-            distance = -Vector.dot(normal, vertexToBody);
+        // find deepest vertex relative to the axis
+        for (j = 0; j < verticesLength; j += 1) {
+            vertexB = vertices[j];
+            distance = normalX * (bodyAPositionX - vertexB.x) + normalY * (bodyAPositionY - vertexB.y);
 
+            // convex hill-climbing
             if (distance < nearestDistance) {
                 nearestDistance = distance;
-                vertexA = vertex;
+                vertexA = vertexB;
             }
         }
 
-        // find next closest vertex using the two connected to it
-        var prevIndex = vertexA.index - 1 >= 0 ? vertexA.index - 1 : vertices.length - 1;
-        vertex = vertices[prevIndex];
-        vertexToBody.x = vertex.x - bodyAPosition.x;
-        vertexToBody.y = vertex.y - bodyAPosition.y;
-        nearestDistance = -Vector.dot(normal, vertexToBody);
-        vertexB = vertex;
+        // measure next vertex
+        vertexC = vertices[(verticesLength + vertexA.index - 1) % verticesLength];
+        nearestDistance = normalX * (bodyAPositionX - vertexC.x) + normalY * (bodyAPositionY - vertexC.y);
 
-        var nextIndex = (vertexA.index + 1) % vertices.length;
-        vertex = vertices[nextIndex];
-        vertexToBody.x = vertex.x - bodyAPosition.x;
-        vertexToBody.y = vertex.y - bodyAPosition.y;
-        distance = -Vector.dot(normal, vertexToBody);
-        if (distance < nearestDistance) {
-            vertexB = vertex;
+        // compare with previous vertex
+        vertexB = vertices[(vertexA.index + 1) % verticesLength];
+        if (normalX * (bodyAPositionX - vertexB.x) + normalY * (bodyAPositionY - vertexB.y) < nearestDistance) {
+            return [vertexA, vertexB];
         }
 
-        return [vertexA, vertexB];
+        return [vertexA, vertexC];
     };
 
 })();
