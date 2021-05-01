@@ -55,11 +55,9 @@ var Bounds = require('../geometry/Bounds');
                         var partB = bodyB.parts[k];
 
                         if ((partA === bodyA && partB === bodyB) || overlaps(partA.bounds, partB.bounds)) {
-                            // find a previous collision we could reuse
-                            var pair = pairsTable[pairId(partA, partB)];
-
                             // narrow phase
-                            var collision = collides(partA, partB, pair && pair.isActive ? pair.collision : null);
+                            var pair = pairsTable[pairId(partA, partB)];
+                            var collision = collides(partA, partB, pair && pair.collision, pair && pair.isActive);
 
                             if (collision.collided) {
                                 collisions.push(collision);
