@@ -15,6 +15,18 @@ var Vector = require('../geometry/Vector');
 
 (function() {
 
+    var _overlapAB = {
+        overlap: 0,
+        axis: null,
+        axisNumber: 0
+    };
+
+    var _overlapBA = {
+        overlap: 0,
+        axis: null,
+        axisNumber: 0
+    };
+
     /**
      * Detect collision between two bodies using the Separating Axis Theorem.
      * @method collides
@@ -24,9 +36,7 @@ var Vector = require('../geometry/Vector');
      * @return {collision} collision
      */
     SAT.collides = function(bodyA, bodyB, previousCollision) {
-        var overlapAB,
-            overlapBA, 
-            minOverlap,
+        var minOverlap,
             collision,
             canReusePrevCol = false;
 
@@ -54,35 +64,37 @@ var Vector = require('../geometry/Vector');
                 axisBodyB = axisBodyA === bodyA ? bodyB : bodyA,
                 axes = [axisBodyA.axes[previousCollision.axisNumber]];
 
-            minOverlap = SAT._overlapAxes(axisBodyA.vertices, axisBodyB.vertices, axes);
+            SAT._overlapAxes(_overlapAB, axisBodyA.vertices, axisBodyB.vertices, axes);
             collision.reused = true;
 
-            if (minOverlap.overlap <= 0) {
+            if (_overlapAB.overlap <= 0) {
                 collision.collided = false;
                 return collision;
             }
+
+            minOverlap = _overlapAB;
         } else {
             // if we can't reuse a result, perform a full SAT test
 
-            overlapAB = SAT._overlapAxes(bodyA.vertices, bodyB.vertices, bodyA.axes);
+            SAT._overlapAxes(_overlapAB, bodyA.vertices, bodyB.vertices, bodyA.axes);
 
-            if (overlapAB.overlap <= 0) {
+            if (_overlapAB.overlap <= 0) {
                 collision.collided = false;
                 return collision;
             }
 
-            overlapBA = SAT._overlapAxes(bodyB.vertices, bodyA.vertices, bodyB.axes);
+            SAT._overlapAxes(_overlapBA, bodyB.vertices, bodyA.vertices, bodyB.axes);
 
-            if (overlapBA.overlap <= 0) {
+            if (_overlapBA.overlap <= 0) {
                 collision.collided = false;
                 return collision;
             }
 
-            if (overlapAB.overlap < overlapBA.overlap) {
-                minOverlap = overlapAB;
+            if (_overlapAB.overlap < _overlapBA.overlap) {
+                minOverlap = _overlapAB;
                 collision.axisBody = bodyA;
             } else {
-                minOverlap = overlapBA;
+                minOverlap = _overlapBA;
                 collision.axisBody = bodyB;
             }
 
@@ -154,29 +166,61 @@ var Vector = require('../geometry/Vector');
      * Find the overlap between two sets of vertices.
      * @method _overlapAxes
      * @private
-     * @param {} verticesA
-     * @param {} verticesB
-     * @param {} axes
-     * @return result
+     * @param {object} result
+     * @param {vertices} verticesA
+     * @param {vertices} verticesB
+     * @param {axes} axes
      */
-    SAT._overlapAxes = function(verticesA, verticesB, axes) {
-        var projectionA = Vector._temp[0], 
-            projectionB = Vector._temp[1],
-            result = { overlap: Number.MAX_VALUE },
+    SAT._overlapAxes = function(result, verticesA, verticesB, axes) {
+        var verticesALength = verticesA.length,
+            verticesBLength = verticesB.length,
+            axesLength = axes.length,
+            dot,
             overlap,
-            axis;
+            overlapAB,
+            overlapBA,
+            i,
+            j;
 
-        for (var i = 0; i < axes.length; i++) {
-            axis = axes[i];
+        result.overlap = Number.MAX_VALUE;
 
-            SAT._projectToAxis(projectionA, verticesA, axis);
-            SAT._projectToAxis(projectionB, verticesB, axis);
+        for (i = 0; i < axesLength; i++) {
+            var axis = axes[i],
+                axisX = axis.x,
+                axisY = axis.y,
+                minA = verticesA[0].x * axisX + verticesA[0].y * axisY,
+                minB = verticesB[0].x * axisX + verticesB[0].y * axisY,
+                maxA = minA,
+                maxB = minB;
+            
+            for (j = 1; j < verticesALength; j += 1) {
+                dot = verticesA[j].x * axisX + verticesA[j].y * axisY;
 
-            overlap = Math.min(projectionA.max - projectionB.min, projectionB.max - projectionA.min);
+                if (dot > maxA) { 
+                    maxA = dot;
+                } else if (dot < minA) { 
+                    minA = dot;
+                }
+            }
+
+            for (j = 1; j < verticesBLength; j += 1) {
+                dot = verticesB[j].x * axisX + verticesB[j].y * axisY;
+
+                if (dot > maxB) { 
+                    maxB = dot;
+                } else if (dot < minB) { 
+                    minB = dot;
+                }
+            }
+
+            overlapAB = maxA - minB;
+            overlapBA = maxB - minA;
+            overlap = overlapAB < overlapBA ? overlapAB : overlapBA;
 
             if (overlap <= 0) {
                 result.overlap = overlap;
-                return result;
+                result.axisNumber = i;
+                return;
             }
 
             if (overlap < result.overlap) {
@@ -185,8 +229,6 @@ var Vector = require('../geometry/Vector');
                 result.axisNumber = i;
             } 
         }
-
-        return result;
     };
 
     /**
@@ -232,7 +274,7 @@ var Vector = require('../geometry/Vector');
             bodyAPositionY = bodyA.position.y,
             normalX = normal.x * direction,
             normalY = normal.y * direction,
-            nearestDistance = Infinity,
+            nearestDistance = Number.MAX_VALUE,
             vertexA,
             vertexB,
             vertexC,
