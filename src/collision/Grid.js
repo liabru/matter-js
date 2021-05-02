@@ -227,8 +227,13 @@ var Common = require('../core/Common');
      * @param {} body
      */
     Grid._bucketAddBody = function(grid, bucket, body) {
+        var gridPairs = grid.pairs,
+            pairId = Pair.id,
+            bucketLength = bucket.length,
+            i;
+
         // add new pairs
-        for (var i = 0; i < bucket.length; i++) {
+        for (i = 0; i < bucketLength; i++) {
             var bodyB = bucket[i];
 
             if (body.id === bodyB.id || (body.isStatic && bodyB.isStatic))
@@ -236,13 +241,13 @@ var Common = require('../core/Common');
 
             // keep track of the number of buckets the pair exists in
             // important for Grid.update to work
-            var pairId = Pair.id(body, bodyB),
-                pair = grid.pairs[pairId];
+            var id = pairId(body, bodyB),
+                pair = gridPairs[id];
 
             if (pair) {
                 pair[2] += 1;
             } else {
-                grid.pairs[pairId] = [body, bodyB, 1];
+                gridPairs[id] = [body, bodyB, 1];
             }
         }
 
