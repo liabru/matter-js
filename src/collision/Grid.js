@@ -292,23 +292,23 @@ var Common = require('../core/Common');
      * @return [] pairs
      */
     Grid._createActivePairsList = function(grid) {
-        var pairKeys,
-            pair,
-            pairs = [];
-
-        // grid.pairs is used as a hashmap
-        pairKeys = Common.keys(grid.pairs);
+        var pair,
+            gridPairs = grid.pairs,
+            pairKeys = Common.keys(gridPairs),
+            pairKeysLength = pairKeys.length,
+            pairs = [],
+            k;
 
         // iterate over grid.pairs
-        for (var k = 0; k < pairKeys.length; k++) {
-            pair = grid.pairs[pairKeys[k]];
+        for (k = 0; k < pairKeysLength; k++) {
+            pair = gridPairs[pairKeys[k]];
 
             // if pair exists in at least one bucket
             // it is a pair that needs further collision testing so push it
             if (pair[2] > 0) {
                 pairs.push(pair);
             } else {
-                delete grid.pairs[pairKeys[k]];
+                delete gridPairs[pairKeys[k]];
             }
         }
 
