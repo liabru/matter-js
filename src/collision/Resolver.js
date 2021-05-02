@@ -290,7 +290,7 @@ var Bounds = require('../geometry/Bounds');
 
                 // coulomb friction
                 var normalOverlap = pair.separation + normalVelocity;
-                var normalForce = normalOverlap > 1 ? 1 : normalOverlap;
+                var normalForce = Math.min(normalOverlap, 1);
                 normalForce = normalOverlap < 0 ? 0 : normalForce;
                 
                 var frictionLimit = normalForce * friction;
@@ -327,7 +327,7 @@ var Bounds = require('../geometry/Bounds');
                     // impulse constraint tends to 0
                     var contactNormalImpulse = contact.normalImpulse;
                     contact.normalImpulse += normalImpulse;
-                    contact.normalImpulse = contact.normalImpulse < 0 ? contact.normalImpulse : 0;
+                    contact.normalImpulse = Math.min(contact.normalImpulse, 0);
                     normalImpulse = contact.normalImpulse - contactNormalImpulse;
                 }
 
