@@ -264,16 +264,20 @@ var Common = require('../core/Common');
      * @param {} body
      */
     Grid._bucketRemoveBody = function(grid, bucket, body) {
+        var gridPairs = grid.pairs,
+            pairId = Pair.id,
+            i;
+
         // remove from bucket
         bucket.splice(Common.indexOf(bucket, body), 1);
 
+        var bucketLength = bucket.length;
+
         // update pair counts
-        for (var i = 0; i < bucket.length; i++) {
+        for (i = 0; i < bucketLength; i++) {
             // keep track of the number of buckets the pair exists in
             // important for _createActivePairsList to work
-            var bodyB = bucket[i],
-                pairId = Pair.id(body, bodyB),
-                pair = grid.pairs[pairId];
+            var pair = gridPairs[pairId(body, bucket[i])];
 
             if (pair)
                 pair[2] -= 1;
