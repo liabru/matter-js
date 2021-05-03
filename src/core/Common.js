@@ -540,7 +540,7 @@ module.exports = Common;
     };
 
     /**
-     * Chains a function to excute before the original function on the given `path` relative to `base`.
+     * Chains a function to execute before the original function on the given `path` relative to `base`.
      * See also docs for `Common.chain`.
      * @method chainPathBefore
      * @param {} base The base object
@@ -556,7 +556,7 @@ module.exports = Common;
     };
 
     /**
-     * Chains a function to excute after the original function on the given `path` relative to `base`.
+     * Chains a function to execute after the original function on the given `path` relative to `base`.
      * See also docs for `Common.chain`.
      * @method chainPathAfter
      * @param {} base The base object
