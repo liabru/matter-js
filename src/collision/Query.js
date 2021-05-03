@@ -14,6 +14,7 @@ var Vector = require('../geometry/Vector');
 var SAT = require('./SAT');
 var Bounds = require('../geometry/Bounds');
 var Bodies = require('../factory/Bodies');
+var Detector = require('../collision/Detector');
 var Vertices = require('../geometry/Vertices');
 
 (function() {
@@ -30,7 +31,11 @@ var Vertices = require('../geometry/Vertices');
 
         for (var i = 0; i < bodies.length; i++) {
             var bodyA = bodies[i];
-            
+
+            if(!Detector.canCollide(body.collisionFilter, bodyA.collisionFilter)) {
+                continue;
+            }
+
             if (Bounds.overlaps(bodyA.bounds, body.bounds)) {
                 for (var j = bodyA.parts.length === 1 ? 0 : 1; j < bodyA.parts.length; j++) {
                     var part = bodyA.parts[j];
