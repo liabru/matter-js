@@ -25,7 +25,6 @@ module.exports = Common;
      */
     Common.extend = function(obj, deep) {
         var argsStart,
-            args,
             deepClone;
 
         if (typeof deep === 'boolean') {
