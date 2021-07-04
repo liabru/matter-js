@@ -49,7 +49,6 @@ var Axes = require('../geometry/Axes');
             force: { x: 0, y: 0 },
             torque: 0,
             positionImpulse: { x: 0, y: 0 },
-            previousPositionImpulse: { x: 0, y: 0 },
             constraintImpulse: { x: 0, y: 0, angle: 0 },
             totalContacts: 0,
             speed: 0,
@@ -76,13 +75,15 @@ var Axes = require('../geometry/Axes');
             render: {
                 visible: true,
                 opacity: 1,
+                strokeStyle: null,
+                fillStyle: null,
+                lineWidth: null,
                 sprite: {
                     xScale: 1,
                     yScale: 1,
                     xOffset: 0,
                     yOffset: 0
-                },
-                lineWidth: 0
+                }
             },
             events: null,
             bounds: null,
@@ -166,10 +167,12 @@ var Axes = require('../geometry/Axes');
         });
 
         // render properties
-        var defaultFillStyle = (body.isStatic ? '#2e2b44' : Common.choose(['#006BA6', '#0496FF', '#FFBC42', '#D81159', '#8F2D56'])),
-            defaultStrokeStyle = '#000';
+        var defaultFillStyle = (body.isStatic ? '#14151f' : Common.choose(['#f19648', '#f5d259', '#f55a3c', '#063e7b', '#ececd1'])),
+            defaultStrokeStyle = body.isStatic ? '#555' : '#ccc',
+            defaultLineWidth = body.isStatic && body.render.fillStyle === null ? 1 : 0;
         body.render.fillStyle = body.render.fillStyle || defaultFillStyle;
         body.render.strokeStyle = body.render.strokeStyle || defaultStrokeStyle;
+        body.render.lineWidth = body.render.lineWidth || defaultLineWidth;
         body.render.sprite.xOffset += -(body.bounds.min.x - body.position.x) / (body.bounds.max.x - body.bounds.min.x);
         body.render.sprite.yOffset += -(body.bounds.min.y - body.position.y) / (body.bounds.max.y - body.bounds.min.y);
     };
@@ -192,8 +195,7 @@ var Axes = require('../geometry/Axes');
         }
 
         for (property in settings) {
-
-            if (!settings.hasOwnProperty(property))
+            if (!Object.prototype.hasOwnProperty.call(settings, property))
                 continue;
 
             value = settings[property];
@@ -1162,7 +1164,7 @@ var Axes = require('../geometry/Axes');
      * @default 1
      */
 
-     /**
+    /**
       * A `Number` that defines the offset in the x-axis for the sprite (normalised by texture width).
       *
       * @property render.sprite.xOffset
@@ -1170,7 +1172,7 @@ var Axes = require('../geometry/Axes');
       * @default 0
       */
 
-     /**
+    /**
       * A `Number` that defines the offset in the y-axis for the sprite (normalised by texture height).
       *
       * @property render.sprite.yOffset

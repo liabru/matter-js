@@ -16,6 +16,7 @@ var Constraint = require('../constraint/Constraint');
 var Common = require('../core/Common');
 var Body = require('../body/Body');
 var Bodies = require('./Bodies');
+var deprecated = Common.deprecated;
 
 (function() {
 
@@ -202,7 +203,8 @@ var Bodies = require('./Bodies');
     };
 
     /**
-     * Creates a composite with a Newton's Cradle setup of bodies and constraints.
+     * This has now moved to the [newtonsCradle example](https://github.com/liabru/matter-js/blob/master/examples/newtonsCradle.js), follow that instead as this function is deprecated here.
+     * @deprecated moved to newtonsCradle example
      * @method newtonsCradle
      * @param {number} xx
      * @param {number} yy
@@ -217,7 +219,7 @@ var Bodies = require('./Bodies');
         for (var i = 0; i < number; i++) {
             var separation = 1.9,
                 circle = Bodies.circle(xx + i * (size * separation), yy + length, size, 
-                            { inertia: Infinity, restitution: 1, friction: 0, frictionAir: 0.0001, slop: 1 }),
+                    { inertia: Infinity, restitution: 1, friction: 0, frictionAir: 0.0001, slop: 1 }),
                 constraint = Constraint.create({ pointA: { x: xx + i * (size * separation), y: yy }, bodyB: circle });
 
             Composite.addBody(newtonsCradle, circle);
@@ -226,9 +228,12 @@ var Bodies = require('./Bodies');
 
         return newtonsCradle;
     };
+
+    deprecated(Composites, 'newtonsCradle', 'Composites.newtonsCradle ➤ moved to newtonsCradle example');
     
     /**
-     * Creates a composite with simple car setup of bodies and constraints.
+     * This has now moved to the [car example](https://github.com/liabru/matter-js/blob/master/examples/car.js), follow that instead as this function is deprecated here.
+     * @deprecated moved to car example
      * @method car
      * @param {number} xx
      * @param {number} yy
@@ -294,8 +299,12 @@ var Bodies = require('./Bodies');
         return car;
     };
 
+    deprecated(Composites, 'car', 'Composites.car ➤ moved to car example');
+
     /**
-     * Creates a simple soft body like object.
+     * This has now moved to the [softBody example](https://github.com/liabru/matter-js/blob/master/examples/softBody.js)
+     * and the [cloth example](https://github.com/liabru/matter-js/blob/master/examples/cloth.js), follow those instead as this function is deprecated here.
+     * @deprecated moved to softBody and cloth examples
      * @method softBody
      * @param {number} xx
      * @param {number} yy
@@ -324,4 +333,5 @@ var Bodies = require('./Bodies');
         return softBody;
     };
 
+    deprecated(Composites, 'softBody', 'Composites.softBody ➤ moved to softBody and cloth examples');
 })();

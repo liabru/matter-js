@@ -8,7 +8,7 @@ Example.compoundStack = function() {
         Composites = Matter.Composites,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
-        World = Matter.World,
+        Composite = Matter.Composite,
         Bodies = Matter.Bodies;
 
     // create engine
@@ -35,7 +35,7 @@ Example.compoundStack = function() {
     // add bodies
     var size = 50;
 
-    var stack = Composites.stack(100, 280, 12, 6, 0, 0, function(x, y) {
+    var stack = Composites.stack(100, 600 - 17 - size * 6, 12, 6, 0, 0, function(x, y) {
         var partA = Bodies.rectangle(x, y, size, size / 5),
             partB = Bodies.rectangle(x, y, size / 5, size, { render: partA.render });
 
@@ -44,7 +44,7 @@ Example.compoundStack = function() {
         });
     });
 
-    World.add(world, [
+    Composite.add(world, [
         stack,
         // walls
         Bodies.rectangle(400, 0, 800, 50, { isStatic: true }),
@@ -65,7 +65,7 @@ Example.compoundStack = function() {
             }
         });
 
-    World.add(world, mouseConstraint);
+    Composite.add(world, mouseConstraint);
 
     // keep the mouse in sync with rendering
     render.mouse = mouse;
@@ -88,3 +88,10 @@ Example.compoundStack = function() {
         }
     };
 };
+
+Example.compoundStack.title = 'Compound Stack';
+Example.compoundStack.for = '>=0.14.2';
+
+if (typeof module !== 'undefined') {
+    module.exports = Example.compoundStack;
+}

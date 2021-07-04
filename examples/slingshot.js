@@ -9,7 +9,7 @@ Example.slingshot = function() {
         Constraint = Matter.Constraint,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
-        World = Matter.World,
+        Composite = Matter.Composite,
         Bodies = Matter.Bodies;
 
     // create engine
@@ -34,7 +34,7 @@ Example.slingshot = function() {
     Runner.run(runner, engine);
 
     // add bodies
-    var ground = Bodies.rectangle(395, 600, 815, 50, { isStatic: true }),
+    var ground = Bodies.rectangle(395, 600, 815, 50, { isStatic: true, render: { fillStyle: '#060a19' } }),
         rockOptions = { density: 0.004 },
         rock = Bodies.polygon(170, 450, 8, 20, rockOptions),
         anchor = { x: 170, y: 450 },
@@ -48,18 +48,18 @@ Example.slingshot = function() {
         return Bodies.rectangle(x, y, 25, 40);
     });
 
-    var ground2 = Bodies.rectangle(610, 250, 200, 20, { isStatic: true });
+    var ground2 = Bodies.rectangle(610, 250, 200, 20, { isStatic: true, render: { fillStyle: '#060a19' } });
 
     var pyramid2 = Composites.pyramid(550, 0, 5, 10, 0, 0, function(x, y) {
         return Bodies.rectangle(x, y, 25, 40);
     });
 
-    World.add(engine.world, [ground, pyramid, ground2, pyramid2, rock, elastic]);
+    Composite.add(engine.world, [ground, pyramid, ground2, pyramid2, rock, elastic]);
 
     Events.on(engine, 'afterUpdate', function() {
         if (mouseConstraint.mouse.button === -1 && (rock.position.x > 190 || rock.position.y < 430)) {
             rock = Bodies.polygon(170, 450, 7, 20, rockOptions);
-            World.add(engine.world, rock);
+            Composite.add(engine.world, rock);
             elastic.bodyB = rock;
         }
     });
@@ -76,7 +76,7 @@ Example.slingshot = function() {
             }
         });
 
-    World.add(world, mouseConstraint);
+    Composite.add(world, mouseConstraint);
 
     // keep the mouse in sync with rendering
     render.mouse = mouse;
@@ -99,3 +99,10 @@ Example.slingshot = function() {
         }
     };
 };
+
+Example.slingshot.title = 'Slingshot';
+Example.slingshot.for = '>=0.14.2';
+
+if (typeof module !== 'undefined') {
+    module.exports = Example.slingshot;
+}

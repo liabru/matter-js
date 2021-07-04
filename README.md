@@ -1,10 +1,10 @@
-<img alt="Matter.js" src="http://brm.io/matter-js/img/matter-js.svg" width="300">
+<img alt="Matter.js" src="https://brm.io/matter-js/img/matter-js.svg" width="300">
 
 > *Matter.js* is a JavaScript 2D rigid body physics engine for the web
 
-[brm.io/matter-js](http://brm.io/matter-js/)
+[brm.io/matter-js](https://brm.io/matter-js/)
 
-[Demos](#demos) - [Gallery](#gallery) - [Features](#features) - [Plugins](#plugins) - [Install](#install) - [Usage](#usage) - [Examples](#examples) -  [Docs](#documentation) - [Wiki](https://github.com/liabru/matter-js/wiki) - [References](#references) - [License](#license)
+[Demos](#demos) ・ [Gallery](#gallery) ・ [Features](#features) ・ [Plugins](#plugins) ・ [Install](#install) ・ [Usage](#usage) ・ [Examples](#examples) ・ [Docs](#documentation) ・ [Wiki](https://github.com/liabru/matter-js/wiki) ・ [References](#references) ・ [License](#license)
 
 [![Build Status](https://travis-ci.org/liabru/matter-js.png?branch=master)](https://travis-ci.org/liabru/matter-js)
 
@@ -14,51 +14,55 @@
   <tr>
     <td>
       <ul>
-        <li><a href="http://brm.io/matter-js/demo/#mixed">Mixed Shapes</a></li>
-        <li><a href="http://brm.io/matter-js/demo/#mixedSolid">Solid Shapes</a></li>
-        <li><a href="http://brm.io/matter-js/demo/#svg">Concave SVG Paths</a></li>
-        <li><a href="http://brm.io/matter-js/demo/#terrain">Concave Terrain</a></li>
-        <li><a href="http://brm.io/matter-js/demo/#concave">Concave Bodies</a></li>
-        <li><a href="http://brm.io/matter-js/demo/#compound">Compound Bodies</a></li>
-        <li><a href="http://brm.io/matter-js/demo/#newtonsCradle">Newton's Cradle</a></li>
-        <li><a href="http://brm.io/matter-js/demo/#wreckingBall">Wrecking Ball</a></li>
-        <li><a href="http://brm.io/matter-js/demo/#slingshot">Slingshot Game</a></li>
-        <li><a href="http://brm.io/matter-js/demo/#rounded">Rounded Corners</a></li>
-        <li><a href="http://brm.io/matter-js/demo/#views">Views</a></li>
-        <li><a href="http://brm.io/matter-js/demo/#timescale">Time Scaling</a></li>
-        <li><a href="http://brm.io/matter-js/demo/#manipulation">Body Manipulation</a></li>
-        <li><a href="http://brm.io/matter-js/demo/#compositeManipulation">Composite Manipulation</a></li>
-        <li><a href="http://brm.io/matter-js/demo/#raycasting">Raycasting</a></li>
-        <li><a href="http://brm.io/matter-js/demo/#sprites">Sprites</a></li>
-        <li><a href="http://brm.io/matter-js/demo/#pyramid">Pyramid</a></li>
-        <li><a href="http://brm.io/matter-js/demo/#car">Car</a></li>
-        <li><a href="http://brm.io/matter-js/demo/#catapult">Catapult</a></li>
-        <li><a href="http://brm.io/matter-js/demo/#gravity">Reverse Gravity</a></li>
+        <li><a href="https://brm.io/matter-js/demo/#mixed">Mixed Shapes</a></li>
+        <li><a href="https://brm.io/matter-js/demo/#mixedSolid">Solid Shapes</a></li>
+        <li><a href="https://brm.io/matter-js/demo/#svg">Concave SVG Paths</a></li>
+        <li><a href="https://brm.io/matter-js/demo/#terrain">Concave Terrain</a></li>
+        <li><a href="https://brm.io/matter-js/demo/#concave">Concave Bodies</a></li>
+        <li><a href="https://brm.io/matter-js/demo/#compound">Compound Bodies</a></li>
+        <li><a href="https://brm.io/matter-js/demo/#newtonsCradle">Newton's Cradle</a></li>
+        <li><a href="https://brm.io/matter-js/demo/#wreckingBall">Wrecking Ball</a></li>
+        <li><a href="https://brm.io/matter-js/demo/#slingshot">Slingshot Game</a></li>
+        <li><a href="https://brm.io/matter-js/demo/#rounded">Rounded Corners</a></li>
+        <li><a href="https://brm.io/matter-js/demo/#views">Views</a></li>
+        <li><a href="https://brm.io/matter-js/demo/#timescale">Time Scaling</a></li>
+        <li><a href="https://brm.io/matter-js/demo/#manipulation">Body Manipulation</a></li>
+        <li><a href="https://brm.io/matter-js/demo/#compositeManipulation">Composite Manipulation</a></li>
       </ul>
     </td>
     <td>
       <ul>
-        <li><a href="http://brm.io/matter-js/demo/#bridge">Bridge</a></li>
-        <li><a href="http://brm.io/matter-js/demo/#avalanche">Avalanche</a></li>
-        <li><a href="http://brm.io/matter-js/demo/#softBody">Basic Soft Bodies</a></li>
-        <li><a href="http://brm.io/matter-js/demo/#cloth">Cloth</a></li>
-        <li><a href="http://brm.io/matter-js/demo/#events">Events</a></li>
-        <li><a href="http://brm.io/matter-js/demo/#collisionFiltering">Collision Filtering</a></li>
-        <li><a href="http://brm.io/matter-js/demo/#chains">Chains</a></li>
-        <li><a href="http://brm.io/matter-js/demo/#ballPool">Ball Pool</a></li>
-        <li><a href="http://brm.io/matter-js/demo/#stack">Stack</a></li>
-        <li><a href="http://brm.io/matter-js/demo/#circleStack">Circle Stack</a></li>
-        <li><a href="http://brm.io/matter-js/demo/#compoundStack">Compound Stack</a></li>
-        <li><a href="http://brm.io/matter-js/demo/#restitution">Restitution</a></li>
-        <li><a href="http://brm.io/matter-js/demo/#friction">Friction</a></li>
-        <li><a href="http://brm.io/matter-js/demo/#airFriction">Air Friction</a></li>
-        <li><a href="http://brm.io/matter-js/demo/#staticFriction">Static Friction</a></li>
-        <li><a href="http://brm.io/matter-js/demo/#sleeping">Sleeping</a></li>
-        <li><a href="http://brm.io/matter-js/demo/#broadphase">Grid Broadphase</a></li>
-        <li><a href="http://brm.io/matter-js/demo/#beachBalls">Beach Balls</a></li>
-        <li><a href="http://brm.io/matter-js/demo/#stress">Stress 1</a></li>
-        <li><a href="http://brm.io/matter-js/demo/#stress2">Stress 2</a></li>
-        <li><a href="http://brm.io/matter-js/demo/#sensors">Sensors</a></li>
+        <li><a href="https://brm.io/matter-js/demo/#raycasting">Raycasting</a></li>
+        <li><a href="https://brm.io/matter-js/demo/#sprites">Sprites</a></li>
+        <li><a href="https://brm.io/matter-js/demo/#pyramid">Pyramid</a></li>
+        <li><a href="https://brm.io/matter-js/demo/#car">Car</a></li>
+        <li><a href="https://brm.io/matter-js/demo/#catapult">Catapult</a></li>
+        <li><a href="https://brm.io/matter-js/demo/#gravity">Reverse Gravity</a></li>
+        <li><a href="https://brm.io/matter-js/demo/#bridge">Bridge</a></li>
+        <li><a href="https://brm.io/matter-js/demo/#avalanche">Avalanche</a></li>
+        <li><a href="https://brm.io/matter-js/demo/#softBody">Basic Soft Bodies</a></li>
+        <li><a href="https://brm.io/matter-js/demo/#cloth">Cloth</a></li>
+        <li><a href="https://brm.io/matter-js/demo/#events">Events</a></li>
+        <li><a href="https://brm.io/matter-js/demo/#collisionFiltering">Collision Filtering</a></li>
+        <li><a href="https://brm.io/matter-js/demo/#chains">Chains</a></li>
+        <li><a href="https://brm.io/matter-js/demo/#ballPool">Ball Pool</a></li>
+      </ul>
+    </td>
+    <td>
+      <ul>
+        <li><a href="https://brm.io/matter-js/demo/#stack">Stack</a></li>
+        <li><a href="https://brm.io/matter-js/demo/#circleStack">Circle Stack</a></li>
+        <li><a href="https://brm.io/matter-js/demo/#compoundStack">Compound Stack</a></li>
+        <li><a href="https://brm.io/matter-js/demo/#restitution">Restitution</a></li>
+        <li><a href="https://brm.io/matter-js/demo/#friction">Friction</a></li>
+        <li><a href="https://brm.io/matter-js/demo/#airFriction">Air Friction</a></li>
+        <li><a href="https://brm.io/matter-js/demo/#staticFriction">Static Friction</a></li>
+        <li><a href="https://brm.io/matter-js/demo/#sleeping">Sleeping</a></li>
+        <li><a href="https://brm.io/matter-js/demo/#broadphase">Grid Broadphase</a></li>
+        <li><a href="https://brm.io/matter-js/demo/#beachBalls">Beach Balls</a></li>
+        <li><a href="https://brm.io/matter-js/demo/#stress">Stress 1</a></li>
+        <li><a href="https://brm.io/matter-js/demo/#stress2">Stress 2</a></li>
+        <li><a href="https://brm.io/matter-js/demo/#sensors">Sensors</a></li>
       </ul>
       <br>
     </td>
@@ -69,16 +73,18 @@
 
 See how others are using matter.js physics
 
-- [Les métamorphoses de Mr. Kalia](http://lab212.org/Les-metamorphoses-de-Mr-Kalia) by Lab212 for Google
-- [4ify](http://pauliescanlon.io/4ify-channel-4-rebrand-2/) by Supernatural for Channel 4
-- [Adobe Analytics Live Stream](http://adobefirehose.mediarain.com/) by Rain for Adobe
-- [Blood Sweat & Tools Interactive](http://bloodsweatandtools.discovery.ca/gamebench/) by Jam3 for Discovery
-- [Oracle OpenWorld Experiment](http://theappslab.com/2016/10/10/how-i-attended-oracle-openworld-2016/) by Ed Jones for Oracle
-- [Pablo The Flamingo](http://pablotheflamingo.com/) by Nathan Gordon
-- [Goblins and Grottos](http://store.steampowered.com/app/389190) by Psychic Software
-- [masQueLaCara](https://www.instagram.com/p/BCFqCs6JNsq/) by Zach Lieberman for Art Blocks Houston
-- [#GIFMYLIVE](http://bonhommeparis.com/en/projects/arte-gifmylive) by Bonhomme for Arte
-- [Hype](http://tumult.com/hype/pro/) by Tumult
+- [Patrick Heng](https://patrickheng.com/) by Patrick Heng
+- [USELESS](https://useless.london/) by Nice and Serious
+- [Secret 7](https://secret-7.com/) by Goodness
+- [New Company](https://www.new.company/) by New Company
+- [Game of The Year](https://gameoftheyear.withgoogle.com/) by Google
+- [Pablo The Flamingo](https://pablotheflamingo.com/) by Nathan Gordon
+- [Les métamorphoses de Mr. Kalia](https://lab212.org/oeuvres/2:art/18/Les-metamorphoses-de-Mr-Kalia) by Lab212
+- [Phaser](https://phaser.io/) by Photon Storm
+- [Sorry I Have No Filter](https://sorryihavenofilter.com/pages/about/) by Jessica Walsh
+- [Fuse](https://fuse.blog/) by Fuse
+- [Glyphfinder](https://www.glyphfinder.com/) by überdosis
+- [Isolation](https://isolation.is/postcards/my-week) by sabato studio
 - [more...](https://github.com/liabru/matter-js/wiki/Gallery)
 
 ### Features
@@ -111,14 +117,13 @@ See how others are using matter.js physics
 
 ### Install
 
-Download the [edge build (master)](https://github.com/liabru/matter-js/blob/master/build/matter.js) or get a [stable release](https://github.com/liabru/matter-js/releases) and include the script in your web page:
+You can install using package managers [npm](https://www.npmjs.org/package/matter-js) and [Yarn](https://yarnpkg.com/) using:
+
+    npm install matter-js
+
+Alternatively you can download a [stable release](https://github.com/liabru/matter-js/tags) or try the latest experimental [alpha build](https://github.com/liabru/matter-js/tree/master/build) (master) and include the script in your web page:
 
     <script src="matter.js" type="text/javascript"></script>
-
-You can also install using the package managers [Bower](http://bower.io/search/?q=matter-js) and [NPM](https://www.npmjs.org/package/matter-js).
-
-    bower install matter-js
-    npm install matter-js
 
 ### Usage
 
@@ -132,7 +137,7 @@ See the list of [tutorials](https://github.com/liabru/matter-js/wiki/Tutorials).
 ### Examples
 
 See the [examples](https://github.com/liabru/matter-js/tree/master/examples) directory which contains the source for all [demos](#demos).  
-There are even more examples on [codepen](http://codepen.io/collection/Fuagy/).
+There are even more examples on [codepen](https://codepen.io/collection/Fuagy/).
 
 ### Plugins
 
@@ -145,17 +150,17 @@ The engine can be extended through plugins, see these resources:
 
 ### Documentation
 
-See the [API Documentation](http://brm.io/matter-js/docs/) and the [wiki](https://github.com/liabru/matter-js/wiki)
+See the [API Documentation](https://brm.io/matter-js/docs/) and the [wiki](https://github.com/liabru/matter-js/wiki)
 
 ### Building and Contributing
 
-To build you must first install [node.js](http://nodejs.org/) and [gulp](http://gulpjs.com/), then run
+To build you must first install [node.js](https://nodejs.org/), then run
 
 	npm install
 
 This will install the required build dependencies, then run
 
-	gulp dev
+	npm run dev
 
 to spawn a development server. For information on contributing see [CONTRIBUTING.md](https://github.com/liabru/matter-js/blob/master/CONTRIBUTING.md).
 
@@ -169,7 +174,7 @@ See the wiki page on [References](https://github.com/liabru/matter-js/wiki/Refer
 
 ### License
 
-Matter.js is licensed under [The MIT License (MIT)](http://opensource.org/licenses/MIT)  
+Matter.js is licensed under [The MIT License (MIT)](https://opensource.org/licenses/MIT)  
 Copyright (c) 2014 Liam Brummitt
 
 This license is also supplied with the release and source code.  

@@ -8,9 +8,12 @@ Example.concave = function() {
         Common = Matter.Common,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
-        World = Matter.World,
+        Composite = Matter.Composite,
         Vertices = Matter.Vertices,
         Bodies = Matter.Bodies;
+
+    // provide concave decomposition support library
+    Common.setDecomp(require('poly-decomp'));
 
     // create engine
     var engine = Engine.create(),
@@ -33,7 +36,7 @@ Example.concave = function() {
     Runner.run(runner, engine);
 
     // add bodies
-    World.add(world, [
+    Composite.add(world, [
         // walls
         Bodies.rectangle(400, 0, 800, 50, { isStatic: true }),
         Bodies.rectangle(400, 600, 800, 50, { isStatic: true }),
@@ -47,7 +50,7 @@ Example.concave = function() {
         horseShoe = Vertices.fromPath('35 7 19 17 14 38 14 58 25 79 45 85 65 84 65 66 46 67 34 59 30 44 33 29 45 23 66 23 66 7 53 7');
 
     var stack = Composites.stack(50, 50, 6, 4, 10, 10, function(x, y) {
-        var color = Common.choose(['#556270', '#4ECDC4', '#C7F464', '#FF6B6B', '#C44D58']);
+        var color = Common.choose(['#f19648', '#f5d259', '#f55a3c', '#063e7b', '#ececd1']);
         return Bodies.fromVertices(x, y, Common.choose([arrow, chevron, star, horseShoe]), {
             render: {
                 fillStyle: color,
@@ -57,7 +60,7 @@ Example.concave = function() {
         }, true);
     });
 
-    World.add(world, stack);
+    Composite.add(world, stack);
 
     // add mouse control
     var mouse = Mouse.create(render.canvas),
@@ -71,7 +74,7 @@ Example.concave = function() {
             }
         });
 
-    World.add(world, mouseConstraint);
+    Composite.add(world, mouseConstraint);
 
     // keep the mouse in sync with rendering
     render.mouse = mouse;
@@ -94,3 +97,10 @@ Example.concave = function() {
         }
     };
 };
+
+Example.concave.title = 'Concave';
+Example.concave.for = '>0.16.1';
+
+if (typeof module !== 'undefined') {
+    module.exports = Example.concave;
+}

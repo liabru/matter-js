@@ -6,7 +6,7 @@ Example.airFriction = function() {
         Runner = Matter.Runner,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
-        World = Matter.World,
+        Composite = Matter.Composite,
         Bodies = Matter.Bodies;
 
     // create engine
@@ -31,7 +31,7 @@ Example.airFriction = function() {
     Runner.run(runner, engine);
 
     // add bodies
-    World.add(world, [
+    Composite.add(world, [
         // falling blocks
         Bodies.rectangle(200, 100, 60, 60, { frictionAir: 0.001 }),
         Bodies.rectangle(400, 100, 60, 60, { frictionAir: 0.05 }),
@@ -56,7 +56,7 @@ Example.airFriction = function() {
             }
         });
 
-    World.add(world, mouseConstraint);
+    Composite.add(world, mouseConstraint);
 
     // keep the mouse in sync with rendering
     render.mouse = mouse;
@@ -79,3 +79,10 @@ Example.airFriction = function() {
         }
     };
 };
+
+Example.airFriction.title = 'Air Friction';
+Example.airFriction.for = '>=0.14.2';
+
+if (typeof module !== 'undefined') {
+    module.exports = Example.airFriction;
+}

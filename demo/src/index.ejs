@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no,minimal-ui">
+    <meta name="theme-color" content="#000000">
+    <meta name="msapplication-navbutton-color" content="#000000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="robots" content="noindex">
+    <title>Matter.js Demo</title>
+
+    <style type="text/css">
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        padding: 0;
+      }
+
+      .matter-btn-compare.matter-btn {
+        font-size: 18px;
+        text-align: center;
+        line-height: 32px;
+      }
+
+      .matter-js-compare-build.matter-demo {
+        position: absolute;
+        background: none;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border: 0;
+        z-index: 1;
+        pointer-events: none;
+      }
+
+      .matter-js-compare-build.matter-demo .matter-header-outer {
+        display: none;
+      }
+
+      .matter-js-compare-build.matter-demo canvas {
+        opacity: 0.5;
+        background: transparent !important;
+      }
+    </style>
+  </head>
+  <body><% for (var chunk in htmlWebpackPlugin.files.js) { %>
+    <script src="<%= htmlWebpackPlugin.files.js[chunk] %>"></script><% } %>
+  </body>
+</html>

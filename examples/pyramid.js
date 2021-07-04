@@ -7,7 +7,7 @@ Example.pyramid = function() {
         Composites = Matter.Composites,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
-        World = Matter.World,
+        Composite = Matter.Composite,
         Bodies = Matter.Bodies;
 
     // create engine
@@ -32,11 +32,11 @@ Example.pyramid = function() {
     Runner.run(runner, engine);
 
     // add bodies
-    var stack = Composites.pyramid(100, 258, 15, 10, 0, 0, function(x, y) {
+    var stack = Composites.pyramid(100, 605 - 25 - 16 * 20, 15, 10, 0, 0, function(x, y) {
         return Bodies.rectangle(x, y, 40, 40);
     });
     
-    World.add(world, [
+    Composite.add(world, [
         stack,
         // walls
         Bodies.rectangle(400, 0, 800, 50, { isStatic: true }),
@@ -57,7 +57,7 @@ Example.pyramid = function() {
             }
         });
 
-    World.add(world, mouseConstraint);
+    Composite.add(world, mouseConstraint);
 
     // keep the mouse in sync with rendering
     render.mouse = mouse;
@@ -80,3 +80,10 @@ Example.pyramid = function() {
         }
     };
 };
+
+Example.pyramid.title = 'Pyramid';
+Example.pyramid.for = '>=0.14.2';
+
+if (typeof module !== 'undefined') {
+    module.exports = Example.pyramid;
+}

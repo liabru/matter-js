@@ -8,7 +8,7 @@ Example.gyro = function() {
         Common = Matter.Common,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
-        World = Matter.World,
+        Composite = Matter.Composite,
         Bodies = Matter.Bodies;
 
     // create engine
@@ -59,7 +59,7 @@ Example.gyro = function() {
         }
     });
 
-    World.add(world, [
+    Composite.add(world, [
         stack,
         Bodies.rectangle(400, 0, 800, 50, { isStatic: true }),
         Bodies.rectangle(400, 600, 800, 50, { isStatic: true }),
@@ -68,26 +68,28 @@ Example.gyro = function() {
     ]);
 
     // add gyro control
-    var updateGravity = function(event) {
-        var orientation = typeof window.orientation !== 'undefined' ? window.orientation : 0,
-            gravity = engine.world.gravity;
+    if (typeof window !== 'undefined') {
+        var updateGravity = function(event) {
+            var orientation = typeof window.orientation !== 'undefined' ? window.orientation : 0,
+                gravity = engine.gravity;
 
-        if (orientation === 0) {
-            gravity.x = Common.clamp(event.gamma, -90, 90) / 90;
-            gravity.y = Common.clamp(event.beta, -90, 90) / 90;
-        } else if (orientation === 180) {
-            gravity.x = Common.clamp(event.gamma, -90, 90) / 90;
-            gravity.y = Common.clamp(-event.beta, -90, 90) / 90;
-        } else if (orientation === 90) {
-            gravity.x = Common.clamp(event.beta, -90, 90) / 90;
-            gravity.y = Common.clamp(-event.gamma, -90, 90) / 90;
-        } else if (orientation === -90) {
-            gravity.x = Common.clamp(-event.beta, -90, 90) / 90;
-            gravity.y = Common.clamp(event.gamma, -90, 90) / 90;
-        }
-    };
+            if (orientation === 0) {
+                gravity.x = Common.clamp(event.gamma, -90, 90) / 90;
+                gravity.y = Common.clamp(event.beta, -90, 90) / 90;
+            } else if (orientation === 180) {
+                gravity.x = Common.clamp(event.gamma, -90, 90) / 90;
+                gravity.y = Common.clamp(-event.beta, -90, 90) / 90;
+            } else if (orientation === 90) {
+                gravity.x = Common.clamp(event.beta, -90, 90) / 90;
+                gravity.y = Common.clamp(-event.gamma, -90, 90) / 90;
+            } else if (orientation === -90) {
+                gravity.x = Common.clamp(-event.beta, -90, 90) / 90;
+                gravity.y = Common.clamp(event.gamma, -90, 90) / 90;
+            }
+        };
 
-    window.addEventListener('deviceorientation', updateGravity);
+        window.addEventListener('deviceorientation', updateGravity);
+    }
 
     // add mouse control
     var mouse = Mouse.create(render.canvas),
@@ -101,7 +103,7 @@ Example.gyro = function() {
             }
         });
 
-    World.add(world, mouseConstraint);
+    Composite.add(world, mouseConstraint);
 
     // keep the mouse in sync with rendering
     render.mouse = mouse;
@@ -121,7 +123,16 @@ Example.gyro = function() {
         stop: function() {
             Matter.Render.stop(render);
             Matter.Runner.stop(runner);
-            window.removeEventListener('deviceorientation', updateGravity);
+            if (typeof window !== 'undefined') {
+                window.removeEventListener('deviceorientation', updateGravity);
+            }
         }
     };
 };
+
+Example.gyro.title = 'Gyroscope';
+Example.gyro.for = '>=0.14.2';
+
+if (typeof module !== 'undefined') {
+    module.exports = Example.gyro;
+}

@@ -11,7 +11,6 @@ Example.timescale = function() {
         Common = Matter.Common,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
-        World = Matter.World,
         Bodies = Matter.Bodies;
 
     // create engine
@@ -36,7 +35,7 @@ Example.timescale = function() {
     Runner.run(runner, engine);
 
     // add bodies
-    World.add(world, [
+    Composite.add(world, [
         Bodies.rectangle(400, 0, 800, 50, { isStatic: true }),
         Bodies.rectangle(400, 600, 800, 50, { isStatic: true }),
         Bodies.rectangle(800, 300, 50, 600, { isStatic: true }),
@@ -95,12 +94,12 @@ Example.timescale = function() {
     };
     
     // add some small bouncy circles... remember Swordfish?
-    World.add(world, Composites.stack(20, 100, 15, 3, 20, 40, function(x, y) {
+    Composite.add(world, Composites.stack(20, 100, 15, 3, 20, 40, function(x, y) {
         return Bodies.circle(x, y, Common.random(10, 20), bodyOptions);
     }));
 
     // add some larger random bouncy objects
-    World.add(world, Composites.stack(50, 50, 8, 3, 0, 0, function(x, y) {
+    Composite.add(world, Composites.stack(50, 50, 8, 3, 0, 0, function(x, y) {
         switch (Math.round(Common.random(0, 1))) {
 
         case 0:
@@ -127,7 +126,7 @@ Example.timescale = function() {
             }
         });
 
-    World.add(world, mouseConstraint);
+    Composite.add(world, mouseConstraint);
 
     // keep the mouse in sync with rendering
     render.mouse = mouse;
@@ -150,3 +149,10 @@ Example.timescale = function() {
         }
     };
 };
+
+Example.timescale.title = 'Time Scaling';
+Example.timescale.for = '>=0.14.2';
+
+if (typeof module !== 'undefined') {
+    module.exports = Example.timescale;
+}

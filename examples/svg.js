@@ -7,10 +7,13 @@ Example.svg = function() {
         Common = Matter.Common,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
-        World = Matter.World,
+        Composite = Matter.Composite,
         Vertices = Matter.Vertices,
         Svg = Matter.Svg,
         Bodies = Matter.Bodies;
+
+    // provide concave decomposition support library
+    Common.setDecomp(require('poly-decomp'));
 
     // create engine
     var engine = Engine.create(),
@@ -33,25 +36,30 @@ Example.svg = function() {
     Runner.run(runner, engine);
 
     // add bodies
-    var svgs = [
-        'iconmonstr-check-mark-8-icon', 
-        'iconmonstr-paperclip-2-icon',
-        'iconmonstr-puzzle-icon',
-        'iconmonstr-user-icon'
-    ];
+    if (typeof fetch !== 'undefined') {
+        var select = function(root, selector) {
+            return Array.prototype.slice.call(root.querySelectorAll(selector));
+        };
 
-    for (var i = 0; i < svgs.length; i += 1) {
-        (function(i) {
-            $.get('./svg/' + svgs[i] + '.svg').done(function(data) {
-                var vertexSets = [],
-                    color = Common.choose(['#556270', '#4ECDC4', '#C7F464', '#FF6B6B', '#C44D58']);
+        var loadSvg = function(url) {
+            return fetch(url)
+                .then(function(response) { return response.text(); })
+                .then(function(raw) { return (new window.DOMParser()).parseFromString(raw, 'image/svg+xml'); });
+        };
 
-                $(data).find('path').each(function(i, path) {
-                    var points = Svg.pathToVertices(path, 30);
-                    vertexSets.push(Vertices.scale(points, 0.4, 0.4));
-                });
+        ([
+            './svg/iconmonstr-check-mark-8-icon.svg', 
+            './svg/iconmonstr-paperclip-2-icon.svg',
+            './svg/iconmonstr-puzzle-icon.svg',
+            './svg/iconmonstr-user-icon.svg'
+        ]).forEach(function(path, i) { 
+            loadSvg(path).then(function(root) {
+                var color = Common.choose(['#f19648', '#f5d259', '#f55a3c', '#063e7b', '#ececd1']);
 
-                World.add(world, Bodies.fromVertices(100 + i * 150, 200 + i * 50, vertexSets, {
+                var vertexSets = select(root, 'path')
+                    .map(function(path) { return Vertices.scale(Svg.pathToVertices(path, 30), 0.4, 0.4); });
+
+                Composite.add(world, Bodies.fromVertices(100 + i * 150, 200 + i * 50, vertexSets, {
                     render: {
                         fillStyle: color,
                         strokeStyle: color,
@@ -59,27 +67,27 @@ Example.svg = function() {
                     }
                 }, true));
             });
-        })(i);
-    }
-
-    $.get('./svg/svg.svg').done(function(data) {
-        var vertexSets = [],
-            color = Common.choose(['#556270', '#4ECDC4', '#C7F464', '#FF6B6B', '#C44D58']);
-
-        $(data).find('path').each(function(i, path) {
-            vertexSets.push(Svg.pathToVertices(path, 30));
         });
 
-        World.add(world, Bodies.fromVertices(400, 80, vertexSets, {
-            render: {
-                fillStyle: color,
-                strokeStyle: color,
-                lineWidth: 1
-            }
-        }, true));
-    });
+        loadSvg('./svg/svg.svg').then(function(root) {
+            var color = Common.choose(['#f19648', '#f5d259', '#f55a3c', '#063e7b', '#ececd1']);
+            
+            var vertexSets = select(root, 'path')
+                .map(function(path) { return Svg.pathToVertices(path, 30); });
 
-    World.add(world, [
+            Composite.add(world, Bodies.fromVertices(400, 80, vertexSets, {
+                render: {
+                    fillStyle: color,
+                    strokeStyle: color,
+                    lineWidth: 1
+                }
+            }, true));
+        });
+    } else {
+        Common.warn('Fetch is not available. Could not load SVG.');
+    }
+
+    Composite.add(world, [
         Bodies.rectangle(400, 0, 800, 50, { isStatic: true }),
         Bodies.rectangle(400, 600, 800, 50, { isStatic: true }),
         Bodies.rectangle(800, 300, 50, 600, { isStatic: true }),
@@ -98,7 +106,7 @@ Example.svg = function() {
             }
         });
 
-    World.add(world, mouseConstraint);
+    Composite.add(world, mouseConstraint);
 
     // keep the mouse in sync with rendering
     render.mouse = mouse;
@@ -121,3 +129,10 @@ Example.svg = function() {
         }
     };
 };
+
+Example.svg.title = 'Concave SVG Paths';
+Example.svg.for = '>0.16.1';
+
+if (typeof module !== 'undefined') {
+    module.exports = Example.svg;
+}

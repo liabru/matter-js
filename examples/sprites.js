@@ -8,7 +8,7 @@ Example.sprites = function() {
         Common = Matter.Common,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
-        World = Matter.World,
+        Composite = Matter.Composite,
         Bodies = Matter.Bodies;
 
     // create engine
@@ -22,7 +22,6 @@ Example.sprites = function() {
         options: {
             width: 800,
             height: 600,
-            background: '#0f0f13',
             showAngleIndicator: false,
             wireframes: false
         }
@@ -43,7 +42,7 @@ Example.sprites = function() {
     world.bodies = [];
 
     // these static walls will not be rendered in this sprites example, see options
-    World.add(world, [
+    Composite.add(world, [
         Bodies.rectangle(400, -offset, 800.5 + 2 * offset, 50.5, options),
         Bodies.rectangle(400, 600 + offset, 800.5 + 2 * offset, 50.5, options),
         Bodies.rectangle(800 + offset, 300, 50.5, 600.5 + 2 * offset, options),
@@ -75,7 +74,7 @@ Example.sprites = function() {
         }
     });
 
-    World.add(world, stack);
+    Composite.add(world, stack);
 
     // add mouse control
     var mouse = Mouse.create(render.canvas),
@@ -89,7 +88,7 @@ Example.sprites = function() {
             }
         });
 
-    World.add(world, mouseConstraint);
+    Composite.add(world, mouseConstraint);
 
     // keep the mouse in sync with rendering
     render.mouse = mouse;
@@ -112,3 +111,10 @@ Example.sprites = function() {
         }
     };
 };
+
+Example.sprites.title = 'Sprites';
+Example.sprites.for = '>=0.14.2';
+
+if (typeof module !== 'undefined') {
+    module.exports = Example.sprites;
+}

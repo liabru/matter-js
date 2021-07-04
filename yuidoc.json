@@ -1,0 +1,11 @@
+{
+  "name": "Matter.js Physics Engine API Docs",
+  "description": "a 2D rigid body physics engine for the web",
+  "url": "http://brm.io/matter-js/",
+  "options": {
+      "linkNatives": true,
+      "outdir": "docs",
+      "themedir": "matter-doc-theme",
+      "paths": "src"
+  }
+}

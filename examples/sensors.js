@@ -7,7 +7,7 @@ Example.sensors = function() {
         Events = Matter.Events,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
-        World = Matter.World,
+        Composite = Matter.Composite,
         Bodies = Matter.Bodies;
 
     // create engine
@@ -21,8 +21,7 @@ Example.sensors = function() {
         options: {
             width: 800,
             height: 600,
-            wireframes: false,
-            background: '#111'
+            wireframes: false
         }
     });
 
@@ -33,34 +32,34 @@ Example.sensors = function() {
     Runner.run(runner, engine);
 
     // add bodies
-    var redColor = '#C44D58',
-        greenColor = '#C7F464';
+    var colorA = '#f55a3c',
+        colorB = '#f5d259';
 
     var collider = Bodies.rectangle(400, 300, 500, 50, {
         isSensor: true,
         isStatic: true,
         render: {
-            strokeStyle: redColor,
+            strokeStyle: colorA,
             fillStyle: 'transparent',
             lineWidth: 1
         }
     });
 
-    World.add(world, [
+    Composite.add(world, [
         collider,
-        Bodies.rectangle(400, 620, 800, 50, { 
+        Bodies.rectangle(400, 600, 800, 50, { 
             isStatic: true,
             render: {
-                fillStyle: 'transparent',
-                lineWidth: 1
+                fillStyle: '#060a19',
+                lineWidth: 0
             }
         })
     ]);
 
-    World.add(world,
+    Composite.add(world,
         Bodies.circle(400, 40, 30, {
             render: {
-                strokeStyle: greenColor,
+                strokeStyle: colorB,
                 fillStyle: 'transparent',
                 lineWidth: 1
             }
@@ -74,9 +73,9 @@ Example.sensors = function() {
             var pair = pairs[i];
 
             if (pair.bodyA === collider) {
-                pair.bodyB.render.strokeStyle = redColor;
+                pair.bodyB.render.strokeStyle = colorA;
             } else if (pair.bodyB === collider) {
-                pair.bodyA.render.strokeStyle = redColor;
+                pair.bodyA.render.strokeStyle = colorA;
             }
         }
     });
@@ -88,9 +87,9 @@ Example.sensors = function() {
             var pair = pairs[i];
 
             if (pair.bodyA === collider) {
-                pair.bodyB.render.strokeStyle = greenColor;
+                pair.bodyB.render.strokeStyle = colorB;
             } else if (pair.bodyB === collider) {
-                pair.bodyA.render.strokeStyle = greenColor;
+                pair.bodyA.render.strokeStyle = colorB;
             }
         }
     });
@@ -107,7 +106,7 @@ Example.sensors = function() {
             }
         });
 
-    World.add(world, mouseConstraint);
+    Composite.add(world, mouseConstraint);
 
     // keep the mouse in sync with rendering
     render.mouse = mouse;
@@ -130,3 +129,10 @@ Example.sensors = function() {
         }
     };
 };
+
+Example.sensors.title = 'Sensors';
+Example.sensors.for = '>=0.14.2';
+
+if (typeof module !== 'undefined') {
+    module.exports = Example.sensors;
+}

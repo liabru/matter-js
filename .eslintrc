@@ -29,7 +29,6 @@
         "process": false,
         "HTMLElement": false,
         "require": false,
-        "PIXI": false,
         "$": false,
         "Image": false,
         "navigator": false,
@@ -59,13 +58,17 @@
         "Vector": false,
         "Vertices": false,
         "Render": false,
-        "RenderPixi": false,
         "Events": false,
         "Query": false,
         "Runner": false,
         "Svg": false,
-        "Metrics": false,
-        "Example": false
+        "Example": false,
+        "__MATTER_VERSION__": false,
+        "__MATTER_IS_DEV__": false,
+        "jest": false,
+        "test": false,
+        "expect": false,
+        "describe": false
     },
     "extends": "eslint:recommended"
 }
