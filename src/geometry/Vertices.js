@@ -251,10 +251,10 @@ var Common = require('../core/Common');
         if (scaleX < 0 && scaleY > 0 || scaleX > 0 && scaleY < 0) {
             var pastVertices = [];
 
-            for (var i = 0; i < vertices.length; i++)
+            for (var i = 0, len = vertices.length; i < len; i++)
                 pastVertices[i] = { x: vertices[i].x, y: vertices[i].y };
 
-            for (var i = 0, j = pastVertices.length - 1; i < pastVertices.length; i++) {
+            for (var i = 0, j = pastVertices.length - 1, len = pastVertices.length; i < len; i++) {
                 j = pastVertices.length - i - 1;
                 vertex = pastVertices[j];
                 delta = Vector.sub(vertex, point);
@@ -262,7 +262,7 @@ var Common = require('../core/Common');
                 vertices[i].y = point.y + delta.y * scaleY;
             }
         } else {
-            for (var i = 0; i < vertices.length; i++) {
+            for (var i = 0, len = vertices.length; i < len; i++) {
                 vertex = vertices[i];
                 delta = Vector.sub(vertex, point);
                 vertices[i].x = point.x + delta.x * scaleX;
