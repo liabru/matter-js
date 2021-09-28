@@ -9,7 +9,6 @@ var Grid = {};
 module.exports = Grid;
 
 var Pair = require('./Pair');
-var Detector = require('./Detector');
 var Common = require('../core/Common');
 
 (function() {
@@ -22,8 +21,6 @@ var Common = require('../core/Common');
      */
     Grid.create = function(options) {
         var defaults = {
-            controller: Grid,
-            detector: Detector.collisions,
             buckets: {},
             pairs: {},
             pairsList: [],
@@ -66,30 +63,21 @@ var Common = require('../core/Common');
             bucketId,
             gridChanged = false;
 
-        // @if DEBUG
-        var metrics = engine.metrics;
-        metrics.broadphaseTests = 0;
-        // @endif
-
         for (i = 0; i < bodies.length; i++) {
             var body = bodies[i];
 
             if (body.isSleeping && !forceUpdate)
                 continue;
 
-            // don't update out of world bodies
-            if (body.bounds.max.x < world.bounds.min.x || body.bounds.min.x > world.bounds.max.x
-                || body.bounds.max.y < world.bounds.min.y || body.bounds.min.y > world.bounds.max.y)
+            // temporary back compatibility bounds check
+            if (world.bounds && (body.bounds.max.x < world.bounds.min.x || body.bounds.min.x > world.bounds.max.x
+                || body.bounds.max.y < world.bounds.min.y || body.bounds.min.y > world.bounds.max.y))
                 continue;
 
             var newRegion = Grid._getRegion(grid, body);
 
             // if the body has changed grid region
             if (!body.region || newRegion.id !== body.region.id || forceUpdate) {
-
-                // @if DEBUG
-                metrics.broadphaseTests += 1;
-                // @endif
 
                 if (!body.region || forceUpdate)
                     body.region = newRegion;

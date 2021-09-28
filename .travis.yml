@@ -3,8 +3,9 @@ sudo: false
 node_js:
   - "node"
 install:
-  - npm install
+  - npm ci
 script:
   - npm run lint
   - npm run test
   - npm run build
+  - npm run build-demo

@@ -1,9 +1,17 @@
 var Example = Example || {};
 
 Example.ballPool = function() {
-    Matter.use(
-        'matter-wrap'
-    );
+    try {
+        if (typeof MatterWrap !== 'undefined') {
+            // either use by name from plugin registry (Browser global)
+            Matter.use('matter-wrap');
+        } else {
+            // or require and use the plugin directly (Node.js, Webpack etc.)
+            Matter.use(require('matter-wrap'));
+        }
+    } catch (e) {
+        // could not require the plugin or install needed
+    }
     
     var Engine = Matter.Engine,
         Render = Matter.Render,
@@ -13,7 +21,6 @@ Example.ballPool = function() {
         Common = Matter.Common,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
-        World = Matter.World,
         Bodies = Matter.Bodies;
 
     // create engine
@@ -38,15 +45,15 @@ Example.ballPool = function() {
     Runner.run(runner, engine);
 
     // add bodies
-    World.add(world, [
-        Bodies.rectangle(400, 600, 1200, 50.5, { isStatic: true })
+    Composite.add(world, [
+        Bodies.rectangle(400, 600, 1200, 50.5, { isStatic: true, render: { fillStyle: '#060a19' } })
     ]);
 
     var stack = Composites.stack(100, 0, 10, 8, 10, 10, function(x, y) {
         return Bodies.circle(x, y, Common.random(15, 30), { restitution: 0.6, friction: 0.1 });
     });
     
-    World.add(world, [
+    Composite.add(world, [
         stack,
         Bodies.polygon(200, 460, 3, 60),
         Bodies.polygon(400, 460, 5, 60),
@@ -65,7 +72,7 @@ Example.ballPool = function() {
             }
         });
 
-    World.add(world, mouseConstraint);
+    Composite.add(world, mouseConstraint);
 
     // keep the mouse in sync with rendering
     render.mouse = mouse;
@@ -99,6 +106,9 @@ Example.ballPool = function() {
     };
 };
 
+Example.ballPool.title = 'Ball Pool';
+Example.ballPool.for = '>=0.14.2';
+
 if (typeof module !== 'undefined') {
-    module.exports = Example[Object.keys(Example)[0]];
+    module.exports = Example.ballPool;
 }

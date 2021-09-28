@@ -27,10 +27,6 @@ var Bounds = require('../geometry/Bounds');
         var collisions = [],
             pairsTable = engine.pairs.table;
 
-        // @if DEBUG
-        var metrics = engine.metrics;
-        // @endif
-        
         for (var i = 0; i < broadphasePairs.length; i++) {
             var bodyA = broadphasePairs[i][0], 
                 bodyB = broadphasePairs[i][1];
@@ -40,10 +36,6 @@ var Bounds = require('../geometry/Bounds');
             
             if (!Detector.canCollide(bodyA.collisionFilter, bodyB.collisionFilter))
                 continue;
-
-            // @if DEBUG
-            metrics.midphaseTests += 1;
-            // @endif
 
             // mid phase
             if (Bounds.overlaps(bodyA.bounds, bodyB.bounds)) {
@@ -68,17 +60,8 @@ var Bounds = require('../geometry/Bounds');
                             // narrow phase
                             var collision = SAT.collides(partA, partB, previousCollision);
 
-                            // @if DEBUG
-                            metrics.narrowphaseTests += 1;
-                            if (collision.reused)
-                                metrics.narrowReuseCount += 1;
-                            // @endif
-
                             if (collision.collided) {
                                 collisions.push(collision);
-                                // @if DEBUG
-                                metrics.narrowDetections += 1;
-                                // @endif
                             }
                         }
                     }

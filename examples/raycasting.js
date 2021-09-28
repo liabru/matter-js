@@ -11,7 +11,6 @@ Example.raycasting = function() {
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
         Events = Matter.Events,
-        World = Matter.World,
         Vertices = Matter.Vertices,
         Bodies = Matter.Bodies;
 
@@ -53,10 +52,13 @@ Example.raycasting = function() {
         }
     });
 
+    // for testing raycasting on concave bodies
+    Common.setDecomp(require('poly-decomp'));
+
     var star = Vertices.fromPath('50 0 63 38 100 38 69 59 82 100 50 75 18 100 31 59 0 38 37 38'),
         concave = Bodies.fromVertices(200, 200, star);
     
-    World.add(world, [
+    Composite.add(world, [
         stack, 
         concave,
         // walls
@@ -111,7 +113,7 @@ Example.raycasting = function() {
             }
         });
 
-    World.add(world, mouseConstraint);
+    Composite.add(world, mouseConstraint);
 
     // keep the mouse in sync with rendering
     render.mouse = mouse;
@@ -135,6 +137,9 @@ Example.raycasting = function() {
     };
 };
 
+Example.raycasting.title = 'Raycasting';
+Example.raycasting.for = '>0.16.1';
+
 if (typeof module !== 'undefined') {
-    module.exports = Example[Object.keys(Example)[0]];
+    module.exports = Example.raycasting;
 }

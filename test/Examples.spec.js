@@ -3,17 +3,30 @@
 
 jest.setTimeout(30 * 1000);
 
-const { comparisonReport, toMatchExtrinsics, toMatchIntrinsics } = require('./TestTools');
+const { 
+    comparisonReport, 
+    logReport, 
+    toMatchExtrinsics, 
+    toMatchIntrinsics 
+} = require('./TestTools');
 
 const Example = require('../examples/index');
 const MatterBuild = require('../build/matter');
+const { versionSatisfies } = require('../src/core/Plugin');
 const Worker = require('jest-worker').default;
 
 const testComparison = process.env.COMPARE === 'true';
 const saveComparison = process.env.SAVE === 'true';
 const excludeExamples = ['svg', 'terrain'];
 const excludeJitter = ['stack', 'circleStack', 'restitution', 'staticFriction', 'friction', 'newtonsCradle', 'catapult'];
-const examples = Object.keys(Example).filter(key => !excludeExamples.includes(key));
+
+const examples = Object.keys(Example).filter(key => {
+    const excluded = excludeExamples.includes(key);
+    const buildVersion = MatterBuild.version;
+    const exampleFor = Example[key].for;
+    const supported = versionSatisfies(buildVersion, exampleFor);
+    return !excluded && supported;
+});
 
 const runExamples = async useDev => {
     const worker = new Worker(require.resolve('./ExampleWorker'), {
@@ -39,7 +52,13 @@ afterAll(async () => {
     // Report experimental capture comparison.
     const dev = await capturesDev;
     const build = await capturesBuild;
-    console.log(comparisonReport(dev, build, MatterBuild.version, saveComparison));
+
+    console.log(
+        'Examples ran against previous release and current version\n\n'
+        + logReport(build, `release`) + '\n'
+        + logReport(dev, `current`) + '\n'
+        + comparisonReport(dev, build, MatterBuild.version, saveComparison)
+    );
 });
 
 describe(`Integration checks (${examples.length})`, () => {

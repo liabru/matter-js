@@ -7,7 +7,7 @@ Example.stress2 = function() {
         Composites = Matter.Composites,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
-        World = Matter.World,
+        Composite = Matter.Composite,
         Bodies = Matter.Bodies;
 
     // create engine
@@ -20,7 +20,9 @@ Example.stress2 = function() {
         engine: engine,
         options: {
             width: 800,
-            height: 600
+            height: 600,
+            showStats: true,
+            showPerformance: true
         }
     });
 
@@ -31,11 +33,11 @@ Example.stress2 = function() {
     Runner.run(runner, engine);
 
     // scene code
-    var stack = Composites.stack(100, 120, 25, 18, 0, 0, function(x, y) {
+    var stack = Composites.stack(100, 600 - 25 - 18 * 25, 25, 18, 0, 0, function(x, y) {
         return Bodies.rectangle(x, y, 25, 25);
     });
     
-    World.add(world, [
+    Composite.add(world, [
         stack,
         Bodies.rectangle(400, 0, 800, 50, { isStatic: true }),
         Bodies.rectangle(400, 600, 800, 50, { isStatic: true }),
@@ -55,7 +57,7 @@ Example.stress2 = function() {
             }
         });
 
-    World.add(world, mouseConstraint);
+    Composite.add(world, mouseConstraint);
 
     // keep the mouse in sync with rendering
     render.mouse = mouse;
@@ -79,6 +81,9 @@ Example.stress2 = function() {
     };
 };
 
+Example.stress2.title = 'Stress 2';
+Example.stress2.for = '>=0.14.2';
+
 if (typeof module !== 'undefined') {
-    module.exports = Example[Object.keys(Example)[0]];
+    module.exports = Example.stress2;
 }

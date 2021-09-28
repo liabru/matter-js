@@ -7,7 +7,7 @@ Example.wreckingBall = function() {
         Composites = Matter.Composites,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
-        World = Matter.World,
+        Composite = Matter.Composite,
         Constraint = Matter.Constraint,
         Bodies = Matter.Bodies;
 
@@ -34,13 +34,13 @@ Example.wreckingBall = function() {
 
     // add bodies
     var rows = 10,
-        yy = 600 - 21 - 40 * rows;
+        yy = 600 - 25 - 40 * rows;
     
     var stack = Composites.stack(400, yy, 5, rows, 0, 0, function(x, y) {
         return Bodies.rectangle(x, y, 40, 40);
     });
     
-    World.add(world, [
+    Composite.add(world, [
         stack,
         // walls
         Bodies.rectangle(400, 0, 800, 50, { isStatic: true }),
@@ -51,8 +51,8 @@ Example.wreckingBall = function() {
     
     var ball = Bodies.circle(100, 400, 50, { density: 0.04, frictionAir: 0.005});
     
-    World.add(world, ball);
-    World.add(world, Constraint.create({
+    Composite.add(world, ball);
+    Composite.add(world, Constraint.create({
         pointA: { x: 300, y: 100 },
         bodyB: ball
     }));
@@ -69,7 +69,7 @@ Example.wreckingBall = function() {
             }
         });
 
-    World.add(world, mouseConstraint);
+    Composite.add(world, mouseConstraint);
 
     // keep the mouse in sync with rendering
     render.mouse = mouse;
@@ -93,6 +93,9 @@ Example.wreckingBall = function() {
     };
 };
 
+Example.wreckingBall.title = 'Wrecking Ball';
+Example.wreckingBall.for = '>=0.14.2';
+
 if (typeof module !== 'undefined') {
-    module.exports = Example[Object.keys(Example)[0]];
+    module.exports = Example.wreckingBall;
 }

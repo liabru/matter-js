@@ -9,70 +9,8 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="robots" content="noindex">
-
     <title>Matter.js Demo</title>
-    
-    <!-- Libs -->
-    <script type="text/javascript" src="./lib/decomp.js"></script>
-    <script type="text/javascript" src="./lib/pathseg.js"></script>
 
-    <!-- Matter -->
-    <script src="../build/matter.js"></script>
-    
-    <!-- MatterTools -->
-    <script src="https://code.jquery.com/jquery-3.1.1.js"></script>
-    <script src="./lib/matter-tools.gui.js"></script>
-    <script src="./lib/matter-tools.inspector.js"></script>
-    <script src="./lib/matter-tools.demo.js"></script>
-
-    <!-- Plugins -->
-    <script src="./lib/matter-wrap.js"></script>
-    
-    <!-- Examples -->
-    <script src="../examples/airFriction.js"></script>
-    <script src="../examples/avalanche.js"></script>
-    <script src="../examples/ballPool.js"></script>
-    <script src="../examples/bridge.js"></script>
-    <script src="../examples/broadphase.js"></script>
-    <script src="../examples/car.js"></script>
-    <script src="../examples/catapult.js"></script>
-    <script src="../examples/chains.js"></script>
-    <script src="../examples/circleStack.js"></script>
-    <script src="../examples/cloth.js"></script>
-    <script src="../examples/collisionFiltering.js"></script>
-    <script src="../examples/compositeManipulation.js"></script>
-    <script src="../examples/compound.js"></script>
-    <script src="../examples/compoundStack.js"></script>
-    <script src="../examples/concave.js"></script>
-    <script src="../examples/constraints.js"></script>
-    <script src="../examples/doublePendulum.js"></script>
-    <script src="../examples/events.js"></script>
-    <script src="../examples/friction.js"></script>
-    <script src="../examples/gravity.js"></script>
-    <script src="../examples/gyro.js"></script>
-    <script src="../examples/manipulation.js"></script>
-    <script src="../examples/mixed.js"></script>
-    <script src="../examples/newtonsCradle.js"></script>
-    <script src="../examples/ragdoll.js"></script>
-    <script src="../examples/pyramid.js"></script>
-    <script src="../examples/raycasting.js"></script>
-    <script src="../examples/restitution.js"></script>
-    <script src="../examples/rounded.js"></script>
-    <script src="../examples/sensors.js"></script>
-    <script src="../examples/sleeping.js"></script>
-    <script src="../examples/slingshot.js"></script>
-    <script src="../examples/softBody.js"></script>
-    <script src="../examples/sprites.js"></script>
-    <script src="../examples/stack.js"></script>
-    <script src="../examples/staticFriction.js"></script>
-    <script src="../examples/stress.js"></script>
-    <script src="../examples/stress2.js"></script>
-    <script src="../examples/svg.js"></script>
-    <script src="../examples/terrain.js"></script>
-    <script src="../examples/timescale.js"></script>
-    <script src="../examples/views.js"></script>
-    <script src="../examples/wreckingBall.js"></script>
-    
     <style type="text/css">
       * {
         box-sizing: border-box;
@@ -83,7 +21,13 @@
         padding: 0;
       }
 
-      .matter-js-compare-build {
+      .matter-btn-compare.matter-btn {
+        font-size: 18px;
+        text-align: center;
+        line-height: 32px;
+      }
+
+      .matter-js-compare-build.matter-demo {
         position: absolute;
         background: none;
         top: 0;
@@ -95,17 +39,22 @@
         pointer-events: none;
       }
 
-      .matter-js-compare-build .matter-header-outer {
+      .matter-js-compare-build.matter-demo .matter-header-outer {
         display: none;
       }
 
-      .matter-js-compare-build canvas {
+      .matter-js-compare-build.matter-demo canvas {
         opacity: 0.5;
         background: transparent !important;
       }
     </style>
   </head>
   <body>
-    <script src="./js/Demo.js"></script>
+    <script src="./js/matter-demo.main.5a504f.min.js"></script>
+    <script src="./js/matter-demo.matter-tools.5e580e.min.js"></script>
+    <script src="./js/matter-demo.matter-wrap.b3a896.min.js"></script>
+    <script src="./js/matter-demo.pathseg.067c95.min.js"></script>
+    <script src="./js/matter-demo.poly-decomp.59954b.min.js"></script>
+    <script src="./js/matter-demo.e7da73.min.js"></script>
   </body>
 </html>

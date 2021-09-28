@@ -6,9 +6,9 @@ Example.compound = function() {
         Runner = Matter.Runner,
         Body = Matter.Body,
         Constraint = Matter.Constraint,
+        Composite = Matter.Composite,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
-        World = Matter.World,
         Bodies = Matter.Bodies;
 
     // create engine
@@ -63,7 +63,7 @@ Example.compound = function() {
         pointB: { x: 0, y: 0 }
     });
 
-    World.add(world, [
+    Composite.add(world, [
         compoundBodyA, 
         compoundBodyB, 
         constraint,
@@ -82,7 +82,7 @@ Example.compound = function() {
             }
         });
 
-    World.add(world, mouseConstraint);
+    Composite.add(world, mouseConstraint);
 
     // keep the mouse in sync with rendering
     render.mouse = mouse;
@@ -106,6 +106,9 @@ Example.compound = function() {
     };
 };
 
+Example.compound.title = 'Compound Bodies';
+Example.compound.for = '>=0.14.2';
+
 if (typeof module !== 'undefined') {
-    module.exports = Example[Object.keys(Example)[0]];
+    module.exports = Example.compound;
 }

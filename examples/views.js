@@ -9,7 +9,7 @@ Example.views = function() {
         Common = Matter.Common,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
-        World = Matter.World,
+        Composite = Matter.Composite,
         Vector = Matter.Vector,
         Bounds = Matter.Bounds,
         Bodies = Matter.Bodies;
@@ -48,13 +48,13 @@ Example.views = function() {
             }
         });
 
-    World.add(world, mouseConstraint);
+    Composite.add(world, mouseConstraint);
 
     // keep the mouse in sync with rendering
     render.mouse = mouse;
 
     // add bodies
-    var stack = Composites.stack(20, 20, 15, 4, 0, 0, function(x, y) {
+    var stack = Composites.stack(20, 20, 10, 4, 0, 0, function(x, y) {
         switch (Math.round(Common.random(0, 1))) {
 
         case 0:
@@ -70,7 +70,7 @@ Example.views = function() {
         }
     });
 
-    World.add(world, [
+    Composite.add(world, [
         stack,
         // walls
         Bodies.rectangle(400, 0, 800, 50, { isStatic: true }),
@@ -85,11 +85,11 @@ Example.views = function() {
         y: render.options.height * 0.5
     };
 
-    // make the world bounds a little bigger than the render bounds
-    world.bounds.min.x = -300;
-    world.bounds.min.y = -300;
-    world.bounds.max.x = 1100;
-    world.bounds.max.y = 900;
+    // create limits for the viewport
+    var extents = {
+        min: { x: -300, y: -300 },
+        max: { x: 1100, y: 900 }
+    };
 
     // keep track of current bounds scale (view zoom)
     var boundsScaleTarget = 1,
@@ -98,8 +98,8 @@ Example.views = function() {
             y: 1
         };
 
-    // use the engine tick event to control our view
-    Events.on(engine, 'beforeTick', function() {
+    // use a render event to control our view
+    Events.on(render, 'beforeRender', function() {
         var world = engine.world,
             mouse = mouseConstraint.mouse,
             translate;
@@ -148,18 +148,18 @@ Example.views = function() {
 
             translate = Vector.mult(direction, speed);
 
-            // prevent the view moving outside the world bounds
-            if (render.bounds.min.x + translate.x < world.bounds.min.x)
-                translate.x = world.bounds.min.x - render.bounds.min.x;
+            // prevent the view moving outside the extents
+            if (render.bounds.min.x + translate.x < extents.min.x)
+                translate.x = extents.min.x - render.bounds.min.x;
 
-            if (render.bounds.max.x + translate.x > world.bounds.max.x)
-                translate.x = world.bounds.max.x - render.bounds.max.x;
+            if (render.bounds.max.x + translate.x > extents.max.x)
+                translate.x = extents.max.x - render.bounds.max.x;
 
-            if (render.bounds.min.y + translate.y < world.bounds.min.y)
-                translate.y = world.bounds.min.y - render.bounds.min.y;
+            if (render.bounds.min.y + translate.y < extents.min.y)
+                translate.y = extents.min.y - render.bounds.min.y;
 
-            if (render.bounds.max.y + translate.y > world.bounds.max.y)
-                translate.y = world.bounds.max.y - render.bounds.max.y;
+            if (render.bounds.max.y + translate.y > extents.max.y)
+                translate.y = extents.max.y - render.bounds.max.y;
 
             // move the view
             Bounds.translate(render.bounds, translate);
@@ -182,6 +182,9 @@ Example.views = function() {
     };
 };
 
+Example.views.title = 'Views';
+Example.views.for = '>=0.14.2';
+
 if (typeof module !== 'undefined') {
-    module.exports = Example[Object.keys(Example)[0]];
+    module.exports = Example.views;
 }

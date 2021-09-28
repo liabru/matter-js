@@ -1,8 +1,10 @@
 /**
-* The `Matter.Composite` module contains methods for creating and manipulating composite bodies.
-* A composite body is a collection of `Matter.Body`, `Matter.Constraint` and other `Matter.Composite`, therefore composites form a tree structure.
-* It is important to use the functions in this module to modify composites, rather than directly modifying their properties.
-* Note that the `Matter.World` object is also a type of `Matter.Composite` and as such all composite methods here can also operate on a `Matter.World`.
+* A composite is a collection of `Matter.Body`, `Matter.Constraint` and other `Matter.Composite` objects.
+*
+* They are a container that can represent complex objects made of multiple parts, even if they are not physically connected.
+* A composite could contain anything from a single body all the way up to a whole world.
+* 
+* When making any changes to composites, use the included functions rather than changing their properties directly.
 *
 * See the included usage [examples](https://github.com/liabru/matter-js/tree/master/examples).
 *
@@ -67,11 +69,11 @@ var Body = require('./Body');
     };
 
     /**
-     * Generic add function. Adds one or many body(s), constraint(s) or a composite(s) to the given composite.
+     * Generic single or multi-add function. Adds a single or an array of body(s), constraint(s) or composite(s) to the given composite.
      * Triggers `beforeAdd` and `afterAdd` events on the `composite`.
      * @method add
      * @param {composite} composite
-     * @param {} object
+     * @param {object|array} object A single or an array of body(s), constraint(s) or composite(s)
      * @return {composite} The original composite with the objects added
      */
     Composite.add = function(composite, object) {
@@ -117,7 +119,7 @@ var Body = require('./Body');
      * Triggers `beforeRemove` and `afterRemove` events on the `composite`.
      * @method remove
      * @param {composite} composite
-     * @param {} object
+     * @param {object|array} object
      * @param {boolean} [deep=false]
      * @return {composite} The original composite with the objects removed
      */

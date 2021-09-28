@@ -8,7 +8,7 @@ Example.newtonsCradle = function() {
         Composites = Matter.Composites,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
-        World = Matter.World;
+        Composite = Matter.Composite;
 
     // create engine
     var engine = Engine.create(),
@@ -31,13 +31,13 @@ Example.newtonsCradle = function() {
     var runner = Runner.create();
     Runner.run(runner, engine);
 
-    // add bodies
-    var cradle = Composites.newtonsCradle(280, 100, 5, 30, 200);
-    World.add(world, cradle);
+    // see newtonsCradle function defined later in this file
+    var cradle = Example.newtonsCradle.newtonsCradle(280, 100, 5, 30, 200);
+    Composite.add(world, cradle);
     Body.translate(cradle.bodies[0], { x: -180, y: -100 });
     
-    cradle = Composites.newtonsCradle(280, 380, 7, 20, 140);
-    World.add(world, cradle);
+    cradle = Example.newtonsCradle.newtonsCradle(280, 380, 7, 20, 140);
+    Composite.add(world, cradle);
     Body.translate(cradle.bodies[0], { x: -140, y: -100 });
 
     // add mouse control
@@ -52,7 +52,7 @@ Example.newtonsCradle = function() {
             }
         });
 
-    World.add(world, mouseConstraint);
+    Composite.add(world, mouseConstraint);
 
     // keep the mouse in sync with rendering
     render.mouse = mouse;
@@ -76,6 +76,39 @@ Example.newtonsCradle = function() {
     };
 };
 
+Example.newtonsCradle.title = 'Newton\'s Cradle';
+Example.newtonsCradle.for = '>=0.14.2';
+
+/**
+* Creates a composite with a Newton's Cradle setup of bodies and constraints.
+* @method newtonsCradle
+* @param {number} xx
+* @param {number} yy
+* @param {number} number
+* @param {number} size
+* @param {number} length
+* @return {composite} A new composite newtonsCradle body
+*/
+Example.newtonsCradle.newtonsCradle = function(xx, yy, number, size, length) {
+    var Composite = Matter.Composite,
+        Constraint = Matter.Constraint,
+        Bodies = Matter.Bodies;
+
+    var newtonsCradle = Composite.create({ label: 'Newtons Cradle' });
+
+    for (var i = 0; i < number; i++) {
+        var separation = 1.9,
+            circle = Bodies.circle(xx + i * (size * separation), yy + length, size, 
+                { inertia: Infinity, restitution: 1, friction: 0, frictionAir: 0.0001, slop: 1 }),
+            constraint = Constraint.create({ pointA: { x: xx + i * (size * separation), y: yy }, bodyB: circle });
+
+        Composite.addBody(newtonsCradle, circle);
+        Composite.addConstraint(newtonsCradle, constraint);
+    }
+
+    return newtonsCradle;
+};
+
 if (typeof module !== 'undefined') {
-    module.exports = Example[Object.keys(Example)[0]];
+    module.exports = Example.newtonsCradle;
 }

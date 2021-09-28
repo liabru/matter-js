@@ -145,13 +145,18 @@ const captureSimilarityExtrinsic = (currentCaptures, referenceCaptures) => {
     return result;
 };
 
-const writeCaptures = (name, obj) => {
+const writeResult = (name, obj) => {
     try {
         fs.mkdirSync(comparePath, { recursive: true });
     } catch (err) {
         if (err.code !== 'EEXIST') throw err;
     }
-    fs.writeFileSync(`${comparePath}/${name}.json`, compactStringify(obj, { maxLength: 100 }), 'utf8');
+
+    if (typeof obj === 'string') {
+        fs.writeFileSync(`${comparePath}/${name}.md`, obj, 'utf8');
+    } else {
+        fs.writeFileSync(`${comparePath}/${name}.json`, compactStringify(obj, { maxLength: 100 }), 'utf8');
+    }
 };
 
 const toMatchExtrinsics = {
@@ -197,6 +202,25 @@ const equals = (a, b) => {
     return true;
 };
 
+const logReport = (captures, version) => {
+    let report = '';
+
+    for (const capture of Object.values(captures)) {
+        if (!capture.logs.length) {
+            continue;
+        }
+
+        report += `  ${capture.name}\n`;
+
+        for (const log of capture.logs) {
+            report += `    ${log}\n`;
+        }
+    }
+
+    return `Output logs from ${color(version, colors.Yellow)} version on last run\n\n` 
+        + (report ? report : '  None\n');
+};
+
 const comparisonReport = (capturesDev, capturesBuild, buildVersion, save) => {
     const similaritys = captureSimilarityExtrinsic(capturesDev, capturesBuild);
     const similarityEntries = Object.entries(similaritys);
@@ -231,7 +255,10 @@ const comparisonReport = (capturesDev, capturesBuild, buildVersion, save) => {
     similarityEntries.sort((a, b) => a[1] - b[1]);
 
     let perfChange = 1 - (totalTimeDev / totalTimeBuild);
-    perfChange = perfChange < -0.05 || perfChange > 0.05 ? perfChange : 0;
+    
+    const perfChangeThreshold = 0.075;
+    const perfChangeLarge = Math.abs(perfChange) > perfChangeThreshold;
+    perfChange = perfChangeLarge ? perfChange : 0;
 
     let similarityAvg = 0;
     similarityEntries.forEach(([_, similarity]) => {
@@ -242,37 +269,40 @@ const comparisonReport = (capturesDev, capturesBuild, buildVersion, save) => {
 
     const overlapChange = (totalOverlapDev / (totalOverlapBuild || 1)) - 1;
 
-    if (save) {
-        writeCaptures('examples-dev', devIntrinsicsChanged);
-        writeCaptures('examples-build', buildIntrinsicsChanged);
-    }
-
-    return [
+    const report = (breakEvery, format) => [
         [`Output comparison of ${similarityEntries.length}`,
-         `examples against ${color('matter-js@' + buildVersion, colors.Yellow)} build on last run`
+         `examples against previous release ${format('matter-js@' + buildVersion, colors.Yellow)}`
         ].join(' '),
-        `\n\n${color('Similarity', colors.White)}`,
-        `${color(toPercent(similarityAvg), similarityAvg === 1 ? colors.Green : colors.Yellow)}%`,
-        `${color('Performance', colors.White)}`,
-        `${color((perfChange >= 0 ? '+' : '') + toPercent(perfChange), perfChange >= 0 ? colors.Green : colors.Red)}%`,
-        `${color('Overlap', colors.White)}`,
-        `${color((overlapChange >= 0 ? '+' : '') + toPercent(overlapChange), overlapChange > 0 ? colors.Red : colors.Green)}%`,
+        `\n\n${format('Similarity', colors.White)}`,
+        `${format(toPercent(similarityAvg), similarityAvg === 1 ? colors.Green : colors.Yellow)}%`,
+        `${format('Performance', colors.White)}`,
+        `${format((perfChange >= 0 ? '+' : '') + toPercent(perfChange), perfChange >= 0 ? colors.Green : colors.Red)}%`,
+        `${format('Overlap', colors.White)}`,
+        `${format((overlapChange >= 0 ? '+' : '') + toPercent(overlapChange), overlapChange > 0 ? colors.Red : colors.Green)}%`,
         capturePerformance.reduce((output, p, i) => {
             output += `${p.name} `;
             output += `${similarityRatings(similaritys[p.name])} `;
             output += `${changeRatings(capturesDev[p.name].changedIntrinsics)} `;
-            if (i > 0 && i < capturePerformance.length && i % 5 === 0) {
+            if (i > 0 && i < capturePerformance.length && breakEvery > 0 && i % breakEvery === 0) {
                 output += '\n';
             }
             return output;
         }, '\n\n'),
         `\nwhere  · no change  ● extrinsics changed  ◆ intrinsics changed\n`,
-        similarityAvg < 1 ? `\n${color('▶', colors.White)} ${color(compareCommand + '=' + 120 + '#' + similarityEntries[0][0], colors.BrightCyan)}` : '',
-        intrinsicChangeCount > 0 ? `\n${color('▶', colors.White)} ${color((save ? diffCommand : diffSaveCommand), colors.BrightCyan)}` : ''
+        similarityAvg < 1 ? `\n${format('▶', colors.White)} ${format(compareCommand + '=' + 120 + '#' + similarityEntries[0][0], colors.BrightCyan)}` : '',
+        intrinsicChangeCount > 0 ? `\n${format('▶', colors.White)} ${format((save ? diffCommand : diffSaveCommand), colors.BrightCyan)}` : ''
     ].join('  ');
+
+    if (save) {
+        writeResult('examples-dev', devIntrinsicsChanged);
+        writeResult('examples-build', buildIntrinsicsChanged);
+        writeResult('examples-report', report(5, s => s));
+    }
+
+    return report(5, color);
 };
 
 module.exports = {
-    engineCapture, comparisonReport,
+    engineCapture, comparisonReport, logReport,
     toMatchExtrinsics, toMatchIntrinsics
 };

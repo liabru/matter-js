@@ -8,7 +8,7 @@ Example.catapult = function() {
         Constraint = Matter.Constraint,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
-        World = Matter.World,
+        Composite = Matter.Composite,
         Bodies = Matter.Bodies,
         Body = Matter.Body,
         Vector = Matter.Vector;
@@ -45,12 +45,12 @@ Example.catapult = function() {
 
     var catapult = Bodies.rectangle(400, 520, 320, 20, { collisionFilter: { group: group } });
 
-    World.add(world, [
+    Composite.add(world, [
         stack,
         catapult,
-        Bodies.rectangle(400, 600, 800, 50.5, { isStatic: true }),
-        Bodies.rectangle(250, 555, 20, 50, { isStatic: true }),
-        Bodies.rectangle(400, 535, 20, 80, { isStatic: true, collisionFilter: { group: group } }),
+        Bodies.rectangle(400, 600, 800, 50.5, { isStatic: true, render: { fillStyle: '#060a19' } }),
+        Bodies.rectangle(250, 555, 20, 50, { isStatic: true, render: { fillStyle: '#060a19' } }),
+        Bodies.rectangle(400, 535, 20, 80, { isStatic: true, collisionFilter: { group: group }, render: { fillStyle: '#060a19' } }),
         Bodies.circle(560, 100, 50, { density: 0.005 }),
         Constraint.create({ 
             bodyA: catapult, 
@@ -72,7 +72,7 @@ Example.catapult = function() {
             }
         });
 
-    World.add(world, mouseConstraint);
+    Composite.add(world, mouseConstraint);
 
     // keep the mouse in sync with rendering
     render.mouse = mouse;
@@ -96,6 +96,9 @@ Example.catapult = function() {
     };
 };
 
+Example.catapult.title = 'Catapult';
+Example.catapult.for = '>=0.14.2';
+
 if (typeof module !== 'undefined') {
-    module.exports = Example[Object.keys(Example)[0]];
+    module.exports = Example.catapult;
 }

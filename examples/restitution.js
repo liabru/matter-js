@@ -6,7 +6,7 @@ Example.restitution = function() {
         Runner = Matter.Runner,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
-        World = Matter.World,
+        Composite = Matter.Composite,
         Bodies = Matter.Bodies;
 
     // create engine
@@ -36,7 +36,7 @@ Example.restitution = function() {
     var rest = 0.9, 
         space = 600 / 5;
     
-    World.add(world, [
+    Composite.add(world, [
         Bodies.rectangle(100 + space * 0, 150, 50, 50, { restitution: rest }),
         Bodies.rectangle(100 + space * 1, 150, 50, 50, { restitution: rest, angle: -Math.PI * 0.15 }),
         Bodies.rectangle(100 + space * 2, 150, 50, 50, { restitution: rest, angle: -Math.PI * 0.25 }),
@@ -61,7 +61,7 @@ Example.restitution = function() {
             }
         });
 
-    World.add(world, mouseConstraint);
+    Composite.add(world, mouseConstraint);
 
     // keep the mouse in sync with rendering
     render.mouse = mouse;
@@ -85,6 +85,9 @@ Example.restitution = function() {
     };
 };
 
+Example.restitution.title = 'Restitution';
+Example.restitution.for = '>=0.14.2';
+
 if (typeof module !== 'undefined') {
-    module.exports = Example[Object.keys(Example)[0]];
+    module.exports = Example.restitution;
 }
