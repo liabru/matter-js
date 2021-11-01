@@ -695,6 +695,28 @@ var Axes = require('../geometry/Axes');
     };
 
     /**
+     * Applies a relative force to a body from a given relative position, including resulting torque.
+     * @method applyForce
+     * @param {body} body
+     * @param {vector} relativePosition
+     * @param {vector} relativeForce
+     */
+    Body.applyRelativeForce = function(body, relativePosition, relativeForce) {
+        var sin = Math.sin(body.angle);
+        var cos = Math.cos(body.angle);
+        
+        Body.applyForce(
+            body, {
+                x: body.position.x + cos * relativePosition.x - sin * relativePosition.y,
+                y: body.position.y + sin * relativePosition.x + cos * relativePosition.y,
+            }, {
+                x: cos * relativeForce.x - sin * relativeForce.y,
+                y: sin * relativeForce.x + cos * relativeForce.y,
+            }
+        );
+    };
+
+    /**
      * Returns the sums of the properties of all compound parts of the parent body.
      * @method _totalProperties
      * @private
