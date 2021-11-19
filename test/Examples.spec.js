@@ -30,7 +30,8 @@ const examples = Object.keys(Example).filter(key => {
 
 const runExamples = async useDev => {
     const worker = new Worker(require.resolve('./ExampleWorker'), {
-        enableWorkerThreads: true
+        enableWorkerThreads: true,
+        numWorkers: 1
     });
 
     const result = await Promise.all(examples.map(name => worker.runExample({

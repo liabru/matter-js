@@ -30,6 +30,8 @@ const runExample = options => {
   const consoleOriginal = global.console;
   const logs = [];
 
+  global.gc();
+
   mock('matter-js', Matter);
   global.Matter = Matter;
 

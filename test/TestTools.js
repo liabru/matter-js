@@ -256,9 +256,8 @@ const comparisonReport = (capturesDev, capturesBuild, buildVersion, save) => {
 
     let perfChange = 1 - (totalTimeDev / totalTimeBuild);
     
-    const perfChangeThreshold = 0.075;
-    const perfChangeLarge = Math.abs(perfChange) > perfChangeThreshold;
-    perfChange = perfChangeLarge ? perfChange : 0;
+    const perfChangeThreshold = 0.01;
+    perfChange = Math.abs(perfChange) > perfChangeThreshold ? perfChange : 0;
 
     let similarityAvg = 0;
     similarityEntries.forEach(([_, similarity]) => {
@@ -288,7 +287,7 @@ const comparisonReport = (capturesDev, capturesBuild, buildVersion, save) => {
             }
             return output;
         }, '\n\n'),
-        `\nwhere  · no change  ● extrinsics changed  ◆ intrinsics changed\n`,
+        `\n\nwhere  · no change  ● extrinsics changed  ◆ intrinsics changed\n`,
         similarityAvg < 1 ? `\n${format('▶', colors.White)} ${format(compareCommand + '=' + 120 + '#' + similarityEntries[0][0], colors.BrightCyan)}` : '',
         intrinsicChangeCount > 0 ? `\n${format('▶', colors.White)} ${format((save ? diffCommand : diffSaveCommand), colors.BrightCyan)}` : ''
     ].join('  ');
