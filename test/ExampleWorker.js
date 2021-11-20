@@ -30,8 +30,6 @@ const runExample = options => {
   const consoleOriginal = global.console;
   const logs = [];
 
-  global.gc();
-
   mock('matter-js', Matter);
   global.Matter = Matter;
 
@@ -47,6 +45,7 @@ const runExample = options => {
   const example = Example[options.name]();
   const engine = example.engine;
   
+  let totalMemory = 0;
   let totalDuration = 0;
   let overlapTotal = 0;
   let overlapCount = 0;
@@ -64,13 +63,17 @@ const runExample = options => {
     }
   }
 
+  global.gc();
+
   for (let i = 0; i < options.totalUpdates; i += 1) {
       const startTime = process.hrtime();
-
+      totalMemory += process.memoryUsage().heapUsed;
+      
       Matter.Engine.update(engine, 1000 / 60);
 
       const duration = process.hrtime(startTime);
       totalDuration += duration[0] * 1e9 + duration[1];
+      totalMemory += process.memoryUsage().heapUsed;
 
       for (let p = 0; p < engine.pairs.list.length; p += 1) {
         const pair = engine.pairs.list[p];
@@ -93,6 +96,7 @@ const runExample = options => {
     name: options.name,
     duration: totalDuration,
     overlap: overlapTotal / (overlapCount || 1),
+    memory: totalMemory,
     logs,
     ...engineCapture(engine)
   };

@@ -32,6 +32,13 @@ const colors = { Red: 31, Green: 32, Yellow: 33, White: 37, BrightWhite: 90, Bri
 const color = (text, number) => number ? `\x1b[${number}m${text}\x1b[0m` : text;
 const limit = (val, precision=3) => parseFloat(val.toPrecision(precision));
 const toPercent = val => (100 * val).toPrecision(3);
+const toPercentRound = val => Math.round(100 * val);
+
+const noiseThreshold = (val, threshold) => {
+    const sign = val < 0 ? -1 : 1;
+    const magnitude = Math.abs(val);
+    return sign * Math.max(0, magnitude - threshold) / (1 - threshold);
+};
 
 const engineCapture = (engine) => ({
     timestamp: limit(engine.timing.timestamp),
@@ -231,12 +238,18 @@ const comparisonReport = (capturesDev, capturesBuild, buildVersion, save) => {
     let totalTimeDev = 0;
     let totalOverlapBuild = 0;
     let totalOverlapDev = 0;
+    let totalMemoryBuild = 0;
+    let totalMemoryDev = 0;
 
     const capturePerformance = Object.entries(capturesDev).map(([name]) => {
         totalTimeBuild += capturesBuild[name].duration;
         totalTimeDev += capturesDev[name].duration;
+
         totalOverlapBuild += capturesBuild[name].overlap;
         totalOverlapDev += capturesDev[name].overlap;
+
+        totalMemoryBuild += capturesBuild[name].memory;
+        totalMemoryDev += capturesDev[name].memory;
 
         const changedIntrinsics = !equals(capturesDev[name].intrinsic, capturesBuild[name].intrinsic);
         if (changedIntrinsics) {
@@ -254,10 +267,8 @@ const comparisonReport = (capturesDev, capturesBuild, buildVersion, save) => {
     capturePerformance.sort((a, b) => a.name.localeCompare(b.name));
     similarityEntries.sort((a, b) => a[1] - b[1]);
 
-    let perfChange = 1 - (totalTimeDev / totalTimeBuild);
-    
-    const perfChangeThreshold = 0.01;
-    perfChange = Math.abs(perfChange) > perfChangeThreshold ? perfChange : 0;
+    let perfChange = noiseThreshold(1 - (totalTimeDev / totalTimeBuild), 0.01);
+    let memoryChange = noiseThreshold((totalMemoryDev / totalMemoryBuild) - 1, 0.01);
 
     let similarityAvg = 0;
     similarityEntries.forEach(([_, similarity]) => {
@@ -275,9 +286,11 @@ const comparisonReport = (capturesDev, capturesBuild, buildVersion, save) => {
         `\n\n${format('Similarity', colors.White)}`,
         `${format(toPercent(similarityAvg), similarityAvg === 1 ? colors.Green : colors.Yellow)}%`,
         `${format('Performance', colors.White)}`,
-        `${format((perfChange >= 0 ? '+' : '') + toPercent(perfChange), perfChange >= 0 ? colors.Green : colors.Red)}%`,
+        `${format((perfChange >= 0 ? '+' : '-') + toPercentRound(Math.abs(perfChange)), perfChange >= 0 ? colors.Green : colors.Red)}%`,
+        `${format('Memory', colors.White)}`,
+        `${format((memoryChange >= 0 ? '+' : '-') + toPercentRound(Math.abs(memoryChange)), memoryChange <= 0 ? colors.Green : colors.Red)}%`,
         `${format('Overlap', colors.White)}`,
-        `${format((overlapChange >= 0 ? '+' : '') + toPercent(overlapChange), overlapChange > 0 ? colors.Red : colors.Green)}%`,
+        `${format((overlapChange >= 0 ? '+' : '-') + toPercent(Math.abs(overlapChange)), overlapChange <= 0 ? colors.Green : colors.Red)}%`,
         capturePerformance.reduce((output, p, i) => {
             output += `${p.name} `;
             output += `${similarityRatings(similaritys[p.name])} `;
