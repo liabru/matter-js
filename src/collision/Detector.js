@@ -12,7 +12,6 @@ module.exports = Detector;
 
 var SAT = require('./SAT');
 var Pair = require('./Pair');
-var Bounds = require('../geometry/Bounds');
 
 (function() {
 
@@ -28,14 +27,14 @@ var Bounds = require('../geometry/Bounds');
             pairsTable = engine.pairs.table,
             broadphasePairsLength = broadphasePairs.length,
             canCollide = Detector.canCollide,
-            overlaps = Bounds.overlaps,
             collides = SAT.collides,
             pairId = Pair.id,
             i;
 
         for (i = 0; i < broadphasePairsLength; i++) {
-            var bodyA = broadphasePairs[i][0], 
-                bodyB = broadphasePairs[i][1];
+            var broadphasePair = broadphasePairs[i],
+                bodyA = broadphasePair[0], 
+                bodyB = broadphasePair[1];
 
             if ((bodyA.isStatic || bodyA.isSleeping) && (bodyB.isStatic || bodyB.isSleeping))
                 continue;
@@ -43,25 +42,46 @@ var Bounds = require('../geometry/Bounds');
             if (!canCollide(bodyA.collisionFilter, bodyB.collisionFilter))
                 continue;
 
-            // mid phase
-            if (overlaps(bodyA.bounds, bodyB.bounds)) {
-                var partsALength = bodyA.parts.length,
-                    partsBLength = bodyB.parts.length;
+            var boundsA = bodyA.bounds,
+                boundsB = bodyB.bounds;
+
+            if (boundsA.min.x > boundsB.max.x || boundsA.max.x < boundsB.min.x
+                || boundsA.max.y < boundsB.min.y || boundsA.min.y > boundsB.max.y) {
+                continue;
+            }
+
+            var partsALength = bodyA.parts.length,
+                partsBLength = bodyB.parts.length;
+
+            if (partsALength === 1 && partsBLength === 1) {
+                var pair = pairsTable[pairId(bodyA, bodyB)];
+                var collision = collides(bodyA, bodyB, pair && pair.collision, pair && pair.isActive);
+
+                if (collision.collided) {
+                    collisions.push(collision);
+                }
+            } else {
+                var partsAStart = partsALength > 1 ? 1 : 0,
+                    partsBStart = partsBLength > 1 ? 1 : 0;
                 
-                for (var j = partsALength > 1 ? 1 : 0; j < partsALength; j++) {
-                    var partA = bodyA.parts[j];
+                for (var j = partsAStart; j < partsALength; j++) {
+                    var partA = bodyA.parts[j],
+                        boundsA = partA.bounds;
 
-                    for (var k = partsBLength > 1 ? 1 : 0; k < partsBLength; k++) {
-                        var partB = bodyB.parts[k];
+                    for (var k = partsBStart; k < partsBLength; k++) {
+                        var partB = bodyB.parts[k],
+                            boundsB = partB.bounds;
 
-                        if ((partA === bodyA && partB === bodyB) || overlaps(partA.bounds, partB.bounds)) {
-                            // narrow phase
-                            var pair = pairsTable[pairId(partA, partB)];
-                            var collision = collides(partA, partB, pair && pair.collision, pair && pair.isActive);
+                        if (boundsA.min.x > boundsB.max.x || boundsA.max.x < boundsB.min.x
+                            || boundsA.max.y < boundsB.min.y || boundsA.min.y > boundsB.max.y) {
+                            continue;
+                        }
 
-                            if (collision.collided) {
-                                collisions.push(collision);
-                            }
+                        var pair = pairsTable[pairId(partA, partB)];
+                        var collision = collides(partA, partB, pair && pair.collision, pair && pair.isActive);
+
+                        if (collision.collided) {
+                            collisions.push(collision);
                         }
                     }
                 }
