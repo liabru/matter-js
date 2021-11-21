@@ -75,8 +75,11 @@ const runExample = options => {
       totalDuration += duration[0] * 1e9 + duration[1];
       totalMemory += process.memoryUsage().heapUsed;
 
-      for (let p = 0; p < engine.pairs.list.length; p += 1) {
-        const pair = engine.pairs.list[p];
+      const pairsList = engine.pairs.list;
+      const pairsListLength = engine.pairs.list.length;
+
+      for (let p = 0; p < pairsListLength; p += 1) {
+        const pair = pairsList[p];
         const separation = pair.separation - pair.slop;
 
         if (pair.isActive && !pair.isSensor) {

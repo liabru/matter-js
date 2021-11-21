@@ -3,6 +3,8 @@
 
 jest.setTimeout(30 * 1000);
 
+const fs = require('fs');
+
 const { 
     comparisonReport, 
     logReport, 
@@ -54,11 +56,14 @@ afterAll(async () => {
     const dev = await capturesDev;
     const build = await capturesBuild;
 
+    const buildSize = fs.statSync('./build/matter.min.js').size;
+    const devSize = fs.statSync('./build/matter.dev.min.js').size;
+
     console.log(
-        'Examples ran against previous release and current version\n\n'
+        'Examples ran against previous release and current build\n\n'
         + logReport(build, `release`) + '\n'
         + logReport(dev, `current`) + '\n'
-        + comparisonReport(dev, build, MatterBuild.version, saveComparison)
+        + comparisonReport(dev, build, devSize, buildSize, MatterBuild.version, saveComparison)
     );
 });
 

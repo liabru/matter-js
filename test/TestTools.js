@@ -228,7 +228,7 @@ const logReport = (captures, version) => {
         + (report ? report : '  None\n');
 };
 
-const comparisonReport = (capturesDev, capturesBuild, buildVersion, save) => {
+const comparisonReport = (capturesDev, capturesBuild, devSize, buildSize, buildVersion, save) => {
     const similaritys = captureSimilarityExtrinsic(capturesDev, capturesBuild);
     const similarityEntries = Object.entries(similaritys);
     const devIntrinsicsChanged = {};
@@ -267,8 +267,10 @@ const comparisonReport = (capturesDev, capturesBuild, buildVersion, save) => {
     capturePerformance.sort((a, b) => a.name.localeCompare(b.name));
     similarityEntries.sort((a, b) => a[1] - b[1]);
 
-    let perfChange = noiseThreshold(1 - (totalTimeDev / totalTimeBuild), 0.01);
-    let memoryChange = noiseThreshold((totalMemoryDev / totalMemoryBuild) - 1, 0.01);
+    const perfChange = noiseThreshold(1 - (totalTimeDev / totalTimeBuild), 0.01);
+    const memoryChange = noiseThreshold((totalMemoryDev / totalMemoryBuild) - 1, 0.01);
+    const overlapChange = (totalOverlapDev / (totalOverlapBuild || 1)) - 1;
+    const filesizeChange = (devSize / buildSize) - 1;
 
     let similarityAvg = 0;
     similarityEntries.forEach(([_, similarity]) => {
@@ -277,20 +279,21 @@ const comparisonReport = (capturesDev, capturesBuild, buildVersion, save) => {
 
     similarityAvg /= similarityEntries.length;
 
-    const overlapChange = (totalOverlapDev / (totalOverlapBuild || 1)) - 1;
-
     const report = (breakEvery, format) => [
         [`Output comparison of ${similarityEntries.length}`,
          `examples against previous release ${format('matter-js@' + buildVersion, colors.Yellow)}`
         ].join(' '),
         `\n\n${format('Similarity', colors.White)}`,
         `${format(toPercent(similarityAvg), similarityAvg === 1 ? colors.Green : colors.Yellow)}%`,
-        `${format('Performance', colors.White)}`,
-        `${format((perfChange >= 0 ? '+' : '-') + toPercentRound(Math.abs(perfChange)), perfChange >= 0 ? colors.Green : colors.Red)}%`,
-        `${format('Memory', colors.White)}`,
-        `${format((memoryChange >= 0 ? '+' : '-') + toPercentRound(Math.abs(memoryChange)), memoryChange <= 0 ? colors.Green : colors.Red)}%`,
         `${format('Overlap', colors.White)}`,
-        `${format((overlapChange >= 0 ? '+' : '-') + toPercent(Math.abs(overlapChange)), overlapChange <= 0 ? colors.Green : colors.Red)}%`,
+        `${format((overlapChange >= 0 ? '+' : '-') + toPercent(Math.abs(overlapChange)), overlapChange <= 0 ? colors.Green : colors.Yellow)}%`,
+        `${format('Performance', colors.White)}`,
+        `${format((perfChange >= 0 ? '+' : '-') + toPercentRound(Math.abs(perfChange)), perfChange >= 0 ? colors.Green : colors.Yellow)}%`,
+        `${format('Memory', colors.White)}`,
+        `${format((memoryChange >= 0 ? '+' : '-') + toPercentRound(Math.abs(memoryChange)), memoryChange <= 0 ? colors.Green : colors.Yellow)}%`,
+        `${format('Filesize', colors.White)}`,
+        `${format((filesizeChange >= 0 ? '+' : '-') + toPercent(Math.abs(filesizeChange)), filesizeChange <= 0 ? colors.Green : colors.Yellow)}%`,
+        `${format(`${(devSize / 1024).toPrecision(4)} KB`, colors.White)}`,
         capturePerformance.reduce((output, p, i) => {
             output += `${p.name} `;
             output += `${similarityRatings(similaritys[p.name])} `;
