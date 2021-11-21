@@ -224,7 +224,7 @@ const logReport = (captures, version) => {
         }
     }
 
-    return `Output logs from ${color(version, colors.Yellow)} version on last run\n\n` 
+    return `Output logs from ${color(version, colors.Yellow)} build on last run\n\n` 
         + (report ? report : '  None\n');
 };
 

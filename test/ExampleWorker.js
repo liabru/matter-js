@@ -21,7 +21,7 @@ const reset = M => {
 
 const mock = require('mock-require');
 const { engineCapture } = require('./TestTools');
-const MatterDev = stubBrowserFeatures(require('../src/module/main'));
+const MatterDev = stubBrowserFeatures(require('../build/matter.dev'));
 const MatterBuild = stubBrowserFeatures(require('../build/matter'));
 const Example = require('../examples/index');
 
