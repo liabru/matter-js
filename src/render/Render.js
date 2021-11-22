@@ -348,6 +348,8 @@ var Mouse = require('../core/Mouse');
         context.fillRect(0, 0, canvas.width, canvas.height);
         context.globalCompositeOperation = 'source-over';
 
+        Events.trigger(render, "beginRender", event);
+
         // handle bounds
         if (options.hasBounds) {
             // filter out bodies that are not in view
@@ -1540,6 +1542,16 @@ var Mouse = require('../core/Mouse');
     * Fired before rendering
     *
     * @event beforeRender
+    * @param {} event An event object
+    * @param {number} event.timestamp The engine.timing.timestamp of the event
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired at the beginning of rendering after canvas is cleared
+    *
+    * @event beginRender
     * @param {} event An event object
     * @param {number} event.timestamp The engine.timing.timestamp of the event
     * @param {} event.source The source object of the event
