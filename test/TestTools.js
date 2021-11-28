@@ -31,7 +31,7 @@ const intrinsicProps = [
 const colors = { Red: 31, Green: 32, Yellow: 33, White: 37, BrightWhite: 90, BrightCyan: 36 };
 const color = (text, number) => number ? `\x1b[${number}m${text}\x1b[0m` : text;
 const limit = (val, precision=3) => parseFloat(val.toPrecision(precision));
-const toPercent = val => (100 * val).toPrecision(3);
+const toPercent = val => (100 * val).toFixed(3);
 const toPercentRound = val => Math.round(100 * val);
 
 const requireUncached = path => {
@@ -294,13 +294,10 @@ const comparisonReport = (capturesDev, capturesBuild, devSize, buildSize, buildV
         `${format(toPercent(similarityAvg), similarityAvg === 1 ? colors.Green : colors.Yellow)}%`,
         `${format('Overlap', colors.White)}`,
         `${format((overlapChange >= 0 ? '+' : '-') + toPercent(Math.abs(overlapChange)), overlapChange <= 0 ? colors.Green : colors.Yellow)}%`,
-        `${format('Performance', colors.White)}`,
+        `${format('Performance ~', colors.White)}`,
         `${format((perfChange >= 0 ? '+' : '-') + toPercentRound(Math.abs(perfChange)), perfChange >= 0 ? colors.Green : colors.Yellow)}%`,
-        `${format('Memory', colors.White)}`,
+        `${format('Memory ~', colors.White)}`,
         `${format((memoryChange >= 0 ? '+' : '-') + toPercentRound(Math.abs(memoryChange)), memoryChange <= 0 ? colors.Green : colors.Yellow)}%`,
-        `${format('Filesize', colors.White)}`,
-        `${format((filesizeChange >= 0 ? '+' : '-') + toPercent(Math.abs(filesizeChange)), filesizeChange <= 0 ? colors.Green : colors.Yellow)}%`,
-        `${format(`${(devSize / 1024).toPrecision(4)} KB`, colors.White)}`,
         capturePerformance.reduce((output, p, i) => {
             output += `${p.name} `;
             output += `${similarityRatings(similaritys[p.name])} `;
@@ -312,7 +309,10 @@ const comparisonReport = (capturesDev, capturesBuild, devSize, buildSize, buildV
         }, '\n\n'),
         `\n\nwhere  · no change  ● extrinsics changed  ◆ intrinsics changed\n`,
         similarityAvg < 1 ? `\n${format('▶', colors.White)} ${format(compareCommand + '=' + 120 + '#' + similarityEntries[0][0], colors.BrightCyan)}` : '',
-        intrinsicChangeCount > 0 ? `\n${format('▶', colors.White)} ${format((save ? diffCommand : diffSaveCommand), colors.BrightCyan)}` : ''
+        intrinsicChangeCount > 0 ? `\n${format('▶', colors.White)} ${format((save ? diffCommand : diffSaveCommand), colors.BrightCyan)}` : '',
+        `\n\n${format('Filesize', colors.White)}`,
+        `${format((filesizeChange >= 0 ? '+' : '-') + toPercent(Math.abs(filesizeChange)), filesizeChange <= 0 ? colors.Green : colors.Yellow)}%`,
+        `${format(`${(devSize / 1024).toPrecision(4)} KB`, colors.White)}`,
     ].join('  ');
 
     if (save) {
