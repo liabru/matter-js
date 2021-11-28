@@ -3,7 +3,6 @@
 "use strict";
 
 const mock = require('mock-require');
-const Example = require('../examples/index');
 const { requireUncached } = require('./TestTools');
 const consoleOriginal = global.console;
 
@@ -160,7 +159,8 @@ const runExample = options => {
   const Matter = prepareMatter(options);
   const logs = prepareEnvironment(Matter);
 
-  const example = Example[options.name]();
+  const Examples = requireUncached('../examples/index');
+  const example = Examples[options.name]();
   const engine = example.engine;
   
   let totalMemory = 0;
