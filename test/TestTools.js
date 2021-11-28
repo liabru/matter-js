@@ -3,7 +3,6 @@
 
 const fs = require('fs');
 const compactStringify = require('json-stringify-pretty-compact');
-const { Composite, Constraint } = require('../src/module/main');
 
 const comparePath = './test/__compare__';
 const compareCommand = 'open http://localhost:8000/?compare';
@@ -11,26 +10,8 @@ const diffSaveCommand = 'npm run test-save';
 const diffCommand = 'code -n -d test/__compare__/examples-build.json test/__compare__/examples-dev.json';
 const equalityThreshold = 0.99999;
 
-const intrinsicProps = [
-    // Common
-    'id', 'label', 
-
-    // Constraint
-    'angularStiffness', 'bodyA', 'bodyB', 'damping', 'length', 'stiffness',
-
-    // Body
-    'area', 'axes', 'collisionFilter', 'category', 'mask', 
-    'group', 'density', 'friction', 'frictionAir', 'frictionStatic', 'inertia', 'inverseInertia', 'inverseMass', 'isSensor', 
-    'isSleeping', 'isStatic', 'mass', 'parent', 'parts', 'restitution', 'sleepThreshold', 'slop', 
-    'timeScale', 'vertices',
-
-    // Composite
-    'bodies', 'constraints', 'composites'
-];
-
 const colors = { Red: 31, Green: 32, Yellow: 33, White: 37, BrightWhite: 90, BrightCyan: 36 };
 const color = (text, number) => number ? `\x1b[${number}m${text}\x1b[0m` : text;
-const limit = (val, precision=3) => parseFloat(val.toPrecision(precision));
 const toPercent = val => (100 * val).toFixed(3);
 const toPercentRound = val => Math.round(100 * val);
 
@@ -45,90 +26,6 @@ const noiseThreshold = (val, threshold) => {
     const sign = val < 0 ? -1 : 1;
     const magnitude = Math.abs(val);
     return sign * Math.max(0, magnitude - threshold) / (1 - threshold);
-};
-
-const engineCapture = (engine) => ({
-    timestamp: limit(engine.timing.timestamp),
-    extrinsic: worldCaptureExtrinsic(engine.world),
-    intrinsic: worldCaptureIntrinsic(engine.world)
-});
-
-const worldCaptureExtrinsic = world => ({
-    bodies: Composite.allBodies(world).reduce((bodies, body) => {
-        bodies[body.id] = [
-            body.position.x,
-            body.position.y,
-            body.positionPrev.x,
-            body.positionPrev.y,
-            body.angle,
-            body.anglePrev,
-            ...body.vertices.reduce((flat, vertex) => (flat.push(vertex.x, vertex.y), flat), [])
-        ];
-
-        return bodies;
-    }, {}),
-    constraints: Composite.allConstraints(world).reduce((constraints, constraint) => {
-        const positionA = Constraint.pointAWorld(constraint);
-        const positionB = Constraint.pointBWorld(constraint);
-
-        constraints[constraint.id] = [
-            positionA.x,
-            positionA.y,
-            positionB.x,
-            positionB.y
-        ];
-
-        return constraints;
-    }, {})
-});
-
-const worldCaptureIntrinsic = world => worldCaptureIntrinsicBase({
-    bodies: Composite.allBodies(world).reduce((bodies, body) => {
-        bodies[body.id] = body;
-        return bodies;
-    }, {}),
-    constraints: Composite.allConstraints(world).reduce((constraints, constraint) => {
-        constraints[constraint.id] = constraint;
-        return constraints;
-    }, {}),
-    composites: Composite.allComposites(world).reduce((composites, composite) => {
-        composites[composite.id] = {
-            bodies: Composite.allBodies(composite).map(body => body.id), 
-            constraints: Composite.allConstraints(composite).map(constraint => constraint.id), 
-            composites: Composite.allComposites(composite).map(composite => composite.id)
-        };
-        return composites;
-    }, {})
-});
-
-const worldCaptureIntrinsicBase = (obj, depth=0) => {
-    if (obj === Infinity) {
-        return 'Infinity';
-    } else if (typeof obj === 'number') {
-        return limit(obj);
-    } else if (Array.isArray(obj)) {
-        return obj.map(item => worldCaptureIntrinsicBase(item, depth + 1));
-    } else if (typeof obj !== 'object') {
-        return obj;
-    }
-
-    const result = Object.entries(obj)
-        .filter(([key]) => depth <= 1 || intrinsicProps.includes(key))
-        .reduce((cleaned, [key, val]) => {
-            if (val && val.id && String(val.id) !== key) {
-                val = val.id;
-            }
-            
-            if (Array.isArray(val) && !['composites', 'constraints', 'bodies'].includes(key)) {
-                val = `[${val.length}]`;
-            }
-
-            cleaned[key] = worldCaptureIntrinsicBase(val, depth + 1);
-            return cleaned;
-        }, {});
-
-    return Object.keys(result).sort()
-        .reduce((sorted, key) => (sorted[key] = result[key], sorted), {});
 };
 
 const similarity = (a, b) => {
@@ -325,6 +222,6 @@ const comparisonReport = (capturesDev, capturesBuild, devSize, buildSize, buildV
 };
 
 module.exports = {
-    requireUncached, engineCapture, comparisonReport, logReport,
+    requireUncached, comparisonReport, logReport,
     toMatchExtrinsics, toMatchIntrinsics
 };

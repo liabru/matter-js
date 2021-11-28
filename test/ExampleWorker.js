@@ -3,9 +3,26 @@
 "use strict";
 
 const mock = require('mock-require');
-const { requireUncached, engineCapture } = require('./TestTools');
 const Example = require('../examples/index');
+const { requireUncached } = require('./TestTools');
 const consoleOriginal = global.console;
+
+const intrinsicProps = [
+  // Common
+  'id', 'label', 
+
+  // Constraint
+  'angularStiffness', 'bodyA', 'bodyB', 'damping', 'length', 'stiffness',
+
+  // Body
+  'area', 'axes', 'collisionFilter', 'category', 'mask', 
+  'group', 'density', 'friction', 'frictionAir', 'frictionStatic', 'inertia', 'inverseInertia', 'inverseMass', 'isSensor', 
+  'isSleeping', 'isStatic', 'mass', 'parent', 'parts', 'restitution', 'sleepThreshold', 'slop', 
+  'timeScale', 'vertices',
+
+  // Composite
+  'bodies', 'constraints', 'composites'
+];
 
 const prepareMatter = (options) => {
   const Matter = requireUncached(options.useDev ? '../build/matter.dev' : '../build/matter');
@@ -46,6 +63,97 @@ const resetEnvironment = () => {
   global.document = undefined;
   global.Matter = undefined;
   mock.stopAll();
+};
+
+const limitPrecision = (val, precision=3) => parseFloat(val.toPrecision(precision));
+
+const sortById = (objs) => {
+  objs.sort((objA, objB) => objA.id - objB.id);
+  return objs;
+};
+
+const engineCapture = (engine, Matter) => ({
+  timestamp: limitPrecision(engine.timing.timestamp),
+  extrinsic: worldCaptureExtrinsic(engine.world, Matter),
+  intrinsic: worldCaptureIntrinsic(engine.world, Matter)
+});
+
+const worldCaptureExtrinsic = (world, Matter) => ({
+  bodies: sortById(Matter.Composite.allBodies(world)).reduce((bodies, body) => {
+      bodies[body.id] = [
+          body.position.x,
+          body.position.y,
+          body.positionPrev.x,
+          body.positionPrev.y,
+          body.angle,
+          body.anglePrev,
+          ...body.vertices.reduce((flat, vertex) => (flat.push(vertex.x, vertex.y), flat), [])
+      ];
+
+      return bodies;
+  }, {}),
+  constraints: sortById(Matter.Composite.allConstraints(world)).reduce((constraints, constraint) => {
+      const positionA = Matter.Constraint.pointAWorld(constraint);
+      const positionB = Matter.Constraint.pointBWorld(constraint);
+
+      constraints[constraint.id] = [
+          positionA.x,
+          positionA.y,
+          positionB.x,
+          positionB.y
+      ];
+
+      return constraints;
+  }, {})
+});
+
+const worldCaptureIntrinsic = (world, Matter) => worldCaptureIntrinsicBase({
+  bodies: sortById(Matter.Composite.allBodies(world)).reduce((bodies, body) => {
+      bodies[body.id] = body;
+      return bodies;
+  }, {}),
+  constraints: sortById(Matter.Composite.allConstraints(world)).reduce((constraints, constraint) => {
+      constraints[constraint.id] = constraint;
+      return constraints;
+  }, {}),
+  composites: sortById(Matter.Composite.allComposites(world)).reduce((composites, composite) => {
+      composites[composite.id] = {
+          bodies: sortById(Matter.Composite.allBodies(composite)).map(body => body.id), 
+          constraints: sortById(Matter.Composite.allConstraints(composite)).map(constraint => constraint.id), 
+          composites: sortById(Matter.Composite.allComposites(composite)).map(composite => composite.id)
+      };
+      return composites;
+  }, {})
+});
+
+const worldCaptureIntrinsicBase = (obj, depth=0) => {
+  if (obj === Infinity) {
+      return 'Infinity';
+  } else if (typeof obj === 'number') {
+      return limitPrecision(obj);
+  } else if (Array.isArray(obj)) {
+      return obj.map(item => worldCaptureIntrinsicBase(item, depth + 1));
+  } else if (typeof obj !== 'object') {
+      return obj;
+  }
+
+  const result = Object.entries(obj)
+      .filter(([key]) => depth <= 1 || intrinsicProps.includes(key))
+      .reduce((cleaned, [key, val]) => {
+          if (val && val.id && String(val.id) !== key) {
+              val = val.id;
+          }
+          
+          if (Array.isArray(val) && !['composites', 'constraints', 'bodies'].includes(key)) {
+              val = `[${val.length}]`;
+          }
+
+          cleaned[key] = worldCaptureIntrinsicBase(val, depth + 1);
+          return cleaned;
+      }, {});
+
+  return Object.keys(result).sort()
+      .reduce((sorted, key) => (sorted[key] = result[key], sorted), {});
 };
 
 const runExample = options => {
@@ -107,7 +215,7 @@ const runExample = options => {
     overlap: overlapTotal / (overlapCount || 1),
     memory: totalMemory,
     logs,
-    ...engineCapture(engine)
+    ...engineCapture(engine, Matter)
   };
 };
 
