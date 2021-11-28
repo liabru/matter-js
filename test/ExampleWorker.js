@@ -2,37 +2,34 @@
 /* eslint no-global-assign: 0 */
 "use strict";
 
-const stubBrowserFeatures = M => {
-  const noop = () => ({ collisionFilter: {}, mouse: {} });
-  M.Render.create = () => ({ options: {}, bounds: { min: { x: 0, y: 0 }, max: { x: 800, y: 600 }}});
-  M.Render.run = M.Render.lookAt = noop;
-  M.Runner.create = M.Runner.run = noop;
-  M.MouseConstraint.create = M.Mouse.create = noop;
-  M.Common.info = M.Common.warn = M.Common.log;
-  return M;
-};
-
-const reset = M => {
-  M.Common._nextId = M.Common._seed = 0;
-  M.Body._nextCollidingGroupId = 1;
-  M.Body._nextNonCollidingGroupId = -1;
-  M.Body._nextCategory = 0x0001;
-};
-
 const mock = require('mock-require');
-const { engineCapture } = require('./TestTools');
-const MatterDev = stubBrowserFeatures(require('../build/matter.dev'));
-const MatterBuild = stubBrowserFeatures(require('../build/matter'));
+const { requireUncached, engineCapture } = require('./TestTools');
 const Example = require('../examples/index');
+const consoleOriginal = global.console;
 
-const runExample = options => {
-  const Matter = options.useDev ? MatterDev : MatterBuild;
-  const consoleOriginal = global.console;
-  const logs = [];
+const prepareMatter = (options) => {
+  const Matter = requireUncached(options.useDev ? '../build/matter.dev' : '../build/matter');
 
+  if (Matter.Common._nextId !== 0) {
+    throw 'Matter instance has already been used.';
+  }
+
+  const noop = () => ({ collisionFilter: {}, mouse: {} });
+
+  Matter.Render.create = () => ({ options: {}, bounds: { min: { x: 0, y: 0 }, max: { x: 800, y: 600 }}});
+  Matter.Render.run = Matter.Render.lookAt = noop;
+  Matter.Runner.create = Matter.Runner.run = noop;
+  Matter.MouseConstraint.create = Matter.Mouse.create = noop;
+  Matter.Common.info = Matter.Common.warn = Matter.Common.log;
+  
+  return Matter;
+};
+
+const prepareEnvironment = Matter => {
   mock('matter-js', Matter);
   global.Matter = Matter;
 
+  const logs = [];
   global.document = global.window = { addEventListener: () => {} };
   global.console = { 
     log: (...args) => {
@@ -40,7 +37,20 @@ const runExample = options => {
     }
   };
 
-  reset(Matter);
+  return logs;
+};
+
+const resetEnvironment = () => {
+  global.console = consoleOriginal;
+  global.window = undefined;
+  global.document = undefined;
+  global.Matter = undefined;
+  mock.stopAll();
+};
+
+const runExample = options => {
+  const Matter = prepareMatter(options);
+  const logs = prepareEnvironment(Matter);
 
   const example = Example[options.name]();
   const engine = example.engine;
@@ -89,11 +99,7 @@ const runExample = options => {
       }
   }
 
-  global.console = consoleOriginal;
-  global.window = undefined;
-  global.document = undefined;
-  global.Matter = undefined;
-  mock.stopAll();
+  resetEnvironment();
 
   return {
     name: options.name,

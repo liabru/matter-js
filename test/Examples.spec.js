@@ -5,16 +5,17 @@ jest.setTimeout(30 * 1000);
 
 const fs = require('fs');
 
-const { 
+const {
+    requireUncached,
     comparisonReport, 
     logReport, 
     toMatchExtrinsics, 
     toMatchIntrinsics 
 } = require('./TestTools');
 
-const Example = require('../examples/index');
-const MatterBuild = require('../build/matter');
-const { versionSatisfies } = require('../src/core/Plugin');
+const Example = requireUncached('../examples/index');
+const MatterBuild = requireUncached('../build/matter');
+const { versionSatisfies } = requireUncached('../src/core/Plugin');
 const Worker = require('jest-worker').default;
 
 const testComparison = process.env.COMPARE === 'true';
@@ -30,7 +31,7 @@ const examples = Object.keys(Example).filter(key => {
     return !excluded && supported;
 });
 
-const runExamples = async useDev => {
+const captureExamples = async useDev => {
     const worker = new Worker(require.resolve('./ExampleWorker'), {
         enableWorkerThreads: true,
         numWorkers: 1
@@ -48,8 +49,8 @@ const runExamples = async useDev => {
     return result.reduce((out, capture) => (out[capture.name] = capture, out), {});
 };
 
-const capturesDev = runExamples(true);
-const capturesBuild = runExamples(false);
+const capturesDev = captureExamples(true);
+const capturesBuild = captureExamples(false);
 
 afterAll(async () => {
     // Report experimental capture comparison.

@@ -34,6 +34,13 @@ const limit = (val, precision=3) => parseFloat(val.toPrecision(precision));
 const toPercent = val => (100 * val).toPrecision(3);
 const toPercentRound = val => Math.round(100 * val);
 
+const requireUncached = path => {
+    delete require.cache[require.resolve(path)];
+    const module = require(path);
+    delete require.cache[require.resolve(path)];
+    return module;
+};
+
 const noiseThreshold = (val, threshold) => {
     const sign = val < 0 ? -1 : 1;
     const magnitude = Math.abs(val);
@@ -318,6 +325,6 @@ const comparisonReport = (capturesDev, capturesBuild, devSize, buildSize, buildV
 };
 
 module.exports = {
-    engineCapture, comparisonReport, logReport,
+    requireUncached, engineCapture, comparisonReport, logReport,
     toMatchExtrinsics, toMatchIntrinsics
 };
