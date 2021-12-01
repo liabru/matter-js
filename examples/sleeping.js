@@ -61,12 +61,15 @@ Example.sleeping = function() {
     
     Composite.add(world, stack);
 
+    /*
+    // sleep events
     for (var i = 0; i < stack.bodies.length; i++) {
         Events.on(stack.bodies[i], 'sleepStart sleepEnd', function(event) {
             var body = this;
             console.log('body id', body.id, 'sleeping:', body.isSleeping);
         });
     }
+    */
 
     // add mouse control
     var mouse = Mouse.create(render.canvas),

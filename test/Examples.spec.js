@@ -32,21 +32,67 @@ const examples = Object.keys(Example).filter(key => {
 });
 
 const captureExamples = async useDev => {
-    const worker = new Worker(require.resolve('./ExampleWorker'), {
+    const multiThreadWorker = new Worker(require.resolve('./ExampleWorker'), {
+        enableWorkerThreads: true
+    });
+
+    const overlapRuns = await Promise.all(examples.map(name => multiThreadWorker.runExample({
+        name,
+        useDev,
+        updates: 1,
+        stableSort: true,
+        jitter: excludeJitter.includes(name) ? 0 : 1e-10
+    })));
+
+    const behaviourRuns = await Promise.all(examples.map(name => multiThreadWorker.runExample({
+        name,
+        useDev,
+        updates: 2,
+        stableSort: true,
+        jitter: excludeJitter.includes(name) ? 0 : 1e-10
+    })));
+
+    const similarityRuns = await Promise.all(examples.map(name => multiThreadWorker.runExample({
+        name,
+        useDev,
+        updates: 2,
+        stableSort: false,
+        jitter: excludeJitter.includes(name) ? 0 : 1e-10
+    })));
+
+    await multiThreadWorker.end();
+
+    const singleThreadWorker = new Worker(require.resolve('./ExampleWorker'), {
         enableWorkerThreads: true,
         numWorkers: 1
     });
 
-    const result = await Promise.all(examples.map(name => worker.runExample({
+    const completeRuns = await Promise.all(examples.map(name => singleThreadWorker.runExample({
         name,
         useDev,
-        totalUpdates: 120,
+        updates: 150,
+        stableSort: false,
         jitter: excludeJitter.includes(name) ? 0 : 1e-10
     })));
 
-    await worker.end();
+    await singleThreadWorker.end();
 
-    return result.reduce((out, capture) => (out[capture.name] = capture, out), {});
+    const capture = {};
+
+    for (const completeRun of completeRuns) {
+        const behaviourRun = behaviourRuns.find(({ name }) => name === completeRun.name);
+        const similarityRun = similarityRuns.find(({ name }) => name === completeRun.name);
+        const overlapRun = overlapRuns.find(({ name }) => name === completeRun.name);
+
+        capture[overlapRun.name] = {
+            ...completeRun,
+            behaviourExtrinsic: behaviourRun.extrinsic,
+            similarityExtrinsic: similarityRun.extrinsic,
+            overlap: overlapRun.overlap
+        };
+    }
+
+    return capture;
 };
 
 const capturesDev = captureExamples(true);
