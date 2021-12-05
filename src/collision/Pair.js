@@ -21,15 +21,13 @@ var Contact = require('./Contact');
      */
     Pair.create = function(collision, timestamp) {
         var bodyA = collision.bodyA,
-            bodyB = collision.bodyB,
-            parentA = collision.parentA,
-            parentB = collision.parentB;
+            bodyB = collision.bodyB;
 
         var pair = {
             id: Pair.id(bodyA, bodyB),
             bodyA: bodyA,
             bodyB: bodyB,
-            contacts: {},
+            contacts: [],
             activeContacts: [],
             separation: 0,
             isActive: true,
@@ -37,11 +35,11 @@ var Contact = require('./Contact');
             isSensor: bodyA.isSensor || bodyB.isSensor,
             timeCreated: timestamp,
             timeUpdated: timestamp,
-            inverseMass: parentA.inverseMass + parentB.inverseMass,
-            friction: parentA.friction < parentB.friction ? parentA.friction : parentB.friction,
-            frictionStatic: parentA.frictionStatic > parentB.frictionStatic ? parentA.frictionStatic : parentB.frictionStatic,
-            restitution: parentA.restitution > parentB.restitution ? parentA.restitution : parentB.restitution,
-            slop: parentA.slop > parentB.slop ? parentA.slop : parentB.slop
+            inverseMass: 0,
+            friction: 0,
+            frictionStatic: 0,
+            restitution: 0,
+            slop: 0
         };
 
         Pair.update(pair, collision, timestamp);
@@ -61,34 +59,31 @@ var Contact = require('./Contact');
             supports = collision.supports,
             activeContacts = pair.activeContacts,
             parentA = collision.parentA,
-            parentB = collision.parentB;
+            parentB = collision.parentB,
+            parentAVerticesLength = parentA.vertices.length;
         
+        pair.isActive = true;
+        pair.timeUpdated = timestamp;
         pair.collision = collision;
+        pair.separation = collision.depth;
         pair.inverseMass = parentA.inverseMass + parentB.inverseMass;
         pair.friction = parentA.friction < parentB.friction ? parentA.friction : parentB.friction;
         pair.frictionStatic = parentA.frictionStatic > parentB.frictionStatic ? parentA.frictionStatic : parentB.frictionStatic;
         pair.restitution = parentA.restitution > parentB.restitution ? parentA.restitution : parentB.restitution;
         pair.slop = parentA.slop > parentB.slop ? parentA.slop : parentB.slop;
+
         activeContacts.length = 0;
         
-        if (collision.collided) {
-            for (var i = 0; i < supports.length; i++) {
-                var support = supports[i],
-                    contactId = Contact.id(support),
-                    contact = contacts[contactId];
+        for (var i = 0; i < supports.length; i++) {
+            var support = supports[i],
+                contactId = support.body === parentA ? support.index : parentAVerticesLength + support.index,
+                contact = contacts[contactId];
 
-                if (contact) {
-                    activeContacts.push(contact);
-                } else {
-                    activeContacts.push(contacts[contactId] = Contact.create(support));
-                }
+            if (contact) {
+                activeContacts.push(contact);
+            } else {
+                activeContacts.push(contacts[contactId] = Contact.create(support));
             }
-
-            pair.separation = collision.depth;
-            Pair.setActive(pair, true, timestamp);
-        } else {
-            if (pair.isActive === true)
-                Pair.setActive(pair, false, timestamp);
         }
     };
     
