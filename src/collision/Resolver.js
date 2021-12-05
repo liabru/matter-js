@@ -73,15 +73,10 @@ var Bounds = require('../geometry/Bounds');
             bodyB = collision.parentB;
             normal = collision.normal;
 
-            // TODO: behaviour change: replace with fully simplified version
             // get current separation between body edges involved in collision
             pair.separation = 
-                normal.x * (
-                    (bodyB.positionImpulse.x + bodyB.position.x) - (bodyA.positionImpulse.x + (bodyB.position.x - collision.penetration.x))
-                )
-                + normal.y * (
-                    (bodyB.positionImpulse.y + bodyB.position.y) - (bodyA.positionImpulse.y + (bodyB.position.y - collision.penetration.y))
-                );
+                normal.x * (bodyB.positionImpulse.x + collision.penetration.x - bodyA.positionImpulse.x)
+                + normal.y * (bodyB.positionImpulse.y + collision.penetration.y - bodyA.positionImpulse.y);
         }
         
         for (i = 0; i < pairsLength; i++) {
