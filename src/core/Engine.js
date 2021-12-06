@@ -152,7 +152,6 @@ var Body = require('../body/Body');
         var pairs = engine.pairs,
             timestamp = timing.timestamp;
         Pairs.update(pairs, collisions, timestamp);
-        Pairs.removeOld(pairs, timestamp);
 
         // wake up bodies involved in collisions
         if (engine.enableSleeping)

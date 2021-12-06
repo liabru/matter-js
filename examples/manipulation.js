@@ -62,7 +62,7 @@ Example.manipulation = function() {
     var counter = 0,
         scaleFactor = 1.01;
 
-    Events.on(engine, 'beforeUpdate', function(event) {
+    Events.on(runner, 'afterTick', function(event) {
         counter += 1;
 
         if (counter === 40)
