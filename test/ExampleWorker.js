@@ -12,7 +12,12 @@ const runExample = options => {
 
   const Examples = requireUncached('../examples/index');
   const example = Examples[options.name]();
+
   const engine = example.engine;
+  const runner = example.runner;
+  
+  runner.delta = 1000 / 60;
+  runner.isFixed = true;
   
   let totalMemory = 0;
   let totalDuration = 0;
@@ -24,8 +29,8 @@ const runExample = options => {
   for (let i = 0; i < options.updates; i += 1) {
       const startTime = process.hrtime();
       totalMemory += process.memoryUsage().heapUsed;
-      
-      Matter.Engine.update(engine, 1000 / 60);
+
+      Matter.Runner.tick(runner, engine, i * runner.delta);
 
       const duration = process.hrtime(startTime);
       totalDuration += duration[0] * 1e9 + duration[1];
