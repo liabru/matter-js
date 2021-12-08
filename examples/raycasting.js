@@ -68,14 +68,21 @@ Example.raycasting = function() {
         Bodies.rectangle(0, 300, 50, 600, { isStatic: true })
     ]);
 
+    var collisions,
+        startPoint = { x: 400, y: 100 };
+
+    Events.on(engine, 'afterUpdate', function() {
+        var mouse = mouseConstraint.mouse,
+            bodies = Composite.allBodies(engine.world),
+            endPoint = mouse.position || { x: 100, y: 600 };
+
+        collisions = Query.ray(bodies, startPoint, endPoint);
+    });
+
     Events.on(render, 'afterRender', function() {
         var mouse = mouseConstraint.mouse,
             context = render.context,
-            bodies = Composite.allBodies(engine.world),
-            startPoint = { x: 400, y: 100 },
-            endPoint = mouse.position;
-
-        var collisions = Query.ray(bodies, startPoint, endPoint);
+            endPoint = mouse.position || { x: 100, y: 600 };
 
         Render.startViewTransform(render);
 
