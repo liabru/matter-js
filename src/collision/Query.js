@@ -26,19 +26,25 @@ var Vertices = require('../geometry/Vertices');
      * @return {object[]} Collisions
      */
     Query.collides = function(body, bodies) {
-        var collisions = [];
+        var collisions = [],
+            bodiesLength = bodies.length,
+            bounds = body.bounds,
+            collides = SAT.collides,
+            overlaps = Bounds.overlaps;
 
-        for (var i = 0; i < bodies.length; i++) {
-            var bodyA = bodies[i];
+        for (var i = 0; i < bodiesLength; i++) {
+            var bodyA = bodies[i],
+                partsALength = bodyA.parts.length,
+                partsAStart = partsALength === 1 ? 0 : 1;
             
-            if (Bounds.overlaps(bodyA.bounds, body.bounds)) {
-                for (var j = bodyA.parts.length === 1 ? 0 : 1; j < bodyA.parts.length; j++) {
+            if (overlaps(bodyA.bounds, bounds)) {
+                for (var j = partsAStart; j < partsALength; j++) {
                     var part = bodyA.parts[j];
 
-                    if (Bounds.overlaps(part.bounds, body.bounds)) {
-                        var collision = SAT.collides(part, body);
+                    if (overlaps(part.bounds, bounds)) {
+                        var collision = collides(part, body);
 
-                        if (collision.collided) {
+                        if (collision) {
                             collisions.push(collision);
                             break;
                         }

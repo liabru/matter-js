@@ -4,53 +4,25 @@
 * @class SAT
 */
 
-// TODO: true circles and curves
-
 var SAT = {};
 
 module.exports = SAT;
 
 var Vertices = require('../geometry/Vertices');
-var Vector = require('../geometry/Vector');
+var Pair = require('../collision/Pair');
+var Collision = require('./Collision');
 
 (function() {
+    var _supports = [];
 
     var _overlapAB = {
         overlap: 0,
-        axis: null,
-        axisNumber: 0
+        axis: null
     };
 
     var _overlapBA = {
         overlap: 0,
-        axis: null,
-        axisNumber: 0
-    };
-
-    /**
-     * Creates a new collision record.
-     * @private
-     * @method create
-     * @param {body} bodyA
-     * @param {body} bodyB
-     * @return {collision} A new collision
-     */
-    SAT.create = function(bodyA, bodyB) {
-        return { 
-            collided: false,
-            bodyA: bodyA,
-            bodyB: bodyB,
-            parentA: bodyA.parent,
-            parentB: bodyB.parent,
-            axisBodyA: bodyA, 
-            axisBodyB: bodyB,
-            axisNumber: 0,
-            depth: 0,
-            normal: { x: 0, y: 0 },
-            tangent: { x: 0, y: 0 },
-            penetration: { x: 0, y: 0 },
-            supports: []
-        };
+        axis: null
     };
 
     /**
@@ -58,128 +30,104 @@ var Vector = require('../geometry/Vector');
      * @method collides
      * @param {body} bodyA
      * @param {body} bodyB
-     * @param {?collision} previousCollision
-     * @param {?boolean} [previousPairActive=false]
-     * @return {collision} collision
+     * @param {pairs} [pairs] Optionally reuse collision objects from existing pairs.
+     * @return {collision|null} A collision object if found, otherwise null
      */
-    SAT.collides = function(bodyA, bodyB, previousCollision, pairActive) {
-        var minOverlap,
-            collision = previousCollision || SAT.create(bodyA, bodyB),
-            canReusePrevCol;
+    SAT.collides = function(bodyA, bodyB, pairs) {
+        SAT._overlapAxes(_overlapAB, bodyA.vertices, bodyB.vertices, bodyA.axes);
 
-        if (pairActive && previousCollision.collided) {
-            // estimate total motion
-            var parentA = bodyA.parent,
-                parentB = bodyB.parent,
-                motion = parentA.speed * parentA.speed + parentA.angularSpeed * parentA.angularSpeed
-                       + parentB.speed * parentB.speed + parentB.angularSpeed * parentB.angularSpeed;
-
-            // we may be able to (partially) reuse collision result 
-            // but only safe if collision was resting
-            canReusePrevCol = motion < 0.2;
+        if (_overlapAB.overlap <= 0) {
+            return null;
         }
 
-        if (canReusePrevCol) {
-            // if we can reuse the collision result
-            // we only need to test the previously found axis
-            var axisBodyA = previousCollision.axisBodyA,
-                axisBodyB = previousCollision.axisBodyB,
-                axes = [axisBodyA.axes[previousCollision.axisNumber]];
+        SAT._overlapAxes(_overlapBA, bodyB.vertices, bodyA.vertices, bodyB.axes);
 
-            SAT._overlapAxes(_overlapAB, axisBodyA.vertices, axisBodyB.vertices, axes);
-            
-            if (_overlapAB.overlap <= 0) {
-                collision.collided = false;
-                return collision;
-            }
+        if (_overlapBA.overlap <= 0) {
+            return null;
+        }
 
-            minOverlap = _overlapAB;
+        // reuse collision objects for gc efficiency
+        var pair = pairs && pairs.table[Pair.id(bodyA, bodyB)],
+            collision;
+
+        if (!pair) {
+            collision = Collision.create(bodyA, bodyB);
+            collision.collided = true;
+            collision.bodyA = bodyA.id < bodyB.id ? bodyA : bodyB;
+            collision.bodyB = bodyA.id < bodyB.id ? bodyB : bodyA;
+            collision.parentA = collision.bodyA.parent;
+            collision.parentB = collision.bodyB.parent;
         } else {
-            // if we can't reuse a result, perform a full SAT test
-
-            SAT._overlapAxes(_overlapAB, bodyA.vertices, bodyB.vertices, bodyA.axes);
-
-            if (_overlapAB.overlap <= 0) {
-                collision.collided = false;
-                return collision;
-            }
-
-            SAT._overlapAxes(_overlapBA, bodyB.vertices, bodyA.vertices, bodyB.axes);
-
-            if (_overlapBA.overlap <= 0) {
-                collision.collided = false;
-                return collision;
-            }
-
-            if (_overlapAB.overlap < _overlapBA.overlap) {
-                minOverlap = _overlapAB;
-                collision.axisBodyA = bodyA;
-                collision.axisBodyB = bodyB;
-            } else {
-                minOverlap = _overlapBA;
-                collision.axisBodyA = bodyB;
-                collision.axisBodyB = bodyA;
-            }
-
-            // important for reuse later
-            collision.axisNumber = minOverlap.axisNumber;
+            collision = pair.collision;
         }
 
-        collision.bodyA = bodyA.id < bodyB.id ? bodyA : bodyB;
-        collision.bodyB = bodyA.id < bodyB.id ? bodyB : bodyA;
-        collision.collided = true;
-        collision.depth = minOverlap.overlap;
-        collision.parentA = collision.bodyA.parent;
-        collision.parentB = collision.bodyB.parent;
-        
         bodyA = collision.bodyA;
         bodyB = collision.bodyB;
 
-        var normal = collision.normal,
-            supports = collision.supports;
+        var minOverlap;
 
-        // ensure normal is facing away from bodyA
-        if (Vector.dot(minOverlap.axis, Vector.sub(bodyB.position, bodyA.position)) < 0) {
-            normal.x = minOverlap.axis.x;
-            normal.y = minOverlap.axis.y;
+        if (_overlapAB.overlap < _overlapBA.overlap) {
+            minOverlap = _overlapAB;
         } else {
-            normal.x = -minOverlap.axis.x;
-            normal.y = -minOverlap.axis.y;
+            minOverlap = _overlapBA;
         }
 
+        var normal = collision.normal,
+            supports = collision.supports,
+            minAxis = minOverlap.axis,
+            minAxisX = minAxis.x,
+            minAxisY = minAxis.y;
+
+        // ensure normal is facing away from bodyA
+        if (minAxisX * (bodyB.position.x - bodyA.position.x) + minAxisY * (bodyB.position.y - bodyA.position.y) < 0) {
+            normal.x = minAxisX;
+            normal.y = minAxisY;
+        } else {
+            normal.x = -minAxisX;
+            normal.y = -minAxisY;
+        }
+        
         collision.tangent.x = -normal.y;
         collision.tangent.y = normal.x;
 
+        collision.depth = minOverlap.overlap;
+
         collision.penetration.x = normal.x * collision.depth;
-        collision.penetration.y = normal.y * collision.depth; 
+        collision.penetration.y = normal.y * collision.depth;
 
         // find support points, there is always either exactly one or two
-        var supportsB = SAT._findSupports(bodyA, bodyB, collision.normal, 1);
-
-        // clear supports
-        supports.length = 0;
+        var supportsB = SAT._findSupports(bodyA, bodyB, normal, 1),
+            supportCount = 0;
 
         // find the supports from bodyB that are inside bodyA
-        if (Vertices.contains(bodyA.vertices, supportsB[0]))
-            supports.push(supportsB[0]);
+        if (Vertices.contains(bodyA.vertices, supportsB[0])) {
+            supports[supportCount++] = supportsB[0];
+        }
 
-        if (Vertices.contains(bodyA.vertices, supportsB[1]))
-            supports.push(supportsB[1]);
+        if (Vertices.contains(bodyA.vertices, supportsB[1])) {
+            supports[supportCount++] = supportsB[1];
+        }
 
         // find the supports from bodyA that are inside bodyB
-        if (supports.length < 2) {
-            var supportsA = SAT._findSupports(bodyB, bodyA, collision.normal, -1);
+        if (supportCount < 2) {
+            var supportsA = SAT._findSupports(bodyB, bodyA, normal, -1);
 
-            if (Vertices.contains(bodyB.vertices, supportsA[0]))
-                supports.push(supportsA[0]);
+            if (Vertices.contains(bodyB.vertices, supportsA[0])) {
+                supports[supportCount++] = supportsA[0];
+            }
 
-            if (supports.length < 2 && Vertices.contains(bodyB.vertices, supportsA[1]))
-                supports.push(supportsA[1]);
+            if (supportCount < 2 && Vertices.contains(bodyB.vertices, supportsA[1])) {
+                supports[supportCount++] = supportsA[1];
+            }
         }
 
         // account for the edge case of overlapping but no vertex containment
-        if (supports.length === 0)
-            supports.push(supportsB[0]);
+        if (supportCount === 0) {
+            supports[supportCount++] = supportsB[0];
+        }
+
+        // update supports array size
+        supports.length = supportCount;
 
         return collision;
     };
@@ -255,7 +203,6 @@ var Vector = require('../geometry/Vector');
         }
 
         result.axis = axes[overlapAxisNumber];
-        result.axisNumber = overlapAxisNumber;
         result.overlap = overlapMin;
     };
 
@@ -268,11 +215,11 @@ var Vector = require('../geometry/Vector');
      * @param {} axis
      */
     SAT._projectToAxis = function(projection, vertices, axis) {
-        var min = Vector.dot(vertices[0], axis),
+        var min = vertices[0].x * axis.x + vertices[0].y * axis.y,
             max = min;
 
         for (var i = 1; i < vertices.length; i += 1) {
-            var dot = Vector.dot(vertices[i], axis);
+            var dot = vertices[i].x * axis.x + vertices[i].y * axis.y;
 
             if (dot > max) { 
                 max = dot; 
@@ -328,10 +275,16 @@ var Vector = require('../geometry/Vector');
         // compare with previous vertex
         vertexB = vertices[(vertexA.index + 1) % verticesLength];
         if (normalX * (bodyAPositionX - vertexB.x) + normalY * (bodyAPositionY - vertexB.y) < nearestDistance) {
-            return [vertexA, vertexB];
+            _supports[0] = vertexA;
+            _supports[1] = vertexB;
+
+            return _supports;
         }
 
-        return [vertexA, vertexC];
+        _supports[0] = vertexA;
+        _supports[1] = vertexC;
+
+        return _supports;
     };
 
 })();

@@ -24,11 +24,10 @@ var Pair = require('./Pair');
      */
     Detector.collisions = function(broadphasePairs, engine) {
         var collisions = [],
-            pairsTable = engine.pairs.table,
+            pairs = engine.pairs,
             broadphasePairsLength = broadphasePairs.length,
             canCollide = Detector.canCollide,
             collides = SAT.collides,
-            pairId = Pair.id,
             i;
 
         for (i = 0; i < broadphasePairsLength; i++) {
@@ -54,10 +53,9 @@ var Pair = require('./Pair');
                 partsBLength = bodyB.parts.length;
 
             if (partsALength === 1 && partsBLength === 1) {
-                var pair = pairsTable[pairId(bodyA, bodyB)];
-                var collision = collides(bodyA, bodyB, pair && pair.collision, pair && pair.isActive);
+                var collision = collides(bodyA, bodyB, pairs);
 
-                if (collision.collided) {
+                if (collision) {
                     collisions.push(collision);
                 }
             } else {
@@ -77,10 +75,9 @@ var Pair = require('./Pair');
                             continue;
                         }
 
-                        var pair = pairsTable[pairId(partA, partB)];
-                        var collision = collides(partA, partB, pair && pair.collision, pair && pair.isActive);
+                        var collision = collides(partA, partB, pairs);
 
-                        if (collision.collided) {
+                        if (collision) {
                             collisions.push(collision);
                         }
                     }

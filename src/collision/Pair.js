@@ -27,6 +27,7 @@ var Contact = require('./Contact');
             id: Pair.id(bodyA, bodyB),
             bodyA: bodyA,
             bodyB: bodyB,
+            collision: collision,
             contacts: [],
             activeContacts: [],
             separation: 0,
@@ -72,6 +73,7 @@ var Contact = require('./Contact');
         pair.restitution = parentA.restitution > parentB.restitution ? parentA.restitution : parentB.restitution;
         pair.slop = parentA.slop > parentB.slop ? parentA.slop : parentB.slop;
 
+        collision.pair = pair;
         activeContacts.length = 0;
         
         for (var i = 0; i < supports.length; i++) {

@@ -46,7 +46,6 @@ var Common = require('../core/Common');
             collisionActive = pairs.collisionActive,
             collision,
             pairIndex,
-            pairId,
             pair,
             i;
 
@@ -61,8 +60,7 @@ var Common = require('../core/Common');
 
         for (i = 0; i < collisionsLength; i++) {
             collision = collisions[i];
-            pairId = Pair.id(collision.bodyA, collision.bodyB);
-            pair = pairsTable[pairId];
+            pair = collision.pair;
 
             if (pair) {
                 // pair already exists (but may or may not be active)
@@ -80,7 +78,7 @@ var Common = require('../core/Common');
             } else {
                 // pair did not exist, create a new pair
                 pair = Pair.create(collision, timestamp);
-                pairsTable[pairId] = pair;
+                pairsTable[pair.id] = pair;
 
                 // push the new pair
                 collisionStart.push(pair);
