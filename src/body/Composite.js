@@ -62,7 +62,7 @@ var Body = require('./Body');
     Composite.setModified = function(composite, isModified, updateParents, updateChildren) {
         composite.isModified = isModified;
 
-        if (isModified) {
+        if (isModified && composite.cache) {
             composite.cache.allBodies = null;
             composite.cache.allConstraints = null;
             composite.cache.allComposites = null;
@@ -73,7 +73,7 @@ var Body = require('./Body');
         }
 
         if (updateChildren) {
-            for(var i = 0; i < composite.composites.length; i++) {
+            for (var i = 0; i < composite.composites.length; i++) {
                 var childComposite = composite.composites[i];
                 Composite.setModified(childComposite, isModified, updateParents, updateChildren);
             }
@@ -359,7 +359,7 @@ var Body = require('./Body');
      * @return {body[]} All the bodies
      */
     Composite.allBodies = function(composite) {
-        if (composite.cache.allBodies) {
+        if (composite.cache && composite.cache.allBodies) {
             return composite.cache.allBodies;
         }
 
@@ -368,7 +368,9 @@ var Body = require('./Body');
         for (var i = 0; i < composite.composites.length; i++)
             bodies = bodies.concat(Composite.allBodies(composite.composites[i]));
 
-        composite.cache.allBodies = bodies;
+        if (composite.cache) {
+            composite.cache.allBodies = bodies;
+        }
 
         return bodies;
     };
@@ -380,7 +382,7 @@ var Body = require('./Body');
      * @return {constraint[]} All the constraints
      */
     Composite.allConstraints = function(composite) {
-        if (composite.cache.allConstraints) {
+        if (composite.cache && composite.cache.allConstraints) {
             return composite.cache.allConstraints;
         }
 
@@ -389,7 +391,9 @@ var Body = require('./Body');
         for (var i = 0; i < composite.composites.length; i++)
             constraints = constraints.concat(Composite.allConstraints(composite.composites[i]));
 
-        composite.cache.allConstraints = constraints;
+        if (composite.cache) {
+            composite.cache.allConstraints = constraints;
+        }
 
         return constraints;
     };
@@ -401,7 +405,7 @@ var Body = require('./Body');
      * @return {composite[]} All the composites
      */
     Composite.allComposites = function(composite) {
-        if (composite.cache.allComposites) {
+        if (composite.cache && composite.cache.allComposites) {
             return composite.cache.allComposites;
         }
 
@@ -410,7 +414,9 @@ var Body = require('./Body');
         for (var i = 0; i < composite.composites.length; i++)
             composites = composites.concat(Composite.allComposites(composite.composites[i]));
 
-        composite.cache.allComposites = composites;
+        if (composite.cache) {
+            composite.cache.allComposites = composites;
+        }
 
         return composites;
     };
