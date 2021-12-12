@@ -27,6 +27,7 @@ module.exports = {
     raycasting: require('./raycasting.js'),
     restitution: require('./restitution.js'),
     rounded: require('./rounded.js'),
+    remove: require('./remove.js'),
     sensors: require('./sensors.js'),
     sleeping: require('./sleeping.js'),
     slingshot: require('./slingshot.js'),
