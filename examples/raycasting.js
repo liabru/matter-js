@@ -68,7 +68,7 @@ Example.raycasting = function() {
         Bodies.rectangle(0, 300, 50, 600, { isStatic: true })
     ]);
 
-    var collisions,
+    var collisions = [],
         startPoint = { x: 400, y: 100 };
 
     Events.on(engine, 'afterUpdate', function() {

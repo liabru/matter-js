@@ -58,7 +58,6 @@
         <li><a href="https://brm.io/matter-js/demo/#airFriction">Air Friction</a></li>
         <li><a href="https://brm.io/matter-js/demo/#staticFriction">Static Friction</a></li>
         <li><a href="https://brm.io/matter-js/demo/#sleeping">Sleeping</a></li>
-        <li><a href="https://brm.io/matter-js/demo/#broadphase">Grid Broadphase</a></li>
         <li><a href="https://brm.io/matter-js/demo/#beachBalls">Beach Balls</a></li>
         <li><a href="https://brm.io/matter-js/demo/#stress">Stress 1</a></li>
         <li><a href="https://brm.io/matter-js/demo/#stress2">Stress 2</a></li>

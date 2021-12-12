@@ -3,7 +3,6 @@ module.exports = {
     avalanche: require('./avalanche.js'),
     ballPool: require('./ballPool.js'),
     bridge: require('./bridge.js'),
-    broadphase: require('./broadphase.js'),
     car: require('./car.js'),
     catapult: require('./catapult.js'),
     chains: require('./chains.js'),
