@@ -79,12 +79,21 @@ const prepareMatter = (options) => {
   Matter.Common.info = Matter.Common.warn = Matter.Common.log;
 
   if (options.stableSort) {
-    const MatterSATCollides = Matter.SAT.collides;
-    Matter.SAT.collides = function(bodyA, bodyB, previousCollision, pairActive) {
-      const _bodyA = bodyA.id < bodyB.id ? bodyA : bodyB;
-      const _bodyB = bodyA.id < bodyB.id ? bodyB : bodyA;
-      return MatterSATCollides(_bodyA, _bodyB, previousCollision, pairActive);
-    };
+    if (Matter.Collision) {
+      const MatterCollisionCollides = Matter.Collision.collides;
+      Matter.Collision.collides = function(bodyA, bodyB, pairs) {
+        const _bodyA = bodyA.id < bodyB.id ? bodyA : bodyB;
+        const _bodyB = bodyA.id < bodyB.id ? bodyB : bodyA;
+        return MatterCollisionCollides(_bodyA, _bodyB, pairs);
+      };
+    } else {
+      const MatterSATCollides = Matter.SAT.collides;
+      Matter.SAT.collides = function(bodyA, bodyB, previousCollision, pairActive) {
+        const _bodyA = bodyA.id < bodyB.id ? bodyA : bodyB;
+        const _bodyB = bodyA.id < bodyB.id ? bodyB : bodyA;
+        return MatterSATCollides(_bodyA, _bodyB, previousCollision, pairActive);
+      };
+    }
 
     Matter.after('Detector.collisions', function() { this.sort(collisionCompareId); });
     Matter.after('Composite.allBodies', function() { sortById(this); });
