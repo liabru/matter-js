@@ -1,7 +1,13 @@
 /**
+* This module has now been replaced by `Matter.Detector`.
+*
+* All usage should be migrated to `Matter.Detector` or another alternative.
+* For back-compatibility purposes this module will remain for a short term and then later removed in a future release.
+*
 * The `Matter.Grid` module contains methods for creating and manipulating collision broadphase grid structures.
 *
 * @class Grid
+* @deprecated
 */
 
 var Grid = {};
@@ -10,11 +16,13 @@ module.exports = Grid;
 
 var Pair = require('./Pair');
 var Common = require('../core/Common');
+var deprecated = Common.deprecated;
 
 (function() {
 
     /**
      * Creates a new grid.
+     * @deprecated replaced by Matter.Detector
      * @method create
      * @param {} options
      * @return {grid} A new grid
@@ -49,6 +57,7 @@ var Common = require('../core/Common');
 
     /**
      * Updates the grid.
+     * @deprecated replaced by Matter.Detector
      * @method update
      * @param {grid} grid
      * @param {body[]} bodies
@@ -127,8 +136,11 @@ var Common = require('../core/Common');
             grid.pairsList = Grid._createActivePairsList(grid);
     };
 
+    deprecated(Grid, 'update', 'Grid.update ➤ replaced by Matter.Detector');
+
     /**
      * Clears the grid.
+     * @deprecated replaced by Matter.Detector
      * @method clear
      * @param {grid} grid
      */
@@ -138,9 +150,12 @@ var Common = require('../core/Common');
         grid.pairsList = [];
     };
 
+    deprecated(Grid, 'clear', 'Grid.clear ➤ replaced by Matter.Detector');
+
     /**
      * Finds the union of two regions.
      * @method _regionUnion
+     * @deprecated replaced by Matter.Detector
      * @private
      * @param {} regionA
      * @param {} regionB
@@ -158,6 +173,7 @@ var Common = require('../core/Common');
     /**
      * Gets the region a given body falls in for a given grid.
      * @method _getRegion
+     * @deprecated replaced by Matter.Detector
      * @private
      * @param {} grid
      * @param {} body
@@ -176,6 +192,7 @@ var Common = require('../core/Common');
     /**
      * Creates a region.
      * @method _createRegion
+     * @deprecated replaced by Matter.Detector
      * @private
      * @param {} startCol
      * @param {} endCol
@@ -196,6 +213,7 @@ var Common = require('../core/Common');
     /**
      * Gets the bucket id at the given position.
      * @method _getBucketId
+     * @deprecated replaced by Matter.Detector
      * @private
      * @param {} column
      * @param {} row
@@ -208,6 +226,7 @@ var Common = require('../core/Common');
     /**
      * Creates a bucket.
      * @method _createBucket
+     * @deprecated replaced by Matter.Detector
      * @private
      * @param {} buckets
      * @param {} bucketId
@@ -221,6 +240,7 @@ var Common = require('../core/Common');
     /**
      * Adds a body to a bucket.
      * @method _bucketAddBody
+     * @deprecated replaced by Matter.Detector
      * @private
      * @param {} grid
      * @param {} bucket
@@ -258,6 +278,7 @@ var Common = require('../core/Common');
     /**
      * Removes a body from a bucket.
      * @method _bucketRemoveBody
+     * @deprecated replaced by Matter.Detector
      * @private
      * @param {} grid
      * @param {} bucket
@@ -287,6 +308,7 @@ var Common = require('../core/Common');
     /**
      * Generates a list of the active pairs in the grid.
      * @method _createActivePairsList
+     * @deprecated replaced by Matter.Detector
      * @private
      * @param {} grid
      * @return [] pairs
