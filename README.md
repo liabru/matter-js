@@ -124,6 +124,10 @@ Alternatively you can download a [stable release](https://github.com/liabru/matt
 
     <script src="matter.js" type="text/javascript"></script>
 
+### Webpack
+
+Some [webpack](https://webpack.js.org/) configs including the default may impact your project's performance during development, for a solution see [issue](https://github.com/liabru/matter-js/issues/1001).
+
 ### Usage
 
 Visit the [Getting started](https://github.com/liabru/matter-js/wiki/Getting-started) wiki page for a minimal usage example which should work in both browsers and Node.js.  
