@@ -18,12 +18,14 @@ const MatterBuild = requireUncached('../build/matter');
 const { versionSatisfies } = requireUncached('../src/core/Plugin');
 const Worker = require('jest-worker').default;
 
+const specificExamples = process.env.EXAMPLES ? process.env.EXAMPLES.split(' ') : null;
 const testComparison = process.env.COMPARE === 'true';
 const saveComparison = process.env.SAVE === 'true';
+
 const excludeExamples = ['svg', 'terrain'];
 const excludeJitter = ['stack', 'circleStack', 'restitution', 'staticFriction', 'friction', 'newtonsCradle', 'catapult'];
 
-const examples = Object.keys(Example).filter(key => {
+const examples = (specificExamples || Object.keys(Example)).filter(key => {
     const excluded = excludeExamples.includes(key);
     const buildVersion = MatterBuild.version;
     const exampleFor = Example[key].for;

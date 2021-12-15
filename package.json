@@ -50,6 +50,7 @@
     "lint": "eslint 'src/**/*.js' 'demo/src/**/*.js' 'examples/*.js' 'webpack.*.js'",
     "doc": "yuidoc --config yuidoc.json --project-version $npm_package_version",
     "doc-watch": "nodemon --delay 3 --watch 'matter-doc-theme' --watch src -e 'js,html,css,handlebars' --exec 'npm run doc'",
+    "benchmark": "EXAMPLES=stress3 npm run test-node",
     "test": "npm run test-node",
     "test-all": "jest --no-cache",
     "test-save": "SAVE=true npm run test-node",
