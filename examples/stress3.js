@@ -12,8 +12,12 @@ Example.stress3 = function() {
         Bodies = Matter.Bodies;
 
     // create engine
-    var engine = Engine.create(),
-        world = engine.world;
+    var engine = Engine.create({
+        positionIterations: 10,
+        velocityIterations: 10
+    });
+
+    var world = engine.world;
 
     // create renderer
     var render = Render.create({
