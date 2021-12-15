@@ -29,7 +29,7 @@ License ${pkg.license}`;
     return {
         entry: { [name]: './demo/src/index.js' },
         node: false,
-        devtool: 'source-map',
+        devtool: devServer ? 'source-map' : 'none',
         output: {
             library: 'MatterDemo',
             libraryTarget: 'umd',
