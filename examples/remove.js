@@ -1,6 +1,6 @@
 var Example = Example || {};
 
-Example.broadphase = function() {
+Example.remove = function() {
     var Engine = Matter.Engine,
         Render = Matter.Render,
         Runner = Matter.Runner,
@@ -9,7 +9,8 @@ Example.broadphase = function() {
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
         Composite = Matter.Composite,
-        Bodies = Matter.Bodies;
+        Bodies = Matter.Bodies,
+        Events = Matter.Events;
 
     // create engine
     var engine = Engine.create(),
@@ -23,7 +24,6 @@ Example.broadphase = function() {
             width: 800,
             height: 600,
             showAngleIndicator: true,
-            showBroadphase: true
         }
     });
 
@@ -33,7 +33,59 @@ Example.broadphase = function() {
     var runner = Runner.create();
     Runner.run(runner, engine);
 
-    // add bodies
+    var stack = null,
+        updateCount = 0;
+
+    var createStack = function() {
+        return Composites.stack(20, 20, 10, 5, 0, 0, function(x, y) {
+            var sides = Math.round(Common.random(1, 8));
+
+            // round the edges of some bodies
+            var chamfer = null;
+            if (sides > 2 && Common.random() > 0.7) {
+                chamfer = {
+                    radius: 10
+                };
+            }
+
+            switch (Math.round(Common.random(0, 1))) {
+            case 0:
+                if (Common.random() < 0.8) {
+                    return Bodies.rectangle(x, y, Common.random(25, 50), Common.random(25, 50), { chamfer: chamfer });
+                } else {
+                    return Bodies.rectangle(x, y, Common.random(80, 120), Common.random(25, 30), { chamfer: chamfer });
+                }
+            case 1:
+                return Bodies.polygon(x, y, sides, Common.random(25, 50), { chamfer: chamfer });
+            }
+        });
+    };
+
+    // add and remove stacks every few updates
+    Events.on(engine, 'afterUpdate', function() {
+        // limit rate
+        if (stack && updateCount <= 50) {
+            updateCount += 1;
+            return;
+        }
+
+        updateCount = 0;
+
+        // remove last stack
+        if (stack) {
+            Composite.remove(world, stack);
+        }
+
+        // create a new stack
+        stack = createStack();
+
+        // add the new stack
+        Composite.add(world, stack);
+    });
+
+    // add another stack that will not be removed
+    Composite.add(world, createStack());
+
     Composite.add(world, [
         // walls
         Bodies.rectangle(400, 0, 800, 50, { isStatic: true }),
@@ -41,23 +93,6 @@ Example.broadphase = function() {
         Bodies.rectangle(800, 300, 50, 600, { isStatic: true }),
         Bodies.rectangle(0, 300, 50, 600, { isStatic: true })
     ]);
-
-    var stack = Composites.stack(20, 20, 12, 5, 0, 0, function(x, y) {
-        switch (Math.round(Common.random(0, 1))) {
-
-        case 0:
-            if (Common.random() < 0.8) {
-                return Bodies.rectangle(x, y, Common.random(20, 50), Common.random(20, 50));
-            } else {
-                return Bodies.rectangle(x, y, Common.random(80, 120), Common.random(20, 30));
-            }
-        case 1:
-            return Bodies.polygon(x, y, Math.round(Common.random(1, 8)), Common.random(20, 50));
-
-        }
-    });
-    
-    Composite.add(world, stack);
 
     // add mouse control
     var mouse = Mouse.create(render.canvas),
@@ -95,9 +130,9 @@ Example.broadphase = function() {
     };
 };
 
-Example.broadphase.title = 'Broadphase';
-Example.broadphase.for = '>=0.14.2';
+Example.remove.title = 'Composite Remove';
+Example.remove.for = '>=0.14.2';
 
 if (typeof module !== 'undefined') {
-    module.exports = Example.broadphase;
+    module.exports = Example.remove;
 }

@@ -18,21 +18,10 @@ module.exports = Contact;
      */
     Contact.create = function(vertex) {
         return {
-            id: Contact.id(vertex),
             vertex: vertex,
             normalImpulse: 0,
             tangentImpulse: 0
         };
-    };
-    
-    /**
-     * Generates a contact id.
-     * @method id
-     * @param {vertex} vertex
-     * @return {string} Unique contactID
-     */
-    Contact.id = function(vertex) {
-        return vertex.body.id + '_' + vertex.index;
     };
 
 })();

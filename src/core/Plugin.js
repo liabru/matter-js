@@ -240,7 +240,7 @@ var Common = require('./Common');
      */
     Plugin.dependencyParse = function(dependency) {
         if (Common.isString(dependency)) {
-            var pattern = /^[\w-]+(@(\*|[\^~]?\d+\.\d+\.\d+(-[0-9A-Za-z-]+)?))?$/;
+            var pattern = /^[\w-]+(@(\*|[\^~]?\d+\.\d+\.\d+(-[0-9A-Za-z-+]+)?))?$/;
 
             if (!pattern.test(dependency)) {
                 Common.warn('Plugin.dependencyParse:', dependency, 'is not a valid dependency string.');
@@ -275,7 +275,7 @@ var Common = require('./Common');
      * @return {object} The version range parsed into its components.
      */
     Plugin.versionParse = function(range) {
-        var pattern = /^(\*)|(\^|~|>=|>)?\s*((\d+)\.(\d+)\.(\d+))(-[0-9A-Za-z-]+)?$/;
+        var pattern = /^(\*)|(\^|~|>=|>)?\s*((\d+)\.(\d+)\.(\d+))(-[0-9A-Za-z-+]+)?$/;
 
         if (!pattern.test(range)) {
             Common.warn('Plugin.versionParse:', range, 'is not a valid version or range.');
