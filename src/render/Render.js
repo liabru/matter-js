@@ -1,5 +1,5 @@
 /**
-* The `Matter.Render` module is a simple HTML5 canvas based renderer for visualising instances of `Matter.Engine`.
+* The `Matter.Render` module is a simple canvas based renderer for visualising instances of `Matter.Engine`.
 * It is intended for development and debugging purposes, but may also be suitable for simple games.
 * It includes a number of drawing options including wireframe, vector with support for sprites and viewports.
 *
@@ -14,7 +14,6 @@ var Common = require('../core/Common');
 var Composite = require('../body/Composite');
 var Bounds = require('../geometry/Bounds');
 var Events = require('../core/Events');
-var Grid = require('../collision/Grid');
 var Vector = require('../geometry/Vector');
 var Mouse = require('../core/Mouse');
 
@@ -32,6 +31,9 @@ var Mouse = require('../core/Mouse');
                                       || window.webkitCancelAnimationFrame || window.msCancelAnimationFrame;
     }
 
+    Render._goodFps = 30;
+    Render._goodDelta = 1000 / 60;
+
     /**
      * Creates a new renderer. The options parameter is an object that specifies any properties you wish to override the defaults.
      * All properties have default values, and many are pre-calculated automatically based on other properties.
@@ -48,6 +50,19 @@ var Mouse = require('../core/Mouse');
             canvas: null,
             mouse: null,
             frameRequestId: null,
+            timing: {
+                historySize: 60,
+                delta: 0,
+                deltaHistory: [],
+                lastTime: 0,
+                lastTimestamp: 0,
+                lastElapsed: 0,
+                timestampElapsed: 0,
+                timestampElapsedHistory: [],
+                engineDeltaHistory: [],
+                engineElapsedHistory: [],
+                elapsedHistory: []
+            },
             options: {
                 width: 800,
                 height: 600,
@@ -59,7 +74,8 @@ var Mouse = require('../core/Mouse');
                 wireframes: true,
                 showSleeping: true,
                 showDebug: false,
-                showBroadphase: false,
+                showStats: false,
+                showPerformance: false,
                 showBounds: false,
                 showVelocity: false,
                 showCollisions: false,
@@ -68,7 +84,6 @@ var Mouse = require('../core/Mouse');
                 showPositions: false,
                 showAngleIndicator: false,
                 showIds: false,
-                showShadows: false,
                 showVertexNumbers: false,
                 showConvexHulls: false,
                 showInternalEdges: false,
@@ -100,6 +115,9 @@ var Mouse = require('../core/Mouse');
             }
         };
 
+        // for temporary back compatibility only
+        render.options.showBroadphase = false;
+
         if (render.options.pixelRatio !== 1) {
             Render.setPixelRatio(render, render.options.pixelRatio);
         }
@@ -121,7 +139,18 @@ var Mouse = require('../core/Mouse');
     Render.run = function(render) {
         (function loop(time){
             render.frameRequestId = _requestAnimationFrame(loop);
-            Render.world(render);
+            
+            _updateTiming(render, time);
+
+            Render.world(render, time);
+
+            if (render.options.showStats || render.options.showDebug) {
+                Render.stats(render, render.context, time);
+            }
+
+            if (render.options.showPerformance || render.options.showDebug) {
+                Render.performance(render, render.context, time);
+            }
         })();
     };
 
@@ -289,13 +318,16 @@ var Mouse = require('../core/Mouse');
      * @method world
      * @param {render} render
      */
-    Render.world = function(render) {
-        var engine = render.engine,
+    Render.world = function(render, time) {
+        var startTime = Common.now(),
+            engine = render.engine,
             world = engine.world,
             canvas = render.canvas,
             context = render.context,
             options = render.options,
-            allBodies = Composite.allBodies(world),
+            timing = render.timing;
+
+        var allBodies = Composite.allBodies(world),
             allConstraints = Composite.allConstraints(world),
             background = options.wireframes ? options.wireframeBackground : options.background,
             bodies = [],
@@ -406,84 +438,188 @@ var Mouse = require('../core/Mouse');
 
         Render.constraints(constraints, context);
 
-        if (options.showBroadphase && engine.broadphase.controller === Grid)
-            Render.grid(render, engine.broadphase, context);
-
-        if (options.showDebug)
-            Render.debug(render, context);
-
         if (options.hasBounds) {
             // revert view transforms
             Render.endViewTransform(render);
         }
 
         Events.trigger(render, 'afterRender', event);
+
+        // log the time elapsed computing this update
+        timing.lastElapsed = Common.now() - startTime;
     };
 
     /**
-     * Description
+     * Renders statistics about the engine and world useful for debugging.
      * @private
-     * @method debug
+     * @method stats
+     * @param {render} render
+     * @param {RenderingContext} context
+     * @param {Number} time
+     */
+    Render.stats = function(render, context, time) {
+        var engine = render.engine,
+            world = engine.world,
+            bodies = Composite.allBodies(world),
+            parts = 0,
+            width = 55,
+            height = 44,
+            x = 0,
+            y = 0;
+        
+        // count parts
+        for (var i = 0; i < bodies.length; i += 1) {
+            parts += bodies[i].parts.length;
+        }
+
+        // sections
+        var sections = {
+            'Part': parts,
+            'Body': bodies.length,
+            'Cons': Composite.allConstraints(world).length,
+            'Comp': Composite.allComposites(world).length,
+            'Pair': engine.pairs.list.length
+        };
+
+        // background
+        context.fillStyle = '#0e0f19';
+        context.fillRect(x, y, width * 5.5, height);
+
+        context.font = '12px Arial';
+        context.textBaseline = 'top';
+        context.textAlign = 'right';
+
+        // sections
+        for (var key in sections) {
+            var section = sections[key];
+            // label
+            context.fillStyle = '#aaa';
+            context.fillText(key, x + width, y + 8);
+
+            // value
+            context.fillStyle = '#eee';
+            context.fillText(section, x + width, y + 26);
+
+            x += width;
+        }
+    };
+
+    /**
+     * Renders engine and render performance information.
+     * @private
+     * @method performance
      * @param {render} render
      * @param {RenderingContext} context
      */
-    Render.debug = function(render, context) {
-        var c = context,
-            engine = render.engine,
-            world = engine.world,
-            metrics = engine.metrics,
-            options = render.options,
-            bodies = Composite.allBodies(world),
-            space = "    ";
+    Render.performance = function(render, context) {
+        var engine = render.engine,
+            timing = render.timing,
+            deltaHistory = timing.deltaHistory,
+            elapsedHistory = timing.elapsedHistory,
+            timestampElapsedHistory = timing.timestampElapsedHistory,
+            engineDeltaHistory = timing.engineDeltaHistory,
+            engineElapsedHistory = timing.engineElapsedHistory,
+            lastEngineDelta = engine.timing.lastDelta;
+        
+        var deltaMean = _mean(deltaHistory),
+            elapsedMean = _mean(elapsedHistory),
+            engineDeltaMean = _mean(engineDeltaHistory),
+            engineElapsedMean = _mean(engineElapsedHistory),
+            timestampElapsedMean = _mean(timestampElapsedHistory),
+            rateMean = (timestampElapsedMean / deltaMean) || 0,
+            fps = (1000 / deltaMean) || 0;
 
-        if (engine.timing.timestamp - (render.debugTimestamp || 0) >= 500) {
-            var text = "";
+        var graphHeight = 4,
+            gap = 12,
+            width = 60,
+            height = 34,
+            x = 10,
+            y = 69;
 
-            if (metrics.timing) {
-                text += "fps: " + Math.round(metrics.timing.fps) + space;
-            }
+        // background
+        context.fillStyle = '#0e0f19';
+        context.fillRect(0, 50, gap * 4 + width * 5 + 22, height);
 
-            // @if DEBUG
-            if (metrics.extended) {
-                if (metrics.timing) {
-                    text += "delta: " + metrics.timing.delta.toFixed(3) + space;
-                    text += "correction: " + metrics.timing.correction.toFixed(3) + space;
-                }
+        // show FPS
+        Render.status(
+            context, x, y, width, graphHeight, deltaHistory.length, 
+            Math.round(fps) + ' fps', 
+            fps / Render._goodFps,
+            function(i) { return (deltaHistory[i] / deltaMean) - 1; }
+        );
 
-                text += "bodies: " + bodies.length + space;
+        // show engine delta
+        Render.status(
+            context, x + gap + width, y, width, graphHeight, engineDeltaHistory.length,
+            lastEngineDelta.toFixed(2) + ' dt', 
+            Render._goodDelta / lastEngineDelta,
+            function(i) { return (engineDeltaHistory[i] / engineDeltaMean) - 1; }
+        );
 
-                if (engine.broadphase.controller === Grid)
-                    text += "buckets: " + metrics.buckets + space;
+        // show engine update time
+        Render.status(
+            context, x + (gap + width) * 2, y, width, graphHeight, engineElapsedHistory.length,
+            engineElapsedMean.toFixed(2) + ' ut', 
+            1 - (engineElapsedMean / Render._goodFps),
+            function(i) { return (engineElapsedHistory[i] / engineElapsedMean) - 1; }
+        );
 
-                text += "\n";
+        // show render time
+        Render.status(
+            context, x + (gap + width) * 3, y, width, graphHeight, elapsedHistory.length,
+            elapsedMean.toFixed(2) + ' rt', 
+            1 - (elapsedMean / Render._goodFps),
+            function(i) { return (elapsedHistory[i] / elapsedMean) - 1; }
+        );
 
-                text += "collisions: " + metrics.collisions + space;
-                text += "pairs: " + engine.pairs.list.length + space;
-                text += "broad: " + metrics.broadEff + space;
-                text += "mid: " + metrics.midEff + space;
-                text += "narrow: " + metrics.narrowEff + space;
-            }
-            // @endif
+        // show effective speed
+        Render.status(
+            context, x + (gap + width) * 4, y, width, graphHeight, timestampElapsedHistory.length, 
+            rateMean.toFixed(2) + ' x', 
+            rateMean * rateMean * rateMean,
+            function(i) { return (((timestampElapsedHistory[i] / deltaHistory[i]) / rateMean) || 0) - 1; }
+        );
+    };
 
-            render.debugString = text;
-            render.debugTimestamp = engine.timing.timestamp;
+    /**
+     * Renders a label, indicator and a chart.
+     * @private
+     * @method status
+     * @param {RenderingContext} context
+     * @param {number} x
+     * @param {number} y
+     * @param {number} width
+     * @param {number} height
+     * @param {number} count
+     * @param {string} label
+     * @param {string} indicator
+     * @param {function} plotY
+     */
+    Render.status = function(context, x, y, width, height, count, label, indicator, plotY) {
+        // background
+        context.strokeStyle = '#888';
+        context.fillStyle = '#444';
+        context.lineWidth = 1;
+        context.fillRect(x, y + 7, width, 1);
+
+        // chart
+        context.beginPath();
+        context.moveTo(x, y + 7 - height * Common.clamp(0.4 * plotY(0), -2, 2));
+        for (var i = 0; i < width; i += 1) {
+            context.lineTo(x + i, y + 7 - (i < count ? height * Common.clamp(0.4 * plotY(i), -2, 2) : 0));
         }
+        context.stroke();
 
-        if (render.debugString) {
-            c.font = "12px Arial";
+        // indicator
+        context.fillStyle = 'hsl(' + Common.clamp(25 + 95 * indicator, 0, 120) + ',100%,60%)';
+        context.fillRect(x, y - 7, 4, 4);
 
-            if (options.wireframes) {
-                c.fillStyle = 'rgba(255,255,255,0.5)';
-            } else {
-                c.fillStyle = 'rgba(0,0,0,0.5)';
-            }
-
-            var split = render.debugString.split('\n');
-
-            for (var i = 0; i < split.length; i++) {
-                c.fillText(split[i], 50, 50 + i * 18);
-            }
-        }
+        // label
+        context.font = '12px Arial';
+        context.textBaseline = 'middle';
+        context.textAlign = 'right';
+        context.fillStyle = '#eee';
+        context.fillText(label, x + width, y - 5);
     };
 
     /**
@@ -560,55 +696,6 @@ var Mouse = require('../core/Mouse');
                 c.closePath();
                 c.fill();
             }
-        }
-    };
-
-    /**
-     * Description
-     * @private
-     * @method bodyShadows
-     * @param {render} render
-     * @param {body[]} bodies
-     * @param {RenderingContext} context
-     */
-    Render.bodyShadows = function(render, bodies, context) {
-        var c = context,
-            engine = render.engine;
-
-        for (var i = 0; i < bodies.length; i++) {
-            var body = bodies[i];
-
-            if (!body.render.visible)
-                continue;
-
-            if (body.circleRadius) {
-                c.beginPath();
-                c.arc(body.position.x, body.position.y, body.circleRadius, 0, 2 * Math.PI);
-                c.closePath();
-            } else {
-                c.beginPath();
-                c.moveTo(body.vertices[0].x, body.vertices[0].y);
-                for (var j = 1; j < body.vertices.length; j++) {
-                    c.lineTo(body.vertices[j].x, body.vertices[j].y);
-                }
-                c.closePath();
-            }
-
-            var distanceX = body.position.x - render.options.width * 0.5,
-                distanceY = body.position.y - render.options.height * 0.2,
-                distance = Math.abs(distanceX) + Math.abs(distanceY);
-
-            c.shadowColor = 'rgba(0,0,0,0.15)';
-            c.shadowOffsetX = 0.05 * distanceX;
-            c.shadowOffsetY = 0.05 * distanceY;
-            c.shadowBlur = 1 + 12 * Math.min(1, distance / 1000);
-
-            c.fill();
-
-            c.shadowColor = null;
-            c.shadowOffsetX = null;
-            c.shadowOffsetY = null;
-            c.shadowBlur = null;
         }
     };
 
@@ -1200,45 +1287,6 @@ var Mouse = require('../core/Mouse');
     /**
      * Description
      * @private
-     * @method grid
-     * @param {render} render
-     * @param {grid} grid
-     * @param {RenderingContext} context
-     */
-    Render.grid = function(render, grid, context) {
-        var c = context,
-            options = render.options;
-
-        if (options.wireframes) {
-            c.strokeStyle = 'rgba(255,180,0,0.1)';
-        } else {
-            c.strokeStyle = 'rgba(255,180,0,0.5)';
-        }
-
-        c.beginPath();
-
-        var bucketKeys = Common.keys(grid.buckets);
-
-        for (var i = 0; i < bucketKeys.length; i++) {
-            var bucketId = bucketKeys[i];
-
-            if (grid.buckets[bucketId].length < 2)
-                continue;
-
-            var region = bucketId.split(/C|R/);
-            c.rect(0.5 + parseInt(region[1], 10) * grid.bucketWidth,
-                0.5 + parseInt(region[2], 10) * grid.bucketHeight,
-                grid.bucketWidth,
-                grid.bucketHeight);
-        }
-
-        c.lineWidth = 1;
-        c.stroke();
-    };
-
-    /**
-     * Description
-     * @private
      * @method inspector
      * @param {inspector} inspector
      * @param {RenderingContext} context
@@ -1322,7 +1370,56 @@ var Mouse = require('../core/Mouse');
     };
 
     /**
-     * Description
+     * Updates render timing.
+     * @method _updateTiming
+     * @private
+     * @param {render} render
+     * @param {number} time
+     */
+    var _updateTiming = function(render, time) {
+        var engine = render.engine,
+            timing = render.timing,
+            historySize = timing.historySize,
+            timestamp = engine.timing.timestamp;
+
+        timing.delta = time - timing.lastTime || Render._goodDelta;
+        timing.lastTime = time;
+
+        timing.timestampElapsed = timestamp - timing.lastTimestamp || 0;
+        timing.lastTimestamp = timestamp;
+
+        timing.deltaHistory.unshift(timing.delta);
+        timing.deltaHistory.length = Math.min(timing.deltaHistory.length, historySize);
+
+        timing.engineDeltaHistory.unshift(engine.timing.lastDelta);
+        timing.engineDeltaHistory.length = Math.min(timing.engineDeltaHistory.length, historySize);
+
+        timing.timestampElapsedHistory.unshift(timing.timestampElapsed);
+        timing.timestampElapsedHistory.length = Math.min(timing.timestampElapsedHistory.length, historySize);
+
+        timing.engineElapsedHistory.unshift(engine.timing.lastElapsed);
+        timing.engineElapsedHistory.length = Math.min(timing.engineElapsedHistory.length, historySize);
+
+        timing.elapsedHistory.unshift(timing.lastElapsed);
+        timing.elapsedHistory.length = Math.min(timing.elapsedHistory.length, historySize);
+    };
+
+    /**
+     * Returns the mean value of the given numbers.
+     * @method _mean
+     * @private
+     * @param {Number[]} values
+     * @return {Number} the mean of given values
+     */
+    var _mean = function(values) {
+        var result = 0;
+        for (var i = 0; i < values.length; i += 1) {
+            result += values[i];
+        }
+        return (result / values.length) || 0;
+    };
+
+    /**
      * @method _createCanvas
      * @private
      * @param {} width
@@ -1456,37 +1553,6 @@ var Mouse = require('../core/Mouse');
      */
 
     /**
-     * The configuration options of the renderer.
-     *
-     * @property options
-     * @type {}
-     */
-
-    /**
-     * The target width in pixels of the `render.canvas` to be created.
-     *
-     * @property options.width
-     * @type number
-     * @default 800
-     */
-
-    /**
-     * The target height in pixels of the `render.canvas` to be created.
-     *
-     * @property options.height
-     * @type number
-     * @default 600
-     */
-
-    /**
-     * A flag that specifies if `render.bounds` should be used when rendering.
-     *
-     * @property options.hasBounds
-     * @type boolean
-     * @default false
-     */
-
-    /**
      * A `Bounds` object that specifies the drawing view region.
      * Rendering will be automatically transformed and scaled to fit within the canvas size (`render.options.width` and `render.options.height`).
      * This allows for creating views that can pan or zoom around the scene.
@@ -1508,6 +1574,257 @@ var Mouse = require('../core/Mouse');
      *
      * @property textures
      * @type {}
+     */
+
+    /**
+     * The mouse to render if `render.options.showMousePosition` is enabled.
+     *
+     * @property mouse
+     * @type mouse
+     * @default null
+     */
+
+    /**
+     * The configuration options of the renderer.
+     *
+     * @property options
+     * @type {}
+     */
+
+    /**
+     * The target width in pixels of the `render.canvas` to be created.
+     * See also the `options.pixelRatio` property to change render quality.
+     *
+     * @property options.width
+     * @type number
+     * @default 800
+     */
+
+    /**
+     * The target height in pixels of the `render.canvas` to be created.
+     * See also the `options.pixelRatio` property to change render quality.
+     *
+     * @property options.height
+     * @type number
+     * @default 600
+     */
+
+    /**
+     * The [pixel ratio](https://developer.mozilla.org/en-US/docs/Web/API/Window/devicePixelRatio) to use when rendering.
+     *
+     * @property options.pixelRatio
+     * @type number
+     * @default 1
+     */
+
+    /**
+     * A CSS background color string to use when `render.options.wireframes` is disabled.
+     * This may be also set to `'transparent'` or equivalent.
+     *
+     * @property options.background
+     * @type string
+     * @default '#14151f'
+     */
+
+    /**
+     * A CSS background color string to use when `render.options.wireframes` is enabled.
+     * This may be also set to `'transparent'` or equivalent.
+     *
+     * @property options.wireframeBackground
+     * @type string
+     * @default '#14151f'
+     */
+
+    /**
+     * A flag that specifies if `render.bounds` should be used when rendering.
+     *
+     * @property options.hasBounds
+     * @type boolean
+     * @default false
+     */
+
+    /**
+     * A flag to enable or disable all debug information overlays together.  
+     * This includes and has priority over the values of:
+     *
+     * - `render.options.showStats`
+     * - `render.options.showPerformance`
+     *
+     * @property options.showDebug
+     * @type boolean
+     * @default false
+     */
+
+    /**
+     * A flag to enable or disable the engine stats info overlay.  
+     * From left to right, the values shown are:
+     *
+     * - body parts total
+     * - body total
+     * - constraints total
+     * - composites total
+     * - collision pairs total
+     *
+     * @property options.showStats
+     * @type boolean
+     * @default false
+     */
+
+    /**
+     * A flag to enable or disable performance charts.  
+     * From left to right, the values shown are:
+     *
+     * - average render frequency (e.g. 60 fps)
+     * - exact engine delta time used for last update (e.g. 16.66ms)
+     * - average engine execution duration (e.g. 5.00ms)
+     * - average render execution duration (e.g. 0.40ms)
+     * - average effective play speed (e.g. '1.00x' is 'real-time')
+     *
+     * Each value is recorded over a fixed sample of past frames (60 frames).
+     *
+     * A chart shown below each value indicates the variance from the average over the sample.
+     * The more stable or fixed the value is the flatter the chart will appear.
+     *
+     * @property options.showPerformance
+     * @type boolean
+     * @default false
+     */
+    
+    /**
+     * A flag to enable or disable rendering entirely.
+     *
+     * @property options.enabled
+     * @type boolean
+     * @default false
+     */
+
+    /**
+     * A flag to toggle wireframe rendering otherwise solid fill rendering is used.
+     *
+     * @property options.wireframes
+     * @type boolean
+     * @default true
+     */
+
+    /**
+     * A flag to enable or disable sleeping bodies indicators.
+     *
+     * @property options.showSleeping
+     * @type boolean
+     * @default true
+     */
+
+    /**
+     * A flag to enable or disable the debug information overlay.
+     *
+     * @property options.showDebug
+     * @type boolean
+     * @default false
+     */
+
+    /**
+     * A flag to enable or disable the collision broadphase debug overlay.
+     *
+     * @deprecated no longer implemented
+     * @property options.showBroadphase
+     * @type boolean
+     * @default false
+     */
+
+    /**
+     * A flag to enable or disable the body bounds debug overlay.
+     *
+     * @property options.showBounds
+     * @type boolean
+     * @default false
+     */
+
+    /**
+     * A flag to enable or disable the body velocity debug overlay.
+     *
+     * @property options.showVelocity
+     * @type boolean
+     * @default false
+     */
+
+    /**
+     * A flag to enable or disable the body collisions debug overlay.
+     *
+     * @property options.showCollisions
+     * @type boolean
+     * @default false
+     */
+
+    /**
+     * A flag to enable or disable the collision resolver separations debug overlay.
+     *
+     * @property options.showSeparations
+     * @type boolean
+     * @default false
+     */
+
+    /**
+     * A flag to enable or disable the body axes debug overlay.
+     *
+     * @property options.showAxes
+     * @type boolean
+     * @default false
+     */
+
+    /**
+     * A flag to enable or disable the body positions debug overlay.
+     *
+     * @property options.showPositions
+     * @type boolean
+     * @default false
+     */
+
+    /**
+     * A flag to enable or disable the body angle debug overlay.
+     *
+     * @property options.showAngleIndicator
+     * @type boolean
+     * @default false
+     */
+
+    /**
+     * A flag to enable or disable the body and part ids debug overlay.
+     *
+     * @property options.showIds
+     * @type boolean
+     * @default false
+     */
+
+    /**
+     * A flag to enable or disable the body vertex numbers debug overlay.
+     *
+     * @property options.showVertexNumbers
+     * @type boolean
+     * @default false
+     */
+
+    /**
+     * A flag to enable or disable the body convex hulls debug overlay.
+     *
+     * @property options.showConvexHulls
+     * @type boolean
+     * @default false
+     */
+
+    /**
+     * A flag to enable or disable the body internal edges debug overlay.
+     *
+     * @property options.showInternalEdges
+     * @type boolean
+     * @default false
+     */
+
+    /**
+     * A flag to enable or disable the mouse position debug overlay.
+     *
+     * @property options.showMousePosition
+     * @type boolean
+     * @default false
      */
 
 })();

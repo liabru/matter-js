@@ -9,7 +9,6 @@ Example.collisionFiltering = function() {
         Common = Matter.Common,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
-        World = Matter.World,
         Bodies = Matter.Bodies;
 
     // create engine
@@ -44,7 +43,7 @@ Example.collisionFiltering = function() {
         colorC = '#f5d259';
 
     // add floor
-    World.add(world, Bodies.rectangle(400, 600, 900, 50, { 
+    Composite.add(world, Bodies.rectangle(400, 600, 900, 50, { 
         isStatic: true,
         render: {
             fillStyle: 'transparent',
@@ -53,7 +52,7 @@ Example.collisionFiltering = function() {
     }));
 
     // create a stack with varying body categories (but these bodies can all collide with each other)
-    World.add(world,
+    Composite.add(world,
         Composites.stack(275, 100, 5, 9, 10, 10, function(x, y, column, row) {
             var category = redCategory,
                 color = colorA;
@@ -80,7 +79,7 @@ Example.collisionFiltering = function() {
     );
 
     // this body will only collide with the walls and the green bodies
-    World.add(world,
+    Composite.add(world,
         Bodies.circle(310, 40, 30, {
             collisionFilter: {
                 mask: defaultCategory | greenCategory
@@ -92,7 +91,7 @@ Example.collisionFiltering = function() {
     );
 
     // this body will only collide with the walls and the red bodies
-    World.add(world,
+    Composite.add(world,
         Bodies.circle(400, 40, 30, {
             collisionFilter: {
                 mask: defaultCategory | redCategory
@@ -104,7 +103,7 @@ Example.collisionFiltering = function() {
     );
 
     // this body will only collide with the walls and the blue bodies
-    World.add(world,
+    Composite.add(world,
         Bodies.circle(480, 40, 30, {
             collisionFilter: {
                 mask: defaultCategory | blueCategory
@@ -127,7 +126,7 @@ Example.collisionFiltering = function() {
             }
         });
 
-    World.add(world, mouseConstraint);
+    Composite.add(world, mouseConstraint);
 
     // keep the mouse in sync with rendering
     render.mouse = mouse;
@@ -154,6 +153,7 @@ Example.collisionFiltering = function() {
     };
 };
 
+Example.collisionFiltering.title = 'Collision Filtering';
 Example.collisionFiltering.for = '>=0.14.2';
 
 if (typeof module !== 'undefined') {

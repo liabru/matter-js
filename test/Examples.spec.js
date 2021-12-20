@@ -3,19 +3,29 @@
 
 jest.setTimeout(30 * 1000);
 
-const { comparisonReport, toMatchExtrinsics, toMatchIntrinsics } = require('./TestTools');
+const fs = require('fs');
 
-const Example = require('../examples/index');
-const MatterBuild = require('../build/matter');
-const { versionSatisfies } = require('../src/core/Plugin');
+const {
+    requireUncached,
+    comparisonReport, 
+    logReport, 
+    toMatchExtrinsics, 
+    toMatchIntrinsics 
+} = require('./TestTools');
+
+const Example = requireUncached('../examples/index');
+const MatterBuild = requireUncached('../build/matter');
+const { versionSatisfies } = requireUncached('../src/core/Plugin');
 const Worker = require('jest-worker').default;
 
+const specificExamples = process.env.EXAMPLES ? process.env.EXAMPLES.split(' ') : null;
 const testComparison = process.env.COMPARE === 'true';
 const saveComparison = process.env.SAVE === 'true';
+
 const excludeExamples = ['svg', 'terrain'];
 const excludeJitter = ['stack', 'circleStack', 'restitution', 'staticFriction', 'friction', 'newtonsCradle', 'catapult'];
 
-const examples = Object.keys(Example).filter(key => {
+const examples = (specificExamples || Object.keys(Example)).filter(key => {
     const excluded = excludeExamples.includes(key);
     const buildVersion = MatterBuild.version;
     const exampleFor = Example[key].for;
@@ -23,31 +33,87 @@ const examples = Object.keys(Example).filter(key => {
     return !excluded && supported;
 });
 
-const runExamples = async useDev => {
-    const worker = new Worker(require.resolve('./ExampleWorker'), {
+const captureExamples = async useDev => {
+    const multiThreadWorker = new Worker(require.resolve('./ExampleWorker'), {
         enableWorkerThreads: true
     });
 
-    const result = await Promise.all(examples.map(name => worker.runExample({
+    const overlapRuns = await Promise.all(examples.map(name => multiThreadWorker.runExample({
         name,
         useDev,
-        totalUpdates: 120,
+        updates: 1,
+        stableSort: true,
         jitter: excludeJitter.includes(name) ? 0 : 1e-10
     })));
 
-    await worker.end();
+    const behaviourRuns = await Promise.all(examples.map(name => multiThreadWorker.runExample({
+        name,
+        useDev,
+        updates: 2,
+        stableSort: true,
+        jitter: excludeJitter.includes(name) ? 0 : 1e-10
+    })));
 
-    return result.reduce((out, capture) => (out[capture.name] = capture, out), {});
+    const similarityRuns = await Promise.all(examples.map(name => multiThreadWorker.runExample({
+        name,
+        useDev,
+        updates: 2,
+        stableSort: false,
+        jitter: excludeJitter.includes(name) ? 0 : 1e-10
+    })));
+
+    await multiThreadWorker.end();
+
+    const singleThreadWorker = new Worker(require.resolve('./ExampleWorker'), {
+        enableWorkerThreads: true,
+        numWorkers: 1
+    });
+
+    const completeRuns = await Promise.all(examples.map(name => singleThreadWorker.runExample({
+        name,
+        useDev,
+        updates: 150,
+        stableSort: false,
+        jitter: excludeJitter.includes(name) ? 0 : 1e-10
+    })));
+
+    await singleThreadWorker.end();
+
+    const capture = {};
+
+    for (const completeRun of completeRuns) {
+        const behaviourRun = behaviourRuns.find(({ name }) => name === completeRun.name);
+        const similarityRun = similarityRuns.find(({ name }) => name === completeRun.name);
+        const overlapRun = overlapRuns.find(({ name }) => name === completeRun.name);
+
+        capture[overlapRun.name] = {
+            ...completeRun,
+            behaviourExtrinsic: behaviourRun.extrinsic,
+            similarityExtrinsic: similarityRun.extrinsic,
+            overlap: overlapRun.overlap
+        };
+    }
+
+    return capture;
 };
 
-const capturesDev = runExamples(true);
-const capturesBuild = runExamples(false);
+const capturesDev = captureExamples(true);
+const capturesBuild = captureExamples(false);
 
 afterAll(async () => {
     // Report experimental capture comparison.
     const dev = await capturesDev;
     const build = await capturesBuild;
-    console.log(comparisonReport(dev, build, MatterBuild.version, saveComparison));
+
+    const buildSize = fs.statSync('./build/matter.min.js').size;
+    const devSize = fs.statSync('./build/matter.dev.min.js').size;
+
+    console.log(
+        'Examples ran against previous release and current build\n\n'
+        + logReport(build, `release`) + '\n'
+        + logReport(dev, `current`) + '\n'
+        + comparisonReport(dev, build, devSize, buildSize, MatterBuild.version, saveComparison)
+    );
 });
 
 describe(`Integration checks (${examples.length})`, () => {

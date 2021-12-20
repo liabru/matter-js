@@ -11,7 +11,6 @@ Example.doublePendulum = function() {
         Constraint = Matter.Constraint,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
-        World = Matter.World,
         Bodies = Matter.Bodies,
         Vector = Matter.Vector;
 
@@ -53,7 +52,7 @@ Example.doublePendulum = function() {
         });
     });
 
-    world.gravity.scale = 0.002;
+    engine.gravity.scale = 0.002;
     
     Composites.chain(pendulum, 0.45, 0, -0.45, 0, { 
         stiffness: 0.9, 
@@ -82,7 +81,7 @@ Example.doublePendulum = function() {
         y: lowerArm.position.y
     });
     
-    World.add(world, pendulum);
+    Composite.add(world, pendulum);
 
     var trail = [];
 
@@ -124,7 +123,7 @@ Example.doublePendulum = function() {
             }
         });
 
-    World.add(world, mouseConstraint);
+    Composite.add(world, mouseConstraint);
 
     // keep the mouse in sync with rendering
     render.mouse = mouse;
@@ -148,7 +147,8 @@ Example.doublePendulum = function() {
     };
 };
 
-Example.doublePendulum.for = '>=0.14.2';
+Example.doublePendulum.title = 'Double Pendulum';
+Example.doublePendulum.for = '>0.16.1';
 
 if (typeof module !== 'undefined') {
     module.exports = Example.doublePendulum;

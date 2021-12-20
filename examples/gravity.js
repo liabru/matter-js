@@ -8,7 +8,7 @@ Example.gravity = function() {
         Common = Matter.Common,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
-        World = Matter.World,
+        Composite = Matter.Composite,
         Bodies = Matter.Bodies;
 
     // create engine
@@ -34,14 +34,14 @@ Example.gravity = function() {
     Runner.run(runner, engine);
 
     // add bodies
-    World.add(world, [
+    Composite.add(world, [
         Bodies.rectangle(400, 0, 800, 50, { isStatic: true }),
         Bodies.rectangle(400, 600, 800, 50.5, { isStatic: true }),
         Bodies.rectangle(800, 300, 50, 600, { isStatic: true }),
         Bodies.rectangle(0, 300, 50, 600, { isStatic: true })
     ]);
 
-    engine.world.gravity.y = -1;
+    engine.gravity.y = -1;
     
     var stack = Composites.stack(50, 120, 11, 5, 0, 0, function(x, y) {
         switch (Math.round(Common.random(0, 1))) {
@@ -58,7 +58,7 @@ Example.gravity = function() {
         }
     });
     
-    World.add(world, stack);
+    Composite.add(world, stack);
 
     // add mouse control
     var mouse = Mouse.create(render.canvas),
@@ -72,7 +72,7 @@ Example.gravity = function() {
             }
         });
 
-    World.add(world, mouseConstraint);
+    Composite.add(world, mouseConstraint);
 
     // keep the mouse in sync with rendering
     render.mouse = mouse;
@@ -96,7 +96,8 @@ Example.gravity = function() {
     };
 };
 
-Example.gravity.for = '>=0.14.2';
+Example.gravity.title = 'Reverse Gravity';
+Example.gravity.for = '>0.16.1';
 
 if (typeof module !== 'undefined') {
     module.exports = Example.gravity;

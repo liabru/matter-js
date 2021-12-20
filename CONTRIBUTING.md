@@ -18,7 +18,7 @@ To build you must first install [node.js](http://nodejs.org), then run
 
 which will install the required build dependencies, then run
 
-	npm run dev
+	npm start
 
 which will run the development server and opens `http://localhost:8000/` in your browser. Any changes you make to the source will automatically rebuild and reload the page.
 
@@ -36,13 +36,15 @@ The output of `npm run test` also includes a [comparison report](https://github.
 
 The following development commands can be run at the terminal
 
-- **npm run dev**  
-runs development server
+- **npm start**  
+runs development server and opens demo page
 - **npm run build**  
 creates a release build
+- **npm run build-demo**  
+builds the demo
 - **npm run lint**  
 runs the linter
-- **npm run test**  
+- **npm run test**
 runs the tests and compares results
 - **npm run test-browser**  
 runs the browser tests

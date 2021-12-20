@@ -8,7 +8,7 @@ Example.gyro = function() {
         Common = Matter.Common,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
-        World = Matter.World,
+        Composite = Matter.Composite,
         Bodies = Matter.Bodies;
 
     // create engine
@@ -36,9 +36,6 @@ Example.gyro = function() {
     var stack = Composites.stack(20, 20, 10, 5, 0, 0, function(x, y) {
         var sides = Math.round(Common.random(1, 8));
 
-        // triangles can be a little unstable, so avoid until fixed
-        sides = (sides === 3) ? 4 : sides;
-
         // round the edges of some bodies
         var chamfer = null;
         if (sides > 2 && Common.random() > 0.7) {
@@ -59,7 +56,7 @@ Example.gyro = function() {
         }
     });
 
-    World.add(world, [
+    Composite.add(world, [
         stack,
         Bodies.rectangle(400, 0, 800, 50, { isStatic: true }),
         Bodies.rectangle(400, 600, 800, 50, { isStatic: true }),
@@ -71,7 +68,7 @@ Example.gyro = function() {
     if (typeof window !== 'undefined') {
         var updateGravity = function(event) {
             var orientation = typeof window.orientation !== 'undefined' ? window.orientation : 0,
-                gravity = engine.world.gravity;
+                gravity = engine.gravity;
 
             if (orientation === 0) {
                 gravity.x = Common.clamp(event.gamma, -90, 90) / 90;
@@ -103,7 +100,7 @@ Example.gyro = function() {
             }
         });
 
-    World.add(world, mouseConstraint);
+    Composite.add(world, mouseConstraint);
 
     // keep the mouse in sync with rendering
     render.mouse = mouse;
@@ -130,6 +127,7 @@ Example.gyro = function() {
     };
 };
 
+Example.gyro.title = 'Gyroscope';
 Example.gyro.for = '>=0.14.2';
 
 if (typeof module !== 'undefined') {

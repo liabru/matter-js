@@ -10,7 +10,6 @@ Example.chains = function() {
         Constraint = Matter.Constraint,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
-        World = Matter.World,
         Bodies = Matter.Bodies;
 
     // create engine
@@ -79,7 +78,7 @@ Example.chains = function() {
         stiffness: 0.5
     }));
     
-    World.add(world, [
+    Composite.add(world, [
         ropeA,
         ropeB,
         ropeC,
@@ -98,7 +97,7 @@ Example.chains = function() {
             }
         });
 
-    World.add(world, mouseConstraint);
+    Composite.add(world, mouseConstraint);
 
     // keep the mouse in sync with rendering
     render.mouse = mouse;
@@ -122,6 +121,7 @@ Example.chains = function() {
     };
 };
 
+Example.chains.title = 'Chains';
 Example.chains.for = '>=0.14.2';
 
 if (typeof module !== 'undefined') {

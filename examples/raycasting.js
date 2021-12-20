@@ -11,7 +11,6 @@ Example.raycasting = function() {
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
         Events = Matter.Events,
-        World = Matter.World,
         Vertices = Matter.Vertices,
         Bodies = Matter.Bodies;
 
@@ -53,10 +52,13 @@ Example.raycasting = function() {
         }
     });
 
+    // for testing raycasting on concave bodies
+    Common.setDecomp(require('poly-decomp'));
+
     var star = Vertices.fromPath('50 0 63 38 100 38 69 59 82 100 50 75 18 100 31 59 0 38 37 38'),
         concave = Bodies.fromVertices(200, 200, star);
     
-    World.add(world, [
+    Composite.add(world, [
         stack, 
         concave,
         // walls
@@ -66,14 +68,21 @@ Example.raycasting = function() {
         Bodies.rectangle(0, 300, 50, 600, { isStatic: true })
     ]);
 
+    var collisions = [],
+        startPoint = { x: 400, y: 100 };
+
+    Events.on(engine, 'afterUpdate', function() {
+        var mouse = mouseConstraint.mouse,
+            bodies = Composite.allBodies(engine.world),
+            endPoint = mouse.position || { x: 100, y: 600 };
+
+        collisions = Query.ray(bodies, startPoint, endPoint);
+    });
+
     Events.on(render, 'afterRender', function() {
         var mouse = mouseConstraint.mouse,
             context = render.context,
-            bodies = Composite.allBodies(engine.world),
-            startPoint = { x: 400, y: 100 },
-            endPoint = mouse.position;
-
-        var collisions = Query.ray(bodies, startPoint, endPoint);
+            endPoint = mouse.position || { x: 100, y: 600 };
 
         Render.startViewTransform(render);
 
@@ -111,7 +120,7 @@ Example.raycasting = function() {
             }
         });
 
-    World.add(world, mouseConstraint);
+    Composite.add(world, mouseConstraint);
 
     // keep the mouse in sync with rendering
     render.mouse = mouse;
@@ -135,7 +144,8 @@ Example.raycasting = function() {
     };
 };
 
-Example.raycasting.for = '>=0.14.2';
+Example.raycasting.title = 'Raycasting';
+Example.raycasting.for = '>0.16.1';
 
 if (typeof module !== 'undefined') {
     module.exports = Example.raycasting;

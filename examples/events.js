@@ -11,7 +11,6 @@ Example.events = function() {
         Common = Matter.Common,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
-        World = Matter.World,
         Bodies = Matter.Bodies;
 
     // create engine
@@ -37,7 +36,7 @@ Example.events = function() {
 
     // an example of using composite events on the world
     Events.on(world, 'afterAdd', function(event) {
-        console.log('added to world:', event.object);
+        // do something with event.object
     });
 
     var lastTime = Common.now();
@@ -95,7 +94,7 @@ Example.events = function() {
     var bodyStyle = { fillStyle: '#222' };
 
     // scene code
-    World.add(world, [
+    Composite.add(world, [
         Bodies.rectangle(400, 0, 800, 50, { isStatic: true, render: bodyStyle }),
         Bodies.rectangle(400, 600, 800, 50, { isStatic: true, render: bodyStyle }),
         Bodies.rectangle(800, 300, 50, 600, { isStatic: true, render: bodyStyle }),
@@ -106,7 +105,7 @@ Example.events = function() {
         return Bodies.circle(x, y, 15, { restitution: 1, render: bodyStyle });
     });
     
-    World.add(world, stack);
+    Composite.add(world, stack);
 
     var shakeScene = function(engine, delta) {
         var timeScale = delta / 1000;
@@ -139,7 +138,7 @@ Example.events = function() {
             }
         });
 
-    World.add(world, mouseConstraint);
+    Composite.add(world, mouseConstraint);
 
     // keep the mouse in sync with rendering
     render.mouse = mouse;
@@ -186,6 +185,7 @@ Example.events = function() {
     };
 };
 
+Example.events.title = 'Events';
 Example.events.for = '>=0.14.2';
 
 if (typeof module !== 'undefined') {

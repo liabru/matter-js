@@ -99,8 +99,7 @@ var Common = require('./Common');
 
     /**
      * A game loop utility that updates the engine and renderer by one step (a 'tick').
-     * Features delta smoothing and fixed or dynamic timing.
-     * Triggers `beforeTick`, `tick` and `afterTick` events on the engine.
+     * Features delta smoothing, time correction and fixed or dynamic timing.
      * Consider just `Engine.update(engine, delta)` if you're using your own loop.
      * @method tick
      * @param {runner} runner
@@ -110,6 +109,13 @@ var Common = require('./Common');
     Runner.tick = function(runner, engine, time) {
         var timing = engine.timing,
             delta;
+
+        // create an event object
+        var event = {
+            timestamp: timing.timestamp
+        };
+
+        Events.trigger(runner, 'beforeTick', event);
 
         if (runner.isFixed) {
             // fixed timestep
@@ -149,15 +155,6 @@ var Common = require('./Common');
         }
 
         Events.trigger(runner, 'tick', event);
-        Events.trigger(engine, 'tick', event); // @deprecated
-
-        // if world has been modified, clear the render scene graph
-        if (engine.world.isModified 
-            && engine.render
-            && engine.render.controller
-            && engine.render.controller.clear) {
-            engine.render.controller.clear(engine.render); // @deprecated
-        }
 
         // update
         Events.trigger(runner, 'beforeUpdate', event);
@@ -171,20 +168,7 @@ var Common = require('./Common');
 
         Events.trigger(runner, 'afterUpdate', event);
 
-        // render
-        // @deprecated
-        if (engine.render && engine.render.controller) {
-            Events.trigger(runner, 'beforeRender', event);
-            Events.trigger(engine, 'beforeRender', event); // @deprecated
-
-            engine.render.controller.world(engine.render);
-
-            Events.trigger(runner, 'afterRender', event);
-            Events.trigger(engine, 'afterRender', event); // @deprecated
-        }
-
         Events.trigger(runner, 'afterTick', event);
-        Events.trigger(engine, 'afterTick', event); // @deprecated
     };
 
     /**
@@ -261,28 +245,6 @@ var Common = require('./Common');
     * @param {number} event.timestamp The engine.timing.timestamp of the event
     * @param {} event.source The source object of the event
     * @param {} event.name The name of the event
-    */
-
-    /**
-    * Fired before rendering
-    *
-    * @event beforeRender
-    * @param {} event An event object
-    * @param {number} event.timestamp The engine.timing.timestamp of the event
-    * @param {} event.source The source object of the event
-    * @param {} event.name The name of the event
-    * @deprecated
-    */
-
-    /**
-    * Fired after rendering
-    *
-    * @event afterRender
-    * @param {} event An event object
-    * @param {number} event.timestamp The engine.timing.timestamp of the event
-    * @param {} event.source The source object of the event
-    * @param {} event.name The name of the event
-    * @deprecated
     */
 
     /*

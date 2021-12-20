@@ -9,8 +9,8 @@ Example.slingshot = function() {
         Constraint = Matter.Constraint,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
-        World = Matter.World,
         Body = Matter.Body,
+        Composite = Matter.Composite,
         Bodies = Matter.Bodies;
 
     // create engine
@@ -55,7 +55,7 @@ Example.slingshot = function() {
         return Bodies.rectangle(x, y, 25, 40);
     });
 
-    World.add(engine.world, [ground, pyramid, ground2, pyramid2, rock, elastic]);
+    Composite.add(engine.world, [ground, pyramid, ground2, pyramid2, rock, elastic]);
 
     Events.on(engine, 'afterUpdate', function() {
         if (mouseConstraint.mouse.button === -1 && (rock.position.x > 190 || rock.position.y < 430)) {
@@ -66,7 +66,7 @@ Example.slingshot = function() {
 
             // Release current rock and add a new one.
             rock = Bodies.polygon(170, 450, 7, 20, rockOptions);
-            World.add(engine.world, rock);
+            Composite.add(engine.world, rock);
             elastic.bodyB = rock;
         }
     });
@@ -83,7 +83,7 @@ Example.slingshot = function() {
             }
         });
 
-    World.add(world, mouseConstraint);
+    Composite.add(world, mouseConstraint);
 
     // keep the mouse in sync with rendering
     render.mouse = mouse;
@@ -107,6 +107,7 @@ Example.slingshot = function() {
     };
 };
 
+Example.slingshot.title = 'Slingshot';
 Example.slingshot.for = '>=0.14.2';
 
 if (typeof module !== 'undefined') {

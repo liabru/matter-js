@@ -8,10 +8,13 @@ Example.terrain = function() {
         Common = Matter.Common,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
-        World = Matter.World,
+        Composite = Matter.Composite,
         Query = Matter.Query,
         Svg = Matter.Svg,
         Bodies = Matter.Bodies;
+
+    // provide concave decomposition support library
+    Common.setDecomp(require('poly-decomp'));
 
     // create engine
     var engine = Engine.create(),
@@ -34,39 +37,48 @@ Example.terrain = function() {
     Runner.run(runner, engine);
 
     // add bodies
-    var terrain;
+    if (typeof fetch !== 'undefined') {
+        var select = function(root, selector) {
+            return Array.prototype.slice.call(root.querySelectorAll(selector));
+        };
 
-    if (typeof $ !== 'undefined') {
-        $.get('./svg/terrain.svg').done(function(data) {
-            var vertexSets = [];
+        var loadSvg = function(url) {
+            return fetch(url)
+                .then(function(response) { return response.text(); })
+                .then(function(raw) { return (new window.DOMParser()).parseFromString(raw, 'image/svg+xml'); });
+        };
 
-            $(data).find('path').each(function(i, path) {
-                vertexSets.push(Svg.pathToVertices(path, 30));
+        loadSvg('./svg/terrain.svg')
+            .then(function(root) {
+                var paths = select(root, 'path');
+
+                var vertexSets = paths.map(function(path) { return Svg.pathToVertices(path, 30); });
+
+                var terrain = Bodies.fromVertices(400, 350, vertexSets, {
+                    isStatic: true,
+                    render: {
+                        fillStyle: '#060a19',
+                        strokeStyle: '#060a19',
+                        lineWidth: 1
+                    }
+                }, true);
+
+                Composite.add(world, terrain);
+
+                var bodyOptions = {
+                    frictionAir: 0, 
+                    friction: 0.0001,
+                    restitution: 0.6
+                };
+                
+                Composite.add(world, Composites.stack(80, 100, 20, 20, 10, 10, function(x, y) {
+                    if (Query.point([terrain], { x: x, y: y }).length === 0) {
+                        return Bodies.polygon(x, y, 5, 12, bodyOptions);
+                    }
+                }));
             });
-
-            terrain = Bodies.fromVertices(400, 350, vertexSets, {
-                isStatic: true,
-                render: {
-                    fillStyle: '#060a19',
-                    strokeStyle: '#060a19',
-                    lineWidth: 1
-                }
-            }, true);
-
-            World.add(world, terrain);
-
-            var bodyOptions = {
-                frictionAir: 0, 
-                friction: 0.0001,
-                restitution: 0.6
-            };
-            
-            World.add(world, Composites.stack(80, 100, 20, 20, 10, 10, function(x, y) {
-                if (Query.point([terrain], { x: x, y: y }).length === 0) {
-                    return Bodies.polygon(x, y, 5, 12, bodyOptions);
-                }
-            }));
-        });
+    } else {
+        Common.warn('Fetch is not available. Could not load SVG.');
     }
 
     // add mouse control
@@ -81,7 +93,7 @@ Example.terrain = function() {
             }
         });
 
-    World.add(world, mouseConstraint);
+    Composite.add(world, mouseConstraint);
 
     // keep the mouse in sync with rendering
     render.mouse = mouse;
@@ -105,7 +117,8 @@ Example.terrain = function() {
     };
 };
 
-Example.terrain.for = '>=0.14.2';
+Example.terrain.title = 'Terrain';
+Example.terrain.for = '>0.16.1';
 
 if (typeof module !== 'undefined') {
     module.exports = Example.terrain;

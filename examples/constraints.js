@@ -9,7 +9,7 @@ Example.constraints = function() {
         Constraint = Matter.Constraint,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
-        World = Matter.World,
+        Composite = Matter.Composite,
         Bodies = Matter.Bodies;
 
     // create engine
@@ -42,7 +42,7 @@ Example.constraints = function() {
         pointB: { x: -10, y: -10 }
     });
 
-    World.add(world, [body, constraint]);
+    Composite.add(world, [body, constraint]);
 
     // add soft global constraint
     var body = Bodies.polygon(280, 100, 3, 30);
@@ -54,7 +54,7 @@ Example.constraints = function() {
         stiffness: 0.001
     });
 
-    World.add(world, [body, constraint]);
+    Composite.add(world, [body, constraint]);
 
     // add damped soft global constraint
     var body = Bodies.polygon(400, 100, 4, 30);
@@ -67,7 +67,7 @@ Example.constraints = function() {
         damping: 0.05
     });
 
-    World.add(world, [body, constraint]);
+    Composite.add(world, [body, constraint]);
 
     // add revolute constraint
     var body = Bodies.rectangle(600, 200, 200, 20);
@@ -79,7 +79,7 @@ Example.constraints = function() {
         length: 0
     });
 
-    World.add(world, [body, ball, constraint]);
+    Composite.add(world, [body, ball, constraint]);
 
     // add revolute multi-body constraint
     var body = Bodies.rectangle(500, 400, 100, 20, { collisionFilter: { group: -1 } });
@@ -90,7 +90,7 @@ Example.constraints = function() {
         bodyB: ball
     });
 
-    World.add(world, [body, ball, constraint]);
+    Composite.add(world, [body, ball, constraint]);
 
     // add stiff multi-body constraint
     var bodyA = Bodies.polygon(100, 400, 6, 20);
@@ -103,7 +103,7 @@ Example.constraints = function() {
         pointB: { x: -10, y: -10 }
     });
 
-    World.add(world, [bodyA, bodyB, constraint]);
+    Composite.add(world, [bodyA, bodyB, constraint]);
 
     // add soft global constraint
     var bodyA = Bodies.polygon(300, 400, 4, 20);
@@ -117,7 +117,7 @@ Example.constraints = function() {
         stiffness: 0.001
     });
 
-    World.add(world, [bodyA, bodyB, constraint]);
+    Composite.add(world, [bodyA, bodyB, constraint]);
 
     // add damped soft global constraint
     var bodyA = Bodies.polygon(500, 400, 6, 30);
@@ -132,9 +132,9 @@ Example.constraints = function() {
         damping: 0.1
     });
 
-    World.add(world, [bodyA, bodyB, constraint]);
+    Composite.add(world, [bodyA, bodyB, constraint]);
 
-    World.add(world, [
+    Composite.add(world, [
         // walls
         Bodies.rectangle(400, 0, 800, 50, { isStatic: true }),
         Bodies.rectangle(400, 600, 800, 50, { isStatic: true }),
@@ -155,7 +155,7 @@ Example.constraints = function() {
             }
         });
 
-    World.add(world, mouseConstraint);
+    Composite.add(world, mouseConstraint);
 
     // keep the mouse in sync with rendering
     render.mouse = mouse;
@@ -179,6 +179,7 @@ Example.constraints = function() {
     };
 };
 
+Example.constraints.title = 'Constraints';
 Example.constraints.for = '>=0.14.2';
 
 if (typeof module !== 'undefined') {

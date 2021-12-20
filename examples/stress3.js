@@ -1,6 +1,6 @@
 var Example = Example || {};
 
-Example.broadphase = function() {
+Example.stress3 = function() {
     var Engine = Matter.Engine,
         Render = Matter.Render,
         Runner = Matter.Runner,
@@ -8,12 +8,16 @@ Example.broadphase = function() {
         Common = Matter.Common,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
-        World = Matter.World,
+        Composite = Matter.Composite,
         Bodies = Matter.Bodies;
 
     // create engine
-    var engine = Engine.create(),
-        world = engine.world;
+    var engine = Engine.create({
+        positionIterations: 10,
+        velocityIterations: 10
+    });
+
+    var world = engine.world;
 
     // create renderer
     var render = Render.create({
@@ -22,42 +26,46 @@ Example.broadphase = function() {
         options: {
             width: 800,
             height: 600,
-            showAngleIndicator: true,
-            showBroadphase: true
+            showStats: true,
+            showPerformance: true
         }
     });
 
     Render.run(render);
 
     // create runner
-    var runner = Runner.create();
+    var runner = Runner.create({
+        isFixed: true
+    });
     Runner.run(runner, engine);
 
     // add bodies
-    World.add(world, [
+    var scale = 0.3;
+    
+    var stack = Composites.stack(40, 40, 38, 18, 0, 0, function(x, y) {
+        var sides = Math.round(Common.random(1, 8));
+
+        switch (Math.round(Common.random(0, 1))) {
+        case 0:
+            if (Common.random() < 0.8) {
+                return Bodies.rectangle(x, y, Common.random(25, 50) * scale, Common.random(25, 50) * scale);
+            } else {
+                return Bodies.rectangle(x, y, Common.random(80, 120) * scale, Common.random(25, 30) * scale);
+            }
+        case 1:
+            return Bodies.polygon(x, y, sides, Common.random(25, 50) * scale);
+        }
+    });
+
+    Composite.add(world, stack);
+
+    Composite.add(world, [
         // walls
         Bodies.rectangle(400, 0, 800, 50, { isStatic: true }),
         Bodies.rectangle(400, 600, 800, 50, { isStatic: true }),
         Bodies.rectangle(800, 300, 50, 600, { isStatic: true }),
         Bodies.rectangle(0, 300, 50, 600, { isStatic: true })
     ]);
-
-    var stack = Composites.stack(20, 20, 12, 5, 0, 0, function(x, y) {
-        switch (Math.round(Common.random(0, 1))) {
-
-        case 0:
-            if (Common.random() < 0.8) {
-                return Bodies.rectangle(x, y, Common.random(20, 50), Common.random(20, 50));
-            } else {
-                return Bodies.rectangle(x, y, Common.random(80, 120), Common.random(20, 30));
-            }
-        case 1:
-            return Bodies.polygon(x, y, Math.round(Common.random(1, 8)), Common.random(20, 50));
-
-        }
-    });
-    
-    World.add(world, stack);
 
     // add mouse control
     var mouse = Mouse.create(render.canvas),
@@ -71,7 +79,7 @@ Example.broadphase = function() {
             }
         });
 
-    World.add(world, mouseConstraint);
+    Composite.add(world, mouseConstraint);
 
     // keep the mouse in sync with rendering
     render.mouse = mouse;
@@ -95,8 +103,9 @@ Example.broadphase = function() {
     };
 };
 
-Example.broadphase.for = '>=0.14.2';
+Example.stress3.title = 'Stress 3';
+Example.stress3.for = '>=0.14.2';
 
 if (typeof module !== 'undefined') {
-    module.exports = Example.broadphase;
+    module.exports = Example.stress3;
 }
