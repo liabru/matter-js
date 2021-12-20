@@ -23,10 +23,14 @@ const runExample = options => {
   let totalDuration = 0;
   let overlapTotal = 0;
   let overlapCount = 0;
+  let i;
 
-  global.gc();
+  if (global.gc) {
+    global.gc();
+  }
 
-  for (let i = 0; i < options.updates; i += 1) {
+  try {
+    for (i = 0; i < options.updates; i += 1) {
       const startTime = process.hrtime();
       totalMemory += process.memoryUsage().heapUsed;
 
@@ -48,6 +52,10 @@ const runExample = options => {
           overlapCount += 1;
         }
       }
+    }
+  } catch (err) {
+    err.message = `On example '${options.name}' update ${i}:\n\n  ${err.message}`;
+    throw err;
   }
 
   resetEnvironment();
