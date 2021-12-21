@@ -44,7 +44,6 @@ var Mouse = require('../core/Mouse');
      */
     Render.create = function(options) {
         var defaults = {
-            controller: Render,
             engine: null,
             element: null,
             canvas: null,
@@ -116,6 +115,7 @@ var Mouse = require('../core/Mouse');
         };
 
         // for temporary back compatibility only
+        render.controller = Render;
         render.options.showBroadphase = false;
 
         if (render.options.pixelRatio !== 1) {
@@ -1525,6 +1525,7 @@ var Mouse = require('../core/Mouse');
     /**
      * A back-reference to the `Matter.Render` module.
      *
+     * @deprecated
      * @property controller
      * @type render
      */
