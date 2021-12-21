@@ -124,8 +124,6 @@ var Mouse = require('../core/Mouse');
 
         if (Common.isElement(render.element)) {
             render.element.appendChild(render.canvas);
-        } else if (!render.canvas.parentNode) {
-            Common.log('Render.create: options.element was undefined, render.canvas was created but not appended', 'warn');
         }
 
         return render;
