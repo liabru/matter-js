@@ -3,21 +3,22 @@
 "use strict";
 
 const mock = require('mock-require');
-const { requireUncached } = require('./TestTools');
+const { requireUncached, serialize } = require('./TestTools');
 const consoleOriginal = global.console;
 
 const runExample = options => {
-  const Matter = prepareMatter(options);
-  const logs = prepareEnvironment(Matter);
+  const { 
+    Matter,
+    logs,
+    frameCallbacks
+  } = prepareEnvironment(options);
 
   const Examples = requireUncached('../examples/index');
   const example = Examples[options.name]();
 
   const engine = example.engine;
   const runner = example.runner;
-  
-  runner.delta = 1000 / 60;
-  runner.isFixed = true;
+  const render = example.render;
   
   let totalMemory = 0;
   let totalDuration = 0;
@@ -31,14 +32,20 @@ const runExample = options => {
 
   try {
     for (i = 0; i < options.updates; i += 1) {
-      const startTime = process.hrtime();
-      totalMemory += process.memoryUsage().heapUsed;
+      const time = i * runner.delta;
+      const callbackCount = frameCallbacks.length;
 
-      Matter.Runner.tick(runner, engine, i * runner.delta);
+      for (let p = 0; p < callbackCount; p += 1) {
+        totalMemory += process.memoryUsage().heapUsed;
+        const callback = frameCallbacks.shift();
+        const startTime = process.hrtime();
 
-      const duration = process.hrtime(startTime);
-      totalDuration += duration[0] * 1e9 + duration[1];
-      totalMemory += process.memoryUsage().heapUsed;
+        callback(time);
+
+        const duration = process.hrtime(startTime);
+        totalMemory += process.memoryUsage().heapUsed;
+        totalDuration += duration[0] * 1e9 + duration[1];
+      }
 
       const pairsList = engine.pairs.list;
       const pairsListLength = engine.pairs.list.length;
@@ -53,22 +60,24 @@ const runExample = options => {
         }
       }
     }
+
+    resetEnvironment();
+
+    return {
+      name: options.name,
+      duration: totalDuration,
+      overlap: overlapTotal / (overlapCount || 1),
+      memory: totalMemory,
+      logs: logs,
+      extrinsic: captureExtrinsics(engine, Matter),
+      intrinsic: captureIntrinsics(engine, Matter),
+      state: captureState(engine, runner, render)
+    };
+
   } catch (err) {
     err.message = `On example '${options.name}' update ${i}:\n\n  ${err.message}`;
     throw err;
   }
-
-  resetEnvironment();
-
-  return {
-    name: options.name,
-    duration: totalDuration,
-    overlap: overlapTotal / (overlapCount || 1),
-    memory: totalMemory,
-    logs: logs,
-    extrinsic: captureExtrinsics(engine, Matter),
-    intrinsic: captureIntrinsics(engine, Matter),
-  };
 };
 
 const prepareMatter = (options) => {
@@ -78,12 +87,6 @@ const prepareMatter = (options) => {
     throw 'Matter instance has already been used.';
   }
 
-  const noop = () => ({ collisionFilter: {}, mouse: {} });
-
-  Matter.Render.create = () => ({ options: {}, bounds: { min: { x: 0, y: 0 }, max: { x: 800, y: 600 }}});
-  Matter.Render.run = Matter.Render.lookAt = noop;
-  Matter.Runner.create = Matter.Runner.run = noop;
-  Matter.MouseConstraint.create = Matter.Mouse.create = noop;
   Matter.Common.info = Matter.Common.warn = Matter.Common.log;
 
   if (options.stableSort) {
@@ -129,19 +132,50 @@ const prepareMatter = (options) => {
   return Matter;
 };
 
-const prepareEnvironment = Matter => {
-  mock('matter-js', Matter);
-  global.Matter = Matter;
-
+const prepareEnvironment = options => {
   const logs = [];
-  global.document = global.window = { addEventListener: () => {} };
+  const frameCallbacks = [];
+
+  global.document = global.window = {
+    addEventListener: () => {},
+    requestAnimationFrame: callback => {
+      frameCallbacks.push(callback);
+      return frameCallbacks.length;
+    },
+    createElement: () => ({
+      parentNode: {},
+      width: 800,
+      height: 600,
+      style: {},
+      addEventListener: () => {},
+      getAttribute: name => ({
+        'data-pixel-ratio': '1'
+      }[name]),
+      getContext: () => new Proxy({}, {
+        get() { return () => {}; }
+      })
+    })
+  };
+
+  global.document.body = global.document.createElement();
+
+  global.Image = function Image() { };
+
   global.console = { 
     log: (...args) => {
       logs.push(args.join(' '));
     }
   };
 
-  return logs;
+  const Matter = prepareMatter(options);
+  mock('matter-js', Matter);
+  global.Matter = Matter;
+
+  return {
+    Matter,
+    logs,
+    frameCallbacks
+  };
 };
 
 const resetEnvironment = () => {
@@ -167,8 +201,20 @@ const captureExtrinsics = ({ world }, Matter) => ({
       return bodies;
   }, {}),
   constraints: Matter.Composite.allConstraints(world).reduce((constraints, constraint) => {
-      const positionA = Matter.Constraint.pointAWorld(constraint);
-      const positionB = Matter.Constraint.pointBWorld(constraint);
+      let positionA;
+      let positionB;
+
+      try {
+        positionA = Matter.Constraint.pointAWorld(constraint);
+      } catch (err) { 
+        positionA = { x: 0, y: 0 };
+      }
+
+      try {
+        positionB = Matter.Constraint.pointBWorld(constraint);
+      } catch (err) {
+        positionB = { x: 0, y: 0 };
+      }
 
       constraints[constraint.id] = [
           positionA.x,
@@ -181,7 +227,7 @@ const captureExtrinsics = ({ world }, Matter) => ({
   }, {})
 });
 
-const captureIntrinsics = ({ world }, Matter) => formatIntrinsics({
+const captureIntrinsics = ({ world }, Matter) => serialize({
   bodies: Matter.Composite.allBodies(world).reduce((bodies, body) => {
       bodies[body.id] = body;
       return bodies;
@@ -198,39 +244,16 @@ const captureIntrinsics = ({ world }, Matter) => formatIntrinsics({
       };
       return composites;
   }, {})
-});
+}, (key) => !Number.isInteger(parseInt(key)) && !intrinsicProperties.includes(key));
 
-const formatIntrinsics = (obj, depth=0) => {
-  if (obj === Infinity) {
-      return 'Infinity';
-  } else if (typeof obj === 'number') {
-      return limitPrecision(obj);
-  } else if (Array.isArray(obj)) {
-      return obj.map(item => formatIntrinsics(item, depth + 1));
-  } else if (typeof obj !== 'object') {
-      return obj;
-  }
-
-  const result = Object.entries(obj)
-      .filter(([key]) => depth <= 1 || intrinsicProperties.includes(key))
-      .reduce((cleaned, [key, val]) => {
-          if (val && val.id && String(val.id) !== key) {
-              val = val.id;
-          }
-          
-          if (Array.isArray(val) && !['composites', 'constraints', 'bodies'].includes(key)) {
-              val = `[${val.length}]`;
-          }
-
-          cleaned[key] = formatIntrinsics(val, depth + 1);
-          return cleaned;
-      }, {});
-
-  return Object.keys(result).sort()
-      .reduce((sorted, key) => (sorted[key] = result[key], sorted), {});
-};
+const captureState = (engine, runner, render, excludeKeys=excludeStateProperties) => (
+  serialize({ engine, runner, render }, (key) => excludeKeys.includes(key))
+);
 
 const intrinsicProperties = [
+  // Composite
+  'bodies', 'constraints', 'composites',
+
   // Common
   'id', 'label', 
 
@@ -238,14 +261,45 @@ const intrinsicProperties = [
   'angularStiffness', 'bodyA', 'bodyB', 'damping', 'length', 'stiffness',
 
   // Body
-  'area', 'axes', 'collisionFilter', 'category', 'mask', 
-  'group', 'density', 'friction', 'frictionAir', 'frictionStatic', 'inertia', 'inverseInertia', 'inverseMass', 'isSensor', 
-  'isSleeping', 'isStatic', 'mass', 'parent', 'parts', 'restitution', 'sleepThreshold', 'slop', 
-  'timeScale', 'vertices',
+  'area', 'collisionFilter', 'category', 'mask', 'group', 'density', 'friction', 
+  'frictionAir', 'frictionStatic', 'inertia', 'inverseInertia', 'inverseMass', 
+  'isSensor', 'isSleeping', 'isStatic', 'mass', 'parent', 'parts', 'restitution', 
+  'sleepThreshold', 'slop', 'timeScale',
 
   // Composite
   'bodies', 'constraints', 'composites'
 ];
+
+const extrinsicProperties = [
+  'axes',
+  'vertices',
+  'bounds',
+  'angle',
+  'anglePrev',
+  'angularVelocity',
+  'angularSpeed',
+  'speed',
+  'velocity',
+  'position',
+  'positionPrev',
+];
+
+const excludeStateProperties = [
+  'cache',
+  'grid',
+  'context',
+  'broadphase',
+  'metrics',
+  'controller',
+  'detector',
+  'pairs',
+  'lastElapsed',
+  'deltaHistory',
+  'elapsedHistory',
+  'engineDeltaHistory',
+  'engineElapsedHistory',
+  'timestampElapsedHistory',
+].concat(extrinsicProperties);
 
 const collisionId = (collision) => 
   Math.min(collision.bodyA.id, collision.bodyB.id) + Math.max(collision.bodyA.id, collision.bodyB.id) * 10000;
@@ -253,7 +307,5 @@ const collisionId = (collision) =>
 const collisionCompareId = (collisionA, collisionB) => collisionId(collisionA) - collisionId(collisionB);
 
 const sortById = (objs) => objs.sort((objA, objB) => objA.id - objB.id);
-
-const limitPrecision = (val, precision=3) => parseFloat(val.toPrecision(precision));
 
 module.exports = { runExample };
