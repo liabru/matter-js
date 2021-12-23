@@ -65,7 +65,7 @@ Example.timescale = function() {
         lastTime = Common.now();
 
     Events.on(engine, 'afterUpdate', function(event) {
-        var timeScale = event.delta / 1000;
+        var timeScale = timeScale = (event.delta || (1000 / 60)) / 1000;
 
         // tween the timescale for bullet time slow-mo
         engine.timing.timeScale += (timeScaleTarget - engine.timing.timeScale) * 12 * timeScale;

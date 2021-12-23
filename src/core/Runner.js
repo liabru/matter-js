@@ -110,13 +110,6 @@ var Common = require('./Common');
         var timing = engine.timing,
             delta;
 
-        // create an event object
-        var event = {
-            timestamp: timing.timestamp
-        };
-
-        Events.trigger(runner, 'beforeTick', event);
-
         if (runner.isFixed) {
             // fixed timestep
             delta = runner.delta;
@@ -144,7 +137,6 @@ var Common = require('./Common');
         };
 
         Events.trigger(runner, 'beforeTick', event);
-        Events.trigger(engine, 'beforeTick', event); // @deprecated
 
         // fps counter
         runner.frameCounter += 1;

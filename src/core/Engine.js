@@ -92,8 +92,8 @@ var Body = require('../body/Body');
         delta *= timing.timeScale;
 
         // increment timestamp
-        timing.timestamp += delta * timing.timeScale;
-        timing.lastDelta = delta * timing.timeScale;
+        timing.timestamp += delta;
+        timing.lastDelta = delta;
 
         // create an event object
         var event = {

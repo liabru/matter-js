@@ -24,7 +24,9 @@ var Common = require('./Common');
      * @param {number} delta
      */
     Sleeping.update = function(bodies, delta) {
-        var timeScale = delta / Common._timeUnit;
+        var timeScale = delta / Common._timeUnit,
+            timeScale2 = timeScale * timeScale,
+            motionSleepThreshold = Sleeping._motionSleepThreshold * timeScale2;
         
         // update bodies sleeping status
         for (var i = 0; i < bodies.length; i++) {
@@ -43,11 +45,12 @@ var Common = require('./Common');
             // biased average motion estimation between frames
             body.motion = Sleeping._minBias * minMotion + (1 - Sleeping._minBias) * maxMotion;
 
-            if (body.sleepThreshold > 0 && body.motion < Sleeping._motionSleepThreshold * timeScale * timeScale) {
+            if (body.sleepThreshold > 0 && body.motion < motionSleepThreshold) {
                 body.sleepCounter += 1;
                 
-                if (body.sleepCounter >= body.sleepThreshold / timeScale)
+                if (body.sleepCounter >= body.sleepThreshold / timeScale) {
                     Sleeping.set(body, true);
+                }
             } else if (body.sleepCounter > 0) {
                 body.sleepCounter -= 1;
             }

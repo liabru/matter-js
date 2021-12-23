@@ -20,8 +20,6 @@ var deprecated = Common.deprecated;
 
 (function() {
 
-    SAT._reuseMotionThresh = 0.2;
-
     /**
      * Detect collision between two bodies using the Separating Axis Theorem.
      * @deprecated replaced by Collision.collides
