@@ -35,11 +35,12 @@ const comparisonReport = (capturesDev, capturesBuild, devSize, buildSize, buildV
     const captureSummary = Object.entries(capturesDev)
         .map(([name]) => {
             const changedIntrinsics = !equals(capturesDev[name].intrinsic, capturesBuild[name].intrinsic);
+
             if (changedIntrinsics) {
                 capturesDev[name].changedIntrinsics = true;
-                if (intrinsicChangeCount < 2) {
-                    devIntrinsicsChanged[name] = capturesDev[name].intrinsic;
-                    buildIntrinsicsChanged[name] = capturesBuild[name].intrinsic;
+                if (intrinsicChangeCount < 1) {
+                    devIntrinsicsChanged[name] = capturesDev[name].state;
+                    buildIntrinsicsChanged[name] = capturesBuild[name].state;
                     intrinsicChangeCount += 1;
                 }
             }
@@ -172,6 +173,47 @@ const extrinsicSimilarityAverage = (similaritys) => {
     return average /= entries.length;
 };
 
+const serialize = (obj, exclude=()=>false, precision=4, path='$', visited=[], paths=[]) => {
+    if (typeof obj === 'number') {
+        return parseFloat(obj.toPrecision(precision));
+    } else if (typeof obj === 'string' || typeof obj === 'boolean') {
+        return obj;
+    } else if (obj === null) {
+        return 'null';
+    } else if (typeof obj === 'undefined') {
+        return 'undefined';
+    } else if (obj === Infinity) {
+        return 'Infinity';
+    } else if (obj === -Infinity) {
+        return '-Infinity';
+    } else if (typeof obj === 'function') {
+        return 'function';
+    } else if (Array.isArray(obj)) {
+        return obj.map(
+            (item, index) => serialize(item, exclude, precision, path + '.' + index, visited, paths)
+        );
+    }
+  
+    const visitedIndex = visited.indexOf(obj);
+  
+    if (visitedIndex !== -1) {
+      return paths[visitedIndex];
+    }
+  
+    visited.push(obj);
+    paths.push(path);
+  
+    const result = {};
+  
+    for (const key of Object.keys(obj).sort()) {
+      if (!exclude(key, obj[key], path + '.' + key)) {
+        result[key] = serialize(obj[key], exclude, precision, path + '.' + key, visited, paths);
+      }
+    }
+  
+    return result;
+};
+
 const writeResult = (name, obj) => {
     try {
         fs.mkdirSync(comparePath, { recursive: true });
@@ -245,5 +287,5 @@ const toMatchIntrinsics = {
 
 module.exports = {
     requireUncached, comparisonReport, logReport,
-    toMatchExtrinsics, toMatchIntrinsics
+    serialize, toMatchExtrinsics, toMatchIntrinsics
 };

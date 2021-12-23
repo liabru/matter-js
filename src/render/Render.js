@@ -44,7 +44,6 @@ var Mouse = require('../core/Mouse');
      */
     Render.create = function(options) {
         var defaults = {
-            controller: Render,
             engine: null,
             element: null,
             canvas: null,
@@ -116,6 +115,7 @@ var Mouse = require('../core/Mouse');
         };
 
         // for temporary back compatibility only
+        render.controller = Render;
         render.options.showBroadphase = false;
 
         if (render.options.pixelRatio !== 1) {
@@ -124,8 +124,6 @@ var Mouse = require('../core/Mouse');
 
         if (Common.isElement(render.element)) {
             render.element.appendChild(render.canvas);
-        } else if (!render.canvas.parentNode) {
-            Common.log('Render.create: options.element was undefined, render.canvas was created but not appended', 'warn');
         }
 
         return render;
@@ -1525,6 +1523,7 @@ var Mouse = require('../core/Mouse');
     /**
      * A back-reference to the `Matter.Render` module.
      *
+     * @deprecated
      * @property controller
      * @type render
      */
