@@ -1,7 +1,7 @@
 /* eslint-env es6 */
 "use strict";
 
-jest.setTimeout(30 * 1000);
+jest.setTimeout(2 * 60 * 1000);
 
 const fs = require('fs');
 
