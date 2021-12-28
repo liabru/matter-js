@@ -4,6 +4,7 @@ Matter.Axes = require('../geometry/Axes');
 Matter.Bodies = require('../factory/Bodies');
 Matter.Body = require('../body/Body');
 Matter.Bounds = require('../geometry/Bounds');
+Matter.Collision = require('../collision/Collision');
 Matter.Common = require('../core/Common');
 Matter.Composite = require('../body/Composite');
 Matter.Composites = require('../factory/Composites');

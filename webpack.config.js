@@ -9,18 +9,17 @@ const execSync = require('child_process').execSync;
 
 module.exports = (env = {}) => {
     const minimize = env.MINIMIZE || false;
-    const alpha = env.ALPHA || false;
+    const kind = env.KIND || null;
     const sizeThreshold = minimize ? 100 * 1024 : 512 * 1024;
 
     const commitHash = execSync('git rev-parse --short HEAD').toString().trim();
-    const version = !alpha ? pkg.version : `${pkg.version}-alpha+${commitHash}`;
+    const version = !kind ? pkg.version : `${pkg.version}-${kind}+${commitHash}`;
     const license = fs.readFileSync('LICENSE', 'utf8');
     const resolve = relativePath => path.resolve(__dirname, relativePath);
     
-    const alphaInfo = 'Experimental pre-release build.\n  ';
     const banner = 
 `${pkg.name} ${version} by @liabru
-${alpha ? alphaInfo : ''}${pkg.homepage}
+${kind ? 'Experimental pre-release build.\n  ' : ''}${pkg.homepage}
 License ${pkg.license}${!minimize ? '\n\n' + license : ''}`;
 
     return {
@@ -32,7 +31,7 @@ License ${pkg.license}${!minimize ? '\n\n' + license : ''}`;
             umdNamedDefine: true,
             globalObject: 'this',
             path: resolve('./build'),
-            filename: `[name]${alpha ? '.alpha' : ''}${minimize ? '.min' : ''}.js`
+            filename: `[name]${kind ? '.' + kind : ''}${minimize ? '.min' : ''}.js`
         },
         optimization: { minimize },
         performance: {

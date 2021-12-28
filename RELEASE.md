@@ -1,3 +1,61 @@
+## ▲.● matter.js `0.18.0`
+
+Release notes for `0.18.0`. See the release [readme](https://github.com/liabru/matter-js/blob/0.18.0/README.md) for further information.
+
+### Highlights ✺
+
+- **Up to ~40% performance improvement (on average measured over all examples, in Node on a Mac Air M1)**
+- Replaces `Matter.Grid` with a faster and more efficient broadphase in `Matter.Detector`
+- Reduced memory usage and garbage collection
+- Resolves issues in `Matter.SAT` related to collision reuse
+- Removes performance issues from `Matter.Grid`
+- Improved collision accuracy
+- Improved API and docs for collision modules
+- Improved [documentation](https://brm.io/matter-js/docs/) pages
+- Added note about avoiding Webpack [performance problems](https://github.com/liabru/matter-js/blob/master/README.md#install)
+
+### Changes ✲
+
+See the release [compare page](https://github.com/liabru/matter-js/compare/0.17.1...0.18.0) and the [changelog](https://github.com/liabru/matter-js/blob/0.18.0/CHANGELOG.md) for a detailed list of changes.
+
+### Migration ⌲
+
+- Behaviour and similarity is in practice the same (a fractional difference from improved accuracy)
+- API is the same other than:
+  - [Matter.Detector](https://brm.io/matter-js/docs/classes/Detector.html) replaces [Matter.Grid](https://brm.io/matter-js/docs/classes/Grid.html) (which is now deprecated but will remain for a short term)
+  - [render.options.showBroadphase](https://brm.io/matter-js/docs/classes/Render.html#property_options.showBroadphase) is deprecated (no longer implemented)
+  - [Matter.SAT](https://brm.io/matter-js/docs/classes/SAT.html) is renamed [Matter.Collision](https://brm.io/matter-js/docs/classes/Collision.html)
+  - [Matter.SAT.collides](https://brm.io/matter-js/docs/classes/SAT.html#method_collides) is now [Matter.Collision.collides](https://brm.io/matter-js/docs/classes/Collision.html#method_collides) with a slightly different set of arguments
+
+### Comparison ⎄
+
+Differences in behaviour, quality and performance against the previous release `0.17.1`. For more information see [comparison method](https://github.com/liabru/matter-js/pull/794).
+
+```ocaml
+Output comparison of 43 examples against previous release matter-js@0.17.1  
+
+Behaviour    99.99%   Similarity  99.98%   Overlap   -0.00%  
+Performance  +40.62%   Memory      -6.18%   Filesize  -0.16%  77.73 KB  
+
+airFriction · · avalanche ● · ballPool · · bridge · · car · · catapult · · 
+chains · · circleStack · · cloth · · collisionFiltering · · compositeManipulation ● · 
+compound · · compoundStack · · concave · · constraints ● · doublePendulum · · 
+events · · friction · · gravity · · gyro · · manipulation · ◆ 
+mixed · · newtonsCradle · · pyramid · · ragdoll · · raycasting · · 
+remove · · restitution · · rounded · · sensors · · sleeping · ◆ 
+slingshot · · softBody · · sprites · · stack · · staticFriction · · 
+stats · · stress · · stress2 · · stress3 · · timescale · · 
+views · · wreckingBall · ·   
+
+where  · no change  ● extrinsics changed  ◆ intrinsics changed
+```
+
+### Contributors ♥︎
+
+Many thanks to the [contributors](https://github.com/liabru/matter-js/compare/0.17.1...0.18.0) of this release, [past contributors](https://github.com/liabru/matter-js/graphs/contributors) as well those involved in the [community](https://github.com/liabru/matter-js/issues) for your input and support.
+
+---
+
 ## ▲.● matter.js `0.17.0`
 
 Release notes for `0.17.0`. See the release [readme](https://github.com/liabru/matter-js/blob/0.17.0/README.md) for further information.

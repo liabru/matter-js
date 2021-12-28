@@ -58,7 +58,6 @@
         <li><a href="https://brm.io/matter-js/demo/#airFriction">Air Friction</a></li>
         <li><a href="https://brm.io/matter-js/demo/#staticFriction">Static Friction</a></li>
         <li><a href="https://brm.io/matter-js/demo/#sleeping">Sleeping</a></li>
-        <li><a href="https://brm.io/matter-js/demo/#broadphase">Grid Broadphase</a></li>
         <li><a href="https://brm.io/matter-js/demo/#beachBalls">Beach Balls</a></li>
         <li><a href="https://brm.io/matter-js/demo/#stress">Stress 1</a></li>
         <li><a href="https://brm.io/matter-js/demo/#stress2">Stress 2</a></li>
@@ -124,6 +123,10 @@ You can install using package managers [npm](https://www.npmjs.org/package/matte
 Alternatively you can download a [stable release](https://github.com/liabru/matter-js/tags) or try the latest experimental [alpha build](https://github.com/liabru/matter-js/tree/master/build) (master) and include the script in your web page:
 
     <script src="matter.js" type="text/javascript"></script>
+
+### Webpack
+
+Some [webpack](https://webpack.js.org/) configs including the default may impact your project's performance during development, for a solution see [issue](https://github.com/liabru/matter-js/issues/1001).
 
 ### Usage
 

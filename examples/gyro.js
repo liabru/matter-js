@@ -36,9 +36,6 @@ Example.gyro = function() {
     var stack = Composites.stack(20, 20, 10, 5, 0, 0, function(x, y) {
         var sides = Math.round(Common.random(1, 8));
 
-        // triangles can be a little unstable, so avoid until fixed
-        sides = (sides === 3) ? 4 : sides;
-
         // round the edges of some bodies
         var chamfer = null;
         if (sides > 2 && Common.random() > 0.7) {

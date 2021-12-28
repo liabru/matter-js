@@ -44,7 +44,6 @@ var Mouse = require('../core/Mouse');
      */
     Render.create = function(options) {
         var defaults = {
-            controller: Render,
             engine: null,
             element: null,
             canvas: null,
@@ -76,7 +75,6 @@ var Mouse = require('../core/Mouse');
                 showDebug: false,
                 showStats: false,
                 showPerformance: false,
-                showBroadphase: false,
                 showBounds: false,
                 showVelocity: false,
                 showCollisions: false,
@@ -116,14 +114,16 @@ var Mouse = require('../core/Mouse');
             }
         };
 
+        // for temporary back compatibility only
+        render.controller = Render;
+        render.options.showBroadphase = false;
+
         if (render.options.pixelRatio !== 1) {
             Render.setPixelRatio(render, render.options.pixelRatio);
         }
 
         if (Common.isElement(render.element)) {
             render.element.appendChild(render.canvas);
-        } else if (!render.canvas.parentNode) {
-            Common.log('Render.create: options.element was undefined, render.canvas was created but not appended', 'warn');
         }
 
         return render;
@@ -437,9 +437,6 @@ var Mouse = require('../core/Mouse');
             Render.mousePosition(render, render.mouse, context);
 
         Render.constraints(constraints, context);
-
-        if (options.showBroadphase)
-            Render.grid(render, engine.grid, context);
 
         if (options.hasBounds) {
             // revert view transforms
@@ -1290,45 +1287,6 @@ var Mouse = require('../core/Mouse');
     /**
      * Description
      * @private
-     * @method grid
-     * @param {render} render
-     * @param {grid} grid
-     * @param {RenderingContext} context
-     */
-    Render.grid = function(render, grid, context) {
-        var c = context,
-            options = render.options;
-
-        if (options.wireframes) {
-            c.strokeStyle = 'rgba(255,180,0,0.1)';
-        } else {
-            c.strokeStyle = 'rgba(255,180,0,0.5)';
-        }
-
-        c.beginPath();
-
-        var bucketKeys = Common.keys(grid.buckets);
-
-        for (var i = 0; i < bucketKeys.length; i++) {
-            var bucketId = bucketKeys[i];
-
-            if (grid.buckets[bucketId].length < 2)
-                continue;
-
-            var region = bucketId.split(/C|R/);
-            c.rect(0.5 + parseInt(region[1], 10) * grid.bucketWidth,
-                0.5 + parseInt(region[2], 10) * grid.bucketHeight,
-                grid.bucketWidth,
-                grid.bucketHeight);
-        }
-
-        c.lineWidth = 1;
-        c.stroke();
-    };
-
-    /**
-     * Description
-     * @private
      * @method inspector
      * @param {inspector} inspector
      * @param {RenderingContext} context
@@ -1577,6 +1535,7 @@ var Mouse = require('../core/Mouse');
     /**
      * A back-reference to the `Matter.Render` module.
      *
+     * @deprecated
      * @property controller
      * @type render
      */
@@ -1777,6 +1736,7 @@ var Mouse = require('../core/Mouse');
     /**
      * A flag to enable or disable the collision broadphase debug overlay.
      *
+     * @deprecated no longer implemented
      * @property options.showBroadphase
      * @type boolean
      * @default false

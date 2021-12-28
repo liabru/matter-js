@@ -16,7 +16,6 @@ var Sleeping = require('./Sleeping');
 var Resolver = require('../collision/Resolver');
 var Detector = require('../collision/Detector');
 var Pairs = require('../collision/Pairs');
-var Grid = require('../collision/Grid');
 var Events = require('./Events');
 var Composite = require('../body/Composite');
 var Constraint = require('../constraint/Constraint');
@@ -43,7 +42,6 @@ var Body = require('../body/Body');
             enableSleeping: false,
             events: [],
             plugin: {},
-            grid: null,
             gravity: {
                 x: 0,
                 y: 1,
@@ -60,10 +58,11 @@ var Body = require('../body/Body');
         var engine = Common.extend(defaults, options);
 
         engine.world = options.world || Composite.create({ label: 'World' });
-        engine.grid = Grid.create(options.grid || options.broadphase);
-        engine.pairs = Pairs.create();
+        engine.pairs = options.pairs || Pairs.create();
+        engine.detector = options.detector || Detector.create();
 
-        // temporary back compatibility
+        // for temporary back compatibility only
+        engine.grid = { buckets: [] };
         engine.world.gravity = engine.gravity;
         engine.broadphase = engine.grid;
         engine.metrics = {};
@@ -93,9 +92,10 @@ var Body = require('../body/Body');
         correction = correction || 1;
 
         var world = engine.world,
+            detector = engine.detector,
+            pairs = engine.pairs,
             timing = engine.timing,
-            grid = engine.grid,
-            gridPairs = [],
+            timestamp = timing.timestamp,
             i;
 
         // increment timestamp
@@ -109,15 +109,25 @@ var Body = require('../body/Body');
 
         Events.trigger(engine, 'beforeUpdate', event);
 
-        // get lists of all bodies and constraints, no matter what composites they are in
+        // get all bodies and all constraints in the world
         var allBodies = Composite.allBodies(world),
             allConstraints = Composite.allConstraints(world);
 
-        // if sleeping enabled, call the sleeping controller
+        // update the detector bodies if they have changed
+        if (world.isModified) {
+            Detector.setBodies(detector, allBodies);
+        }
+
+        // reset all composite modified flags
+        if (world.isModified) {
+            Composite.setModified(world, false, false, true);
+        }
+
+        // update sleeping if enabled
         if (engine.enableSleeping)
             Sleeping.update(allBodies, timing.timeScale);
 
-        // applies gravity to all bodies
+        // apply gravity to all bodies
         Engine._bodiesApplyGravity(allBodies, engine.gravity);
 
         // update all body position and rotation by integration
@@ -130,29 +140,12 @@ var Body = require('../body/Body');
         }
         Constraint.postSolveAll(allBodies);
 
-        // broadphase pass: find potential collision pairs
-
-        // if world is dirty, we must flush the whole grid
-        if (world.isModified)
-            Grid.clear(grid);
-
-        // update the grid buckets based on current bodies
-        Grid.update(grid, allBodies, engine, world.isModified);
-        gridPairs = grid.pairsList;
-
-        // clear all composite modified flags
-        if (world.isModified) {
-            Composite.setModified(world, false, false, true);
-        }
-
-        // narrowphase pass: find actual collisions, then create or update collision pairs
-        var collisions = Detector.collisions(gridPairs, engine);
+        // find all collisions
+        detector.pairs = engine.pairs;
+        var collisions = Detector.collisions(detector);
 
         // update collision pairs
-        var pairs = engine.pairs,
-            timestamp = timing.timestamp;
         Pairs.update(pairs, collisions, timestamp);
-        Pairs.removeOld(pairs, timestamp);
 
         // wake up bodies involved in collisions
         if (engine.enableSleeping)
@@ -225,17 +218,13 @@ var Body = require('../body/Body');
     };
 
     /**
-     * Clears the engine including the world, pairs and broadphase.
+     * Clears the engine pairs and detector.
      * @method clear
      * @param {engine} engine
      */
     Engine.clear = function(engine) {
-        var world = engine.world,
-            bodies = Composite.allBodies(world);
-
         Pairs.clear(engine.pairs);
-        Grid.clear(engine.grid);
-        Grid.update(engine.grid, bodies, engine, true);
+        Detector.clear(engine.detector);
     };
 
     /**
@@ -315,53 +304,53 @@ var Body = require('../body/Body');
     * Fired just before an update
     *
     * @event beforeUpdate
-    * @param {} event An event object
+    * @param {object} event An event object
     * @param {number} event.timestamp The engine.timing.timestamp of the event
-    * @param {} event.source The source object of the event
-    * @param {} event.name The name of the event
+    * @param {engine} event.source The source object of the event
+    * @param {string} event.name The name of the event
     */
 
     /**
     * Fired after engine update and all collision events
     *
     * @event afterUpdate
-    * @param {} event An event object
+    * @param {object} event An event object
     * @param {number} event.timestamp The engine.timing.timestamp of the event
-    * @param {} event.source The source object of the event
-    * @param {} event.name The name of the event
+    * @param {engine} event.source The source object of the event
+    * @param {string} event.name The name of the event
     */
 
     /**
     * Fired after engine update, provides a list of all pairs that have started to collide in the current tick (if any)
     *
     * @event collisionStart
-    * @param {} event An event object
-    * @param {} event.pairs List of affected pairs
+    * @param {object} event An event object
+    * @param {pair[]} event.pairs List of affected pairs
     * @param {number} event.timestamp The engine.timing.timestamp of the event
-    * @param {} event.source The source object of the event
-    * @param {} event.name The name of the event
+    * @param {engine} event.source The source object of the event
+    * @param {string} event.name The name of the event
     */
 
     /**
     * Fired after engine update, provides a list of all pairs that are colliding in the current tick (if any)
     *
     * @event collisionActive
-    * @param {} event An event object
-    * @param {} event.pairs List of affected pairs
+    * @param {object} event An event object
+    * @param {pair[]} event.pairs List of affected pairs
     * @param {number} event.timestamp The engine.timing.timestamp of the event
-    * @param {} event.source The source object of the event
-    * @param {} event.name The name of the event
+    * @param {engine} event.source The source object of the event
+    * @param {string} event.name The name of the event
     */
 
     /**
     * Fired after engine update, provides a list of all pairs that have ended collision in the current tick (if any)
     *
     * @event collisionEnd
-    * @param {} event An event object
-    * @param {} event.pairs List of affected pairs
+    * @param {object} event An event object
+    * @param {pair[]} event.pairs List of affected pairs
     * @param {number} event.timestamp The engine.timing.timestamp of the event
-    * @param {} event.source The source object of the event
-    * @param {} event.name The name of the event
+    * @param {engine} event.source The source object of the event
+    * @param {string} event.name The name of the event
     */
 
     /*
@@ -454,8 +443,17 @@ var Body = require('../body/Body');
      */
 
     /**
+     * A `Matter.Detector` instance.
+     *
+     * @property detector
+     * @type detector
+     * @default a Matter.Detector instance
+     */
+
+    /**
      * A `Matter.Grid` instance.
      *
+     * @deprecated replaced by `engine.detector`
      * @property grid
      * @type grid
      * @default a Matter.Grid instance
@@ -464,7 +462,7 @@ var Body = require('../body/Body');
     /**
      * Replaced by and now alias for `engine.grid`.
      *
-     * @deprecated use `engine.grid`
+     * @deprecated replaced by `engine.detector`
      * @property broadphase
      * @type grid
      * @default a Matter.Grid instance
