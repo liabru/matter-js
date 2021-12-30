@@ -83,7 +83,7 @@ Example.ragdoll = function() {
         lastTime = Common.now();
 
     Events.on(engine, 'afterUpdate', function(event) {
-        var timeScale = timeScale = (event.delta || (1000 / 60)) / 1000;
+        var timeScale = (event.delta || (1000 / 60)) / 1000;
 
         // tween the timescale for slow-mo
         if (mouse.button === -1) {
@@ -92,7 +92,7 @@ Example.ragdoll = function() {
             engine.timing.timeScale = 1;
         }
 
-        // every 1.5 sec (real time)
+        // every 2 sec (real time)
         if (Common.now() - lastTime >= 2000) {
             // flip the timescale
             if (timeScaleTarget < 1) {
