@@ -5,7 +5,6 @@ Example.manipulation = function() {
         Render = Matter.Render,
         Runner = Matter.Runner,
         Body = Matter.Body,
-        Common = Matter.Common,
         Events = Matter.Events,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
@@ -36,19 +35,23 @@ Example.manipulation = function() {
     Runner.run(runner, engine);
 
     // add bodies
-    var bodyA = Bodies.rectangle(100, 200, 50, 50, { isStatic: true, render: { fillStyle: '#060a19' } }),
+    var bodyA = Bodies.rectangle(100, 300, 50, 50, { isStatic: true, render: { fillStyle: '#060a19' } }),
         bodyB = Bodies.rectangle(200, 200, 50, 50),
         bodyC = Bodies.rectangle(300, 200, 50, 50),
         bodyD = Bodies.rectangle(400, 200, 50, 50),
         bodyE = Bodies.rectangle(550, 200, 50, 50),
         bodyF = Bodies.rectangle(700, 200, 50, 50),
-        bodyG = Bodies.circle(400, 100, 25, { render: { fillStyle: '#060a19' } }),
-        partA = Bodies.rectangle(600, 200, 120 * 0.8, 50 * 0.8, { render: { fillStyle: '#060a19' } }),
+        bodyG = Bodies.circle(400, 100, 25, { render: { fillStyle: '#060a19' } });
+
+    // add compound body
+    var partA = Bodies.rectangle(600, 200, 120 * 0.8, 50 * 0.8, { render: { fillStyle: '#060a19' } }),
         partB = Bodies.rectangle(660, 200, 50 * 0.8, 190 * 0.8, { render: { fillStyle: '#060a19' } }),
         compound = Body.create({
             parts: [partA, partB],
             isStatic: true
         });
+
+    Body.setPosition(compound, { x: 600, y: 300 });
 
     Composite.add(world, [bodyA, bodyB, bodyC, bodyD, bodyE, bodyF, bodyG, compound]);
 
@@ -79,10 +82,21 @@ Example.manipulation = function() {
 
         // make bodyA move up and down
         var py = 300 + 100 * Math.sin(engine.timing.timestamp * 0.002);
+
+        // manual update velocity required for older releases
+        if (Matter.version === '0.18.0') {
+            Body.setVelocity(bodyA, { x: 0, y: py - bodyA.position.y });
+            Body.setVelocity(compound, { x: 0, y: py - compound.position.y });
+            Body.setAngularVelocity(compound, 1 * Math.PI * timeScale);
+        }
+
+        // move body and update velocity
         Body.setPosition(bodyA, { x: 100, y: py }, true);
 
-        // make compound body move up and down and rotate constantly
+        // move compound body move up and down and update velocity
         Body.setPosition(compound, { x: 600, y: py }, true);
+
+        // rotate compound body and update angular velocity
         Body.rotate(compound, 1 * Math.PI * timeScale, null, true);
 
         // after first 0.8 sec (simulation time)
