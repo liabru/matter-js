@@ -42,15 +42,14 @@ Example.timescale = function() {
         Bodies.rectangle(0, 300, 50, 600, { isStatic: true })
     ]);
 
-    var explosion = function(engine, delta) {
-        var timeScale = delta / 1000;
+    var explosion = function(engine) {
         var bodies = Composite.allBodies(engine.world);
 
         for (var i = 0; i < bodies.length; i++) {
             var body = bodies[i];
 
             if (!body.isStatic && body.position.y >= 500) {
-                // Scale force accounting for time delta.
+                // Scale force accounting for mass
                 var forceMagnitude = (0.05 * body.mass);
 
                 Body.applyForce(body, body.position, {
@@ -65,7 +64,7 @@ Example.timescale = function() {
         lastTime = Common.now();
 
     Events.on(engine, 'afterUpdate', function(event) {
-        var timeScale = timeScale = (event.delta || (1000 / 60)) / 1000;
+        var timeScale = (event.delta || (1000 / 60)) / 1000;
 
         // tween the timescale for bullet time slow-mo
         engine.timing.timeScale += (timeScaleTarget - engine.timing.timeScale) * 12 * timeScale;

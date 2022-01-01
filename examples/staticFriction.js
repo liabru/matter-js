@@ -62,6 +62,11 @@ Example.staticFriction = function() {
 
         var px = 400 + 100 * Math.sin((engine.timing.timestamp - 1500) * 0.001);
 
+        // manual update velocity required for older releases
+        if (Matter.version === '0.18.0') {
+            Body.setVelocity(body, { x: px - body.position.x, y: 0 });
+        }
+
         Body.setPosition(body, { x: px, y: body.position.y }, true);
     });
 
