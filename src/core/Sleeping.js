@@ -25,8 +25,8 @@ var Common = require('./Common');
      */
     Sleeping.update = function(bodies, delta) {
         var timeScale = delta / Common._timeUnit,
-            timeScale2 = timeScale * timeScale,
-            motionSleepThreshold = Sleeping._motionSleepThreshold * timeScale2;
+            timeScaleSquared = timeScale * timeScale,
+            motionSleepThreshold = Sleeping._motionSleepThreshold * timeScaleSquared;
         
         // update bodies sleeping status
         for (var i = 0; i < bodies.length; i++) {
@@ -64,7 +64,8 @@ var Common = require('./Common');
      * @param {number} delta
      */
     Sleeping.afterCollisions = function(pairs, delta) {
-        var timeScale = delta / Common._timeUnit;
+        var timeScale = delta / Common._timeUnit,
+            motionSleepThreshold = Sleeping._motionSleepThreshold * timeScale * timeScale;
 
         // wake up bodies involved in collisions
         for (var i = 0; i < pairs.length; i++) {
@@ -86,7 +87,7 @@ var Common = require('./Common');
                 var sleepingBody = (bodyA.isSleeping && !bodyA.isStatic) ? bodyA : bodyB,
                     movingBody = sleepingBody === bodyA ? bodyB : bodyA;
 
-                if (!sleepingBody.isStatic && movingBody.motion > Sleeping._motionWakeThreshold * timeScale * timeScale) {
+                if (!sleepingBody.isStatic && movingBody.motion > motionSleepThreshold) {
                     Sleeping.set(sleepingBody, false);
                 }
             }

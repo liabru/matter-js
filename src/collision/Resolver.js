@@ -9,17 +9,17 @@ var Resolver = {};
 module.exports = Resolver;
 
 var Vertices = require('../geometry/Vertices');
-var Vector = require('../geometry/Vector');
 var Common = require('../core/Common');
 var Bounds = require('../geometry/Bounds');
 
 (function() {
 
-    Resolver._restingThresh = 4;
-    Resolver._restingThreshTangent = 6;
+    Resolver._restingThresh = 2;
+    Resolver._restingThreshTangent = Math.sqrt(6);
     Resolver._positionDampen = 0.9;
     Resolver._positionWarming = 0.8;
     Resolver._frictionNormalMultiplier = 5;
+    Resolver._frictionMaxStatic = Number.MAX_VALUE;
 
     /**
      * Prepare pairs for position solving.
@@ -49,9 +49,9 @@ var Bounds = require('../geometry/Bounds');
      * Find a solution for pair positions.
      * @method solvePosition
      * @param {pair[]} pairs
-     * @param {number} delta
+     * @param {number} positionIterations
      */
-    Resolver.solvePosition = function(pairs, delta) {
+    Resolver.solvePosition = function(pairs, positionIterations) {
         var i,
             pair,
             collision,
@@ -60,9 +60,7 @@ var Bounds = require('../geometry/Bounds');
             normal,
             contactShare,
             positionImpulse,
-            timeScale = delta / Common._timeUnit,
-            damping = Common.clamp(Resolver._positionDampen * timeScale, 0, 1),
-            positionDampen = Resolver._positionDampen,
+            positionDampen = Resolver._positionDampen * Common.clamp(20 / positionIterations, 0, 1),
             pairsLength = pairs.length;
 
         // find impulses required to resolve penetration
@@ -93,7 +91,7 @@ var Bounds = require('../geometry/Bounds');
             bodyA = collision.parentA;
             bodyB = collision.parentB;
             normal = collision.normal;
-            positionImpulse = (pair.separation - pair.slop) * damping;
+            positionImpulse = pair.separation - pair.slop;
 
             if (bodyA.isStatic || bodyB.isStatic)
                 positionImpulse *= 2;
@@ -227,12 +225,12 @@ var Bounds = require('../geometry/Bounds');
      */
     Resolver.solveVelocity = function(pairs, delta) {
         var timeScale = delta / Common._timeUnit,
-            timeScale2 = timeScale * timeScale,
-            timeScale3 = timeScale2 * timeScale,
-            restingThresh = Resolver._restingThresh * timeScale2,
+            timeScaleSquared = timeScale * timeScale,
+            timeScaleCubed = timeScaleSquared * timeScale,
+            restingThresh = -Resolver._restingThresh * timeScale,
             frictionNormalMultiplier = Resolver._frictionNormalMultiplier,
-            restingThreshTangent = Resolver._restingThreshTangent * timeScale2,
-            NumberMaxValue = Number.MAX_VALUE,
+            restingThreshTangent = Resolver._restingThreshTangent * timeScale,
+            frictionMaxStatic = Resolver._frictionMaxStatic * timeScale,
             pairsLength = pairs.length,
             tangentImpulse,
             maxFriction,
@@ -258,7 +256,7 @@ var Bounds = require('../geometry/Bounds');
                 contactsLength = contacts.length,
                 contactShare = 1 / contactsLength,
                 inverseMassTotal = bodyA.inverseMass + bodyB.inverseMass,
-                friction = pair.friction * pair.frictionStatic * frictionNormalMultiplier * timeScale2;
+                friction = pair.friction * pair.frictionStatic * frictionNormalMultiplier * timeScale;
 
             // update body velocities
             bodyAVelocity.x = bodyA.position.x - bodyA.positionPrev.x;
@@ -291,14 +289,14 @@ var Bounds = require('../geometry/Bounds');
 
                 // coulomb friction
                 var normalOverlap = pair.separation + normalVelocity;
-                var normalForce = Math.min(normalOverlap, 1) * timeScale3;
+                var normalForce = Math.min(normalOverlap, 1);
                 normalForce = normalOverlap < 0 ? 0 : normalForce;
 
                 var frictionLimit = normalForce * friction;
 
-                if (tangentVelocity > frictionLimit || -tangentVelocity > frictionLimit) {
-                    maxFriction = (tangentVelocity > 0 ? tangentVelocity : -tangentVelocity) * timeScale;
-                    tangentImpulse = pair.friction * (tangentVelocity > 0 ? 1 : -1) * timeScale3;
+                if (tangentVelocity < -frictionLimit || tangentVelocity > frictionLimit) {
+                    maxFriction = (tangentVelocity > 0 ? tangentVelocity : -tangentVelocity);
+                    tangentImpulse = pair.friction * (tangentVelocity > 0 ? 1 : -1) * timeScaleCubed;
                     
                     if (tangentImpulse < -maxFriction) {
                         tangentImpulse = -maxFriction;
@@ -307,7 +305,7 @@ var Bounds = require('../geometry/Bounds');
                     }
                 } else {
                     tangentImpulse = tangentVelocity;
-                    maxFriction = NumberMaxValue;
+                    maxFriction = frictionMaxStatic;
                 }
 
                 // account for mass, inertia and contact offset
@@ -320,7 +318,7 @@ var Bounds = require('../geometry/Bounds');
                 tangentImpulse *= share;
 
                 // handle high velocity and resting collisions separately
-                if (normalVelocity < 0 && normalVelocity * normalVelocity > restingThresh) {
+                if (normalVelocity < restingThresh) {
                     // high normal velocity so clear cached contact normal impulse
                     contact.normalImpulse = 0;
                 } else {
@@ -328,12 +326,12 @@ var Bounds = require('../geometry/Bounds');
                     // impulse constraint tends to 0
                     var contactNormalImpulse = contact.normalImpulse;
                     contact.normalImpulse += normalImpulse;
-                    contact.normalImpulse = Math.min(contact.normalImpulse, 0);
+                    if (contact.normalImpulse > 0) contact.normalImpulse = 0;
                     normalImpulse = contact.normalImpulse - contactNormalImpulse;
                 }
 
                 // handle high velocity and resting collisions separately
-                if (tangentVelocity * tangentVelocity > restingThreshTangent) {
+                if (tangentVelocity < -restingThreshTangent || tangentVelocity > restingThreshTangent) {
                     // high tangent velocity so clear cached contact tangent impulse
                     contact.tangentImpulse = 0;
                 } else {
