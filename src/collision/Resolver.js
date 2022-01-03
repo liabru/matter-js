@@ -228,8 +228,8 @@ var Bounds = require('../geometry/Bounds');
             timeScaleSquared = timeScale * timeScale,
             timeScaleCubed = timeScaleSquared * timeScale,
             restingThresh = -Resolver._restingThresh * timeScale,
-            frictionNormalMultiplier = Resolver._frictionNormalMultiplier,
             restingThreshTangent = Resolver._restingThreshTangent * timeScale,
+            frictionNormalMultiplier = Resolver._frictionNormalMultiplier * timeScale,
             frictionMaxStatic = Resolver._frictionMaxStatic * timeScale,
             pairsLength = pairs.length,
             tangentImpulse,
@@ -256,7 +256,7 @@ var Bounds = require('../geometry/Bounds');
                 contactsLength = contacts.length,
                 contactShare = 1 / contactsLength,
                 inverseMassTotal = bodyA.inverseMass + bodyB.inverseMass,
-                friction = pair.friction * pair.frictionStatic * frictionNormalMultiplier * timeScale;
+                friction = pair.friction * pair.frictionStatic * frictionNormalMultiplier;
 
             // update body velocities
             bodyAVelocity.x = bodyA.position.x - bodyA.positionPrev.x;
