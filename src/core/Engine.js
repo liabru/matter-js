@@ -147,10 +147,6 @@ var Body = require('../body/Body');
         if (engine.enableSleeping)
             Sleeping.afterCollisions(pairs.list, delta);
 
-        // trigger collision events
-        if (pairs.collisionStart.length > 0)
-            Events.trigger(engine, 'collisionStart', { pairs: pairs.collisionStart });
-
         // iteratively resolve position between collisions
         Resolver.preSolvePosition(pairs.list);
         for (i = 0; i < engine.positionIterations; i++) {
@@ -175,6 +171,9 @@ var Body = require('../body/Body');
         Engine._bodiesUpdateVelocities(allBodies);
 
         // trigger collision events
+        if (pairs.collisionStart.length > 0)
+            Events.trigger(engine, 'collisionStart', { pairs: pairs.collisionStart });
+
         if (pairs.collisionActive.length > 0)
             Events.trigger(engine, 'collisionActive', { pairs: pairs.collisionActive });
 
