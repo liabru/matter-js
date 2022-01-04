@@ -747,10 +747,6 @@ var Axes = require('../geometry/Axes');
         body.anglePrev = body.angle;
         body.angle += body.angularVelocity;
 
-        // track speed and acceleration
-        body.speed = Vector.magnitude(body.velocity);
-        body.angularSpeed = Math.abs(body.angularVelocity);
-
         // transform the body geometry
         for (var i = 0; i < body.parts.length; i++) {
             var part = body.parts[i];
@@ -772,6 +768,23 @@ var Axes = require('../geometry/Axes');
 
             Bounds.update(part.bounds, part.vertices, body.velocity);
         }
+    };
+
+    /**
+     * Updates properties `body.velocity`, `body.speed`, `body.angularVelocity` and `body.angularSpeed`.
+     * @method updateVelocities
+     * @param {body} body
+     */
+    Body.updateVelocities = function(body) {
+        var timeScale = Common._timeUnit / body.deltaTime,
+            bodyVelocity = body.velocity;
+
+        bodyVelocity.x = (body.position.x - body.positionPrev.x) * timeScale;
+        bodyVelocity.y = (body.position.y - body.positionPrev.y) * timeScale;
+        body.speed = Math.sqrt((bodyVelocity.x * bodyVelocity.x) + (bodyVelocity.y * bodyVelocity.y));
+
+        body.angularVelocity = (body.angle - body.anglePrev) * timeScale;
+        body.angularSpeed = Math.abs(body.angularVelocity);
     };
 
     /**

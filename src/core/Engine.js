@@ -112,7 +112,7 @@ var Body = require('../body/Body');
             Detector.setBodies(detector, allBodies);
         }
 
-        // reset all composite modified flags
+            // reset all composite modified flags
         if (world.isModified) {
             Composite.setModified(world, false, false, true);
         }
@@ -170,6 +170,9 @@ var Body = require('../body/Body');
         for (i = 0; i < engine.velocityIterations; i++) {
             Resolver.solveVelocity(pairs.list, delta);
         }
+
+        // update body speed and velocity properties
+        Engine._bodiesUpdateVelocities(allBodies);
 
         // trigger collision events
         if (pairs.collisionActive.length > 0)
@@ -281,6 +284,20 @@ var Body = require('../body/Body');
                 continue;
 
             Body.update(body, delta);
+        }
+    };
+
+    /**
+     * Applies `Body.updateVelocities` to all given `bodies`.
+     * @method _bodiesUpdate
+     * @private
+     * @param {body[]} bodies
+     */
+    Engine._bodiesUpdateVelocities = function(bodies) {
+        var bodiesLength = bodies.length;
+
+        for (var i = 0; i < bodiesLength; i++) {
+            Body.updateVelocities(bodies[i]);
         }
     };
 
