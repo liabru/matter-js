@@ -458,7 +458,7 @@ var Axes = require('../geometry/Axes');
     };
 
     /**
-     * Sets the position of the body instantly. By default velocity, angle, force etc. are unchanged.
+     * Sets the position of the body. By default velocity is unchanged.
      * If `updateVelocity` is `true` then velocity is inferred from the change in position.
      * @method setPosition
      * @param {body} body
@@ -489,7 +489,7 @@ var Axes = require('../geometry/Axes');
     };
 
     /**
-     * Sets the angle of the body instantly. By default angular velocity, position, force etc. are unchanged.
+     * Sets the angle of the body. By default angular velocity is unchanged.
      * If `updateVelocity` is `true` then angular velocity is inferred from the change in angle.
      * @method setAngle
      * @param {body} body
@@ -520,7 +520,8 @@ var Axes = require('../geometry/Axes');
     };
 
     /**
-     * Sets the linear velocity of the body instantly. Position, angle, force etc. are unchanged. See also `Body.applyForce`.
+     * Sets the current linear velocity of the body. Updates `body.speed`. See `body.velocity` for details.
+     * Use this instead of setting `body.velocity`. See also `Body.applyForce`.
      * @method setVelocity
      * @param {body} body
      * @param {vector} velocity
@@ -535,7 +536,7 @@ var Axes = require('../geometry/Axes');
     };
 
     /**
-     * Gets the linear velocity of the body. Use this instead of the internal `body.velocity`.
+     * Gets the current linear velocity of the body. See `body.velocity` for details.
      * @method getVelocity
      * @param {body} body
      * @return {vector} velocity
@@ -550,7 +551,7 @@ var Axes = require('../geometry/Axes');
     };
 
     /**
-     * Gets the linear speed the body. Use this instead of the internal `body.speed`.
+     * Gets the current linear speed of the body. See `body.speed` for details.
      * @method getSpeed
      * @param {body} body
      * @return {number} speed
@@ -560,7 +561,7 @@ var Axes = require('../geometry/Axes');
     };
 
     /**
-     * Sets the linear speed of the body. Use this instead of the internal `body.speed`.
+     * Sets the current linear speed of the body. See `body.speed` for details. Use this instead of setting `body.speed`.
      * @method setSpeed
      * @param {body} body
      * @param {number} speed
@@ -570,7 +571,8 @@ var Axes = require('../geometry/Axes');
     };
 
     /**
-     * Sets the angular velocity of the body instantly. Position, angle, force etc. are unchanged. See also `Body.applyForce`.
+     * Sets the current rotational velocity of the body. Updates `body.angularSpeed`. See `body.angularVelocity` for details.
+     * Use this instead of setting `body.angularVelocity`. See also `Body.applyForce`.
      * @method setAngularVelocity
      * @param {body} body
      * @param {number} velocity
@@ -583,7 +585,7 @@ var Axes = require('../geometry/Axes');
     };
 
     /**
-     * Gets the angular velocity of the body. Use this instead of the internal `body.angularVelocity`.
+     * Gets the current rotational velocity of the body. See `body.angularVelocity` for details.
      * @method getAngularVelocity
      * @param {body} body
      * @return {number} angular velocity
@@ -593,7 +595,7 @@ var Axes = require('../geometry/Axes');
     };
 
     /**
-     * Gets the angular speed of the body. Use this instead of the internal `body.angularSpeed`.
+     * Gets the current rotational speed of the body. See `body.angularSpeed` for details.
      * @method getAngularSpeed
      * @param {body} body
      * @return {number} angular speed
@@ -603,7 +605,7 @@ var Axes = require('../geometry/Axes');
     };
 
     /**
-     * Sets the angular speed of the body. Use this instead of the internal `body.angularSpeed`.
+     * Sets the current rotational speed of the body. See `body.angularSpeed` for details. Use this instead of setting `body.angularSpeed`.
      * @method setAngularSpeed
      * @param {body} body
      * @param {number} speed
@@ -613,7 +615,7 @@ var Axes = require('../geometry/Axes');
     };
 
     /**
-     * Moves a body by a given vector relative to its current position, without imparting any velocity by default.
+     * Moves a body by a given vector relative to its current position. By default velocity is unchanged.
      * If `updateVelocity` is `true` then velocity is inferred from the change in position.
      * @method translate
      * @param {body} body
@@ -625,7 +627,7 @@ var Axes = require('../geometry/Axes');
     };
 
     /**
-     * Rotates a body by a given angle relative to its current angle, without imparting any angular velocity by default.
+     * Rotates a body by a given angle relative to its current angle. By default angular velocity is unchanged.
      * If `updateVelocity` is `true` then angular velocity is inferred from the change in angle.
      * @method rotate
      * @param {body} body
@@ -971,7 +973,7 @@ var Axes = require('../geometry/Axes');
 
     /**
      * Internal only. Use `Body.getSpeed` and `Body.setSpeed` instead.
-     *
+     * 
      * @readOnly
      * @property speed
      * @type number
@@ -980,7 +982,7 @@ var Axes = require('../geometry/Axes');
 
     /**
      * Internal only. Use `Body.getAngularSpeed` and `Body.setAngularSpeed` instead.
-     *
+     * 
      * @readOnly
      * @property angularSpeed
      * @type number
