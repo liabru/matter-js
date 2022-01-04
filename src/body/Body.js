@@ -28,6 +28,25 @@ var Axes = require('../geometry/Axes');
     Body._nextCategory = 0x0001;
 
     /**
+     * The constant unit of time in milliseconds in relation to getting or setting body
+     * speed, velocity or force related properties or methods (except friction related).
+     * 
+     * This defaults to `1000 / 60` milliseconds.
+     * To use 1 second (as in the [SI base time unit](https://en.wikipedia.org/wiki/SI_base_unit)) then set this value to `1000`.
+     * 
+     * _Note about the default:_ For ease of use in browser games and compatibility with previous versions, the current default time unit 
+     * is chosen so that with the default engine delta `1000 / 60` milliseconds and default rendering at _1:1_, velocity matches _pixels_ per _frame_.
+     * 
+     * If your project requires real-world metrics or a different engine delta, consider using SI units shown above instead of this default.
+     *
+     * @static
+     * @property timeUnit
+     * @type number
+     * @default 1000 / 60
+     */
+    Body.timeUnit = 1000 / 60;
+
+    /**
      * Creates a new rigid body model. The options parameter is an object that specifies any properties you wish to override the defaults.
      * All properties have default values, and many are pre-calculated automatically based on other properties.
      * Vertices must be specified in clockwise order.
@@ -96,7 +115,7 @@ var Axes = require('../geometry/Axes');
             area: 0,
             mass: 0,
             inertia: 0,
-            deltaTime: Common._timeUnit,
+            deltaTime: 1000 / 60,
             _original: null
         };
 
@@ -527,7 +546,7 @@ var Axes = require('../geometry/Axes');
      * @param {vector} velocity
      */
     Body.setVelocity = function(body, velocity) {
-        var timeScale = body.deltaTime / Common._timeUnit;
+        var timeScale = body.deltaTime / Body.timeUnit;
         body.positionPrev.x = body.position.x - velocity.x * timeScale;
         body.positionPrev.y = body.position.y - velocity.y * timeScale;
         body.velocity.x = velocity.x * timeScale;
@@ -542,7 +561,7 @@ var Axes = require('../geometry/Axes');
      * @return {vector} velocity
      */
     Body.getVelocity = function(body) {
-        var timeScale = Common._timeUnit / body.deltaTime;
+        var timeScale = Body.timeUnit / body.deltaTime;
 
         return {
             x: (body.position.x - body.positionPrev.x) * timeScale,
@@ -578,7 +597,7 @@ var Axes = require('../geometry/Axes');
      * @param {number} velocity
      */
     Body.setAngularVelocity = function(body, velocity) {
-        var timeScale = body.deltaTime / Common._timeUnit;
+        var timeScale = body.deltaTime / Body.timeUnit;
         body.anglePrev = body.angle - velocity * timeScale;
         body.angularVelocity = velocity * timeScale;
         body.angularSpeed = Math.abs(body.angularVelocity);
@@ -591,7 +610,7 @@ var Axes = require('../geometry/Axes');
      * @return {number} angular velocity
      */
     Body.getAngularVelocity = function(body) {
-        return (body.angle - body.anglePrev) * Common._timeUnit / body.deltaTime;
+        return (body.angle - body.anglePrev) * Body.timeUnit / body.deltaTime;
     };
 
     /**
@@ -724,7 +743,7 @@ var Axes = require('../geometry/Axes');
      * @param {number} [deltaTime=16.666]
      */
     Body.update = function(body, deltaTime) {
-        deltaTime = (typeof deltaTime !== 'undefined' ? deltaTime : Common._timeUnit) * body.timeScale;
+        deltaTime = (typeof deltaTime !== 'undefined' ? deltaTime : (1000 / 60)) * body.timeScale;
 
         var deltaTimeSquared = deltaTime * deltaTime,
             correction = Body._timeCorrection ? deltaTime / (body.deltaTime || deltaTime) : 1;
@@ -773,12 +792,12 @@ var Axes = require('../geometry/Axes');
     };
 
     /**
-     * Updates properties `body.velocity`, `body.speed`, `body.angularVelocity` and `body.angularSpeed`.
+     * Updates properties `body.velocity`, `body.speed`, `body.angularVelocity` and `body.angularSpeed` which are normalised in relation to `Body.timeUnit`.
      * @method updateVelocities
      * @param {body} body
      */
     Body.updateVelocities = function(body) {
-        var timeScale = Common._timeUnit / body.deltaTime,
+        var timeScale = Body.timeUnit / body.deltaTime,
             bodyVelocity = body.velocity;
 
         bodyVelocity.x = (body.position.x - body.positionPrev.x) * timeScale;
@@ -797,7 +816,7 @@ var Axes = require('../geometry/Axes');
      * @param {vector} force
      */
     Body.applyForce = function(body, position, force) {
-        var timeScale = body.deltaTime / Common._timeUnit;
+        var timeScale = body.deltaTime / Body.timeUnit;
         body.force.x += force.x / timeScale;
         body.force.y += force.y / timeScale;
         var offset = { x: position.x - body.position.x, y: position.y - body.position.y };
@@ -976,10 +995,10 @@ var Axes = require('../geometry/Axes');
      * 
      * The body's current linear speed in _unit distance_ per _unit time_.
      * 
-     * By default when using `Matter.Render` this is equivalent to  
-     * _pixels_ per `Common._timeUnit` _milliseconds_.
+     * By default when rendering _1:1_ this is equivalent to  
+     * _pixels_ per `Body.timeUnit` _milliseconds_.
      * 
-     * See `Common._timeUnit` for more details.
+     * See `Body.timeUnit` for more details.
      * 
      * Equivalent to the magnitude of `body.velocity` (always positive).
      * 
@@ -994,10 +1013,10 @@ var Axes = require('../geometry/Axes');
      * 
      * The body's current rotational speed in _radians_ per _unit time_.
      * 
-     * By default when using `Matter.Render` this is equivalent to  
-     * _radians_ per `Common._timeUnit` _milliseconds_.
+     * By default when rendering _1:1_ this is equivalent to  
+     * _radians_ per `Body.timeUnit` _milliseconds_.
      * 
-     * See `Common._timeUnit` for more details.
+     * See `Body.timeUnit` for more details.
      * 
      * Equivalent to the magnitude of `body.angularVelocity` (always positive).
      * 
@@ -1012,10 +1031,10 @@ var Axes = require('../geometry/Axes');
      * 
      * The body's current linear velocity in _unit distance_ per _unit time_.
      * 
-     * By default when using `Matter.Render` this is equivalent to  
-     * _pixels_ per `Common._timeUnit` _milliseconds_.
+     * By default when rendering _1:1_ this is equivalent to  
+     * _pixels_ per `Body.timeUnit` _milliseconds_.
      * 
-     * See `Common._timeUnit` for more details.
+     * See `Body.timeUnit` for more details.
      * 
      * @readOnly
      * @property velocity
@@ -1028,10 +1047,10 @@ var Axes = require('../geometry/Axes');
      * 
      * The body's current rotational velocity in _radians_ per _unit time_.
      * 
-     * By default when using `Matter.Render` this is equivalent to  
-     * _radians_ per `Common._timeUnit` _milliseconds_.
+     * By default when rendering _1:1_ this is equivalent to  
+     * _radians_ per `Body.timeUnit` _milliseconds_.
      * 
-     * See `Common._timeUnit` for more details.
+     * See `Body.timeUnit` for more details.
      *
      * @readOnly
      * @property angularVelocity
