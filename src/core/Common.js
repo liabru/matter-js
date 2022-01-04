@@ -323,7 +323,8 @@ module.exports = Common;
      * - 2 = Info
      * - 3 = Warn
      * - 4 = Error
-     * @property Common.logLevel
+     * @static
+     * @property logLevel
      * @type {Number}
      * @default 1
      */

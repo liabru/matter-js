@@ -25,8 +25,7 @@ var Common = require('./Common');
      */
     Sleeping.update = function(bodies, delta) {
         var timeScale = delta / Common._timeUnit,
-            timeScaleSquared = timeScale * timeScale,
-            motionSleepThreshold = Sleeping._motionSleepThreshold * timeScaleSquared;
+            motionSleepThreshold = Sleeping._motionSleepThreshold * timeScale * timeScale;
         
         // update bodies sleeping status
         for (var i = 0; i < bodies.length; i++) {

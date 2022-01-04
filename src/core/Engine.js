@@ -107,13 +107,12 @@ var Body = require('../body/Body');
         var allBodies = Composite.allBodies(world),
             allConstraints = Composite.allConstraints(world);
 
-        // update the detector bodies if they have changed
+        // if the world has changed
         if (world.isModified) {
+            // update the detector bodies
             Detector.setBodies(detector, allBodies);
-        }
 
             // reset all composite modified flags
-        if (world.isModified) {
             Composite.setModified(world, false, false, true);
         }
 
@@ -232,7 +231,9 @@ var Body = require('../body/Body');
      * @param {body[]} bodies
      */
     Engine._bodiesClearForces = function(bodies) {
-        for (var i = 0; i < bodies.length; i++) {
+        var bodiesLength = bodies.length;
+
+        for (var i = 0; i < bodiesLength; i++) {
             var body = bodies[i];
 
             // reset force buffers
@@ -243,20 +244,21 @@ var Body = require('../body/Body');
     };
 
     /**
-     * Applys a mass dependant force to all given bodies.
+     * Applies a mass dependant force to all given bodies.
      * @method _bodiesApplyGravity
      * @private
      * @param {body[]} bodies
      * @param {vector} gravity
      */
     Engine._bodiesApplyGravity = function(bodies, gravity) {
-        var gravityScale = typeof gravity.scale !== 'undefined' ? gravity.scale : 0.001;
+        var gravityScale = typeof gravity.scale !== 'undefined' ? gravity.scale : 0.001,
+            bodiesLength = bodies.length;
 
         if ((gravity.x === 0 && gravity.y === 0) || gravityScale === 0) {
             return;
         }
         
-        for (var i = 0; i < bodies.length; i++) {
+        for (var i = 0; i < bodiesLength; i++) {
             var body = bodies[i];
 
             if (body.isStatic || body.isSleeping)
@@ -269,14 +271,16 @@ var Body = require('../body/Body');
     };
 
     /**
-     * Applys `Body.update` to all given `bodies`.
+     * Applies `Body.update` to all given `bodies`.
      * @method _bodiesUpdate
      * @private
      * @param {body[]} bodies
      * @param {number} delta The amount of time elapsed between updates
      */
     Engine._bodiesUpdate = function(bodies, delta) {
-        for (var i = 0; i < bodies.length; i++) {
+        var bodiesLength = bodies.length;
+
+        for (var i = 0; i < bodiesLength; i++) {
             var body = bodies[i];
 
             if (body.isStatic || body.isSleeping)
