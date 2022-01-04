@@ -972,7 +972,16 @@ var Axes = require('../geometry/Axes');
      */
 
     /**
-     * Internal only. Use `Body.getSpeed` and `Body.setSpeed` instead.
+     * _Read only_. Use `Body.setSpeed` to set. 
+     * 
+     * The body's current linear speed in _unit distance_ per _unit time_.
+     * 
+     * By default when using `Matter.Render` this is equivalent to  
+     * _pixels_ per `Common._timeUnit` _milliseconds_.
+     * 
+     * See `Common._timeUnit` for more details.
+     * 
+     * Equivalent to the magnitude of `body.velocity` (always positive).
      * 
      * @readOnly
      * @property speed
@@ -981,7 +990,16 @@ var Axes = require('../geometry/Axes');
      */
 
     /**
-     * Internal only. Use `Body.getAngularSpeed` and `Body.setAngularSpeed` instead.
+     * _Read only_. Use `Body.setAngularSpeed` to set. 
+     * 
+     * The body's current rotational speed in _radians_ per _unit time_.
+     * 
+     * By default when using `Matter.Render` this is equivalent to  
+     * _radians_ per `Common._timeUnit` _milliseconds_.
+     * 
+     * See `Common._timeUnit` for more details.
+     * 
+     * Equivalent to the magnitude of `body.angularVelocity` (always positive).
      * 
      * @readOnly
      * @property angularSpeed
@@ -990,7 +1008,14 @@ var Axes = require('../geometry/Axes');
      */
 
     /**
-     * Internal only. Use `Body.getVelocity` and `Body.setVelocity` instead.
+     * _Read only_. Use `Body.setVelocity` to set. 
+     * 
+     * The body's current linear velocity in _unit distance_ per _unit time_.
+     * 
+     * By default when using `Matter.Render` this is equivalent to  
+     * _pixels_ per `Common._timeUnit` _milliseconds_.
+     * 
+     * See `Common._timeUnit` for more details.
      * 
      * @readOnly
      * @property velocity
@@ -999,7 +1024,14 @@ var Axes = require('../geometry/Axes');
      */
 
     /**
-     * Internal only. Use `Body.getAngularVelocity` and `Body.setAngularVelocity` instead.
+     * _Read only_. Use `Body.setAngularVelocity` to set. 
+     * 
+     * The body's current rotational velocity in _radians_ per _unit time_.
+     * 
+     * By default when using `Matter.Render` this is equivalent to  
+     * _radians_ per `Common._timeUnit` _milliseconds_.
+     * 
+     * See `Common._timeUnit` for more details.
      *
      * @readOnly
      * @property angularVelocity
