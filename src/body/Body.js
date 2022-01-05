@@ -549,8 +549,8 @@ var Axes = require('../geometry/Axes');
         var timeScale = body.deltaTime / Body.timeUnit;
         body.positionPrev.x = body.position.x - velocity.x * timeScale;
         body.positionPrev.y = body.position.y - velocity.y * timeScale;
-        body.velocity.x = velocity.x * timeScale;
-        body.velocity.y = velocity.y * timeScale;
+        body.velocity.x = (body.position.x - body.positionPrev.x) / timeScale;
+        body.velocity.y = (body.position.y - body.positionPrev.y) / timeScale;
         body.speed = Vector.magnitude(body.velocity);
     };
 
@@ -599,7 +599,7 @@ var Axes = require('../geometry/Axes');
     Body.setAngularVelocity = function(body, velocity) {
         var timeScale = body.deltaTime / Body.timeUnit;
         body.anglePrev = body.angle - velocity * timeScale;
-        body.angularVelocity = velocity * timeScale;
+        body.angularVelocity = (body.angle - body.anglePrev) / timeScale;
         body.angularSpeed = Math.abs(body.angularVelocity);
     };
 
