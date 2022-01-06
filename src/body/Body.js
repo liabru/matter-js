@@ -251,6 +251,12 @@ var Axes = require('../geometry/Axes');
             case 'angularVelocity':
                 Body.setAngularVelocity(body, value);
                 break;
+            case 'speed':
+                Body.setSpeed(body, value);
+                break;
+            case 'angularSpeed':
+                Body.setAngularSpeed(body, value);
+                break;
             case 'parts':
                 Body.setParts(body, value);
                 break;
