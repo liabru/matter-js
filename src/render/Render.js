@@ -10,6 +10,7 @@ var Render = {};
 
 module.exports = Render;
 
+var Body = require('../body/Body');
 var Common = require('../core/Common');
 var Composite = require('../body/Composite');
 var Bounds = require('../geometry/Bounds');
@@ -1106,8 +1107,10 @@ var Mouse = require('../core/Mouse');
             if (!body.render.visible)
                 continue;
 
+            var velocity = Body.getVelocity(body);
+
             c.moveTo(body.position.x, body.position.y);
-            c.lineTo(body.position.x + body.velocity.x * 2, body.position.y + body.velocity.y * 2);
+            c.lineTo(body.position.x + velocity.x, body.position.y + velocity.y);
         }
 
         c.lineWidth = 3;

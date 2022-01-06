@@ -8,6 +8,7 @@ var Sleeping = {};
 
 module.exports = Sleeping;
 
+var Body = require('../body/Body');
 var Events = require('./Events');
 var Common = require('./Common');
 
@@ -25,12 +26,14 @@ var Common = require('./Common');
      */
     Sleeping.update = function(bodies, delta) {
         var timeScale = delta / Common._timeUnit,
-            motionSleepThreshold = Sleeping._motionSleepThreshold * timeScale * timeScale;
+            motionSleepThreshold = Sleeping._motionSleepThreshold;
         
         // update bodies sleeping status
         for (var i = 0; i < bodies.length; i++) {
             var body = bodies[i],
-                motion = body.speed * body.speed + body.angularSpeed * body.angularSpeed;
+                speed = Body.getSpeed(body),
+                angularSpeed = Body.getAngularSpeed(body),
+                motion = speed * speed + angularSpeed * angularSpeed;
 
             // wake up bodies if they have a force applied
             if (body.force.x !== 0 || body.force.y !== 0) {
@@ -63,8 +66,7 @@ var Common = require('./Common');
      * @param {number} delta
      */
     Sleeping.afterCollisions = function(pairs, delta) {
-        var timeScale = delta / Common._timeUnit,
-            motionSleepThreshold = Sleeping._motionSleepThreshold * timeScale * timeScale;
+        var motionSleepThreshold = Sleeping._motionSleepThreshold;
 
         // wake up bodies involved in collisions
         for (var i = 0; i < pairs.length; i++) {
