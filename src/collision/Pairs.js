@@ -95,9 +95,9 @@ var Common = require('../core/Common');
             
             if (!pair.confirmedActive) {
                 Pair.setActive(pair, false, timestamp);
-                collisionEnd.push(pair);
 
                 if (!pair.collision.bodyA.isSleeping && !pair.collision.bodyB.isSleeping) {
+                    collisionEnd.push(pair);
                     removePairIndex.push(i);
                 }
             }
