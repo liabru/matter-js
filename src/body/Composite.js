@@ -246,6 +246,10 @@ var Body = require('./Body');
         var position = Common.indexOf(composite.bodies, body);
         if (position !== -1) {
             Composite.removeBodyAt(composite, position);
+
+            // remove sleeping to allow pair removal
+            body.isSleeping = false;
+            body.sleepCounter = 0;
         }
 
         if (deep) {

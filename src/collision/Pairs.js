@@ -45,6 +45,8 @@ var Common = require('../core/Common');
             collisionEnd = pairs.collisionEnd,
             collisionActive = pairs.collisionActive,
             collision,
+            bodyA,
+            bodyB,
             pairIndex,
             pair,
             i;
@@ -92,15 +94,24 @@ var Common = require('../core/Common');
 
         for (i = 0; i < pairsListLength; i++) {
             pair = pairsList[i];
-            
-            if (!pair.confirmedActive) {
-                Pair.setActive(pair, false, timestamp);
 
-                if (!pair.collision.bodyA.isSleeping && !pair.collision.bodyB.isSleeping) {
-                    collisionEnd.push(pair);
-                    removePairIndex.push(i);
-                }
+            // keep pair if it had a collision this update
+            if (pair.confirmedActive) {
+                continue;
             }
+
+            bodyA = pair.collision.bodyA;
+            bodyB = pair.collision.bodyB;
+
+            // keep pair if it is sleeping but not both static
+            if ((bodyA.isSleeping || bodyA.isStatic) && (bodyB.isSleeping || bodyB.isStatic) 
+                && !(bodyA.isStatic && bodyB.isStatic)) {
+                continue;
+            }
+
+            Pair.setActive(pair, false, timestamp);
+            collisionEnd.push(pair);
+            removePairIndex.push(i);
         }
 
         // remove inactive pairs
