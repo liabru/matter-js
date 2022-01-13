@@ -1,5 +1,5 @@
 /*!
- * matter-js 0.18.0-alpha+296ee52 by @liabru
+ * matter-js 0.18.0-alpha+0eeceb5 by @liabru
  * Experimental pre-release build.
  *   http://brm.io/matter-js/
  * License MIT
@@ -1946,6 +1946,10 @@ var Body = __webpack_require__(6);
         var position = Common.indexOf(composite.bodies, body);
         if (position !== -1) {
             Composite.removeBodyAt(composite, position);
+
+            // remove sleeping to allow pair removal
+            body.isSleeping = false;
+            body.sleepCounter = 0;
         }
 
         if (deep) {
@@ -8836,6 +8840,8 @@ var Common = __webpack_require__(0);
             collisionEnd = pairs.collisionEnd,
             collisionActive = pairs.collisionActive,
             collision,
+            bodyA,
+            bodyB,
             pairIndex,
             pair,
             i;
@@ -8883,15 +8889,24 @@ var Common = __webpack_require__(0);
 
         for (i = 0; i < pairsListLength; i++) {
             pair = pairsList[i];
-            
-            if (!pair.confirmedActive) {
-                Pair.setActive(pair, false, timestamp);
 
-                if (!pair.collision.bodyA.isSleeping && !pair.collision.bodyB.isSleeping) {
-                    collisionEnd.push(pair);
-                    removePairIndex.push(i);
-                }
+            // keep pair if it had a collision this update
+            if (pair.confirmedActive) {
+                continue;
             }
+
+            bodyA = pair.collision.bodyA;
+            bodyB = pair.collision.bodyB;
+
+            // keep pair if it is sleeping but not both static
+            if ((bodyA.isSleeping || bodyA.isStatic) && (bodyB.isSleeping || bodyB.isStatic) 
+                && !(bodyA.isStatic && bodyB.isStatic)) {
+                continue;
+            }
+
+            Pair.setActive(pair, false, timestamp);
+            collisionEnd.push(pair);
+            removePairIndex.push(i);
         }
 
         // remove inactive pairs
@@ -8995,7 +9010,7 @@ var Common = __webpack_require__(0);
      * @readOnly
      * @type {String}
      */
-    Matter.version =  true ? "0.18.0-alpha+296ee52" : undefined;
+    Matter.version =  true ? "0.18.0-alpha+0eeceb5" : undefined;
 
     /**
      * A list of plugin dependencies to be installed. These are normally set and installed through `Matter.use`.
