@@ -215,6 +215,7 @@ Example.angleConstraints = function() {
     };
 };
 
+Example.angleConstraints.title = 'Angle Constraints';
 Example.angleConstraints.for = '>0.15.0';
 
 if (typeof module !== 'undefined') {
