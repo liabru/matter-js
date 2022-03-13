@@ -20,6 +20,7 @@ var Constraint = require('./Constraint');
 var Composite = require('../body/Composite');
 var Common = require('../core/Common');
 var Bounds = require('../geometry/Bounds');
+var Vector = require('../geometry/Vector');
 
 (function() {
 
@@ -111,7 +112,13 @@ var Bounds = require('../geometry/Bounds');
 
                                 Sleeping.set(body, false);
                                 Events.trigger(mouseConstraint, 'startdrag', { mouse: mouse, body: body });
-
+                                // body event handler: startdrag, click
+                                if (typeof body.event_count === 'undefined' || body.event_count > 0) {
+                                    // console.log("click", { mouse: mouse, body: body })
+                                    Events.trigger(body, 'startdrag', { mouse: mouse, body: body });
+                                    Events.trigger(body, 'click', { mouse: mouse, body: body });
+                                }
+                                body.event_count = 0
                                 break;
                             }
                         }
@@ -125,8 +132,26 @@ var Bounds = require('../geometry/Bounds');
             constraint.bodyB = mouseConstraint.body = null;
             constraint.pointB = null;
 
-            if (body)
+            if (body) {
+                body.event_count = (body.event_count || 0) + 1;
                 Events.trigger(mouseConstraint, 'enddrag', { mouse: mouse, body: body });
+                // body event handler: enddrag, longpress
+                if (body.event_count <= 1) {
+                    Events.trigger(body, 'enddrag', { mouse: mouse, body: body });
+                    if (mouse.endTime - mouse.startTime >= 400) {
+                        var delta = Vector.sub(mouse.mousedownPosition, mouse.mouseupPosition);
+                        // console.log(delta)
+                        // delta x y default 5, debounce
+                        if (Math.abs(delta.x) < 5 && Math.abs(delta.y) < 5) {
+                            // console.log("longpress", { mouse: mouse, body: body })
+                            Events.trigger(mouseConstraint, 'longpress', { mouse: mouse, body: body });
+                            Events.trigger(body, 'longpress', { mouse: mouse, body: body });
+                        }
+                        mouse.endTime = 0
+                        mouse.startTime = 0
+                    }
+                }
+            }
         }
     };
 

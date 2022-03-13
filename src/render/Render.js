@@ -137,7 +137,7 @@ var Mouse = require('../core/Mouse');
     Render.run = function(render) {
         (function loop(time){
             render.frameRequestId = _requestAnimationFrame(loop);
-            
+
             _updateTiming(render, time);
 
             Render.world(render, time);
@@ -337,6 +337,10 @@ var Mouse = require('../core/Mouse');
         };
 
         Events.trigger(render, 'beforeRender', event);
+
+        if (event.timestamp == 0 && allBodies.length > 0) {
+            Render.fixBodies(render, allBodies, context);
+        }
 
         // apply background if it has changed
         if (render.currentBackground !== background)
@@ -697,6 +701,73 @@ var Mouse = require('../core/Mouse');
         }
     };
 
+
+    /**
+     * Description
+     * @private
+     * @method bodies
+     * @param {render} render
+     * @param {body[]} bodies
+     * @param {RenderingContext} context
+     */
+    Render.fixBodies = function(render, bodies, context) {
+        var c = context,
+            engine = render.engine,
+            options = render.options,
+            showInternalEdges = options.showInternalEdges || !options.wireframes,
+            body,
+            part,
+            i,
+            k;
+
+        for (i = 0; i < bodies.length; i++) {
+            body = bodies[i];
+
+            if (!body.render.visible)
+                continue;
+
+            // handle compound parts
+            for (k = body.parts.length > 1 ? 1 : 0; k < body.parts.length; k++) {
+                part = body.parts[k];
+
+                if (!part.render.visible)
+                    continue;
+
+                switch (body.btype) {
+                case 'Text':
+                    console.log(body);
+                    // part.render.text = part.render.text || {};
+                    // var content = part.text;
+                    // // 30px is default font size
+                    // var fontsize = part.render.text.size || 30;
+                    // // white text color by default
+                    // c.fillStyle = part.render.text.color || "#FFFFFF";
+                    // // arial is default font family
+                    // var fontfamily = part.render.text.family || "Arial";
+                    // c.textAlign = "center";
+                    // c.textBaseline = "middle";
+                    // c.font = fontsize + 'px ' + fontfamily;
+                    var res = textHandler(part, c);
+                    // 设置边框
+                    var width = c.measureText(res.content).width;
+                    var delta = 0;
+                    part.vertices[0].x = part.position.x - width / 2 - delta;
+                    part.vertices[0].y = part.position.y - res.fontsize / 2 - delta;
+                    part.vertices[1].x = part.position.x + width / 2 + delta;
+                    part.vertices[1].y = part.position.y - res.fontsize / 2 - delta;
+                    part.vertices[2].x = part.position.x + width / 2 + delta;
+                    part.vertices[2].y = part.position.y + res.fontsize / 2 + delta;
+                    part.vertices[3].x = part.position.x - width / 2 - delta;
+                    part.vertices[3].y = part.position.y + res.fontsize / 2 + delta;
+                    Bounds.update(body.bounds, body.vertices, body.velocity);
+                    break;
+                default:
+                    break;
+                }
+            }
+        }
+    };
+
     /**
      * Description
      * @private
@@ -742,6 +813,25 @@ var Mouse = require('../core/Mouse');
                     c.translate(part.position.x, part.position.y);
                     c.rotate(part.angle);
 
+                    // sprite.width over-write xScale
+                    if (texture.screenWidth != sprite.width &&
+                        typeof sprite.width !== 'undefined' &&
+                        typeof texture.width !== 'undefined' &&
+                        typeof sprite.width !== 0 &&
+                        typeof texture.width !== 0) {
+                        texture.screenWidth = sprite.width;
+                        sprite.xScale = texture.screenWidth / texture.width;
+                    }
+                    // sprite.height over-write yScale
+                    if (texture.screenHeight != sprite.height &&
+                        typeof sprite.height !== 'undefined' &&
+                        typeof texture.height !== 'undefined' &&
+                        typeof sprite.height !== 0 &&
+                        typeof texture.height !== 0) {
+                        texture.screenHeight = sprite.height;
+                        sprite.yScale = sprite.height / texture.height;
+                    }
+
                     c.drawImage(
                         texture,
                         texture.width * -sprite.xOffset * sprite.xScale,
@@ -758,6 +848,26 @@ var Mouse = require('../core/Mouse');
                     if (part.circleRadius) {
                         c.beginPath();
                         c.arc(part.position.x, part.position.y, part.circleRadius, 0, 2 * Math.PI);
+                    } else if (part.text) {
+                        var res = textHandler(part, c);
+                        c.fillText(res.content, part.position.x, part.position.y);
+                        c.beginPath();
+                        c.moveTo(part.vertices[0].x, part.vertices[0].y);
+                        c.fillStyle = "transparent";
+                        c.strokeStyle = "transparent";
+                        part.render.fillStyle = c.fillStyle;
+                        for (var j = 1; j < part.vertices.length; j++) {
+                            if (!part.vertices[j - 1].isInternal || showInternalEdges) {
+                                c.lineTo(part.vertices[j].x, part.vertices[j].y);
+                            } else {
+                                c.moveTo(part.vertices[j].x, part.vertices[j].y);
+                            }
+                            if (part.vertices[j].isInternal && !showInternalEdges) {
+                                c.moveTo(part.vertices[(j + 1) % part.vertices.length].x, part.vertices[(j + 1) % part.vertices.length].y);
+                            }
+                        }
+                        c.lineTo(part.vertices[0].x, part.vertices[0].y);
+                        c.closePath();
                     } else {
                         c.beginPath();
                         c.moveTo(part.vertices[0].x, part.vertices[0].y);
@@ -799,6 +909,21 @@ var Mouse = require('../core/Mouse');
             }
         }
     };
+
+    function textHandler(part, c) {
+        part.render.text = part.render.text || {};
+        var content = part.text;
+        // 30px is default font size
+        var fontsize = part.render.text.size || 30;
+        // white text color by default
+        c.fillStyle = part.render.text.color || "#FFFFFF";
+        // arial is default font family
+        var fontfamily = part.render.text.family || "Arial";
+        c.textAlign = "center";
+        c.textBaseline = "middle";
+        c.font = fontsize + 'px ' + fontfamily;
+        return { content: content, fontsize: fontsize };
+    }
 
     /**
      * Optimised method for drawing body wireframes in one pass
@@ -1466,6 +1591,8 @@ var Mouse = require('../core/Mouse');
 
         image = render.textures[imagePath] = new Image();
         image.src = imagePath;
+        image.screenWidth = image.width;
+        image.screenHeight = image.height;
 
         return image;
     };

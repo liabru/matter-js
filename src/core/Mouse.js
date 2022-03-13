@@ -77,6 +77,7 @@ var Common = require('../core/Common');
             mouse.mousedownPosition.x = mouse.position.x;
             mouse.mousedownPosition.y = mouse.position.y;
             mouse.sourceEvents.mousedown = event;
+            mouse.startTime = Common.now();
         };
         
         mouse.mouseup = function(event) {
@@ -95,6 +96,7 @@ var Common = require('../core/Common');
             mouse.mouseupPosition.x = mouse.position.x;
             mouse.mouseupPosition.y = mouse.position.y;
             mouse.sourceEvents.mouseup = event;
+            mouse.endTime = Common.now();
         };
 
         mouse.mousewheel = function(event) {

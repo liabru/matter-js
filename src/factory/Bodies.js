@@ -36,7 +36,8 @@ var Vector = require('../geometry/Vector');
     Bodies.rectangle = function(x, y, width, height, options) {
         options = options || {};
 
-        var rectangle = { 
+        var rectangle = {
+            btype: 'Rectangle',
             label: 'Rectangle Body',
             position: { x: x, y: y },
             vertices: Vertices.fromPath('L 0 0 L ' + width + ' 0 L ' + width + ' ' + height + ' L 0 ' + height)
@@ -52,6 +53,28 @@ var Vector = require('../geometry/Vector');
         return Body.create(Common.extend({}, rectangle, options));
     };
     
+    /**
+     * Creates a new text body model with a rectangle hull.
+     * The options parameter is an object that specifies any properties you wish to override the defaults.
+     * See the properties section of the `Matter.Body` module for detailed information on what you can pass via the `options` object.
+     * @method text
+     * @param {number} x
+     * @param {number} y
+     * @param {number} text
+     * @param {object} [options]
+     * @return {body} A new text body
+     */
+    Bodies.text = function(x, y, text, options) {
+        options = options || {};
+        var text = {
+            btype: 'Text',
+            label: 'Text Body',
+            position: { x: x, y: y },
+            text: text,
+        };
+        return Body.create(Common.extend({}, text, options));
+    };
+
     /**
      * Creates a new rigid body model with a trapezoid hull. 
      * The options parameter is an object that specifies any properties you wish to override the defaults.
@@ -82,7 +105,8 @@ var Vector = require('../geometry/Vector');
             verticesPath = 'L 0 0 L ' + x2 + ' ' + (-height) + ' L ' + x3 + ' 0';
         }
 
-        var trapezoid = { 
+        var trapezoid = {
+            btype: 'Trapezoid',
             label: 'Trapezoid Body',
             position: { x: x, y: y },
             vertices: Vertices.fromPath(verticesPath)
@@ -114,6 +138,7 @@ var Vector = require('../geometry/Vector');
         options = options || {};
 
         var circle = {
+            btype: 'Circle',
             label: 'Circle Body',
             circleRadius: radius
         };
@@ -159,7 +184,8 @@ var Vector = require('../geometry/Vector');
             path += 'L ' + xx.toFixed(3) + ' ' + yy.toFixed(3) + ' ';
         }
 
-        var polygon = { 
+        var polygon = {
+            btype: 'Polygon',
             label: 'Polygon Body',
             position: { x: x, y: y },
             vertices: Vertices.fromPath(path)

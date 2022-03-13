@@ -220,6 +220,28 @@ var Body = require('./Body');
     };
 
     /**
+     * register body's event
+     * @private
+     * @method registerEvent
+     * @param {body} body
+     * @return
+     */
+    Composite.registerEvent = function(body) {
+        var events = body.events;
+        if (events && typeof events !== 'undefined') {
+            if (events.length) {
+                for (var i = 0; i < events.length; i++) {
+                    if (events[i].name && typeof events[i].callback === 'function' && events[i].callback) {
+                        Events.on(body, events[i].name, events[i].callback)
+                    }
+                }
+            } else if (events.name && typeof events.callback === 'function' && events.callback) {
+                Events.on(body, events.name, events.callback)
+            }
+        }
+    };
+
+    /**
      * Adds a body to the given composite.
      * @private
      * @method addBody
@@ -228,6 +250,7 @@ var Body = require('./Body');
      * @return {composite} The original composite with the body added
      */
     Composite.addBody = function(composite, body) {
+        Composite.registerEvent(body);
         composite.bodies.push(body);
         Composite.setModified(composite, true, true, false);
         return composite;

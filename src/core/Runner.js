@@ -86,6 +86,8 @@ var Common = require('./Common');
             engine = runner;
             runner = Runner.create();
         }
+        // event trigger before runner Run
+        Events.trigger(engine, 'beforeRunnerRun', runner);
 
         (function render(time){
             runner.frameRequestId = _requestAnimationFrame(render);
