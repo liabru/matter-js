@@ -48,10 +48,64 @@ Example.sprites = function() {
         Bodies.rectangle(800 + offset, 300, 50.5, 600.5 + 2 * offset, options),
         Bodies.rectangle(-offset, 300, 50.5, 600.5 + 2 * offset, options)
     ]);
+    var text = Bodies.text(400, 300, "这是一个测试的文本", {
+        context: render.context,
+        events: [{
+                name: "click",
+                callback: (object, event) => {
+                    console.log('click', object, event)
+                }
+            },
+            {
+                name: "longpress",
+                callback: (object, event) => {
+                    console.log('longpress',object, event)
+                }
+            },
+            {
+                name: "startdrag",
+                callback: (object, event) => {
+                    console.log('startdrag',object, event)
+                }
+            },
+            {
+                name: "enddrag",
+                callback: (object, event) => {
+                    console.log('enddrag',object, event)
+                }
+            },
+        ],
+    })
+    Composite.add(world, text)
 
     var stack = Composites.stack(20, 20, 10, 4, 0, 0, function(x, y) {
         if (Common.random() > 0.35) {
             return Bodies.rectangle(x, y, 64, 64, {
+                events: [{
+                        name: "click",
+                        callback: (object, event) => {
+                            console.log('click', object, event)
+                        }
+                    },
+                    {
+                        name: "longpress",
+                        callback: (object, event) => {
+                            console.log('longpress',object, event)
+                        }
+                    },
+                    {
+                        name: "startdrag",
+                        callback: (object, event) => {
+                            console.log('startdrag',object, event)
+                        }
+                    },
+                    {
+                        name: "enddrag",
+                        callback: (object, event) => {
+                            console.log('enddrag',object, event)
+                        }
+                    },
+                ],
                 render: {
                     strokeStyle: '#ffffff',
                     sprite: {
