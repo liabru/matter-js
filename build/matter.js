@@ -1,5 +1,5 @@
 /*!
- * matter-js 0.18.0 by @liabru
+ * matter-js 0.18.1 by @liabru
  * http://brm.io/matter-js/
  * License MIT
  * 
@@ -1919,6 +1919,28 @@ var Body = __webpack_require__(6);
     };
 
     /**
+     * register body's event
+     * @private
+     * @method registerEvent
+     * @param {body} body
+     * @return
+     */
+    Composite.registerEvent = function(body) {
+        var events = body.events;
+        if (events && typeof events !== 'undefined') {
+            if (events.length) {
+                for (var i = 0; i < events.length; i++) {
+                    if (events[i].name && typeof events[i].callback === 'function' && events[i].callback) {
+                        Events.on(body, events[i].name, events[i].callback)
+                    }
+                }
+            } else if (events.name && typeof events.callback === 'function' && events.callback) {
+                Events.on(body, events.name, events.callback)
+            }
+        }
+    };
+
+    /**
      * Adds a body to the given composite.
      * @private
      * @method addBody
@@ -1927,6 +1949,7 @@ var Body = __webpack_require__(6);
      * @return {composite} The original composite with the body added
      */
     Composite.addBody = function(composite, body) {
+        Composite.registerEvent(body);
         composite.bodies.push(body);
         Composite.setModified(composite, true, true, false);
         return composite;
@@ -4655,8 +4678,10 @@ var Common = __webpack_require__(0);
      */
     Constraint.pointAWorld = function(constraint) {
         return {
-            x: (constraint.bodyA ? constraint.bodyA.position.x : 0) + constraint.pointA.x,
-            y: (constraint.bodyA ? constraint.bodyA.position.y : 0) + constraint.pointA.y
+            x: (constraint.bodyA ? constraint.bodyA.position.x : 0) 
+                + (constraint.pointA ? constraint.pointA.x : 0),
+            y: (constraint.bodyA ? constraint.bodyA.position.y : 0) 
+                + (constraint.pointA ? constraint.pointA.y : 0)
         };
     };
 
@@ -4668,8 +4693,10 @@ var Common = __webpack_require__(0);
      */
     Constraint.pointBWorld = function(constraint) {
         return {
-            x: (constraint.bodyB ? constraint.bodyB.position.x : 0) + constraint.pointB.x,
-            y: (constraint.bodyB ? constraint.bodyB.position.y : 0) + constraint.pointB.y
+            x: (constraint.bodyB ? constraint.bodyB.position.x : 0) 
+                + (constraint.pointB ? constraint.pointB.x : 0),
+            y: (constraint.bodyB ? constraint.bodyB.position.y : 0) 
+                + (constraint.pointB ? constraint.pointB.y : 0)
         };
     };
 
@@ -4938,7 +4965,8 @@ var Vector = __webpack_require__(2);
     Bodies.rectangle = function(x, y, width, height, options) {
         options = options || {};
 
-        var rectangle = { 
+        var rectangle = {
+            btype: 'Rectangle',
             label: 'Rectangle Body',
             position: { x: x, y: y },
             vertices: Vertices.fromPath('L 0 0 L ' + width + ' 0 L ' + width + ' ' + height + ' L 0 ' + height)
@@ -4954,6 +4982,28 @@ var Vector = __webpack_require__(2);
         return Body.create(Common.extend({}, rectangle, options));
     };
     
+    /**
+     * Creates a new text body model with a rectangle hull.
+     * The options parameter is an object that specifies any properties you wish to override the defaults.
+     * See the properties section of the `Matter.Body` module for detailed information on what you can pass via the `options` object.
+     * @method text
+     * @param {number} x
+     * @param {number} y
+     * @param {number} text
+     * @param {object} [options]
+     * @return {body} A new text body
+     */
+    Bodies.text = function(x, y, text, options) {
+        options = options || {};
+        var text = {
+            btype: 'Text',
+            label: 'Text Body',
+            position: { x: x, y: y },
+            text: text,
+        };
+        return Body.create(Common.extend({}, text, options));
+    };
+
     /**
      * Creates a new rigid body model with a trapezoid hull. 
      * The options parameter is an object that specifies any properties you wish to override the defaults.
@@ -4984,7 +5034,8 @@ var Vector = __webpack_require__(2);
             verticesPath = 'L 0 0 L ' + x2 + ' ' + (-height) + ' L ' + x3 + ' 0';
         }
 
-        var trapezoid = { 
+        var trapezoid = {
+            btype: 'Trapezoid',
             label: 'Trapezoid Body',
             position: { x: x, y: y },
             vertices: Vertices.fromPath(verticesPath)
@@ -5016,6 +5067,7 @@ var Vector = __webpack_require__(2);
         options = options || {};
 
         var circle = {
+            btype: 'Circle',
             label: 'Circle Body',
             circleRadius: radius
         };
@@ -5061,7 +5113,8 @@ var Vector = __webpack_require__(2);
             path += 'L ' + xx.toFixed(3) + ' ' + yy.toFixed(3) + ' ';
         }
 
-        var polygon = { 
+        var polygon = {
+            btype: 'Polygon',
             label: 'Polygon Body',
             position: { x: x, y: y },
             vertices: Vertices.fromPath(path)
@@ -5343,6 +5396,7 @@ var Common = __webpack_require__(0);
             mouse.mousedownPosition.x = mouse.position.x;
             mouse.mousedownPosition.y = mouse.position.y;
             mouse.sourceEvents.mousedown = event;
+            mouse.startTime = Common.now();
         };
         
         mouse.mouseup = function(event) {
@@ -5361,6 +5415,7 @@ var Common = __webpack_require__(0);
             mouse.mouseupPosition.x = mouse.position.x;
             mouse.mouseupPosition.y = mouse.position.y;
             mouse.sourceEvents.mouseup = event;
+            mouse.endTime = Common.now();
         };
 
         mouse.mousewheel = function(event) {
@@ -6070,7 +6125,6 @@ var Mouse = __webpack_require__(13);
      */
     Render.create = function(options) {
         var defaults = {
-            controller: Render,
             engine: null,
             element: null,
             canvas: null,
@@ -6142,6 +6196,7 @@ var Mouse = __webpack_require__(13);
         };
 
         // for temporary back compatibility only
+        render.controller = Render;
         render.options.showBroadphase = false;
 
         if (render.options.pixelRatio !== 1) {
@@ -6150,8 +6205,6 @@ var Mouse = __webpack_require__(13);
 
         if (Common.isElement(render.element)) {
             render.element.appendChild(render.canvas);
-        } else if (!render.canvas.parentNode) {
-            Common.log('Render.create: options.element was undefined, render.canvas was created but not appended', 'warn');
         }
 
         return render;
@@ -6165,7 +6218,7 @@ var Mouse = __webpack_require__(13);
     Render.run = function(render) {
         (function loop(time){
             render.frameRequestId = _requestAnimationFrame(loop);
-            
+
             _updateTiming(render, time);
 
             Render.world(render, time);
@@ -6365,6 +6418,10 @@ var Mouse = __webpack_require__(13);
         };
 
         Events.trigger(render, 'beforeRender', event);
+
+        if (event.timestamp == 0 && allBodies.length > 0) {
+            Render.fixBodies(render, allBodies, context);
+        }
 
         // apply background if it has changed
         if (render.currentBackground !== background)
@@ -6725,6 +6782,73 @@ var Mouse = __webpack_require__(13);
         }
     };
 
+
+    /**
+     * Description
+     * @private
+     * @method bodies
+     * @param {render} render
+     * @param {body[]} bodies
+     * @param {RenderingContext} context
+     */
+    Render.fixBodies = function(render, bodies, context) {
+        var c = context,
+            engine = render.engine,
+            options = render.options,
+            showInternalEdges = options.showInternalEdges || !options.wireframes,
+            body,
+            part,
+            i,
+            k;
+
+        for (i = 0; i < bodies.length; i++) {
+            body = bodies[i];
+
+            if (!body.render.visible)
+                continue;
+
+            // handle compound parts
+            for (k = body.parts.length > 1 ? 1 : 0; k < body.parts.length; k++) {
+                part = body.parts[k];
+
+                if (!part.render.visible)
+                    continue;
+
+                switch (body.btype) {
+                case 'Text':
+                    console.log(body);
+                    // part.render.text = part.render.text || {};
+                    // var content = part.text;
+                    // // 30px is default font size
+                    // var fontsize = part.render.text.size || 30;
+                    // // white text color by default
+                    // c.fillStyle = part.render.text.color || "#FFFFFF";
+                    // // arial is default font family
+                    // var fontfamily = part.render.text.family || "Arial";
+                    // c.textAlign = "center";
+                    // c.textBaseline = "middle";
+                    // c.font = fontsize + 'px ' + fontfamily;
+                    var res = textHandler(part, c);
+                    // 设置边框
+                    var width = c.measureText(res.content).width;
+                    var delta = 0;
+                    part.vertices[0].x = part.position.x - width / 2 - delta;
+                    part.vertices[0].y = part.position.y - res.fontsize / 2 - delta;
+                    part.vertices[1].x = part.position.x + width / 2 + delta;
+                    part.vertices[1].y = part.position.y - res.fontsize / 2 - delta;
+                    part.vertices[2].x = part.position.x + width / 2 + delta;
+                    part.vertices[2].y = part.position.y + res.fontsize / 2 + delta;
+                    part.vertices[3].x = part.position.x - width / 2 - delta;
+                    part.vertices[3].y = part.position.y + res.fontsize / 2 + delta;
+                    Bounds.update(body.bounds, body.vertices, body.velocity);
+                    break;
+                default:
+                    break;
+                }
+            }
+        }
+    };
+
     /**
      * Description
      * @private
@@ -6770,6 +6894,25 @@ var Mouse = __webpack_require__(13);
                     c.translate(part.position.x, part.position.y);
                     c.rotate(part.angle);
 
+                    // sprite.width over-write xScale
+                    if (texture.screenWidth != sprite.width &&
+                        typeof sprite.width !== 'undefined' &&
+                        typeof texture.width !== 'undefined' &&
+                        typeof sprite.width !== 0 &&
+                        typeof texture.width !== 0) {
+                        texture.screenWidth = sprite.width;
+                        sprite.xScale = texture.screenWidth / texture.width;
+                    }
+                    // sprite.height over-write yScale
+                    if (texture.screenHeight != sprite.height &&
+                        typeof sprite.height !== 'undefined' &&
+                        typeof texture.height !== 'undefined' &&
+                        typeof sprite.height !== 0 &&
+                        typeof texture.height !== 0) {
+                        texture.screenHeight = sprite.height;
+                        sprite.yScale = sprite.height / texture.height;
+                    }
+
                     c.drawImage(
                         texture,
                         texture.width * -sprite.xOffset * sprite.xScale,
@@ -6786,6 +6929,26 @@ var Mouse = __webpack_require__(13);
                     if (part.circleRadius) {
                         c.beginPath();
                         c.arc(part.position.x, part.position.y, part.circleRadius, 0, 2 * Math.PI);
+                    } else if (part.text) {
+                        var res = textHandler(part, c);
+                        c.fillText(res.content, part.position.x, part.position.y);
+                        c.beginPath();
+                        c.moveTo(part.vertices[0].x, part.vertices[0].y);
+                        c.fillStyle = "transparent";
+                        c.strokeStyle = "transparent";
+                        part.render.fillStyle = c.fillStyle;
+                        for (var j = 1; j < part.vertices.length; j++) {
+                            if (!part.vertices[j - 1].isInternal || showInternalEdges) {
+                                c.lineTo(part.vertices[j].x, part.vertices[j].y);
+                            } else {
+                                c.moveTo(part.vertices[j].x, part.vertices[j].y);
+                            }
+                            if (part.vertices[j].isInternal && !showInternalEdges) {
+                                c.moveTo(part.vertices[(j + 1) % part.vertices.length].x, part.vertices[(j + 1) % part.vertices.length].y);
+                            }
+                        }
+                        c.lineTo(part.vertices[0].x, part.vertices[0].y);
+                        c.closePath();
                     } else {
                         c.beginPath();
                         c.moveTo(part.vertices[0].x, part.vertices[0].y);
@@ -6827,6 +6990,21 @@ var Mouse = __webpack_require__(13);
             }
         }
     };
+
+    function textHandler(part, c) {
+        part.render.text = part.render.text || {};
+        var content = part.text;
+        // 30px is default font size
+        var fontsize = part.render.text.size || 30;
+        // white text color by default
+        c.fillStyle = part.render.text.color || "#FFFFFF";
+        // arial is default font family
+        var fontfamily = part.render.text.family || "Arial";
+        c.textAlign = "center";
+        c.textBaseline = "middle";
+        c.font = fontsize + 'px ' + fontfamily;
+        return { content: content, fontsize: fontsize };
+    }
 
     /**
      * Optimised method for drawing body wireframes in one pass
@@ -7494,6 +7672,8 @@ var Mouse = __webpack_require__(13);
 
         image = render.textures[imagePath] = new Image();
         image.src = imagePath;
+        image.screenWidth = image.width;
+        image.screenHeight = image.height;
 
         return image;
     };
@@ -7551,6 +7731,7 @@ var Mouse = __webpack_require__(13);
     /**
      * A back-reference to the `Matter.Render` module.
      *
+     * @deprecated
      * @property controller
      * @type render
      */
@@ -8991,7 +9172,7 @@ var Common = __webpack_require__(0);
      * @readOnly
      * @type {String}
      */
-    Matter.version =  true ? "0.18.0" : undefined;
+    Matter.version =  true ? "0.18.1" : undefined;
 
     /**
      * A list of plugin dependencies to be installed. These are normally set and installed through `Matter.use`.
@@ -9765,6 +9946,7 @@ var Constraint = __webpack_require__(10);
 var Composite = __webpack_require__(5);
 var Common = __webpack_require__(0);
 var Bounds = __webpack_require__(1);
+var Vector = __webpack_require__(2);
 
 (function() {
 
@@ -9856,7 +10038,13 @@ var Bounds = __webpack_require__(1);
 
                                 Sleeping.set(body, false);
                                 Events.trigger(mouseConstraint, 'startdrag', { mouse: mouse, body: body });
-
+                                // body event handler: startdrag, click
+                                if (typeof body.event_count === 'undefined' || body.event_count > 0) {
+                                    // console.log("click", { mouse: mouse, body: body })
+                                    Events.trigger(body, 'startdrag', { mouse: mouse, body: body });
+                                    Events.trigger(body, 'click', { mouse: mouse, body: body });
+                                }
+                                body.event_count = 0
                                 break;
                             }
                         }
@@ -9870,8 +10058,26 @@ var Bounds = __webpack_require__(1);
             constraint.bodyB = mouseConstraint.body = null;
             constraint.pointB = null;
 
-            if (body)
+            if (body) {
+                body.event_count = (body.event_count || 0) + 1;
                 Events.trigger(mouseConstraint, 'enddrag', { mouse: mouse, body: body });
+                // body event handler: enddrag, longpress
+                if (body.event_count <= 1) {
+                    Events.trigger(body, 'enddrag', { mouse: mouse, body: body });
+                    if (mouse.endTime - mouse.startTime >= 400) {
+                        var delta = Vector.sub(mouse.mousedownPosition, mouse.mouseupPosition);
+                        // console.log(delta)
+                        // delta x y default 5, debounce
+                        if (Math.abs(delta.x) < 5 && Math.abs(delta.y) < 5) {
+                            // console.log("longpress", { mouse: mouse, body: body })
+                            Events.trigger(mouseConstraint, 'longpress', { mouse: mouse, body: body });
+                            Events.trigger(body, 'longpress', { mouse: mouse, body: body });
+                        }
+                        mouse.endTime = 0
+                        mouse.startTime = 0
+                    }
+                }
+            }
         }
     };
 
@@ -10004,7 +10210,6 @@ var Bounds = __webpack_require__(1);
      */
 
 })();
-
 
 /***/ }),
 /* 26 */
@@ -10240,6 +10445,8 @@ var Common = __webpack_require__(0);
             engine = runner;
             runner = Runner.create();
         }
+        // event trigger before runner Run
+        Events.trigger(engine, 'beforeRunnerRun', runner);
 
         (function render(time){
             runner.frameRequestId = _requestAnimationFrame(render);
