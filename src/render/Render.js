@@ -338,8 +338,15 @@ var Mouse = require('../core/Mouse');
 
         Events.trigger(render, 'beforeRender', event);
 
-        if (event.timestamp == 0 && allBodies.length > 0) {
+        if (!render.fixed && event.timestamp == 0 && allBodies.length > 0) {
             Render.fixBodies(render, allBodies, context);
+            render.fixed = true;
+        }
+
+        // register mouse trace event
+        if (!render.traceMouse && allBodies.length > 0) {
+            Render.bodyEventHandler(render, allBodies);
+            render.traceMouse = true;
         }
 
         // apply background if it has changed
@@ -705,7 +712,7 @@ var Mouse = require('../core/Mouse');
     /**
      * Description
      * @private
-     * @method bodies
+     * @method fixBodies
      * @param {render} render
      * @param {body[]} bodies
      * @param {RenderingContext} context
@@ -735,18 +742,6 @@ var Mouse = require('../core/Mouse');
 
                 switch (body.btype) {
                 case 'Text':
-                    console.log(body);
-                    // part.render.text = part.render.text || {};
-                    // var content = part.text;
-                    // // 30px is default font size
-                    // var fontsize = part.render.text.size || 30;
-                    // // white text color by default
-                    // c.fillStyle = part.render.text.color || "#FFFFFF";
-                    // // arial is default font family
-                    // var fontfamily = part.render.text.family || "Arial";
-                    // c.textAlign = "center";
-                    // c.textBaseline = "middle";
-                    // c.font = fontsize + 'px ' + fontfamily;
                     var res = textHandler(part, c);
                     // 设置边框
                     var width = c.measureText(res.content).width;
@@ -766,6 +761,61 @@ var Mouse = require('../core/Mouse');
                 }
             }
         }
+    };
+
+    /**
+     * handler body event, where user touch or mouse click
+     * @private
+     * @method bodyEventHandler
+     * @param {*} canvas
+     */
+    Render.bodyEventHandler = function (render, bodies) {
+        var canvas = render.canvas;
+
+        Events.on(canvas, 'mousedown', (mouse) => {
+            for (var i = 0; i < bodies.length; i++) {
+                var body = bodies[i];
+                if (body.events && typeof body.events !== 'undefined' &&
+                    Bounds.contains(body.bounds, mouse.position) && mouse.endTime) {
+                    console.log('mousedown', mouse);
+                    Events.trigger(body, 'mousedown', { mouse: mouse, render: render });
+                }
+            }
+        });
+
+        Events.on(canvas, 'mouseup', (mouse) => {
+            for (var i = 0; i < bodies.length; i++) {
+                var body = bodies[i];
+                if (body.events && typeof body.events !== 'undefined' &&
+                    Bounds.contains(body.bounds, mouse.position)) {
+                    console.log('mouseup', mouse);
+                    if (mouse.endTime - mouse.startTime >= 400) {
+                        var delta = Vector.sub(mouse.mousedownPosition, mouse.mouseupPosition);
+                        // delta x y default 5, debounce
+                        var debounceDelta = 5;
+                        if (Math.abs(delta.x) < debounceDelta && Math.abs(delta.y) < debounceDelta) {
+                            console.log('longpress', mouse);
+                            Events.trigger(body, 'longpress', { mouse: mouse, render: render });
+                        }
+                    } else {
+                        Events.trigger(body, 'click', { mouse: mouse, render: render });
+                    }
+                }
+            }
+            mouse.endTime = 0;
+            mouse.startTime = 0;
+        });
+
+        Events.on(canvas, 'mousemove', (mouse) => {
+            for (var i = 0; i < bodies.length; i++) {
+                var body = bodies[i];
+                if (body.events && typeof body.events !== 'undefined' &&
+                    Bounds.contains(body.bounds, mouse.position)) {
+                    console.log('mousemove', mouse, event);
+                    Events.trigger(body, 'mousemove', { mouse: mouse, body: body });
+                }
+            }
+        });
     };
 
     /**
@@ -817,8 +867,8 @@ var Mouse = require('../core/Mouse');
                     if (texture.screenWidth != sprite.width &&
                         typeof sprite.width !== 'undefined' &&
                         typeof texture.width !== 'undefined' &&
-                        typeof sprite.width !== 0 &&
-                        typeof texture.width !== 0) {
+                        sprite.width !== 0 &&
+                        texture.width !== 0) {
                         texture.screenWidth = sprite.width;
                         sprite.xScale = texture.screenWidth / texture.width;
                     }
@@ -826,8 +876,8 @@ var Mouse = require('../core/Mouse');
                     if (texture.screenHeight != sprite.height &&
                         typeof sprite.height !== 'undefined' &&
                         typeof texture.height !== 'undefined' &&
-                        typeof sprite.height !== 0 &&
-                        typeof texture.height !== 0) {
+                        sprite.height !== 0 &&
+                        texture.height !== 0) {
                         texture.screenHeight = sprite.height;
                         sprite.yScale = sprite.height / texture.height;
                     }
@@ -850,24 +900,24 @@ var Mouse = require('../core/Mouse');
                         c.arc(part.position.x, part.position.y, part.circleRadius, 0, 2 * Math.PI);
                     } else if (part.text) {
                         var res = textHandler(part, c);
-                        c.fillText(res.content, part.position.x, part.position.y);
                         c.beginPath();
-                        c.moveTo(part.vertices[0].x, part.vertices[0].y);
-                        c.fillStyle = "transparent";
-                        c.strokeStyle = "transparent";
-                        part.render.fillStyle = c.fillStyle;
-                        for (var j = 1; j < part.vertices.length; j++) {
-                            if (!part.vertices[j - 1].isInternal || showInternalEdges) {
-                                c.lineTo(part.vertices[j].x, part.vertices[j].y);
-                            } else {
-                                c.moveTo(part.vertices[j].x, part.vertices[j].y);
-                            }
-                            if (part.vertices[j].isInternal && !showInternalEdges) {
-                                c.moveTo(part.vertices[(j + 1) % part.vertices.length].x, part.vertices[(j + 1) % part.vertices.length].y);
-                            }
-                        }
-                        c.lineTo(part.vertices[0].x, part.vertices[0].y);
-                        c.closePath();
+                        c.fillText(res.content, part.position.x, part.position.y);
+                        // c.moveTo(part.vertices[0].x, part.vertices[0].y);
+                        // c.fillStyle = "transparent";
+                        // c.strokeStyle = "transparent";
+                        // part.render.fillStyle = c.fillStyle;
+                        // for (var j = 1; j < part.vertices.length; j++) {
+                        //     if (!part.vertices[j - 1].isInternal || showInternalEdges) {
+                        //         c.lineTo(part.vertices[j].x, part.vertices[j].y);
+                        //     } else {
+                        //         c.moveTo(part.vertices[j].x, part.vertices[j].y);
+                        //     }
+                        //     if (part.vertices[j].isInternal && !showInternalEdges) {
+                        //         c.moveTo(part.vertices[(j + 1) % part.vertices.length].x, part.vertices[(j + 1) % part.vertices.length].y);
+                        //     }
+                        // }
+                        // c.lineTo(part.vertices[0].x, part.vertices[0].y);
+                        // c.closePath();
                     } else {
                         c.beginPath();
                         c.moveTo(part.vertices[0].x, part.vertices[0].y);

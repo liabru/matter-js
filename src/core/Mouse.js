@@ -9,6 +9,7 @@ var Mouse = {};
 module.exports = Mouse;
 
 var Common = require('../core/Common');
+const Events = require('./Events');
 
 (function() {
 
@@ -57,6 +58,7 @@ var Common = require('../core/Common');
             mouse.position.x = mouse.absolute.x * mouse.scale.x + mouse.offset.x;
             mouse.position.y = mouse.absolute.y * mouse.scale.y + mouse.offset.y;
             mouse.sourceEvents.mousemove = event;
+            Events.trigger(mouse.element, 'mousemove', mouse);
         };
         
         mouse.mousedown = function(event) {
@@ -78,6 +80,7 @@ var Common = require('../core/Common');
             mouse.mousedownPosition.y = mouse.position.y;
             mouse.sourceEvents.mousedown = event;
             mouse.startTime = Common.now();
+            Events.trigger(mouse.element, 'mousedown', mouse);
         };
         
         mouse.mouseup = function(event) {
@@ -97,6 +100,7 @@ var Common = require('../core/Common');
             mouse.mouseupPosition.y = mouse.position.y;
             mouse.sourceEvents.mouseup = event;
             mouse.endTime = Common.now();
+            Events.trigger(mouse.element, 'mouseup', mouse);
         };
 
         mouse.mousewheel = function(event) {

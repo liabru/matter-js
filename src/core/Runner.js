@@ -184,6 +184,34 @@ var Common = require('./Common');
     };
 
     /**
+     * Resume execution of `Runner.pause` on the given `runner`, by Resume the animation frame request event loop.
+     * @method resume
+     * @param {runner} runner
+     */
+    Runner.resume = function(runner) {
+        runner.enabled = true;
+    };
+
+    /**
+     * Get Runner run state, running will return true, otherwise return false
+     * @method state
+     * @param {runner} runner
+     * @returns boolean
+     */
+    Runner.state = function(runner) {
+        return runner.enabled;
+    };
+
+    /**
+     * Pause execution of `Runner.run` on the given `runner`, by Pause the animation frame request event loop.
+     * @method pause
+     * @param {runner} runner
+     */
+    Runner.pause = function(runner) {
+        runner.enabled = false;
+    };
+
+    /**
      * Alias for `Runner.run`.
      * @method start
      * @param {runner} runner
