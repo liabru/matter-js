@@ -777,7 +777,6 @@ var Mouse = require('../core/Mouse');
                 var body = bodies[i];
                 if (body.events && typeof body.events !== 'undefined' &&
                     Bounds.contains(body.bounds, mouse.position) && mouse.endTime) {
-                    console.log('mousedown', mouse);
                     Events.trigger(body, 'mousedown', { mouse: mouse, render: render });
                 }
             }
@@ -788,13 +787,11 @@ var Mouse = require('../core/Mouse');
                 var body = bodies[i];
                 if (body.events && typeof body.events !== 'undefined' &&
                     Bounds.contains(body.bounds, mouse.position)) {
-                    console.log('mouseup', mouse);
                     if (mouse.endTime - mouse.startTime >= 400) {
                         var delta = Vector.sub(mouse.mousedownPosition, mouse.mouseupPosition);
                         // delta x y default 5, debounce
                         var debounceDelta = 5;
                         if (Math.abs(delta.x) < debounceDelta && Math.abs(delta.y) < debounceDelta) {
-                            console.log('longpress', mouse);
                             Events.trigger(body, 'longpress', { mouse: mouse, render: render });
                         }
                     } else {
@@ -806,16 +803,15 @@ var Mouse = require('../core/Mouse');
             mouse.startTime = 0;
         });
 
-        Events.on(canvas, 'mousemove', (mouse) => {
-            for (var i = 0; i < bodies.length; i++) {
-                var body = bodies[i];
-                if (body.events && typeof body.events !== 'undefined' &&
-                    Bounds.contains(body.bounds, mouse.position)) {
-                    console.log('mousemove', mouse, event);
-                    Events.trigger(body, 'mousemove', { mouse: mouse, body: body });
-                }
-            }
-        });
+        // Events.on(canvas, 'mousemove', (mouse) => {
+        //     for (var i = 0; i < bodies.length; i++) {
+        //         var body = bodies[i];
+        //         if (body.events && typeof body.events !== 'undefined' &&
+        //             Bounds.contains(body.bounds, mouse.position)) {
+        //             Events.trigger(body, 'mousemove', { mouse: mouse, body: body });
+        //         }
+        //     }
+        // });
     };
 
     /**

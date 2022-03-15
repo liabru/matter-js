@@ -58,7 +58,7 @@ const Events = require('./Events');
             mouse.position.x = mouse.absolute.x * mouse.scale.x + mouse.offset.x;
             mouse.position.y = mouse.absolute.y * mouse.scale.y + mouse.offset.y;
             mouse.sourceEvents.mousemove = event;
-            Events.trigger(mouse.element, 'mousemove', mouse);
+            // Events.trigger(mouse.element, 'mousemove', mouse);
         };
         
         mouse.mousedown = function(event) {

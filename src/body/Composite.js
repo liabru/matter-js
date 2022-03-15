@@ -232,11 +232,11 @@ var Body = require('./Body');
             if (events.length) {
                 for (var i = 0; i < events.length; i++) {
                     if (events[i].name && typeof events[i].callback === 'function' && events[i].callback) {
-                        Events.on(body, events[i].name, events[i].callback)
+                        Events.on(body, events[i].name, events[i].callback);
                     }
                 }
             } else if (events.name && typeof events.callback === 'function' && events.callback) {
-                Events.on(body, events.name, events.callback)
+                Events.on(body, events.name, events.callback);
             }
         }
     };
