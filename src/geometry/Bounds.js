@@ -89,6 +89,36 @@ module.exports = Bounds;
     };
 
     /**
+     * Returns true if the two bounds intersect.
+     * @method overlaps
+     * @param {bounds} boundsA
+     * @param {bounds} boundsB
+     * @return {boolean} True if the bounds overlap, otherwise false
+     */
+    Bounds.compare = function(boundsA, boundsB) {
+        var whA = wh(boundsA), whB = wh(boundsB);
+        return {
+            delteX: whA.width - whB.width,
+            delteY: whA.height - whB.height,
+            scaleX: whA.width /  whB.width,
+            scaleY: whA.height /  whB.height,
+        };
+    };
+
+    /**
+     * Returns true if the two bounds intersect.
+     * @method overlaps
+     * @param {bounds} boundsA
+     * @return {object} bounds width, height
+     */
+    function wh(boundsA) {
+        return {
+            width: boundsA.max.x - boundsA.min.x,
+            height: boundsA.max.y - boundsA.min.y,
+        };
+    }
+
+    /**
      * Translates the bounds by the given vector.
      * @method translate
      * @param {bounds} bounds

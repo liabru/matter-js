@@ -7,6 +7,7 @@ Matter.Bounds = require('../geometry/Bounds');
 Matter.Collision = require('../collision/Collision');
 Matter.Common = require('../core/Common');
 Matter.Composite = require('../body/Composite');
+Matter.Components = require('../factory/Components');
 Matter.Composites = require('../factory/Composites');
 Matter.Constraint = require('../constraint/Constraint');
 Matter.Contact = require('../collision/Contact');

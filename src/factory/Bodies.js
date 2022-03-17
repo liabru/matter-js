@@ -60,7 +60,7 @@ var Vector = require('../geometry/Vector');
      * @method text
      * @param {number} x
      * @param {number} y
-     * @param {number} text
+     * @param {string} text
      * @param {object} [options]
      * @return {body} A new text body
      */
@@ -72,6 +72,9 @@ var Vector = require('../geometry/Vector');
             position: { x: x, y: y },
             text: text,
         };
+        // 文字默认静止
+        options.isStatic = true;
+        options.isSensor = true;
         return Body.create(Common.extend({}, text, options));
     };
 

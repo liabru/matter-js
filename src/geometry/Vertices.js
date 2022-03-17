@@ -458,4 +458,23 @@ var Common = require('../core/Common');
         return upper.concat(lower);
     };
 
+    /**
+     * Returns the new vertices object not include body
+     * @method simpleCopy
+     * @param {vertices} vertices
+     * @return [vertex] vertices
+     */
+    Vertices.simpleCopy = function(vertices) {
+        var vertices2 = [];
+        for (let index = 0; index < vertices.length; index++) {
+            const element = vertices[index];
+            vertices2.push({
+                x: element.x,
+                y: element.y,
+                index: element.index,
+                isInternal: element.isInternal,
+            });
+        }
+        return vertices2;
+    };
 })();

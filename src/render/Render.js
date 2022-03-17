@@ -16,6 +16,7 @@ var Bounds = require('../geometry/Bounds');
 var Events = require('../core/Events');
 var Vector = require('../geometry/Vector');
 var Mouse = require('../core/Mouse');
+var Body = require('../body/Body');
 
 (function() {
 
@@ -102,6 +103,7 @@ var Mouse = require('../core/Mouse');
         render.canvas = render.canvas || _createCanvas(render.options.width, render.options.height);
         render.context = render.canvas.getContext('2d');
         render.textures = {};
+        render.text = {};
 
         render.bounds = render.bounds || {
             min: {
@@ -344,8 +346,8 @@ var Mouse = require('../core/Mouse');
         }
 
         // register mouse trace event
-        if (!render.traceMouse && allBodies.length > 0) {
-            Render.bodyEventHandler(render, allBodies);
+        if (!render.traceBodyMouse && allBodies.length > 0) {
+            Render.elementEventHandler(render, allBodies);
             render.traceMouse = true;
         }
 
@@ -742,19 +744,20 @@ var Mouse = require('../core/Mouse');
 
                 switch (body.btype) {
                 case 'Text':
-                    var res = textHandler(part, c);
-                    // 设置边框
-                    var width = c.measureText(res.content).width;
-                    var delta = 0;
+                    var text = _getText(render, part);
+                    // width set
+                    var width = text.width;
+                    var delta = text.padding;
                     part.vertices[0].x = part.position.x - width / 2 - delta;
-                    part.vertices[0].y = part.position.y - res.fontsize / 2 - delta;
+                    part.vertices[0].y = part.position.y - text.height / 2 - delta;
                     part.vertices[1].x = part.position.x + width / 2 + delta;
-                    part.vertices[1].y = part.position.y - res.fontsize / 2 - delta;
+                    part.vertices[1].y = part.position.y - text.height / 2 - delta;
                     part.vertices[2].x = part.position.x + width / 2 + delta;
-                    part.vertices[2].y = part.position.y + res.fontsize / 2 + delta;
+                    part.vertices[2].y = part.position.y + text.height / 2 + delta;
                     part.vertices[3].x = part.position.x - width / 2 - delta;
-                    part.vertices[3].y = part.position.y + res.fontsize / 2 + delta;
-                    Bounds.update(body.bounds, body.vertices, body.velocity);
+                    part.vertices[3].y = part.position.y + text.height / 2 + delta;
+                    Body.setVertices(body, part.vertices);
+                    // Bounds.update(body.bounds, body.vertices, body.velocity);
                     break;
                 default:
                     break;
@@ -766,36 +769,37 @@ var Mouse = require('../core/Mouse');
     /**
      * handler body event, where user touch or mouse click
      * @private
-     * @method bodyEventHandler
+     * @method elementEventHandler
      * @param {*} canvas
      */
-    Render.bodyEventHandler = function (render, bodies) {
+    Render.elementEventHandler = function (render, elements) {
         var canvas = render.canvas;
 
         Events.on(canvas, 'mousedown', (mouse) => {
-            for (var i = 0; i < bodies.length; i++) {
-                var body = bodies[i];
-                if (body.events && typeof body.events !== 'undefined' &&
-                    Bounds.contains(body.bounds, mouse.position) && mouse.endTime) {
-                    Events.trigger(body, 'mousedown', { mouse: mouse, render: render });
+            for (var i = 0; i < elements.length; i++) {
+                var element = elements[i];
+                if (element.events && typeof element.events !== 'undefined' &&
+                    Bounds.contains(element.bounds, mouse.position)) {
+                    Events.trigger(element, 'mousedown', { mouse: mouse, render: render, element: element });
                 }
             }
         });
 
         Events.on(canvas, 'mouseup', (mouse) => {
-            for (var i = 0; i < bodies.length; i++) {
-                var body = bodies[i];
-                if (body.events && typeof body.events !== 'undefined' &&
-                    Bounds.contains(body.bounds, mouse.position)) {
+            for (var i = 0; i < elements.length; i++) {
+                var element = elements[i];
+                if (element.events && typeof element.events !== 'undefined' &&
+                    Bounds.contains(element.bounds, mouse.position)) {
+                    Events.trigger(element, 'mouseup', { mouse: mouse, render: render, element: element });
                     if (mouse.endTime - mouse.startTime >= 400) {
                         var delta = Vector.sub(mouse.mousedownPosition, mouse.mouseupPosition);
                         // delta x y default 5, debounce
                         var debounceDelta = 5;
                         if (Math.abs(delta.x) < debounceDelta && Math.abs(delta.y) < debounceDelta) {
-                            Events.trigger(body, 'longpress', { mouse: mouse, render: render });
+                            Events.trigger(element, 'longpress', { mouse: mouse, render: render, element: element });
                         }
                     } else {
-                        Events.trigger(body, 'click', { mouse: mouse, render: render });
+                        Events.trigger(element, 'click', { mouse: mouse, render: render, element: element });
                     }
                 }
             }
@@ -804,11 +808,11 @@ var Mouse = require('../core/Mouse');
         });
 
         // Events.on(canvas, 'mousemove', (mouse) => {
-        //     for (var i = 0; i < bodies.length; i++) {
-        //         var body = bodies[i];
-        //         if (body.events && typeof body.events !== 'undefined' &&
-        //             Bounds.contains(body.bounds, mouse.position)) {
-        //             Events.trigger(body, 'mousemove', { mouse: mouse, body: body });
+        //     for (var i = 0; i < elements.length; i++) {
+        //         var element = elements[i];
+        //         if (element.events && typeof element.events !== 'undefined' &&
+        //             Bounds.contains(element.bounds, mouse.position)) {
+        //             Events.trigger(element, 'mousemove', { mouse: mouse, render: render, element: element });
         //         }
         //     }
         // });
@@ -844,7 +848,6 @@ var Mouse = require('../core/Mouse');
 
                 if (!part.render.visible)
                     continue;
-
                 if (options.showSleeping && body.isSleeping) {
                     c.globalAlpha = 0.5 * part.render.opacity;
                 } else if (part.render.opacity !== 1) {
@@ -894,27 +897,88 @@ var Mouse = require('../core/Mouse');
                     if (part.circleRadius) {
                         c.beginPath();
                         c.arc(part.position.x, part.position.y, part.circleRadius, 0, 2 * Math.PI);
-                    } else if (part.text) {
-                        var res = textHandler(part, c);
+                    } else if (part.btype == "Text") {
                         c.beginPath();
-                        c.fillText(res.content, part.position.x, part.position.y);
-                        // c.moveTo(part.vertices[0].x, part.vertices[0].y);
-                        // c.fillStyle = "transparent";
-                        // c.strokeStyle = "transparent";
-                        // part.render.fillStyle = c.fillStyle;
-                        // for (var j = 1; j < part.vertices.length; j++) {
-                        //     if (!part.vertices[j - 1].isInternal || showInternalEdges) {
-                        //         c.lineTo(part.vertices[j].x, part.vertices[j].y);
-                        //     } else {
-                        //         c.moveTo(part.vertices[j].x, part.vertices[j].y);
-                        //     }
-                        //     if (part.vertices[j].isInternal && !showInternalEdges) {
-                        //         c.moveTo(part.vertices[(j + 1) % part.vertices.length].x, part.vertices[(j + 1) % part.vertices.length].y);
-                        //     }
-                        // }
-                        // c.lineTo(part.vertices[0].x, part.vertices[0].y);
-                        // c.closePath();
-                    } else {
+                        c.save();
+                        var text = _getText(render, part);
+                        c.font         = text.font;
+                        c.family       = text.family;
+                        c.direction    = text.direction;
+                        c.fillStyle    = text.fillStyle;
+                        c.textAlign    = text.textAlign;
+                        c.textBaseline = text.textBaseline;
+                        c.fillText(text.content, part.position.x, part.position.y, text.width - text.padding);
+                        c.fillStyle = "transparent";
+                        c.shadowColor = "red";
+                        c.strokeStyle = "transparent";
+                        part.render.fillStyle = c.fillStyle;
+                        c.moveTo(part.vertices[0].x, part.vertices[0].y);
+                        for (var j = 1; j < part.vertices.length; j++) {
+                            if (!part.vertices[j - 1].isInternal || showInternalEdges) {
+                                c.lineTo(part.vertices[j].x, part.vertices[j].y);
+                            } else {
+                                c.moveTo(part.vertices[j].x, part.vertices[j].y);
+                            }
+                            if (part.vertices[j].isInternal && !showInternalEdges) {
+                                c.moveTo(part.vertices[(j + 1) % part.vertices.length].x, part.vertices[(j + 1) % part.vertices.length].y);
+                            }
+                        }
+                        c.lineTo(part.vertices[0].x, part.vertices[0].y);
+                        c.closePath();
+                        c.restore();
+                    }
+                    /*
+                    else if (part.btype == "Button") {
+                        c.beginPath();
+                        c.save();
+                        if (part.render.shadowBlur) {
+                            c.shadowBlur = part.render.shadowBlur;
+                        }
+                        if (part.render.shadowColor) {
+                            c.shadowColor = part.render.shadowColor;
+                        }
+                        if (part.render.shadowOffsetX) {
+                            c.shadowOffsetX = part.render.shadowOffsetX;
+                        }
+                        if (part.render.shadowOffsetY) {
+                            c.shadowColor = part.render.shadowOffsetY;
+                        }
+                        c.moveTo(part.vertices[0].x, part.vertices[0].y);
+                        for (var j = 1; j < part.vertices.length; j++) {
+                            if (!part.vertices[j - 1].isInternal || showInternalEdges) {
+                                c.lineTo(part.vertices[j].x, part.vertices[j].y);
+                            } else {
+                                c.moveTo(part.vertices[j].x, part.vertices[j].y);
+                            }
+
+                            if (part.vertices[j].isInternal && !showInternalEdges) {
+                                c.moveTo(part.vertices[(j + 1) % part.vertices.length].x, part.vertices[(j + 1) % part.vertices.length].y);
+                            }
+                        }
+                        c.fillStyle = part.render.fillStyle;
+                        c.closePath();
+                        if (part.render.lineWidth) {
+                            c.lineWidth = part.render.lineWidth;
+                            c.strokeStyle = part.render.strokeStyle;
+                            c.stroke();
+                        }
+                        c.fill();
+                        c.beginPath();
+                        var text = part.render.text || {};
+                        text.content = part.text;
+                        text.size = part.property.height;
+                        c.padding      = text.padding || 15;
+                        c.family       = text.family || 'Arial';
+                        c.font         = text.size - c.padding + "px " + c.family;
+                        c.fillStyle    = text.color || '#ffffff';
+                        c.direction    = text.direction || 'inherit';
+                        c.textAlign    = text.textAlign || 'center';
+                        c.textBaseline = text.textBaseline || 'middle';
+                        c.fillText(text.content, part.position.x, part.position.y, part.property.width - c.padding);
+                        c.restore();
+                    }
+                    */
+                    else {
                         c.beginPath();
                         c.moveTo(part.vertices[0].x, part.vertices[0].y);
 
@@ -950,26 +1014,10 @@ var Mouse = require('../core/Mouse');
                         c.stroke();
                     }
                 }
-
                 c.globalAlpha = 1;
             }
         }
     };
-
-    function textHandler(part, c) {
-        part.render.text = part.render.text || {};
-        var content = part.text;
-        // 30px is default font size
-        var fontsize = part.render.text.size || 30;
-        // white text color by default
-        c.fillStyle = part.render.text.color || "#FFFFFF";
-        // arial is default font family
-        var fontfamily = part.render.text.family || "Arial";
-        c.textAlign = "center";
-        c.textBaseline = "middle";
-        c.font = fontsize + 'px ' + fontfamily;
-        return { content: content, fontsize: fontsize };
-    }
 
     /**
      * Optimised method for drawing body wireframes in one pass
@@ -1641,6 +1689,63 @@ var Mouse = require('../core/Mouse');
         image.screenHeight = image.height;
 
         return image;
+    };
+
+    /**
+     * Gets the requested texture (an Image) via its path
+     * @method _getTexture
+     * @private
+     * @param {render} render
+     * @param {string} imagePath
+     * @return {Image} texture
+     */
+    var _getText = function(render, part) {
+        var text = render.text[part.id];
+
+        if (text)
+            return text;
+
+        var c = render.context;
+        part.property = part.property || {};
+        part.render.text = part.render.text || {};
+        var content      = part.text;
+        var height       = part.render.text.size || 30;
+        var padding      = part.render.text.padding || 0;
+        var family       = part.render.text.family || 'Arial';
+        var font         = height + 'px ' + family;
+        var fillStyle    = part.render.text.color || '#ffffff';
+        var direction    = part.render.text.direction || 'inherit';
+        var textAlign    = part.render.text.textAlign || 'center';
+        var textBaseline = part.render.text.textBaseline || 'middle';
+        // canvas context set font context
+        c.save();
+        c.font           = font;
+        c.fillStyle      = fillStyle;
+        c.textAlign      = textAlign;
+        c.textBaseline   = textBaseline;
+        var width        = c.measureText(content).width;
+        if (part.property.width) {
+            width = part.property.width;
+        }
+        if (part.property.height) {
+            height = part.property.height;
+        }
+        // new a text context cache
+        text = render.text[part.id] = {
+            context      : c,
+            font         : font,
+            family       : family,
+            width        : width,
+            height       : height,
+            padding      : padding,
+            content      : content,
+            fillStyle    : fillStyle,
+            direction    : direction,
+            textAlign    : textAlign,
+            textBaseline : textBaseline,
+        };
+        c.restore();
+        return text;
     };
 
     /**
