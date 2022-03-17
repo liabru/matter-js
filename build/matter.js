@@ -833,6 +833,36 @@ module.exports = Bounds;
     };
 
     /**
+     * Returns true if the two bounds intersect.
+     * @method overlaps
+     * @param {bounds} boundsA
+     * @param {bounds} boundsB
+     * @return {boolean} True if the bounds overlap, otherwise false
+     */
+    Bounds.compare = function(boundsA, boundsB) {
+        var whA = wh(boundsA), whB = wh(boundsB);
+        return {
+            delteX: whA.width - whB.width,
+            delteY: whA.height - whB.height,
+            scaleX: whA.width /  whB.width,
+            scaleY: whA.height /  whB.height,
+        };
+    };
+
+    /**
+     * Returns true if the two bounds intersect.
+     * @method overlaps
+     * @param {bounds} boundsA
+     * @return {object} bounds width, height
+     */
+    function wh(boundsA) {
+        return {
+            width: boundsA.max.x - boundsA.min.x,
+            height: boundsA.max.y - boundsA.min.y,
+        };
+    }
+
+    /**
      * Translates the bounds by the given vector.
      * @method translate
      * @param {bounds} bounds
@@ -1572,6 +1602,25 @@ var Common = __webpack_require__(0);
         return upper.concat(lower);
     };
 
+    /**
+     * Returns the new vertices object not include body
+     * @method simpleCopy
+     * @param {vertices} vertices
+     * @return [vertex] vertices
+     */
+    Vertices.simpleCopy = function(vertices) {
+        var vertices2 = [];
+        for (let index = 0; index < vertices.length; index++) {
+            const element = vertices[index];
+            vertices2.push({
+                x: element.x,
+                y: element.y,
+                index: element.index,
+                isInternal: element.isInternal,
+            });
+        }
+        return vertices2;
+    };
 })();
 
 
@@ -1698,757 +1747,6 @@ var Common = __webpack_require__(0);
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
-* A composite is a collection of `Matter.Body`, `Matter.Constraint` and other `Matter.Composite` objects.
-*
-* They are a container that can represent complex objects made of multiple parts, even if they are not physically connected.
-* A composite could contain anything from a single body all the way up to a whole world.
-* 
-* When making any changes to composites, use the included functions rather than changing their properties directly.
-*
-* See the included usage [examples](https://github.com/liabru/matter-js/tree/master/examples).
-*
-* @class Composite
-*/
-
-var Composite = {};
-
-module.exports = Composite;
-
-var Events = __webpack_require__(4);
-var Common = __webpack_require__(0);
-var Bounds = __webpack_require__(1);
-var Body = __webpack_require__(6);
-
-(function() {
-
-    /**
-     * Creates a new composite. The options parameter is an object that specifies any properties you wish to override the defaults.
-     * See the properites section below for detailed information on what you can pass via the `options` object.
-     * @method create
-     * @param {} [options]
-     * @return {composite} A new composite
-     */
-    Composite.create = function(options) {
-        return Common.extend({ 
-            id: Common.nextId(),
-            type: 'composite',
-            parent: null,
-            isModified: false,
-            bodies: [], 
-            constraints: [], 
-            composites: [],
-            label: 'Composite',
-            plugin: {},
-            cache: {
-                allBodies: null,
-                allConstraints: null,
-                allComposites: null
-            }
-        }, options);
-    };
-
-    /**
-     * Sets the composite's `isModified` flag. 
-     * If `updateParents` is true, all parents will be set (default: false).
-     * If `updateChildren` is true, all children will be set (default: false).
-     * @private
-     * @method setModified
-     * @param {composite} composite
-     * @param {boolean} isModified
-     * @param {boolean} [updateParents=false]
-     * @param {boolean} [updateChildren=false]
-     */
-    Composite.setModified = function(composite, isModified, updateParents, updateChildren) {
-        composite.isModified = isModified;
-
-        if (isModified && composite.cache) {
-            composite.cache.allBodies = null;
-            composite.cache.allConstraints = null;
-            composite.cache.allComposites = null;
-        }
-
-        if (updateParents && composite.parent) {
-            Composite.setModified(composite.parent, isModified, updateParents, updateChildren);
-        }
-
-        if (updateChildren) {
-            for (var i = 0; i < composite.composites.length; i++) {
-                var childComposite = composite.composites[i];
-                Composite.setModified(childComposite, isModified, updateParents, updateChildren);
-            }
-        }
-    };
-
-    /**
-     * Generic single or multi-add function. Adds a single or an array of body(s), constraint(s) or composite(s) to the given composite.
-     * Triggers `beforeAdd` and `afterAdd` events on the `composite`.
-     * @method add
-     * @param {composite} composite
-     * @param {object|array} object A single or an array of body(s), constraint(s) or composite(s)
-     * @return {composite} The original composite with the objects added
-     */
-    Composite.add = function(composite, object) {
-        var objects = [].concat(object);
-
-        Events.trigger(composite, 'beforeAdd', { object: object });
-
-        for (var i = 0; i < objects.length; i++) {
-            var obj = objects[i];
-
-            switch (obj.type) {
-
-            case 'body':
-                // skip adding compound parts
-                if (obj.parent !== obj) {
-                    Common.warn('Composite.add: skipped adding a compound body part (you must add its parent instead)');
-                    break;
-                }
-
-                Composite.addBody(composite, obj);
-                break;
-            case 'constraint':
-                Composite.addConstraint(composite, obj);
-                break;
-            case 'composite':
-                Composite.addComposite(composite, obj);
-                break;
-            case 'mouseConstraint':
-                Composite.addConstraint(composite, obj.constraint);
-                break;
-
-            }
-        }
-
-        Events.trigger(composite, 'afterAdd', { object: object });
-
-        return composite;
-    };
-
-    /**
-     * Generic remove function. Removes one or many body(s), constraint(s) or a composite(s) to the given composite.
-     * Optionally searching its children recursively.
-     * Triggers `beforeRemove` and `afterRemove` events on the `composite`.
-     * @method remove
-     * @param {composite} composite
-     * @param {object|array} object
-     * @param {boolean} [deep=false]
-     * @return {composite} The original composite with the objects removed
-     */
-    Composite.remove = function(composite, object, deep) {
-        var objects = [].concat(object);
-
-        Events.trigger(composite, 'beforeRemove', { object: object });
-
-        for (var i = 0; i < objects.length; i++) {
-            var obj = objects[i];
-
-            switch (obj.type) {
-
-            case 'body':
-                Composite.removeBody(composite, obj, deep);
-                break;
-            case 'constraint':
-                Composite.removeConstraint(composite, obj, deep);
-                break;
-            case 'composite':
-                Composite.removeComposite(composite, obj, deep);
-                break;
-            case 'mouseConstraint':
-                Composite.removeConstraint(composite, obj.constraint);
-                break;
-
-            }
-        }
-
-        Events.trigger(composite, 'afterRemove', { object: object });
-
-        return composite;
-    };
-
-    /**
-     * Adds a composite to the given composite.
-     * @private
-     * @method addComposite
-     * @param {composite} compositeA
-     * @param {composite} compositeB
-     * @return {composite} The original compositeA with the objects from compositeB added
-     */
-    Composite.addComposite = function(compositeA, compositeB) {
-        compositeA.composites.push(compositeB);
-        compositeB.parent = compositeA;
-        Composite.setModified(compositeA, true, true, false);
-        return compositeA;
-    };
-
-    /**
-     * Removes a composite from the given composite, and optionally searching its children recursively.
-     * @private
-     * @method removeComposite
-     * @param {composite} compositeA
-     * @param {composite} compositeB
-     * @param {boolean} [deep=false]
-     * @return {composite} The original compositeA with the composite removed
-     */
-    Composite.removeComposite = function(compositeA, compositeB, deep) {
-        var position = Common.indexOf(compositeA.composites, compositeB);
-        if (position !== -1) {
-            Composite.removeCompositeAt(compositeA, position);
-        }
-
-        if (deep) {
-            for (var i = 0; i < compositeA.composites.length; i++){
-                Composite.removeComposite(compositeA.composites[i], compositeB, true);
-            }
-        }
-
-        return compositeA;
-    };
-
-    /**
-     * Removes a composite from the given composite.
-     * @private
-     * @method removeCompositeAt
-     * @param {composite} composite
-     * @param {number} position
-     * @return {composite} The original composite with the composite removed
-     */
-    Composite.removeCompositeAt = function(composite, position) {
-        composite.composites.splice(position, 1);
-        Composite.setModified(composite, true, true, false);
-        return composite;
-    };
-
-    /**
-     * register body's event
-     * @private
-     * @method registerEvent
-     * @param {body} body
-     * @return
-     */
-    Composite.registerEvent = function(body) {
-        var events = body.events;
-        if (events && typeof events !== 'undefined') {
-            if (events.length) {
-                for (var i = 0; i < events.length; i++) {
-                    if (events[i].name && typeof events[i].callback === 'function' && events[i].callback) {
-                        Events.on(body, events[i].name, events[i].callback)
-                    }
-                }
-            } else if (events.name && typeof events.callback === 'function' && events.callback) {
-                Events.on(body, events.name, events.callback)
-            }
-        }
-    };
-
-    /**
-     * Adds a body to the given composite.
-     * @private
-     * @method addBody
-     * @param {composite} composite
-     * @param {body} body
-     * @return {composite} The original composite with the body added
-     */
-    Composite.addBody = function(composite, body) {
-        Composite.registerEvent(body);
-        composite.bodies.push(body);
-        Composite.setModified(composite, true, true, false);
-        return composite;
-    };
-
-    /**
-     * Removes a body from the given composite, and optionally searching its children recursively.
-     * @private
-     * @method removeBody
-     * @param {composite} composite
-     * @param {body} body
-     * @param {boolean} [deep=false]
-     * @return {composite} The original composite with the body removed
-     */
-    Composite.removeBody = function(composite, body, deep) {
-        var position = Common.indexOf(composite.bodies, body);
-        if (position !== -1) {
-            Composite.removeBodyAt(composite, position);
-        }
-
-        if (deep) {
-            for (var i = 0; i < composite.composites.length; i++){
-                Composite.removeBody(composite.composites[i], body, true);
-            }
-        }
-
-        return composite;
-    };
-
-    /**
-     * Removes a body from the given composite.
-     * @private
-     * @method removeBodyAt
-     * @param {composite} composite
-     * @param {number} position
-     * @return {composite} The original composite with the body removed
-     */
-    Composite.removeBodyAt = function(composite, position) {
-        composite.bodies.splice(position, 1);
-        Composite.setModified(composite, true, true, false);
-        return composite;
-    };
-
-    /**
-     * Adds a constraint to the given composite.
-     * @private
-     * @method addConstraint
-     * @param {composite} composite
-     * @param {constraint} constraint
-     * @return {composite} The original composite with the constraint added
-     */
-    Composite.addConstraint = function(composite, constraint) {
-        composite.constraints.push(constraint);
-        Composite.setModified(composite, true, true, false);
-        return composite;
-    };
-
-    /**
-     * Removes a constraint from the given composite, and optionally searching its children recursively.
-     * @private
-     * @method removeConstraint
-     * @param {composite} composite
-     * @param {constraint} constraint
-     * @param {boolean} [deep=false]
-     * @return {composite} The original composite with the constraint removed
-     */
-    Composite.removeConstraint = function(composite, constraint, deep) {
-        var position = Common.indexOf(composite.constraints, constraint);
-        if (position !== -1) {
-            Composite.removeConstraintAt(composite, position);
-        }
-
-        if (deep) {
-            for (var i = 0; i < composite.composites.length; i++){
-                Composite.removeConstraint(composite.composites[i], constraint, true);
-            }
-        }
-
-        return composite;
-    };
-
-    /**
-     * Removes a body from the given composite.
-     * @private
-     * @method removeConstraintAt
-     * @param {composite} composite
-     * @param {number} position
-     * @return {composite} The original composite with the constraint removed
-     */
-    Composite.removeConstraintAt = function(composite, position) {
-        composite.constraints.splice(position, 1);
-        Composite.setModified(composite, true, true, false);
-        return composite;
-    };
-
-    /**
-     * Removes all bodies, constraints and composites from the given composite.
-     * Optionally clearing its children recursively.
-     * @method clear
-     * @param {composite} composite
-     * @param {boolean} keepStatic
-     * @param {boolean} [deep=false]
-     */
-    Composite.clear = function(composite, keepStatic, deep) {
-        if (deep) {
-            for (var i = 0; i < composite.composites.length; i++){
-                Composite.clear(composite.composites[i], keepStatic, true);
-            }
-        }
-        
-        if (keepStatic) {
-            composite.bodies = composite.bodies.filter(function(body) { return body.isStatic; });
-        } else {
-            composite.bodies.length = 0;
-        }
-
-        composite.constraints.length = 0;
-        composite.composites.length = 0;
-
-        Composite.setModified(composite, true, true, false);
-
-        return composite;
-    };
-
-    /**
-     * Returns all bodies in the given composite, including all bodies in its children, recursively.
-     * @method allBodies
-     * @param {composite} composite
-     * @return {body[]} All the bodies
-     */
-    Composite.allBodies = function(composite) {
-        if (composite.cache && composite.cache.allBodies) {
-            return composite.cache.allBodies;
-        }
-
-        var bodies = [].concat(composite.bodies);
-
-        for (var i = 0; i < composite.composites.length; i++)
-            bodies = bodies.concat(Composite.allBodies(composite.composites[i]));
-
-        if (composite.cache) {
-            composite.cache.allBodies = bodies;
-        }
-
-        return bodies;
-    };
-
-    /**
-     * Returns all constraints in the given composite, including all constraints in its children, recursively.
-     * @method allConstraints
-     * @param {composite} composite
-     * @return {constraint[]} All the constraints
-     */
-    Composite.allConstraints = function(composite) {
-        if (composite.cache && composite.cache.allConstraints) {
-            return composite.cache.allConstraints;
-        }
-
-        var constraints = [].concat(composite.constraints);
-
-        for (var i = 0; i < composite.composites.length; i++)
-            constraints = constraints.concat(Composite.allConstraints(composite.composites[i]));
-
-        if (composite.cache) {
-            composite.cache.allConstraints = constraints;
-        }
-
-        return constraints;
-    };
-
-    /**
-     * Returns all composites in the given composite, including all composites in its children, recursively.
-     * @method allComposites
-     * @param {composite} composite
-     * @return {composite[]} All the composites
-     */
-    Composite.allComposites = function(composite) {
-        if (composite.cache && composite.cache.allComposites) {
-            return composite.cache.allComposites;
-        }
-
-        var composites = [].concat(composite.composites);
-
-        for (var i = 0; i < composite.composites.length; i++)
-            composites = composites.concat(Composite.allComposites(composite.composites[i]));
-
-        if (composite.cache) {
-            composite.cache.allComposites = composites;
-        }
-
-        return composites;
-    };
-
-    /**
-     * Searches the composite recursively for an object matching the type and id supplied, null if not found.
-     * @method get
-     * @param {composite} composite
-     * @param {number} id
-     * @param {string} type
-     * @return {object} The requested object, if found
-     */
-    Composite.get = function(composite, id, type) {
-        var objects,
-            object;
-
-        switch (type) {
-        case 'body':
-            objects = Composite.allBodies(composite);
-            break;
-        case 'constraint':
-            objects = Composite.allConstraints(composite);
-            break;
-        case 'composite':
-            objects = Composite.allComposites(composite).concat(composite);
-            break;
-        }
-
-        if (!objects)
-            return null;
-
-        object = objects.filter(function(object) { 
-            return object.id.toString() === id.toString(); 
-        });
-
-        return object.length === 0 ? null : object[0];
-    };
-
-    /**
-     * Moves the given object(s) from compositeA to compositeB (equal to a remove followed by an add).
-     * @method move
-     * @param {compositeA} compositeA
-     * @param {object[]} objects
-     * @param {compositeB} compositeB
-     * @return {composite} Returns compositeA
-     */
-    Composite.move = function(compositeA, objects, compositeB) {
-        Composite.remove(compositeA, objects);
-        Composite.add(compositeB, objects);
-        return compositeA;
-    };
-
-    /**
-     * Assigns new ids for all objects in the composite, recursively.
-     * @method rebase
-     * @param {composite} composite
-     * @return {composite} Returns composite
-     */
-    Composite.rebase = function(composite) {
-        var objects = Composite.allBodies(composite)
-            .concat(Composite.allConstraints(composite))
-            .concat(Composite.allComposites(composite));
-
-        for (var i = 0; i < objects.length; i++) {
-            objects[i].id = Common.nextId();
-        }
-
-        return composite;
-    };
-
-    /**
-     * Translates all children in the composite by a given vector relative to their current positions, 
-     * without imparting any velocity.
-     * @method translate
-     * @param {composite} composite
-     * @param {vector} translation
-     * @param {bool} [recursive=true]
-     */
-    Composite.translate = function(composite, translation, recursive) {
-        var bodies = recursive ? Composite.allBodies(composite) : composite.bodies;
-
-        for (var i = 0; i < bodies.length; i++) {
-            Body.translate(bodies[i], translation);
-        }
-
-        return composite;
-    };
-
-    /**
-     * Rotates all children in the composite by a given angle about the given point, without imparting any angular velocity.
-     * @method rotate
-     * @param {composite} composite
-     * @param {number} rotation
-     * @param {vector} point
-     * @param {bool} [recursive=true]
-     */
-    Composite.rotate = function(composite, rotation, point, recursive) {
-        var cos = Math.cos(rotation),
-            sin = Math.sin(rotation),
-            bodies = recursive ? Composite.allBodies(composite) : composite.bodies;
-
-        for (var i = 0; i < bodies.length; i++) {
-            var body = bodies[i],
-                dx = body.position.x - point.x,
-                dy = body.position.y - point.y;
-                
-            Body.setPosition(body, {
-                x: point.x + (dx * cos - dy * sin),
-                y: point.y + (dx * sin + dy * cos)
-            });
-
-            Body.rotate(body, rotation);
-        }
-
-        return composite;
-    };
-
-    /**
-     * Scales all children in the composite, including updating physical properties (mass, area, axes, inertia), from a world-space point.
-     * @method scale
-     * @param {composite} composite
-     * @param {number} scaleX
-     * @param {number} scaleY
-     * @param {vector} point
-     * @param {bool} [recursive=true]
-     */
-    Composite.scale = function(composite, scaleX, scaleY, point, recursive) {
-        var bodies = recursive ? Composite.allBodies(composite) : composite.bodies;
-
-        for (var i = 0; i < bodies.length; i++) {
-            var body = bodies[i],
-                dx = body.position.x - point.x,
-                dy = body.position.y - point.y;
-                
-            Body.setPosition(body, {
-                x: point.x + dx * scaleX,
-                y: point.y + dy * scaleY
-            });
-
-            Body.scale(body, scaleX, scaleY);
-        }
-
-        return composite;
-    };
-
-    /**
-     * Returns the union of the bounds of all of the composite's bodies.
-     * @method bounds
-     * @param {composite} composite The composite.
-     * @returns {bounds} The composite bounds.
-     */
-    Composite.bounds = function(composite) {
-        var bodies = Composite.allBodies(composite),
-            vertices = [];
-
-        for (var i = 0; i < bodies.length; i += 1) {
-            var body = bodies[i];
-            vertices.push(body.bounds.min, body.bounds.max);
-        }
-
-        return Bounds.create(vertices);
-    };
-
-    /*
-    *
-    *  Events Documentation
-    *
-    */
-
-    /**
-    * Fired when a call to `Composite.add` is made, before objects have been added.
-    *
-    * @event beforeAdd
-    * @param {} event An event object
-    * @param {} event.object The object(s) to be added (may be a single body, constraint, composite or a mixed array of these)
-    * @param {} event.source The source object of the event
-    * @param {} event.name The name of the event
-    */
-
-    /**
-    * Fired when a call to `Composite.add` is made, after objects have been added.
-    *
-    * @event afterAdd
-    * @param {} event An event object
-    * @param {} event.object The object(s) that have been added (may be a single body, constraint, composite or a mixed array of these)
-    * @param {} event.source The source object of the event
-    * @param {} event.name The name of the event
-    */
-
-    /**
-    * Fired when a call to `Composite.remove` is made, before objects have been removed.
-    *
-    * @event beforeRemove
-    * @param {} event An event object
-    * @param {} event.object The object(s) to be removed (may be a single body, constraint, composite or a mixed array of these)
-    * @param {} event.source The source object of the event
-    * @param {} event.name The name of the event
-    */
-
-    /**
-    * Fired when a call to `Composite.remove` is made, after objects have been removed.
-    *
-    * @event afterRemove
-    * @param {} event An event object
-    * @param {} event.object The object(s) that have been removed (may be a single body, constraint, composite or a mixed array of these)
-    * @param {} event.source The source object of the event
-    * @param {} event.name The name of the event
-    */
-
-    /*
-    *
-    *  Properties Documentation
-    *
-    */
-
-    /**
-     * An integer `Number` uniquely identifying number generated in `Composite.create` by `Common.nextId`.
-     *
-     * @property id
-     * @type number
-     */
-
-    /**
-     * A `String` denoting the type of object.
-     *
-     * @property type
-     * @type string
-     * @default "composite"
-     * @readOnly
-     */
-
-    /**
-     * An arbitrary `String` name to help the user identify and manage composites.
-     *
-     * @property label
-     * @type string
-     * @default "Composite"
-     */
-
-    /**
-     * A flag that specifies whether the composite has been modified during the current step.
-     * This is automatically managed when bodies, constraints or composites are added or removed.
-     *
-     * @property isModified
-     * @type boolean
-     * @default false
-     */
-
-    /**
-     * The `Composite` that is the parent of this composite. It is automatically managed by the `Matter.Composite` methods.
-     *
-     * @property parent
-     * @type composite
-     * @default null
-     */
-
-    /**
-     * An array of `Body` that are _direct_ children of this composite.
-     * To add or remove bodies you should use `Composite.add` and `Composite.remove` methods rather than directly modifying this property.
-     * If you wish to recursively find all descendants, you should use the `Composite.allBodies` method.
-     *
-     * @property bodies
-     * @type body[]
-     * @default []
-     */
-
-    /**
-     * An array of `Constraint` that are _direct_ children of this composite.
-     * To add or remove constraints you should use `Composite.add` and `Composite.remove` methods rather than directly modifying this property.
-     * If you wish to recursively find all descendants, you should use the `Composite.allConstraints` method.
-     *
-     * @property constraints
-     * @type constraint[]
-     * @default []
-     */
-
-    /**
-     * An array of `Composite` that are _direct_ children of this composite.
-     * To add or remove composites you should use `Composite.add` and `Composite.remove` methods rather than directly modifying this property.
-     * If you wish to recursively find all descendants, you should use the `Composite.allComposites` method.
-     *
-     * @property composites
-     * @type composite[]
-     * @default []
-     */
-
-    /**
-     * An object reserved for storing plugin-specific properties.
-     *
-     * @property plugin
-     * @type {}
-     */
-
-    /**
-     * An object used for storing cached results for performance reasons.
-     * This is used internally only and is automatically managed.
-     *
-     * @private
-     * @property cache
-     * @type {}
-     */
-
-})();
-
-
-/***/ }),
-/* 6 */
-/***/ (function(module, exports, __webpack_require__) {
-
-/**
 * The `Matter.Body` module contains methods for creating and manipulating body models.
 * A `Matter.Body` is a rigid body that can be simulated by a `Matter.Engine`.
 * Factories for commonly used body configurations (such as rectangles, circles and other polygons) can be found in the module `Matter.Bodies`.
@@ -2468,7 +1766,7 @@ var Sleeping = __webpack_require__(7);
 var Render = __webpack_require__(16);
 var Common = __webpack_require__(0);
 var Bounds = __webpack_require__(1);
-var Axes = __webpack_require__(11);
+var Axes = __webpack_require__(12);
 
 (function() {
 
@@ -3686,6 +2984,757 @@ var Axes = __webpack_require__(11);
 
 
 /***/ }),
+/* 6 */
+/***/ (function(module, exports, __webpack_require__) {
+
+/**
+* A composite is a collection of `Matter.Body`, `Matter.Constraint` and other `Matter.Composite` objects.
+*
+* They are a container that can represent complex objects made of multiple parts, even if they are not physically connected.
+* A composite could contain anything from a single body all the way up to a whole world.
+* 
+* When making any changes to composites, use the included functions rather than changing their properties directly.
+*
+* See the included usage [examples](https://github.com/liabru/matter-js/tree/master/examples).
+*
+* @class Composite
+*/
+
+var Composite = {};
+
+module.exports = Composite;
+
+var Events = __webpack_require__(4);
+var Common = __webpack_require__(0);
+var Bounds = __webpack_require__(1);
+var Body = __webpack_require__(5);
+
+(function() {
+
+    /**
+     * Creates a new composite. The options parameter is an object that specifies any properties you wish to override the defaults.
+     * See the properites section below for detailed information on what you can pass via the `options` object.
+     * @method create
+     * @param {} [options]
+     * @return {composite} A new composite
+     */
+    Composite.create = function(options) {
+        return Common.extend({ 
+            id: Common.nextId(),
+            type: 'composite',
+            parent: null,
+            isModified: false,
+            bodies: [], 
+            constraints: [], 
+            composites: [],
+            label: 'Composite',
+            plugin: {},
+            cache: {
+                allBodies: null,
+                allConstraints: null,
+                allComposites: null
+            }
+        }, options);
+    };
+
+    /**
+     * Sets the composite's `isModified` flag. 
+     * If `updateParents` is true, all parents will be set (default: false).
+     * If `updateChildren` is true, all children will be set (default: false).
+     * @private
+     * @method setModified
+     * @param {composite} composite
+     * @param {boolean} isModified
+     * @param {boolean} [updateParents=false]
+     * @param {boolean} [updateChildren=false]
+     */
+    Composite.setModified = function(composite, isModified, updateParents, updateChildren) {
+        composite.isModified = isModified;
+
+        if (isModified && composite.cache) {
+            composite.cache.allBodies = null;
+            composite.cache.allConstraints = null;
+            composite.cache.allComposites = null;
+        }
+
+        if (updateParents && composite.parent) {
+            Composite.setModified(composite.parent, isModified, updateParents, updateChildren);
+        }
+
+        if (updateChildren) {
+            for (var i = 0; i < composite.composites.length; i++) {
+                var childComposite = composite.composites[i];
+                Composite.setModified(childComposite, isModified, updateParents, updateChildren);
+            }
+        }
+    };
+
+    /**
+     * Generic single or multi-add function. Adds a single or an array of body(s), constraint(s) or composite(s) to the given composite.
+     * Triggers `beforeAdd` and `afterAdd` events on the `composite`.
+     * @method add
+     * @param {composite} composite
+     * @param {object|array} object A single or an array of body(s), constraint(s) or composite(s)
+     * @return {composite} The original composite with the objects added
+     */
+    Composite.add = function(composite, object) {
+        var objects = [].concat(object);
+
+        Events.trigger(composite, 'beforeAdd', { object: object });
+
+        for (var i = 0; i < objects.length; i++) {
+            var obj = objects[i];
+
+            switch (obj.type) {
+
+            case 'body':
+                // skip adding compound parts
+                if (obj.parent !== obj) {
+                    Common.warn('Composite.add: skipped adding a compound body part (you must add its parent instead)');
+                    break;
+                }
+
+                Composite.addBody(composite, obj);
+                break;
+            case 'constraint':
+                Composite.addConstraint(composite, obj);
+                break;
+            case 'composite':
+                Composite.addComposite(composite, obj);
+                break;
+            case 'mouseConstraint':
+                Composite.addConstraint(composite, obj.constraint);
+                break;
+
+            }
+        }
+
+        Events.trigger(composite, 'afterAdd', { object: object });
+
+        return composite;
+    };
+
+    /**
+     * Generic remove function. Removes one or many body(s), constraint(s) or a composite(s) to the given composite.
+     * Optionally searching its children recursively.
+     * Triggers `beforeRemove` and `afterRemove` events on the `composite`.
+     * @method remove
+     * @param {composite} composite
+     * @param {object|array} object
+     * @param {boolean} [deep=false]
+     * @return {composite} The original composite with the objects removed
+     */
+    Composite.remove = function(composite, object, deep) {
+        var objects = [].concat(object);
+
+        Events.trigger(composite, 'beforeRemove', { object: object });
+
+        for (var i = 0; i < objects.length; i++) {
+            var obj = objects[i];
+
+            switch (obj.type) {
+
+            case 'body':
+                Composite.removeBody(composite, obj, deep);
+                break;
+            case 'constraint':
+                Composite.removeConstraint(composite, obj, deep);
+                break;
+            case 'composite':
+                Composite.removeComposite(composite, obj, deep);
+                break;
+            case 'mouseConstraint':
+                Composite.removeConstraint(composite, obj.constraint);
+                break;
+
+            }
+        }
+
+        Events.trigger(composite, 'afterRemove', { object: object });
+
+        return composite;
+    };
+
+    /**
+     * Adds a composite to the given composite.
+     * @private
+     * @method addComposite
+     * @param {composite} compositeA
+     * @param {composite} compositeB
+     * @return {composite} The original compositeA with the objects from compositeB added
+     */
+    Composite.addComposite = function(compositeA, compositeB) {
+        compositeA.composites.push(compositeB);
+        compositeB.parent = compositeA;
+        Composite.setModified(compositeA, true, true, false);
+        return compositeA;
+    };
+
+    /**
+     * Removes a composite from the given composite, and optionally searching its children recursively.
+     * @private
+     * @method removeComposite
+     * @param {composite} compositeA
+     * @param {composite} compositeB
+     * @param {boolean} [deep=false]
+     * @return {composite} The original compositeA with the composite removed
+     */
+    Composite.removeComposite = function(compositeA, compositeB, deep) {
+        var position = Common.indexOf(compositeA.composites, compositeB);
+        if (position !== -1) {
+            Composite.removeCompositeAt(compositeA, position);
+        }
+
+        if (deep) {
+            for (var i = 0; i < compositeA.composites.length; i++){
+                Composite.removeComposite(compositeA.composites[i], compositeB, true);
+            }
+        }
+
+        return compositeA;
+    };
+
+    /**
+     * Removes a composite from the given composite.
+     * @private
+     * @method removeCompositeAt
+     * @param {composite} composite
+     * @param {number} position
+     * @return {composite} The original composite with the composite removed
+     */
+    Composite.removeCompositeAt = function(composite, position) {
+        composite.composites.splice(position, 1);
+        Composite.setModified(composite, true, true, false);
+        return composite;
+    };
+
+    /**
+     * register body's event
+     * @private
+     * @method registerEvent
+     * @param {body} body
+     * @return
+     */
+    Composite.registerEvent = function(body) {
+        var events = body.events;
+        if (events && typeof events !== 'undefined') {
+            if (events.length) {
+                for (var i = 0; i < events.length; i++) {
+                    if (events[i].name && typeof events[i].callback === 'function' && events[i].callback) {
+                        Events.on(body, events[i].name, events[i].callback);
+                    }
+                }
+            } else if (events.name && typeof events.callback === 'function' && events.callback) {
+                Events.on(body, events.name, events.callback);
+            }
+        }
+    };
+
+    /**
+     * Adds a body to the given composite.
+     * @private
+     * @method addBody
+     * @param {composite} composite
+     * @param {body} body
+     * @return {composite} The original composite with the body added
+     */
+    Composite.addBody = function(composite, body) {
+        Composite.registerEvent(body);
+        composite.bodies.push(body);
+        Composite.setModified(composite, true, true, false);
+        return composite;
+    };
+
+    /**
+     * Removes a body from the given composite, and optionally searching its children recursively.
+     * @private
+     * @method removeBody
+     * @param {composite} composite
+     * @param {body} body
+     * @param {boolean} [deep=false]
+     * @return {composite} The original composite with the body removed
+     */
+    Composite.removeBody = function(composite, body, deep) {
+        var position = Common.indexOf(composite.bodies, body);
+        if (position !== -1) {
+            Composite.removeBodyAt(composite, position);
+        }
+
+        if (deep) {
+            for (var i = 0; i < composite.composites.length; i++){
+                Composite.removeBody(composite.composites[i], body, true);
+            }
+        }
+
+        return composite;
+    };
+
+    /**
+     * Removes a body from the given composite.
+     * @private
+     * @method removeBodyAt
+     * @param {composite} composite
+     * @param {number} position
+     * @return {composite} The original composite with the body removed
+     */
+    Composite.removeBodyAt = function(composite, position) {
+        composite.bodies.splice(position, 1);
+        Composite.setModified(composite, true, true, false);
+        return composite;
+    };
+
+    /**
+     * Adds a constraint to the given composite.
+     * @private
+     * @method addConstraint
+     * @param {composite} composite
+     * @param {constraint} constraint
+     * @return {composite} The original composite with the constraint added
+     */
+    Composite.addConstraint = function(composite, constraint) {
+        composite.constraints.push(constraint);
+        Composite.setModified(composite, true, true, false);
+        return composite;
+    };
+
+    /**
+     * Removes a constraint from the given composite, and optionally searching its children recursively.
+     * @private
+     * @method removeConstraint
+     * @param {composite} composite
+     * @param {constraint} constraint
+     * @param {boolean} [deep=false]
+     * @return {composite} The original composite with the constraint removed
+     */
+    Composite.removeConstraint = function(composite, constraint, deep) {
+        var position = Common.indexOf(composite.constraints, constraint);
+        if (position !== -1) {
+            Composite.removeConstraintAt(composite, position);
+        }
+
+        if (deep) {
+            for (var i = 0; i < composite.composites.length; i++){
+                Composite.removeConstraint(composite.composites[i], constraint, true);
+            }
+        }
+
+        return composite;
+    };
+
+    /**
+     * Removes a body from the given composite.
+     * @private
+     * @method removeConstraintAt
+     * @param {composite} composite
+     * @param {number} position
+     * @return {composite} The original composite with the constraint removed
+     */
+    Composite.removeConstraintAt = function(composite, position) {
+        composite.constraints.splice(position, 1);
+        Composite.setModified(composite, true, true, false);
+        return composite;
+    };
+
+    /**
+     * Removes all bodies, constraints and composites from the given composite.
+     * Optionally clearing its children recursively.
+     * @method clear
+     * @param {composite} composite
+     * @param {boolean} keepStatic
+     * @param {boolean} [deep=false]
+     */
+    Composite.clear = function(composite, keepStatic, deep) {
+        if (deep) {
+            for (var i = 0; i < composite.composites.length; i++){
+                Composite.clear(composite.composites[i], keepStatic, true);
+            }
+        }
+        
+        if (keepStatic) {
+            composite.bodies = composite.bodies.filter(function(body) { return body.isStatic; });
+        } else {
+            composite.bodies.length = 0;
+        }
+
+        composite.constraints.length = 0;
+        composite.composites.length = 0;
+
+        Composite.setModified(composite, true, true, false);
+
+        return composite;
+    };
+
+    /**
+     * Returns all bodies in the given composite, including all bodies in its children, recursively.
+     * @method allBodies
+     * @param {composite} composite
+     * @return {body[]} All the bodies
+     */
+    Composite.allBodies = function(composite) {
+        if (composite.cache && composite.cache.allBodies) {
+            return composite.cache.allBodies;
+        }
+
+        var bodies = [].concat(composite.bodies);
+
+        for (var i = 0; i < composite.composites.length; i++)
+            bodies = bodies.concat(Composite.allBodies(composite.composites[i]));
+
+        if (composite.cache) {
+            composite.cache.allBodies = bodies;
+        }
+
+        return bodies;
+    };
+
+    /**
+     * Returns all constraints in the given composite, including all constraints in its children, recursively.
+     * @method allConstraints
+     * @param {composite} composite
+     * @return {constraint[]} All the constraints
+     */
+    Composite.allConstraints = function(composite) {
+        if (composite.cache && composite.cache.allConstraints) {
+            return composite.cache.allConstraints;
+        }
+
+        var constraints = [].concat(composite.constraints);
+
+        for (var i = 0; i < composite.composites.length; i++)
+            constraints = constraints.concat(Composite.allConstraints(composite.composites[i]));
+
+        if (composite.cache) {
+            composite.cache.allConstraints = constraints;
+        }
+
+        return constraints;
+    };
+
+    /**
+     * Returns all composites in the given composite, including all composites in its children, recursively.
+     * @method allComposites
+     * @param {composite} composite
+     * @return {composite[]} All the composites
+     */
+    Composite.allComposites = function(composite) {
+        if (composite.cache && composite.cache.allComposites) {
+            return composite.cache.allComposites;
+        }
+
+        var composites = [].concat(composite.composites);
+
+        for (var i = 0; i < composite.composites.length; i++)
+            composites = composites.concat(Composite.allComposites(composite.composites[i]));
+
+        if (composite.cache) {
+            composite.cache.allComposites = composites;
+        }
+
+        return composites;
+    };
+
+    /**
+     * Searches the composite recursively for an object matching the type and id supplied, null if not found.
+     * @method get
+     * @param {composite} composite
+     * @param {number} id
+     * @param {string} type
+     * @return {object} The requested object, if found
+     */
+    Composite.get = function(composite, id, type) {
+        var objects,
+            object;
+
+        switch (type) {
+        case 'body':
+            objects = Composite.allBodies(composite);
+            break;
+        case 'constraint':
+            objects = Composite.allConstraints(composite);
+            break;
+        case 'composite':
+            objects = Composite.allComposites(composite).concat(composite);
+            break;
+        }
+
+        if (!objects)
+            return null;
+
+        object = objects.filter(function(object) { 
+            return object.id.toString() === id.toString(); 
+        });
+
+        return object.length === 0 ? null : object[0];
+    };
+
+    /**
+     * Moves the given object(s) from compositeA to compositeB (equal to a remove followed by an add).
+     * @method move
+     * @param {compositeA} compositeA
+     * @param {object[]} objects
+     * @param {compositeB} compositeB
+     * @return {composite} Returns compositeA
+     */
+    Composite.move = function(compositeA, objects, compositeB) {
+        Composite.remove(compositeA, objects);
+        Composite.add(compositeB, objects);
+        return compositeA;
+    };
+
+    /**
+     * Assigns new ids for all objects in the composite, recursively.
+     * @method rebase
+     * @param {composite} composite
+     * @return {composite} Returns composite
+     */
+    Composite.rebase = function(composite) {
+        var objects = Composite.allBodies(composite)
+            .concat(Composite.allConstraints(composite))
+            .concat(Composite.allComposites(composite));
+
+        for (var i = 0; i < objects.length; i++) {
+            objects[i].id = Common.nextId();
+        }
+
+        return composite;
+    };
+
+    /**
+     * Translates all children in the composite by a given vector relative to their current positions, 
+     * without imparting any velocity.
+     * @method translate
+     * @param {composite} composite
+     * @param {vector} translation
+     * @param {bool} [recursive=true]
+     */
+    Composite.translate = function(composite, translation, recursive) {
+        var bodies = recursive ? Composite.allBodies(composite) : composite.bodies;
+
+        for (var i = 0; i < bodies.length; i++) {
+            Body.translate(bodies[i], translation);
+        }
+
+        return composite;
+    };
+
+    /**
+     * Rotates all children in the composite by a given angle about the given point, without imparting any angular velocity.
+     * @method rotate
+     * @param {composite} composite
+     * @param {number} rotation
+     * @param {vector} point
+     * @param {bool} [recursive=true]
+     */
+    Composite.rotate = function(composite, rotation, point, recursive) {
+        var cos = Math.cos(rotation),
+            sin = Math.sin(rotation),
+            bodies = recursive ? Composite.allBodies(composite) : composite.bodies;
+
+        for (var i = 0; i < bodies.length; i++) {
+            var body = bodies[i],
+                dx = body.position.x - point.x,
+                dy = body.position.y - point.y;
+                
+            Body.setPosition(body, {
+                x: point.x + (dx * cos - dy * sin),
+                y: point.y + (dx * sin + dy * cos)
+            });
+
+            Body.rotate(body, rotation);
+        }
+
+        return composite;
+    };
+
+    /**
+     * Scales all children in the composite, including updating physical properties (mass, area, axes, inertia), from a world-space point.
+     * @method scale
+     * @param {composite} composite
+     * @param {number} scaleX
+     * @param {number} scaleY
+     * @param {vector} point
+     * @param {bool} [recursive=true]
+     */
+    Composite.scale = function(composite, scaleX, scaleY, point, recursive) {
+        var bodies = recursive ? Composite.allBodies(composite) : composite.bodies;
+
+        for (var i = 0; i < bodies.length; i++) {
+            var body = bodies[i],
+                dx = body.position.x - point.x,
+                dy = body.position.y - point.y;
+                
+            Body.setPosition(body, {
+                x: point.x + dx * scaleX,
+                y: point.y + dy * scaleY
+            });
+
+            Body.scale(body, scaleX, scaleY);
+        }
+
+        return composite;
+    };
+
+    /**
+     * Returns the union of the bounds of all of the composite's bodies.
+     * @method bounds
+     * @param {composite} composite The composite.
+     * @returns {bounds} The composite bounds.
+     */
+    Composite.bounds = function(composite) {
+        var bodies = Composite.allBodies(composite),
+            vertices = [];
+
+        for (var i = 0; i < bodies.length; i += 1) {
+            var body = bodies[i];
+            vertices.push(body.bounds.min, body.bounds.max);
+        }
+
+        return Bounds.create(vertices);
+    };
+
+    /*
+    *
+    *  Events Documentation
+    *
+    */
+
+    /**
+    * Fired when a call to `Composite.add` is made, before objects have been added.
+    *
+    * @event beforeAdd
+    * @param {} event An event object
+    * @param {} event.object The object(s) to be added (may be a single body, constraint, composite or a mixed array of these)
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired when a call to `Composite.add` is made, after objects have been added.
+    *
+    * @event afterAdd
+    * @param {} event An event object
+    * @param {} event.object The object(s) that have been added (may be a single body, constraint, composite or a mixed array of these)
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired when a call to `Composite.remove` is made, before objects have been removed.
+    *
+    * @event beforeRemove
+    * @param {} event An event object
+    * @param {} event.object The object(s) to be removed (may be a single body, constraint, composite or a mixed array of these)
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired when a call to `Composite.remove` is made, after objects have been removed.
+    *
+    * @event afterRemove
+    * @param {} event An event object
+    * @param {} event.object The object(s) that have been removed (may be a single body, constraint, composite or a mixed array of these)
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /*
+    *
+    *  Properties Documentation
+    *
+    */
+
+    /**
+     * An integer `Number` uniquely identifying number generated in `Composite.create` by `Common.nextId`.
+     *
+     * @property id
+     * @type number
+     */
+
+    /**
+     * A `String` denoting the type of object.
+     *
+     * @property type
+     * @type string
+     * @default "composite"
+     * @readOnly
+     */
+
+    /**
+     * An arbitrary `String` name to help the user identify and manage composites.
+     *
+     * @property label
+     * @type string
+     * @default "Composite"
+     */
+
+    /**
+     * A flag that specifies whether the composite has been modified during the current step.
+     * This is automatically managed when bodies, constraints or composites are added or removed.
+     *
+     * @property isModified
+     * @type boolean
+     * @default false
+     */
+
+    /**
+     * The `Composite` that is the parent of this composite. It is automatically managed by the `Matter.Composite` methods.
+     *
+     * @property parent
+     * @type composite
+     * @default null
+     */
+
+    /**
+     * An array of `Body` that are _direct_ children of this composite.
+     * To add or remove bodies you should use `Composite.add` and `Composite.remove` methods rather than directly modifying this property.
+     * If you wish to recursively find all descendants, you should use the `Composite.allBodies` method.
+     *
+     * @property bodies
+     * @type body[]
+     * @default []
+     */
+
+    /**
+     * An array of `Constraint` that are _direct_ children of this composite.
+     * To add or remove constraints you should use `Composite.add` and `Composite.remove` methods rather than directly modifying this property.
+     * If you wish to recursively find all descendants, you should use the `Composite.allConstraints` method.
+     *
+     * @property constraints
+     * @type constraint[]
+     * @default []
+     */
+
+    /**
+     * An array of `Composite` that are _direct_ children of this composite.
+     * To add or remove composites you should use `Composite.add` and `Composite.remove` methods rather than directly modifying this property.
+     * If you wish to recursively find all descendants, you should use the `Composite.allComposites` method.
+     *
+     * @property composites
+     * @type composite[]
+     * @default []
+     */
+
+    /**
+     * An object reserved for storing plugin-specific properties.
+     *
+     * @property plugin
+     * @type {}
+     */
+
+    /**
+     * An object used for storing cached results for performance reasons.
+     * This is used internally only and is automatically managed.
+     *
+     * @private
+     * @property cache
+     * @type {}
+     */
+
+})();
+
+
+/***/ }),
 /* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -3825,6 +3874,399 @@ var Events = __webpack_require__(4);
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
+* The `Matter.Bodies` module contains factory methods for creating rigid body models 
+* with commonly used body configurations (such as rectangles, circles and other polygons).
+*
+* See the included usage [examples](https://github.com/liabru/matter-js/tree/master/examples).
+*
+* @class Bodies
+*/
+
+// TODO: true circle bodies
+
+var Bodies = {};
+
+module.exports = Bodies;
+
+var Vertices = __webpack_require__(3);
+var Common = __webpack_require__(0);
+var Body = __webpack_require__(5);
+var Bounds = __webpack_require__(1);
+var Vector = __webpack_require__(2);
+
+(function() {
+
+    /**
+     * Creates a new rigid body model with a rectangle hull. 
+     * The options parameter is an object that specifies any properties you wish to override the defaults.
+     * See the properties section of the `Matter.Body` module for detailed information on what you can pass via the `options` object.
+     * @method rectangle
+     * @param {number} x
+     * @param {number} y
+     * @param {number} width
+     * @param {number} height
+     * @param {object} [options]
+     * @return {body} A new rectangle body
+     */
+    Bodies.rectangle = function(x, y, width, height, options) {
+        options = options || {};
+
+        var rectangle = {
+            btype: 'Rectangle',
+            label: 'Rectangle Body',
+            position: { x: x, y: y },
+            vertices: Vertices.fromPath('L 0 0 L ' + width + ' 0 L ' + width + ' ' + height + ' L 0 ' + height)
+        };
+
+        if (options.chamfer) {
+            var chamfer = options.chamfer;
+            rectangle.vertices = Vertices.chamfer(rectangle.vertices, chamfer.radius, 
+                chamfer.quality, chamfer.qualityMin, chamfer.qualityMax);
+            delete options.chamfer;
+        }
+
+        return Body.create(Common.extend({}, rectangle, options));
+    };
+    
+    /**
+     * Creates a new text body model with a rectangle hull.
+     * The options parameter is an object that specifies any properties you wish to override the defaults.
+     * See the properties section of the `Matter.Body` module for detailed information on what you can pass via the `options` object.
+     * @method text
+     * @param {number} x
+     * @param {number} y
+     * @param {string} text
+     * @param {object} [options]
+     * @return {body} A new text body
+     */
+    Bodies.text = function(x, y, text, options) {
+        options = options || {};
+        var text = {
+            btype: 'Text',
+            label: 'Text Body',
+            position: { x: x, y: y },
+            text: text,
+        };
+        // 文字默认静止
+        options.isStatic = true;
+        options.isSensor = true;
+        return Body.create(Common.extend({}, text, options));
+    };
+
+    /**
+     * Creates a new rigid body model with a trapezoid hull. 
+     * The options parameter is an object that specifies any properties you wish to override the defaults.
+     * See the properties section of the `Matter.Body` module for detailed information on what you can pass via the `options` object.
+     * @method trapezoid
+     * @param {number} x
+     * @param {number} y
+     * @param {number} width
+     * @param {number} height
+     * @param {number} slope
+     * @param {object} [options]
+     * @return {body} A new trapezoid body
+     */
+    Bodies.trapezoid = function(x, y, width, height, slope, options) {
+        options = options || {};
+
+        slope *= 0.5;
+        var roof = (1 - (slope * 2)) * width;
+        
+        var x1 = width * slope,
+            x2 = x1 + roof,
+            x3 = x2 + x1,
+            verticesPath;
+
+        if (slope < 0.5) {
+            verticesPath = 'L 0 0 L ' + x1 + ' ' + (-height) + ' L ' + x2 + ' ' + (-height) + ' L ' + x3 + ' 0';
+        } else {
+            verticesPath = 'L 0 0 L ' + x2 + ' ' + (-height) + ' L ' + x3 + ' 0';
+        }
+
+        var trapezoid = {
+            btype: 'Trapezoid',
+            label: 'Trapezoid Body',
+            position: { x: x, y: y },
+            vertices: Vertices.fromPath(verticesPath)
+        };
+
+        if (options.chamfer) {
+            var chamfer = options.chamfer;
+            trapezoid.vertices = Vertices.chamfer(trapezoid.vertices, chamfer.radius, 
+                chamfer.quality, chamfer.qualityMin, chamfer.qualityMax);
+            delete options.chamfer;
+        }
+
+        return Body.create(Common.extend({}, trapezoid, options));
+    };
+
+    /**
+     * Creates a new rigid body model with a circle hull. 
+     * The options parameter is an object that specifies any properties you wish to override the defaults.
+     * See the properties section of the `Matter.Body` module for detailed information on what you can pass via the `options` object.
+     * @method circle
+     * @param {number} x
+     * @param {number} y
+     * @param {number} radius
+     * @param {object} [options]
+     * @param {number} [maxSides]
+     * @return {body} A new circle body
+     */
+    Bodies.circle = function(x, y, radius, options, maxSides) {
+        options = options || {};
+
+        var circle = {
+            btype: 'Circle',
+            label: 'Circle Body',
+            circleRadius: radius
+        };
+        
+        // approximate circles with polygons until true circles implemented in SAT
+        maxSides = maxSides || 25;
+        var sides = Math.ceil(Math.max(10, Math.min(maxSides, radius)));
+
+        // optimisation: always use even number of sides (half the number of unique axes)
+        if (sides % 2 === 1)
+            sides += 1;
+
+        return Bodies.polygon(x, y, sides, radius, Common.extend({}, circle, options));
+    };
+
+    /**
+     * Creates a new rigid body model with a regular polygon hull with the given number of sides. 
+     * The options parameter is an object that specifies any properties you wish to override the defaults.
+     * See the properties section of the `Matter.Body` module for detailed information on what you can pass via the `options` object.
+     * @method polygon
+     * @param {number} x
+     * @param {number} y
+     * @param {number} sides
+     * @param {number} radius
+     * @param {object} [options]
+     * @return {body} A new regular polygon body
+     */
+    Bodies.polygon = function(x, y, sides, radius, options) {
+        options = options || {};
+
+        if (sides < 3)
+            return Bodies.circle(x, y, radius, options);
+
+        var theta = 2 * Math.PI / sides,
+            path = '',
+            offset = theta * 0.5;
+
+        for (var i = 0; i < sides; i += 1) {
+            var angle = offset + (i * theta),
+                xx = Math.cos(angle) * radius,
+                yy = Math.sin(angle) * radius;
+
+            path += 'L ' + xx.toFixed(3) + ' ' + yy.toFixed(3) + ' ';
+        }
+
+        var polygon = {
+            btype: 'Polygon',
+            label: 'Polygon Body',
+            position: { x: x, y: y },
+            vertices: Vertices.fromPath(path)
+        };
+
+        if (options.chamfer) {
+            var chamfer = options.chamfer;
+            polygon.vertices = Vertices.chamfer(polygon.vertices, chamfer.radius, 
+                chamfer.quality, chamfer.qualityMin, chamfer.qualityMax);
+            delete options.chamfer;
+        }
+
+        return Body.create(Common.extend({}, polygon, options));
+    };
+
+    /**
+     * Utility to create a compound body based on set(s) of vertices.
+     * 
+     * _Note:_ To optionally enable automatic concave vertices decomposition the [poly-decomp](https://github.com/schteppe/poly-decomp.js) 
+     * package must be first installed and provided see `Common.setDecomp`, otherwise the convex hull of each vertex set will be used.
+     * 
+     * The resulting vertices are reorientated about their centre of mass,
+     * and offset such that `body.position` corresponds to this point.
+     * 
+     * The resulting offset may be found if needed by subtracting `body.bounds` from the original input bounds.
+     * To later move the centre of mass see `Body.setCentre`.
+     * 
+     * Note that automatic conconcave decomposition results are not always optimal. 
+     * For best results, simplify the input vertices as much as possible first.
+     * By default this function applies some addtional simplification to help.
+     * 
+     * Some outputs may also require further manual processing afterwards to be robust.
+     * In particular some parts may need to be overlapped to avoid collision gaps.
+     * Thin parts and sharp points should be avoided or removed where possible.
+     *
+     * The options parameter object specifies any `Matter.Body` properties you wish to override the defaults.
+     * 
+     * See the properties section of the `Matter.Body` module for detailed information on what you can pass via the `options` object.
+     * @method fromVertices
+     * @param {number} x
+     * @param {number} y
+     * @param {array} vertexSets One or more arrays of vertex points e.g. `[[{ x: 0, y: 0 }...], ...]`.
+     * @param {object} [options] The body options.
+     * @param {bool} [flagInternal=false] Optionally marks internal edges with `isInternal`.
+     * @param {number} [removeCollinear=0.01] Threshold when simplifying vertices along the same edge.
+     * @param {number} [minimumArea=10] Threshold when removing small parts.
+     * @param {number} [removeDuplicatePoints=0.01] Threshold when simplifying nearby vertices.
+     * @return {body}
+     */
+    Bodies.fromVertices = function(x, y, vertexSets, options, flagInternal, removeCollinear, minimumArea, removeDuplicatePoints) {
+        var decomp = Common.getDecomp(),
+            canDecomp,
+            body,
+            parts,
+            isConvex,
+            isConcave,
+            vertices,
+            i,
+            j,
+            k,
+            v,
+            z;
+
+        // check decomp is as expected
+        canDecomp = Boolean(decomp && decomp.quickDecomp);
+
+        options = options || {};
+        parts = [];
+
+        flagInternal = typeof flagInternal !== 'undefined' ? flagInternal : false;
+        removeCollinear = typeof removeCollinear !== 'undefined' ? removeCollinear : 0.01;
+        minimumArea = typeof minimumArea !== 'undefined' ? minimumArea : 10;
+        removeDuplicatePoints = typeof removeDuplicatePoints !== 'undefined' ? removeDuplicatePoints : 0.01;
+
+        // ensure vertexSets is an array of arrays
+        if (!Common.isArray(vertexSets[0])) {
+            vertexSets = [vertexSets];
+        }
+
+        for (v = 0; v < vertexSets.length; v += 1) {
+            vertices = vertexSets[v];
+            isConvex = Vertices.isConvex(vertices);
+            isConcave = !isConvex;
+
+            if (isConcave && !canDecomp) {
+                Common.warnOnce(
+                    'Bodies.fromVertices: Install the \'poly-decomp\' library and use Common.setDecomp or provide \'decomp\' as a global to decompose concave vertices.'
+                );
+            }
+
+            if (isConvex || !canDecomp) {
+                if (isConvex) {
+                    vertices = Vertices.clockwiseSort(vertices);
+                } else {
+                    // fallback to convex hull when decomposition is not possible
+                    vertices = Vertices.hull(vertices);
+                }
+
+                parts.push({
+                    position: { x: x, y: y },
+                    vertices: vertices
+                });
+            } else {
+                // initialise a decomposition
+                var concave = vertices.map(function(vertex) {
+                    return [vertex.x, vertex.y];
+                });
+
+                // vertices are concave and simple, we can decompose into parts
+                decomp.makeCCW(concave);
+                if (removeCollinear !== false)
+                    decomp.removeCollinearPoints(concave, removeCollinear);
+                if (removeDuplicatePoints !== false && decomp.removeDuplicatePoints)
+                    decomp.removeDuplicatePoints(concave, removeDuplicatePoints);
+
+                // use the quick decomposition algorithm (Bayazit)
+                var decomposed = decomp.quickDecomp(concave);
+
+                // for each decomposed chunk
+                for (i = 0; i < decomposed.length; i++) {
+                    var chunk = decomposed[i];
+
+                    // convert vertices into the correct structure
+                    var chunkVertices = chunk.map(function(vertices) {
+                        return {
+                            x: vertices[0],
+                            y: vertices[1]
+                        };
+                    });
+
+                    // skip small chunks
+                    if (minimumArea > 0 && Vertices.area(chunkVertices) < minimumArea)
+                        continue;
+
+                    // create a compound part
+                    parts.push({
+                        position: Vertices.centre(chunkVertices),
+                        vertices: chunkVertices
+                    });
+                }
+            }
+        }
+
+        // create body parts
+        for (i = 0; i < parts.length; i++) {
+            parts[i] = Body.create(Common.extend(parts[i], options));
+        }
+
+        // flag internal edges (coincident part edges)
+        if (flagInternal) {
+            var coincident_max_dist = 5;
+
+            for (i = 0; i < parts.length; i++) {
+                var partA = parts[i];
+
+                for (j = i + 1; j < parts.length; j++) {
+                    var partB = parts[j];
+
+                    if (Bounds.overlaps(partA.bounds, partB.bounds)) {
+                        var pav = partA.vertices,
+                            pbv = partB.vertices;
+
+                        // iterate vertices of both parts
+                        for (k = 0; k < partA.vertices.length; k++) {
+                            for (z = 0; z < partB.vertices.length; z++) {
+                                // find distances between the vertices
+                                var da = Vector.magnitudeSquared(Vector.sub(pav[(k + 1) % pav.length], pbv[z])),
+                                    db = Vector.magnitudeSquared(Vector.sub(pav[k], pbv[(z + 1) % pbv.length]));
+
+                                // if both vertices are very close, consider the edge concident (internal)
+                                if (da < coincident_max_dist && db < coincident_max_dist) {
+                                    pav[k].isInternal = true;
+                                    pbv[z].isInternal = true;
+                                }
+                            }
+                        }
+
+                    }
+                }
+            }
+        }
+
+        if (parts.length > 1) {
+            // create the parent body to be returned, that contains generated compound parts
+            body = Body.create(Common.extend({ parts: parts.slice(0) }, options));
+
+            // offset such that body.position is at the centre off mass
+            Body.setPosition(body, { x: x, y: y });
+
+            return body;
+        } else {
+            return parts[0];
+        }
+    };
+
+})();
+
+
+/***/ }),
+/* 9 */
+/***/ (function(module, exports, __webpack_require__) {
+
+/**
 * The `Matter.Collision` module contains methods for detecting collisions between a given pair of bodies.
 *
 * For efficient detection between a list of bodies, see `Matter.Detector` and `Matter.Query`.
@@ -3839,7 +4281,7 @@ var Collision = {};
 module.exports = Collision;
 
 var Vertices = __webpack_require__(3);
-var Pair = __webpack_require__(9);
+var Pair = __webpack_require__(10);
 
 (function() {
     var _supports = [];
@@ -4235,7 +4677,7 @@ var Pair = __webpack_require__(9);
 
 
 /***/ }),
-/* 9 */
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -4365,7 +4807,7 @@ var Contact = __webpack_require__(17);
 
 
 /***/ }),
-/* 10 */
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -4386,7 +4828,7 @@ var Vertices = __webpack_require__(3);
 var Vector = __webpack_require__(2);
 var Sleeping = __webpack_require__(7);
 var Bounds = __webpack_require__(1);
-var Axes = __webpack_require__(11);
+var Axes = __webpack_require__(12);
 var Common = __webpack_require__(0);
 
 (function() {
@@ -4854,7 +5296,7 @@ var Common = __webpack_require__(0);
 
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -4924,396 +5366,6 @@ var Common = __webpack_require__(0);
 
 
 /***/ }),
-/* 12 */
-/***/ (function(module, exports, __webpack_require__) {
-
-/**
-* The `Matter.Bodies` module contains factory methods for creating rigid body models 
-* with commonly used body configurations (such as rectangles, circles and other polygons).
-*
-* See the included usage [examples](https://github.com/liabru/matter-js/tree/master/examples).
-*
-* @class Bodies
-*/
-
-// TODO: true circle bodies
-
-var Bodies = {};
-
-module.exports = Bodies;
-
-var Vertices = __webpack_require__(3);
-var Common = __webpack_require__(0);
-var Body = __webpack_require__(6);
-var Bounds = __webpack_require__(1);
-var Vector = __webpack_require__(2);
-
-(function() {
-
-    /**
-     * Creates a new rigid body model with a rectangle hull. 
-     * The options parameter is an object that specifies any properties you wish to override the defaults.
-     * See the properties section of the `Matter.Body` module for detailed information on what you can pass via the `options` object.
-     * @method rectangle
-     * @param {number} x
-     * @param {number} y
-     * @param {number} width
-     * @param {number} height
-     * @param {object} [options]
-     * @return {body} A new rectangle body
-     */
-    Bodies.rectangle = function(x, y, width, height, options) {
-        options = options || {};
-
-        var rectangle = {
-            btype: 'Rectangle',
-            label: 'Rectangle Body',
-            position: { x: x, y: y },
-            vertices: Vertices.fromPath('L 0 0 L ' + width + ' 0 L ' + width + ' ' + height + ' L 0 ' + height)
-        };
-
-        if (options.chamfer) {
-            var chamfer = options.chamfer;
-            rectangle.vertices = Vertices.chamfer(rectangle.vertices, chamfer.radius, 
-                chamfer.quality, chamfer.qualityMin, chamfer.qualityMax);
-            delete options.chamfer;
-        }
-
-        return Body.create(Common.extend({}, rectangle, options));
-    };
-    
-    /**
-     * Creates a new text body model with a rectangle hull.
-     * The options parameter is an object that specifies any properties you wish to override the defaults.
-     * See the properties section of the `Matter.Body` module for detailed information on what you can pass via the `options` object.
-     * @method text
-     * @param {number} x
-     * @param {number} y
-     * @param {number} text
-     * @param {object} [options]
-     * @return {body} A new text body
-     */
-    Bodies.text = function(x, y, text, options) {
-        options = options || {};
-        var text = {
-            btype: 'Text',
-            label: 'Text Body',
-            position: { x: x, y: y },
-            text: text,
-        };
-        return Body.create(Common.extend({}, text, options));
-    };
-
-    /**
-     * Creates a new rigid body model with a trapezoid hull. 
-     * The options parameter is an object that specifies any properties you wish to override the defaults.
-     * See the properties section of the `Matter.Body` module for detailed information on what you can pass via the `options` object.
-     * @method trapezoid
-     * @param {number} x
-     * @param {number} y
-     * @param {number} width
-     * @param {number} height
-     * @param {number} slope
-     * @param {object} [options]
-     * @return {body} A new trapezoid body
-     */
-    Bodies.trapezoid = function(x, y, width, height, slope, options) {
-        options = options || {};
-
-        slope *= 0.5;
-        var roof = (1 - (slope * 2)) * width;
-        
-        var x1 = width * slope,
-            x2 = x1 + roof,
-            x3 = x2 + x1,
-            verticesPath;
-
-        if (slope < 0.5) {
-            verticesPath = 'L 0 0 L ' + x1 + ' ' + (-height) + ' L ' + x2 + ' ' + (-height) + ' L ' + x3 + ' 0';
-        } else {
-            verticesPath = 'L 0 0 L ' + x2 + ' ' + (-height) + ' L ' + x3 + ' 0';
-        }
-
-        var trapezoid = {
-            btype: 'Trapezoid',
-            label: 'Trapezoid Body',
-            position: { x: x, y: y },
-            vertices: Vertices.fromPath(verticesPath)
-        };
-
-        if (options.chamfer) {
-            var chamfer = options.chamfer;
-            trapezoid.vertices = Vertices.chamfer(trapezoid.vertices, chamfer.radius, 
-                chamfer.quality, chamfer.qualityMin, chamfer.qualityMax);
-            delete options.chamfer;
-        }
-
-        return Body.create(Common.extend({}, trapezoid, options));
-    };
-
-    /**
-     * Creates a new rigid body model with a circle hull. 
-     * The options parameter is an object that specifies any properties you wish to override the defaults.
-     * See the properties section of the `Matter.Body` module for detailed information on what you can pass via the `options` object.
-     * @method circle
-     * @param {number} x
-     * @param {number} y
-     * @param {number} radius
-     * @param {object} [options]
-     * @param {number} [maxSides]
-     * @return {body} A new circle body
-     */
-    Bodies.circle = function(x, y, radius, options, maxSides) {
-        options = options || {};
-
-        var circle = {
-            btype: 'Circle',
-            label: 'Circle Body',
-            circleRadius: radius
-        };
-        
-        // approximate circles with polygons until true circles implemented in SAT
-        maxSides = maxSides || 25;
-        var sides = Math.ceil(Math.max(10, Math.min(maxSides, radius)));
-
-        // optimisation: always use even number of sides (half the number of unique axes)
-        if (sides % 2 === 1)
-            sides += 1;
-
-        return Bodies.polygon(x, y, sides, radius, Common.extend({}, circle, options));
-    };
-
-    /**
-     * Creates a new rigid body model with a regular polygon hull with the given number of sides. 
-     * The options parameter is an object that specifies any properties you wish to override the defaults.
-     * See the properties section of the `Matter.Body` module for detailed information on what you can pass via the `options` object.
-     * @method polygon
-     * @param {number} x
-     * @param {number} y
-     * @param {number} sides
-     * @param {number} radius
-     * @param {object} [options]
-     * @return {body} A new regular polygon body
-     */
-    Bodies.polygon = function(x, y, sides, radius, options) {
-        options = options || {};
-
-        if (sides < 3)
-            return Bodies.circle(x, y, radius, options);
-
-        var theta = 2 * Math.PI / sides,
-            path = '',
-            offset = theta * 0.5;
-
-        for (var i = 0; i < sides; i += 1) {
-            var angle = offset + (i * theta),
-                xx = Math.cos(angle) * radius,
-                yy = Math.sin(angle) * radius;
-
-            path += 'L ' + xx.toFixed(3) + ' ' + yy.toFixed(3) + ' ';
-        }
-
-        var polygon = {
-            btype: 'Polygon',
-            label: 'Polygon Body',
-            position: { x: x, y: y },
-            vertices: Vertices.fromPath(path)
-        };
-
-        if (options.chamfer) {
-            var chamfer = options.chamfer;
-            polygon.vertices = Vertices.chamfer(polygon.vertices, chamfer.radius, 
-                chamfer.quality, chamfer.qualityMin, chamfer.qualityMax);
-            delete options.chamfer;
-        }
-
-        return Body.create(Common.extend({}, polygon, options));
-    };
-
-    /**
-     * Utility to create a compound body based on set(s) of vertices.
-     * 
-     * _Note:_ To optionally enable automatic concave vertices decomposition the [poly-decomp](https://github.com/schteppe/poly-decomp.js) 
-     * package must be first installed and provided see `Common.setDecomp`, otherwise the convex hull of each vertex set will be used.
-     * 
-     * The resulting vertices are reorientated about their centre of mass,
-     * and offset such that `body.position` corresponds to this point.
-     * 
-     * The resulting offset may be found if needed by subtracting `body.bounds` from the original input bounds.
-     * To later move the centre of mass see `Body.setCentre`.
-     * 
-     * Note that automatic conconcave decomposition results are not always optimal. 
-     * For best results, simplify the input vertices as much as possible first.
-     * By default this function applies some addtional simplification to help.
-     * 
-     * Some outputs may also require further manual processing afterwards to be robust.
-     * In particular some parts may need to be overlapped to avoid collision gaps.
-     * Thin parts and sharp points should be avoided or removed where possible.
-     *
-     * The options parameter object specifies any `Matter.Body` properties you wish to override the defaults.
-     * 
-     * See the properties section of the `Matter.Body` module for detailed information on what you can pass via the `options` object.
-     * @method fromVertices
-     * @param {number} x
-     * @param {number} y
-     * @param {array} vertexSets One or more arrays of vertex points e.g. `[[{ x: 0, y: 0 }...], ...]`.
-     * @param {object} [options] The body options.
-     * @param {bool} [flagInternal=false] Optionally marks internal edges with `isInternal`.
-     * @param {number} [removeCollinear=0.01] Threshold when simplifying vertices along the same edge.
-     * @param {number} [minimumArea=10] Threshold when removing small parts.
-     * @param {number} [removeDuplicatePoints=0.01] Threshold when simplifying nearby vertices.
-     * @return {body}
-     */
-    Bodies.fromVertices = function(x, y, vertexSets, options, flagInternal, removeCollinear, minimumArea, removeDuplicatePoints) {
-        var decomp = Common.getDecomp(),
-            canDecomp,
-            body,
-            parts,
-            isConvex,
-            isConcave,
-            vertices,
-            i,
-            j,
-            k,
-            v,
-            z;
-
-        // check decomp is as expected
-        canDecomp = Boolean(decomp && decomp.quickDecomp);
-
-        options = options || {};
-        parts = [];
-
-        flagInternal = typeof flagInternal !== 'undefined' ? flagInternal : false;
-        removeCollinear = typeof removeCollinear !== 'undefined' ? removeCollinear : 0.01;
-        minimumArea = typeof minimumArea !== 'undefined' ? minimumArea : 10;
-        removeDuplicatePoints = typeof removeDuplicatePoints !== 'undefined' ? removeDuplicatePoints : 0.01;
-
-        // ensure vertexSets is an array of arrays
-        if (!Common.isArray(vertexSets[0])) {
-            vertexSets = [vertexSets];
-        }
-
-        for (v = 0; v < vertexSets.length; v += 1) {
-            vertices = vertexSets[v];
-            isConvex = Vertices.isConvex(vertices);
-            isConcave = !isConvex;
-
-            if (isConcave && !canDecomp) {
-                Common.warnOnce(
-                    'Bodies.fromVertices: Install the \'poly-decomp\' library and use Common.setDecomp or provide \'decomp\' as a global to decompose concave vertices.'
-                );
-            }
-
-            if (isConvex || !canDecomp) {
-                if (isConvex) {
-                    vertices = Vertices.clockwiseSort(vertices);
-                } else {
-                    // fallback to convex hull when decomposition is not possible
-                    vertices = Vertices.hull(vertices);
-                }
-
-                parts.push({
-                    position: { x: x, y: y },
-                    vertices: vertices
-                });
-            } else {
-                // initialise a decomposition
-                var concave = vertices.map(function(vertex) {
-                    return [vertex.x, vertex.y];
-                });
-
-                // vertices are concave and simple, we can decompose into parts
-                decomp.makeCCW(concave);
-                if (removeCollinear !== false)
-                    decomp.removeCollinearPoints(concave, removeCollinear);
-                if (removeDuplicatePoints !== false && decomp.removeDuplicatePoints)
-                    decomp.removeDuplicatePoints(concave, removeDuplicatePoints);
-
-                // use the quick decomposition algorithm (Bayazit)
-                var decomposed = decomp.quickDecomp(concave);
-
-                // for each decomposed chunk
-                for (i = 0; i < decomposed.length; i++) {
-                    var chunk = decomposed[i];
-
-                    // convert vertices into the correct structure
-                    var chunkVertices = chunk.map(function(vertices) {
-                        return {
-                            x: vertices[0],
-                            y: vertices[1]
-                        };
-                    });
-
-                    // skip small chunks
-                    if (minimumArea > 0 && Vertices.area(chunkVertices) < minimumArea)
-                        continue;
-
-                    // create a compound part
-                    parts.push({
-                        position: Vertices.centre(chunkVertices),
-                        vertices: chunkVertices
-                    });
-                }
-            }
-        }
-
-        // create body parts
-        for (i = 0; i < parts.length; i++) {
-            parts[i] = Body.create(Common.extend(parts[i], options));
-        }
-
-        // flag internal edges (coincident part edges)
-        if (flagInternal) {
-            var coincident_max_dist = 5;
-
-            for (i = 0; i < parts.length; i++) {
-                var partA = parts[i];
-
-                for (j = i + 1; j < parts.length; j++) {
-                    var partB = parts[j];
-
-                    if (Bounds.overlaps(partA.bounds, partB.bounds)) {
-                        var pav = partA.vertices,
-                            pbv = partB.vertices;
-
-                        // iterate vertices of both parts
-                        for (k = 0; k < partA.vertices.length; k++) {
-                            for (z = 0; z < partB.vertices.length; z++) {
-                                // find distances between the vertices
-                                var da = Vector.magnitudeSquared(Vector.sub(pav[(k + 1) % pav.length], pbv[z])),
-                                    db = Vector.magnitudeSquared(Vector.sub(pav[k], pbv[(z + 1) % pbv.length]));
-
-                                // if both vertices are very close, consider the edge concident (internal)
-                                if (da < coincident_max_dist && db < coincident_max_dist) {
-                                    pav[k].isInternal = true;
-                                    pbv[z].isInternal = true;
-                                }
-                            }
-                        }
-
-                    }
-                }
-            }
-        }
-
-        if (parts.length > 1) {
-            // create the parent body to be returned, that contains generated compound parts
-            body = Body.create(Common.extend({ parts: parts.slice(0) }, options));
-
-            // offset such that body.position is at the centre off mass
-            Body.setPosition(body, { x: x, y: y });
-
-            return body;
-        } else {
-            return parts[0];
-        }
-    };
-
-})();
-
-
-/***/ }),
 /* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -5328,6 +5380,7 @@ var Mouse = {};
 module.exports = Mouse;
 
 var Common = __webpack_require__(0);
+const Events = __webpack_require__(4);
 
 (function() {
 
@@ -5376,6 +5429,7 @@ var Common = __webpack_require__(0);
             mouse.position.x = mouse.absolute.x * mouse.scale.x + mouse.offset.x;
             mouse.position.y = mouse.absolute.y * mouse.scale.y + mouse.offset.y;
             mouse.sourceEvents.mousemove = event;
+            // Events.trigger(mouse.element, 'mousemove', mouse);
         };
         
         mouse.mousedown = function(event) {
@@ -5397,6 +5451,7 @@ var Common = __webpack_require__(0);
             mouse.mousedownPosition.y = mouse.position.y;
             mouse.sourceEvents.mousedown = event;
             mouse.startTime = Common.now();
+            Events.trigger(mouse.element, 'mousedown', mouse);
         };
         
         mouse.mouseup = function(event) {
@@ -5416,6 +5471,7 @@ var Common = __webpack_require__(0);
             mouse.mouseupPosition.y = mouse.position.y;
             mouse.sourceEvents.mouseup = event;
             mouse.endTime = Common.now();
+            Events.trigger(mouse.element, 'mouseup', mouse);
         };
 
         mouse.mousewheel = function(event) {
@@ -5537,7 +5593,7 @@ var Detector = {};
 module.exports = Detector;
 
 var Common = __webpack_require__(0);
-var Collision = __webpack_require__(8);
+var Collision = __webpack_require__(9);
 
 (function() {
 
@@ -6092,11 +6148,12 @@ var Render = {};
 module.exports = Render;
 
 var Common = __webpack_require__(0);
-var Composite = __webpack_require__(5);
+var Composite = __webpack_require__(6);
 var Bounds = __webpack_require__(1);
 var Events = __webpack_require__(4);
 var Vector = __webpack_require__(2);
 var Mouse = __webpack_require__(13);
+var Body = __webpack_require__(5);
 
 (function() {
 
@@ -6183,6 +6240,7 @@ var Mouse = __webpack_require__(13);
         render.canvas = render.canvas || _createCanvas(render.options.width, render.options.height);
         render.context = render.canvas.getContext('2d');
         render.textures = {};
+        render.text = {};
 
         render.bounds = render.bounds || {
             min: {
@@ -6419,8 +6477,15 @@ var Mouse = __webpack_require__(13);
 
         Events.trigger(render, 'beforeRender', event);
 
-        if (event.timestamp == 0 && allBodies.length > 0) {
+        if (!render.fixed && event.timestamp == 0 && allBodies.length > 0) {
             Render.fixBodies(render, allBodies, context);
+            render.fixed = true;
+        }
+
+        // register mouse trace event
+        if (!render.traceBodyMouse && allBodies.length > 0) {
+            Render.elementEventHandler(render, allBodies);
+            render.traceMouse = true;
         }
 
         // apply background if it has changed
@@ -6786,7 +6851,7 @@ var Mouse = __webpack_require__(13);
     /**
      * Description
      * @private
-     * @method bodies
+     * @method fixBodies
      * @param {render} render
      * @param {body[]} bodies
      * @param {RenderingContext} context
@@ -6816,37 +6881,78 @@ var Mouse = __webpack_require__(13);
 
                 switch (body.btype) {
                 case 'Text':
-                    console.log(body);
-                    // part.render.text = part.render.text || {};
-                    // var content = part.text;
-                    // // 30px is default font size
-                    // var fontsize = part.render.text.size || 30;
-                    // // white text color by default
-                    // c.fillStyle = part.render.text.color || "#FFFFFF";
-                    // // arial is default font family
-                    // var fontfamily = part.render.text.family || "Arial";
-                    // c.textAlign = "center";
-                    // c.textBaseline = "middle";
-                    // c.font = fontsize + 'px ' + fontfamily;
-                    var res = textHandler(part, c);
-                    // 设置边框
-                    var width = c.measureText(res.content).width;
-                    var delta = 0;
+                    var text = _getText(render, part);
+                    // width set
+                    var width = text.width;
+                    var delta = text.padding;
                     part.vertices[0].x = part.position.x - width / 2 - delta;
-                    part.vertices[0].y = part.position.y - res.fontsize / 2 - delta;
+                    part.vertices[0].y = part.position.y - text.height / 2 - delta;
                     part.vertices[1].x = part.position.x + width / 2 + delta;
-                    part.vertices[1].y = part.position.y - res.fontsize / 2 - delta;
+                    part.vertices[1].y = part.position.y - text.height / 2 - delta;
                     part.vertices[2].x = part.position.x + width / 2 + delta;
-                    part.vertices[2].y = part.position.y + res.fontsize / 2 + delta;
+                    part.vertices[2].y = part.position.y + text.height / 2 + delta;
                     part.vertices[3].x = part.position.x - width / 2 - delta;
-                    part.vertices[3].y = part.position.y + res.fontsize / 2 + delta;
-                    Bounds.update(body.bounds, body.vertices, body.velocity);
+                    part.vertices[3].y = part.position.y + text.height / 2 + delta;
+                    Body.setVertices(body, part.vertices);
+                    // Bounds.update(body.bounds, body.vertices, body.velocity);
                     break;
                 default:
                     break;
                 }
             }
         }
+    };
+
+    /**
+     * handler body event, where user touch or mouse click
+     * @private
+     * @method elementEventHandler
+     * @param {*} canvas
+     */
+    Render.elementEventHandler = function (render, elements) {
+        var canvas = render.canvas;
+
+        Events.on(canvas, 'mousedown', (mouse) => {
+            for (var i = 0; i < elements.length; i++) {
+                var element = elements[i];
+                if (element.events && typeof element.events !== 'undefined' &&
+                    Bounds.contains(element.bounds, mouse.position)) {
+                    Events.trigger(element, 'mousedown', { mouse: mouse, render: render, element: element });
+                }
+            }
+        });
+
+        Events.on(canvas, 'mouseup', (mouse) => {
+            for (var i = 0; i < elements.length; i++) {
+                var element = elements[i];
+                if (element.events && typeof element.events !== 'undefined' &&
+                    Bounds.contains(element.bounds, mouse.position)) {
+                    Events.trigger(element, 'mouseup', { mouse: mouse, render: render, element: element });
+                    if (mouse.endTime - mouse.startTime >= 400) {
+                        var delta = Vector.sub(mouse.mousedownPosition, mouse.mouseupPosition);
+                        // delta x y default 5, debounce
+                        var debounceDelta = 5;
+                        if (Math.abs(delta.x) < debounceDelta && Math.abs(delta.y) < debounceDelta) {
+                            Events.trigger(element, 'longpress', { mouse: mouse, render: render, element: element });
+                        }
+                    } else {
+                        Events.trigger(element, 'click', { mouse: mouse, render: render, element: element });
+                    }
+                }
+            }
+            mouse.endTime = 0;
+            mouse.startTime = 0;
+        });
+
+        // Events.on(canvas, 'mousemove', (mouse) => {
+        //     for (var i = 0; i < elements.length; i++) {
+        //         var element = elements[i];
+        //         if (element.events && typeof element.events !== 'undefined' &&
+        //             Bounds.contains(element.bounds, mouse.position)) {
+        //             Events.trigger(element, 'mousemove', { mouse: mouse, render: render, element: element });
+        //         }
+        //     }
+        // });
     };
 
     /**
@@ -6879,7 +6985,6 @@ var Mouse = __webpack_require__(13);
 
                 if (!part.render.visible)
                     continue;
-
                 if (options.showSleeping && body.isSleeping) {
                     c.globalAlpha = 0.5 * part.render.opacity;
                 } else if (part.render.opacity !== 1) {
@@ -6898,8 +7003,8 @@ var Mouse = __webpack_require__(13);
                     if (texture.screenWidth != sprite.width &&
                         typeof sprite.width !== 'undefined' &&
                         typeof texture.width !== 'undefined' &&
-                        typeof sprite.width !== 0 &&
-                        typeof texture.width !== 0) {
+                        sprite.width !== 0 &&
+                        texture.width !== 0) {
                         texture.screenWidth = sprite.width;
                         sprite.xScale = texture.screenWidth / texture.width;
                     }
@@ -6907,8 +7012,8 @@ var Mouse = __webpack_require__(13);
                     if (texture.screenHeight != sprite.height &&
                         typeof sprite.height !== 'undefined' &&
                         typeof texture.height !== 'undefined' &&
-                        typeof sprite.height !== 0 &&
-                        typeof texture.height !== 0) {
+                        sprite.height !== 0 &&
+                        texture.height !== 0) {
                         texture.screenHeight = sprite.height;
                         sprite.yScale = sprite.height / texture.height;
                     }
@@ -6929,14 +7034,22 @@ var Mouse = __webpack_require__(13);
                     if (part.circleRadius) {
                         c.beginPath();
                         c.arc(part.position.x, part.position.y, part.circleRadius, 0, 2 * Math.PI);
-                    } else if (part.text) {
-                        var res = textHandler(part, c);
-                        c.fillText(res.content, part.position.x, part.position.y);
+                    } else if (part.btype == "Text") {
                         c.beginPath();
-                        c.moveTo(part.vertices[0].x, part.vertices[0].y);
+                        c.save();
+                        var text = _getText(render, part);
+                        c.font         = text.font;
+                        c.family       = text.family;
+                        c.direction    = text.direction;
+                        c.fillStyle    = text.fillStyle;
+                        c.textAlign    = text.textAlign;
+                        c.textBaseline = text.textBaseline;
+                        c.fillText(text.content, part.position.x, part.position.y, text.width - text.padding);
                         c.fillStyle = "transparent";
+                        c.shadowColor = "red";
                         c.strokeStyle = "transparent";
                         part.render.fillStyle = c.fillStyle;
+                        c.moveTo(part.vertices[0].x, part.vertices[0].y);
                         for (var j = 1; j < part.vertices.length; j++) {
                             if (!part.vertices[j - 1].isInternal || showInternalEdges) {
                                 c.lineTo(part.vertices[j].x, part.vertices[j].y);
@@ -6949,7 +7062,60 @@ var Mouse = __webpack_require__(13);
                         }
                         c.lineTo(part.vertices[0].x, part.vertices[0].y);
                         c.closePath();
-                    } else {
+                        c.restore();
+                    }
+                    /*
+                    else if (part.btype == "Button") {
+                        c.beginPath();
+                        c.save();
+                        if (part.render.shadowBlur) {
+                            c.shadowBlur = part.render.shadowBlur;
+                        }
+                        if (part.render.shadowColor) {
+                            c.shadowColor = part.render.shadowColor;
+                        }
+                        if (part.render.shadowOffsetX) {
+                            c.shadowOffsetX = part.render.shadowOffsetX;
+                        }
+                        if (part.render.shadowOffsetY) {
+                            c.shadowColor = part.render.shadowOffsetY;
+                        }
+                        c.moveTo(part.vertices[0].x, part.vertices[0].y);
+                        for (var j = 1; j < part.vertices.length; j++) {
+                            if (!part.vertices[j - 1].isInternal || showInternalEdges) {
+                                c.lineTo(part.vertices[j].x, part.vertices[j].y);
+                            } else {
+                                c.moveTo(part.vertices[j].x, part.vertices[j].y);
+                            }
+
+                            if (part.vertices[j].isInternal && !showInternalEdges) {
+                                c.moveTo(part.vertices[(j + 1) % part.vertices.length].x, part.vertices[(j + 1) % part.vertices.length].y);
+                            }
+                        }
+                        c.fillStyle = part.render.fillStyle;
+                        c.closePath();
+                        if (part.render.lineWidth) {
+                            c.lineWidth = part.render.lineWidth;
+                            c.strokeStyle = part.render.strokeStyle;
+                            c.stroke();
+                        }
+                        c.fill();
+                        c.beginPath();
+                        var text = part.render.text || {};
+                        text.content = part.text;
+                        text.size = part.property.height;
+                        c.padding      = text.padding || 15;
+                        c.family       = text.family || 'Arial';
+                        c.font         = text.size - c.padding + "px " + c.family;
+                        c.fillStyle    = text.color || '#ffffff';
+                        c.direction    = text.direction || 'inherit';
+                        c.textAlign    = text.textAlign || 'center';
+                        c.textBaseline = text.textBaseline || 'middle';
+                        c.fillText(text.content, part.position.x, part.position.y, part.property.width - c.padding);
+                        c.restore();
+                    }
+                    */
+                    else {
                         c.beginPath();
                         c.moveTo(part.vertices[0].x, part.vertices[0].y);
 
@@ -6985,26 +7151,10 @@ var Mouse = __webpack_require__(13);
                         c.stroke();
                     }
                 }
-
                 c.globalAlpha = 1;
             }
         }
     };
-
-    function textHandler(part, c) {
-        part.render.text = part.render.text || {};
-        var content = part.text;
-        // 30px is default font size
-        var fontsize = part.render.text.size || 30;
-        // white text color by default
-        c.fillStyle = part.render.text.color || "#FFFFFF";
-        // arial is default font family
-        var fontfamily = part.render.text.family || "Arial";
-        c.textAlign = "center";
-        c.textBaseline = "middle";
-        c.font = fontsize + 'px ' + fontfamily;
-        return { content: content, fontsize: fontsize };
-    }
 
     /**
      * Optimised method for drawing body wireframes in one pass
@@ -7679,6 +7829,63 @@ var Mouse = __webpack_require__(13);
     };
 
     /**
+     * Gets the requested texture (an Image) via its path
+     * @method _getTexture
+     * @private
+     * @param {render} render
+     * @param {string} imagePath
+     * @return {Image} texture
+     */
+    var _getText = function(render, part) {
+        var text = render.text[part.id];
+
+        if (text)
+            return text;
+
+        var c = render.context;
+        part.property = part.property || {};
+        part.render.text = part.render.text || {};
+        var content      = part.text;
+        var height       = part.render.text.size || 30;
+        var padding      = part.render.text.padding || 0;
+        var family       = part.render.text.family || 'Arial';
+        var font         = height + 'px ' + family;
+        var fillStyle    = part.render.text.color || '#ffffff';
+        var direction    = part.render.text.direction || 'inherit';
+        var textAlign    = part.render.text.textAlign || 'center';
+        var textBaseline = part.render.text.textBaseline || 'middle';
+        // canvas context set font context
+        c.save();
+        c.font           = font;
+        c.fillStyle      = fillStyle;
+        c.textAlign      = textAlign;
+        c.textBaseline   = textBaseline;
+        var width        = c.measureText(content).width;
+        if (part.property.width) {
+            width = part.property.width;
+        }
+        if (part.property.height) {
+            height = part.property.height;
+        }
+        // new a text context cache
+        text = render.text[part.id] = {
+            context      : c,
+            font         : font,
+            family       : family,
+            width        : width,
+            height       : height,
+            padding      : padding,
+            content      : content,
+            fillStyle    : fillStyle,
+            direction    : direction,
+            textAlign    : textAlign,
+            textBaseline : textBaseline,
+        };
+        c.restore();
+        return text;
+    };
+
+    /**
      * Applies the background to the canvas using CSS.
      * @method applyBackground
      * @private
@@ -8093,10 +8300,10 @@ var Resolver = __webpack_require__(19);
 var Detector = __webpack_require__(14);
 var Pairs = __webpack_require__(20);
 var Events = __webpack_require__(4);
-var Composite = __webpack_require__(5);
-var Constraint = __webpack_require__(10);
+var Composite = __webpack_require__(6);
+var Constraint = __webpack_require__(11);
 var Common = __webpack_require__(0);
-var Body = __webpack_require__(6);
+var Body = __webpack_require__(5);
 
 (function() {
 
@@ -8976,7 +9183,7 @@ var Pairs = {};
 
 module.exports = Pairs;
 
-var Pair = __webpack_require__(9);
+var Pair = __webpack_require__(10);
 var Common = __webpack_require__(0);
 
 (function() {
@@ -9104,35 +9311,36 @@ var Common = __webpack_require__(0);
 
 var Matter = module.exports = __webpack_require__(22);
 
-Matter.Axes = __webpack_require__(11);
-Matter.Bodies = __webpack_require__(12);
-Matter.Body = __webpack_require__(6);
+Matter.Axes = __webpack_require__(12);
+Matter.Bodies = __webpack_require__(8);
+Matter.Body = __webpack_require__(5);
 Matter.Bounds = __webpack_require__(1);
-Matter.Collision = __webpack_require__(8);
+Matter.Collision = __webpack_require__(9);
 Matter.Common = __webpack_require__(0);
-Matter.Composite = __webpack_require__(5);
-Matter.Composites = __webpack_require__(23);
-Matter.Constraint = __webpack_require__(10);
+Matter.Composite = __webpack_require__(6);
+Matter.Components = __webpack_require__(23);
+Matter.Composites = __webpack_require__(24);
+Matter.Constraint = __webpack_require__(11);
 Matter.Contact = __webpack_require__(17);
 Matter.Detector = __webpack_require__(14);
 Matter.Engine = __webpack_require__(18);
 Matter.Events = __webpack_require__(4);
-Matter.Grid = __webpack_require__(24);
+Matter.Grid = __webpack_require__(25);
 Matter.Mouse = __webpack_require__(13);
-Matter.MouseConstraint = __webpack_require__(25);
-Matter.Pair = __webpack_require__(9);
+Matter.MouseConstraint = __webpack_require__(26);
+Matter.Pair = __webpack_require__(10);
 Matter.Pairs = __webpack_require__(20);
 Matter.Plugin = __webpack_require__(15);
-Matter.Query = __webpack_require__(26);
+Matter.Query = __webpack_require__(27);
 Matter.Render = __webpack_require__(16);
 Matter.Resolver = __webpack_require__(19);
-Matter.Runner = __webpack_require__(27);
-Matter.SAT = __webpack_require__(28);
+Matter.Runner = __webpack_require__(28);
+Matter.SAT = __webpack_require__(29);
 Matter.Sleeping = __webpack_require__(7);
-Matter.Svg = __webpack_require__(29);
+Matter.Svg = __webpack_require__(30);
 Matter.Vector = __webpack_require__(2);
 Matter.Vertices = __webpack_require__(3);
-Matter.World = __webpack_require__(30);
+Matter.World = __webpack_require__(31);
 
 // temporary back compatibility
 Matter.Engine.run = Matter.Runner.run;
@@ -9236,6 +9444,112 @@ var Common = __webpack_require__(0);
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
+* The `Matter.Components` module contains factory methods for creating rigid body models 
+* with commonly used body configurations (such as rectangles, circles and other polygons).
+*
+* See the included usage [examples](https://github.com/liabru/matter-js/tree/master/examples).
+*
+* @class Components
+*/
+
+// TODO: true circle bodies
+
+var Components = {};
+
+module.exports = Components;
+
+var Vertices = __webpack_require__(3);
+var Common = __webpack_require__(0);
+var Body = __webpack_require__(5);
+var Composite = __webpack_require__(6);
+var Bounds = __webpack_require__(1);
+var Vector = __webpack_require__(2);
+var Bodies = __webpack_require__(8);
+
+
+(function() {
+    /**
+     * Creates a new button body model with a regular rectangle hull with the given number of sides. 
+     * The options parameter is an object that specifies any properties you wish to override the defaults.
+     * See the properties section of the `Matter.Body` module for detailed information on what you can pass via the `options` object.
+     * @method button
+     * @param {number} x
+     * @param {number} y
+     * @param {string} text
+     * @param {object} [options]
+     * @return {body} A new button
+     */
+    Components.button = function(x, y, width, height, content, options) {
+        var button = Composite.create({ btype: 'Button', label: 'Button' });
+        var defaults = {
+            isStatic: true,
+            isSensor: true,
+            text: content,
+            wireframes: false,
+            chamfer: {
+                radius: width / 15
+            },
+            events: [],
+            property: {width, height},
+            scaleFactor: 0.01,
+            render : {
+                fillStyle: "#426FC5",
+                strokeStyle: "#ff00ff",
+                shadowBlur: 10,
+                shadowColor: "#4a4a4a",
+                text: {
+                    padding: 10,
+                }
+            },
+        };
+        var events = Common.extend({}, true, options.events);
+        options = Common.extend(defaults, options);
+        var btnEvent = buttonEvent();
+        if (options.events) {
+            options.events.push(...btnEvent);
+        }
+        var edge = Bodies.rectangle(x, y, width, height, options);
+        edge.belong = button;
+        Composite.addBody(button, edge);
+        options.events = events;
+        var text = Bodies.text(x, y, content, options);
+        text.belong = button;
+        Composite.addBody(button, text);
+        return button;
+    };
+
+    function buttonEvent () {
+        return [
+            {
+                name: 'mousedown',
+                callback: (object) => {
+                    var body = object.element;
+                    // var belong = body.belong; // TODO: Composites.scale
+                    body.vertices2 = body.vertices2 || Vertices.simpleCopy(body.vertices);
+                    Body.scale(body, 1 - body.scaleFactor, 1 - body.scaleFactor, body.position);
+                }
+            },
+            {
+                name: 'mouseup',
+                callback: (object) => {
+                    var body = object.element;
+                    if(body.vertices2) 
+                        Body.setVertices(body, body.vertices2);
+                    else
+                        Body.setVertices(body, body.vertices);
+                }
+            },
+        ];
+    }
+
+})();
+
+
+/***/ }),
+/* 24 */
+/***/ (function(module, exports, __webpack_require__) {
+
+/**
 * The `Matter.Composites` module contains factory methods for creating composite bodies
 * with commonly used configurations (such as stacks and chains).
 *
@@ -9248,11 +9562,11 @@ var Composites = {};
 
 module.exports = Composites;
 
-var Composite = __webpack_require__(5);
-var Constraint = __webpack_require__(10);
+var Composite = __webpack_require__(6);
+var Constraint = __webpack_require__(11);
 var Common = __webpack_require__(0);
-var Body = __webpack_require__(6);
-var Bodies = __webpack_require__(12);
+var Body = __webpack_require__(5);
+var Bodies = __webpack_require__(8);
 var deprecated = Common.deprecated;
 
 (function() {
@@ -9575,7 +9889,7 @@ var deprecated = Common.deprecated;
 
 
 /***/ }),
-/* 24 */
+/* 25 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -9594,7 +9908,7 @@ var Grid = {};
 
 module.exports = Grid;
 
-var Pair = __webpack_require__(9);
+var Pair = __webpack_require__(10);
 var Common = __webpack_require__(0);
 var deprecated = Common.deprecated;
 
@@ -9921,7 +10235,7 @@ var deprecated = Common.deprecated;
 
 
 /***/ }),
-/* 25 */
+/* 26 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -9942,8 +10256,8 @@ var Sleeping = __webpack_require__(7);
 var Mouse = __webpack_require__(13);
 var Events = __webpack_require__(4);
 var Detector = __webpack_require__(14);
-var Constraint = __webpack_require__(10);
-var Composite = __webpack_require__(5);
+var Constraint = __webpack_require__(11);
+var Composite = __webpack_require__(6);
 var Common = __webpack_require__(0);
 var Bounds = __webpack_require__(1);
 var Vector = __webpack_require__(2);
@@ -10038,13 +10352,6 @@ var Vector = __webpack_require__(2);
 
                                 Sleeping.set(body, false);
                                 Events.trigger(mouseConstraint, 'startdrag', { mouse: mouse, body: body });
-                                // body event handler: startdrag, click
-                                if (typeof body.event_count === 'undefined' || body.event_count > 0) {
-                                    // console.log("click", { mouse: mouse, body: body })
-                                    Events.trigger(body, 'startdrag', { mouse: mouse, body: body });
-                                    Events.trigger(body, 'click', { mouse: mouse, body: body });
-                                }
-                                body.event_count = 0
                                 break;
                             }
                         }
@@ -10064,18 +10371,6 @@ var Vector = __webpack_require__(2);
                 // body event handler: enddrag, longpress
                 if (body.event_count <= 1) {
                     Events.trigger(body, 'enddrag', { mouse: mouse, body: body });
-                    if (mouse.endTime - mouse.startTime >= 400) {
-                        var delta = Vector.sub(mouse.mousedownPosition, mouse.mouseupPosition);
-                        // console.log(delta)
-                        // delta x y default 5, debounce
-                        if (Math.abs(delta.x) < 5 && Math.abs(delta.y) < 5) {
-                            // console.log("longpress", { mouse: mouse, body: body })
-                            Events.trigger(mouseConstraint, 'longpress', { mouse: mouse, body: body });
-                            Events.trigger(body, 'longpress', { mouse: mouse, body: body });
-                        }
-                        mouse.endTime = 0
-                        mouse.startTime = 0
-                    }
                 }
             }
         }
@@ -10212,7 +10507,7 @@ var Vector = __webpack_require__(2);
 })();
 
 /***/ }),
-/* 26 */
+/* 27 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -10228,9 +10523,9 @@ var Query = {};
 module.exports = Query;
 
 var Vector = __webpack_require__(2);
-var Collision = __webpack_require__(8);
+var Collision = __webpack_require__(9);
 var Bounds = __webpack_require__(1);
-var Bodies = __webpack_require__(12);
+var Bodies = __webpack_require__(8);
 var Vertices = __webpack_require__(3);
 
 (function() {
@@ -10354,7 +10649,7 @@ var Vertices = __webpack_require__(3);
 
 
 /***/ }),
-/* 27 */
+/* 28 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -10543,6 +10838,34 @@ var Common = __webpack_require__(0);
     };
 
     /**
+     * Resume execution of `Runner.pause` on the given `runner`, by Resume the animation frame request event loop.
+     * @method resume
+     * @param {runner} runner
+     */
+    Runner.resume = function(runner) {
+        runner.enabled = true;
+    };
+
+    /**
+     * Get Runner run state, running will return true, otherwise return false
+     * @method state
+     * @param {runner} runner
+     * @returns boolean
+     */
+    Runner.state = function(runner) {
+        return runner.enabled;
+    };
+
+    /**
+     * Pause execution of `Runner.run` on the given `runner`, by Pause the animation frame request event loop.
+     * @method pause
+     * @param {runner} runner
+     */
+    Runner.pause = function(runner) {
+        runner.enabled = false;
+    };
+
+    /**
      * Alias for `Runner.run`.
      * @method start
      * @param {runner} runner
@@ -10646,7 +10969,7 @@ var Common = __webpack_require__(0);
 
 
 /***/ }),
-/* 28 */
+/* 29 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -10665,7 +10988,7 @@ var SAT = {};
 
 module.exports = SAT;
 
-var Collision = __webpack_require__(8);
+var Collision = __webpack_require__(9);
 var Common = __webpack_require__(0);
 var deprecated = Common.deprecated;
 
@@ -10689,7 +11012,7 @@ var deprecated = Common.deprecated;
 
 
 /***/ }),
-/* 29 */
+/* 30 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -10920,7 +11243,7 @@ var Common = __webpack_require__(0);
 })();
 
 /***/ }),
-/* 30 */
+/* 31 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -10941,7 +11264,7 @@ var World = {};
 
 module.exports = World;
 
-var Composite = __webpack_require__(5);
+var Composite = __webpack_require__(6);
 var Common = __webpack_require__(0);
 
 (function() {
