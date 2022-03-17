@@ -6485,7 +6485,7 @@ var Body = __webpack_require__(5);
         // register mouse trace event
         if (!render.traceBodyMouse && allBodies.length > 0) {
             Render.elementEventHandler(render, allBodies);
-            render.traceMouse = true;
+            render.traceBodyMouse = true;
         }
 
         // apply background if it has changed
