@@ -598,6 +598,11 @@ var Axes = require('../geometry/Axes');
             part.position.x = point.x + (part.position.x - point.x) * scaleX;
             part.position.y = point.y + (part.position.y - point.y) * scaleY;
 
+            if (part.btype == 'Text') {
+                body.render.text.width = body.render.text.width * scaleX;
+                body.render.text.height = body.render.text.height * scaleY;
+            }
+
             // update bounds
             Bounds.update(part.bounds, part.vertices, body.velocity);
         }

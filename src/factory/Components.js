@@ -40,23 +40,34 @@ var Bodies = require('./Bodies');
             isStatic: true,
             isSensor: true,
             text: content,
-            wireframes: false,
             chamfer: {
-                radius: width / 15
+                radius: width * 0.05
             },
+            wireframes: false,
             events: [],
-            property: {width, height},
-            scaleFactor: 0.01,
+            property: { width, height },
+            translateFactor: width * 0.01,
             render : {
-                fillStyle: "#426FC5",
-                strokeStyle: "#ff00ff",
-                shadowBlur: 10,
+                fillStyle: "#4caf50",
+                strokeStyle: "#4caf50",
+                shadowBlur: 15,
                 shadowColor: "#4a4a4a",
+                lineWidth: 2,
                 text: {
-                    padding: 10,
+                    color: '#ffffff',
+                    padding: 0,
+                    width,
+                    height
                 }
             },
         };
+        if (defaults.wireframes == true) {
+            defaults.render.strokeStyle = "#4caf50";
+            defaults.render.text.color = "#000000";
+        } else {
+            defaults.render.fillStyle = "#4caf50";
+            defaults.render.text.color = "#ffffff";
+        }
         var events = Common.extend({}, true, options.events);
         options = Common.extend(defaults, options);
         var btnEvent = buttonEvent();
@@ -79,19 +90,16 @@ var Bodies = require('./Bodies');
                 name: 'mousedown',
                 callback: (object) => {
                     var body = object.element;
-                    // var belong = body.belong; // TODO: Composites.scale
-                    body.vertices2 = body.vertices2 || Vertices.simpleCopy(body.vertices);
-                    Body.scale(body, 1 - body.scaleFactor, 1 - body.scaleFactor, body.position);
+                    var belong = body.belong;
+                    Composite.translate(belong, { x: body.translateFactor, y: body.translateFactor });
                 }
             },
             {
                 name: 'mouseup',
                 callback: (object) => {
                     var body = object.element;
-                    if(body.vertices2) 
-                        Body.setVertices(body, body.vertices2);
-                    else
-                        Body.setVertices(body, body.vertices);
+                    var belong = body.belong;
+                    Composite.translate(belong, { x: -body.translateFactor, y: -body.translateFactor });
                 }
             },
         ];

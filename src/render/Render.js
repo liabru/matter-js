@@ -848,6 +848,9 @@ var Body = require('../body/Body');
 
                 if (!part.render.visible)
                     continue;
+
+                // save
+                var saveContext = save(c);
                 if (options.showSleeping && body.isSleeping) {
                     c.globalAlpha = 0.5 * part.render.opacity;
                 } else if (part.render.opacity !== 1) {
@@ -901,30 +904,13 @@ var Body = require('../body/Body');
                         c.beginPath();
                         c.save();
                         var text = _getText(render, part);
-                        c.font         = text.font;
+                        c.font         = text.height + 'px ' + text.family;
                         c.family       = text.family;
                         c.direction    = text.direction;
                         c.fillStyle    = text.fillStyle;
                         c.textAlign    = text.textAlign;
                         c.textBaseline = text.textBaseline;
-                        c.fillText(text.content, part.position.x, part.position.y, text.width - text.padding);
-                        c.fillStyle = "transparent";
-                        c.shadowColor = "red";
-                        c.strokeStyle = "transparent";
-                        part.render.fillStyle = c.fillStyle;
-                        c.moveTo(part.vertices[0].x, part.vertices[0].y);
-                        for (var j = 1; j < part.vertices.length; j++) {
-                            if (!part.vertices[j - 1].isInternal || showInternalEdges) {
-                                c.lineTo(part.vertices[j].x, part.vertices[j].y);
-                            } else {
-                                c.moveTo(part.vertices[j].x, part.vertices[j].y);
-                            }
-                            if (part.vertices[j].isInternal && !showInternalEdges) {
-                                c.moveTo(part.vertices[(j + 1) % part.vertices.length].x, part.vertices[(j + 1) % part.vertices.length].y);
-                            }
-                        }
-                        c.lineTo(part.vertices[0].x, part.vertices[0].y);
-                        c.closePath();
+                        c.fillText(text.content, part.position.x, part.position.y, text.width - 2 * text.padding);
                         c.restore();
                     }
                     /*
@@ -966,7 +952,7 @@ var Body = require('../body/Body');
                         c.beginPath();
                         var text = part.render.text || {};
                         text.content = part.text;
-                        text.size = part.property.height;
+                        text.size = part.render.height;
                         c.padding      = text.padding || 15;
                         c.family       = text.family || 'Arial';
                         c.font         = text.size - c.padding + "px " + c.family;
@@ -974,12 +960,24 @@ var Body = require('../body/Body');
                         c.direction    = text.direction || 'inherit';
                         c.textAlign    = text.textAlign || 'center';
                         c.textBaseline = text.textBaseline || 'middle';
-                        c.fillText(text.content, part.position.x, part.position.y, part.property.width - c.padding);
+                        c.fillText(text.content, part.position.x, part.position.y, part.render.width - c.padding);
                         c.restore();
                     }
                     */
                     else {
                         c.beginPath();
+                        if (part.render.shadowBlur) {
+                            c.shadowBlur = part.render.shadowBlur;
+                        }
+                        if (part.render.shadowColor) {
+                            c.shadowColor = part.render.shadowColor;
+                        }
+                        if (part.render.shadowOffsetX) {
+                            c.shadowOffsetX = part.render.shadowOffsetX;
+                        }
+                        if (part.render.shadowOffsetY) {
+                            c.shadowColor = part.render.shadowOffsetY;
+                        }
                         c.moveTo(part.vertices[0].x, part.vertices[0].y);
 
                         for (var j = 1; j < part.vertices.length; j++) {
@@ -998,7 +996,7 @@ var Body = require('../body/Body');
                         c.closePath();
                     }
 
-                    if (!options.wireframes) {
+                    if (!options.wireframes && !part.wireframes) {
                         c.fillStyle = part.render.fillStyle;
 
                         if (part.render.lineWidth) {
@@ -1009,14 +1007,21 @@ var Body = require('../body/Body');
 
                         c.fill();
                     } else {
-                        c.lineWidth = 1;
-                        c.strokeStyle = '#bbb';
+                        c.lineWidth = part.render.lineWidth || 1;
+                        c.strokeStyle = part.render.strokeStyle || '#bbb';
                         c.stroke();
                     }
+                    // restore
+                    // c.shadowBlur = shadowBlur;
+                    // c.shadowColor = shadowColor;
+                    // c.shadowOffsetX = shadowOffsetX;
+                    // c.shadowColor = shadowOffsetY;
                 }
+                restore(c, saveContext);
                 c.globalAlpha = 1;
             }
         }
+
     };
 
     /**
@@ -1249,6 +1254,33 @@ var Body = require('../body/Body');
         c.stroke();
         c.globalCompositeOperation = 'source-over';
     };
+
+    // save canvas context
+    function save(c) {
+        return {
+            font          : c.font,
+            family        : c.family,
+            lineWidth     : c.lineWidth,
+            direction     : c.direction,
+            textAlign     : c.textAlign,
+            shadowBlur    : c.shadowBlur,
+            shadowColor   : c.shadowColor,
+            globalAlpha   : c.globalAlpha,
+            fillStyle     : c.fillStyle,
+            strokeStyle   : c.strokeStyle,
+            textBaseline  : c.textBaseline,
+            shadowOffsetX : c.shadowOffsetX,
+            shadowOffsetY : c.shadowOffsetY,
+            globalCompositeOperation: c.globalCompositeOperation,
+        };
+    }
+
+    // restore canvas context
+    function restore(c, store) {
+        for (const key in store) {
+            c[key] = store[key];
+        }
+    }
 
     /**
      * Draws body positions
@@ -1704,36 +1736,33 @@ var Body = require('../body/Body');
 
         if (text)
             return text;
-
+        var scaleFactor = 0.6;
         var c = render.context;
-        part.property = part.property || {};
         part.render.text = part.render.text || {};
         var content      = part.text;
         var height       = part.render.text.size || 30;
+        if (part.render.text.height) {
+            height = part.render.text.height * scaleFactor;
+        }
         var padding      = part.render.text.padding || 0;
         var family       = part.render.text.family || 'Arial';
-        var font         = height + 'px ' + family;
         var fillStyle    = part.render.text.color || '#ffffff';
         var direction    = part.render.text.direction || 'inherit';
         var textAlign    = part.render.text.textAlign || 'center';
         var textBaseline = part.render.text.textBaseline || 'middle';
         // canvas context set font context
         c.save();
-        c.font           = font;
         c.fillStyle      = fillStyle;
         c.textAlign      = textAlign;
         c.textBaseline   = textBaseline;
+        c.font           = height + 'px ' + family;
         var width        = c.measureText(content).width;
-        if (part.property.width) {
-            width = part.property.width;
-        }
-        if (part.property.height) {
-            height = part.property.height;
+        if (part.render.text.width) {
+            width = part.render.text.width;
         }
         // new a text context cache
         text = render.text[part.id] = {
             context      : c,
-            font         : font,
             family       : family,
             width        : width,
             height       : height,
@@ -1744,6 +1773,7 @@ var Body = require('../body/Body');
             textAlign    : textAlign,
             textBaseline : textBaseline,
         };
+        part.render.text = text;
         c.restore();
         return text;
     };
