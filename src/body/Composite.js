@@ -603,6 +603,29 @@ var Body = require('./Body');
         return Bounds.create(vertices);
     };
 
+    /**
+     * Each all children in the composite, including updating physical properties (mass, area, axes, inertia), from a world-space point.
+     * @method each
+     * @param {composite} composite
+     * @param {bool} [recursive=true]
+     * @param {function} [callback]
+     */
+    Composite.each = function(composite, callback, id, recursive = true) {
+        if (!callback || typeof callback !== 'function')
+            return;
+
+        var bodies = recursive ? Composite.allBodies(composite) : composite.bodies;
+
+        for (var i = 0; i < bodies.length; i++) {
+            var body = bodies[i];
+            if (typeof id !== "number" && body.id == id) {
+                callback(i, body);
+                return;
+            }
+            callback(i, body);
+        }
+    };
+
     /*
     *
     *  Events Documentation

@@ -46,7 +46,7 @@ var Bodies = require('./Bodies');
             wireframes: false,
             events: [],
             property: { width, height },
-            translateFactor: width * 0.01,
+            translateFactor: 0, //width * 0.01,
             render : {
                 fillStyle: "#4caf50",
                 strokeStyle: "#4caf50",
@@ -56,8 +56,8 @@ var Bodies = require('./Bodies');
                 text: {
                     color: '#ffffff',
                     padding: 0,
-                    width,
-                    height
+                    width: width * 0.8,
+                    height: height * 0.6,
                 }
             },
         };
@@ -84,6 +84,27 @@ var Bodies = require('./Bodies');
         return button;
     };
 
+    /**
+     * update or set button style
+     * @param {Components} button
+     * @param {object} options
+     * @returns
+     */
+    Components.buttonSet = function(button, options) {
+        if (!button || !options || Object.keys(options).length == 0)
+            return button;
+        options.render = options.render || {};
+
+        // each set option
+        Composite.each(button, (index, body) => {
+            if (options.render) {
+                // cache old render style for recover
+                body.renderCache = body.renderCache || Common.extend({}, true, body.render);
+                body.render = Common.extend(body.render, options.render);
+            }
+        });
+    };
+
     function buttonEvent () {
         return [
             {
@@ -91,7 +112,9 @@ var Bodies = require('./Bodies');
                 callback: (object) => {
                     var body = object.element;
                     var belong = body.belong;
-                    Composite.translate(belong, { x: body.translateFactor, y: body.translateFactor });
+                    if (body.translateFactor && typeof body.translateFactor == "number" && body.translateFactor != 0)
+                        Composite.translate(belong, { x: body.translateFactor, y: body.translateFactor });
+                    Components.buttonSet(belong, {render: { opacity: 0.85 }});
                 }
             },
             {
@@ -99,7 +122,9 @@ var Bodies = require('./Bodies');
                 callback: (object) => {
                     var body = object.element;
                     var belong = body.belong;
-                    Composite.translate(belong, { x: -body.translateFactor, y: -body.translateFactor });
+                    if (body.translateFactor && typeof body.translateFactor == "number" && body.translateFactor != 0)
+                        Composite.translate(belong, { x: -body.translateFactor, y: -body.translateFactor });
+                    Components.buttonSet(belong, { render: body.renderCache });
                 }
             },
         ];

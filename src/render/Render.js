@@ -1736,13 +1736,12 @@ var Body = require('../body/Body');
 
         if (text)
             return text;
-        var scaleFactor = 0.6;
         var c = render.context;
         part.render.text = part.render.text || {};
         var content      = part.text;
         var height       = part.render.text.size || 30;
         if (part.render.text.height) {
-            height = part.render.text.height * scaleFactor;
+            height = part.render.text.height;
         }
         var padding      = part.render.text.padding || 0;
         var family       = part.render.text.family || 'Arial';
