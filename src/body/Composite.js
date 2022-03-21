@@ -626,6 +626,33 @@ var Body = require('./Body');
         }
     };
 
+    /**
+     * Update the render config of the composite.
+     * @method updateRender
+     * @param {body} body
+     * @param {object} options
+     */
+    Composite.updateRender = function(composite, id, options, willRecover = true) {
+        if (!composite || !options || Object.keys(options).length == 0)
+            return composite;
+        Composite.each(composite, (i, body) => {
+            Body.updateRender(body, options, willRecover);
+        }, id, true);
+    };
+
+    /**
+     * Recover the render config of the composite.
+     * @method recoverRender
+     * @param {body} body
+     */
+    Composite.recoverRender = function(composite, id) {
+        if (!composite)
+            return composite;
+        Composite.each(composite, (i, body) => {
+            Body.recoverRender(body);
+        }, id, true);
+    };
+
     /*
     *
     *  Events Documentation

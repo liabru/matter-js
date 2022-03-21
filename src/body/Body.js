@@ -513,6 +513,35 @@ var Axes = require('../geometry/Axes');
     };
 
     /**
+     * Update the render config of the body.
+     * @method updateRender
+     * @param {body} body
+     * @param {object} options
+     */
+    Body.updateRender = function(body, options, willRecover = true) {
+        if (!body || !options || Object.keys(options).length == 0)
+            return body;
+        // cache old render style for recover
+        if (options.render) {
+            if (willRecover == true)
+                body.renderCache = body.renderCache || Common.extend({}, true, body.render);
+            body.render = Common.extend(body.render, options.render);
+        }
+    };
+
+    /**
+     * Recover the render config of the body.
+     * @method recoverRender
+     * @param {body} body
+     */
+    Body.recoverRender = function(body) {
+        if (!body || !body.renderCache)
+            return body;
+        if (body.renderCache) {
+            body.render = Common.extend(body.render, body.renderCache);
+        }
+    };
+    /**
      * Sets the angular velocity of the body instantly. Position, angle, force etc. are unchanged. See also `Body.applyForce`.
      * @method setAngularVelocity
      * @param {body} body

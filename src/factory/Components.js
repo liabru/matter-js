@@ -58,6 +58,7 @@ var Bodies = require('./Bodies');
                     padding: 0,
                     width: width * 0.8,
                     height: height * 0.6,
+                    textAlign: 'center',
                 }
             },
         };
@@ -84,27 +85,6 @@ var Bodies = require('./Bodies');
         return button;
     };
 
-    /**
-     * update or set button style
-     * @param {Components} button
-     * @param {object} options
-     * @returns
-     */
-    Components.buttonSet = function(button, options) {
-        if (!button || !options || Object.keys(options).length == 0)
-            return button;
-        options.render = options.render || {};
-
-        // each set option
-        Composite.each(button, (index, body) => {
-            if (options.render) {
-                // cache old render style for recover
-                body.renderCache = body.renderCache || Common.extend({}, true, body.render);
-                body.render = Common.extend(body.render, options.render);
-            }
-        });
-    };
-
     function buttonEvent () {
         return [
             {
@@ -114,7 +94,7 @@ var Bodies = require('./Bodies');
                     var belong = body.belong;
                     if (body.translateFactor && typeof body.translateFactor == "number" && body.translateFactor != 0)
                         Composite.translate(belong, { x: body.translateFactor, y: body.translateFactor });
-                    Components.buttonSet(belong, {render: { opacity: 0.85 }});
+                    Composite.updateRender(belong, null, {render: { opacity: 0.85 }});
                 }
             },
             {
@@ -124,7 +104,7 @@ var Bodies = require('./Bodies');
                     var belong = body.belong;
                     if (body.translateFactor && typeof body.translateFactor == "number" && body.translateFactor != 0)
                         Composite.translate(belong, { x: -body.translateFactor, y: -body.translateFactor });
-                    Components.buttonSet(belong, { render: body.renderCache });
+                    Composite.recoverRender(belong);
                 }
             },
         ];

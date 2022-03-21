@@ -72,6 +72,7 @@ var Common = require('./Common');
         runner.deltaMax = runner.deltaMax || 1000 / (runner.fps * 0.5);
         runner.fps = 1000 / runner.delta;
 
+        console.log("fps", runner);
         return runner;
     };
 

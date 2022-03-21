@@ -22,6 +22,45 @@ var Vector = require('../geometry/Vector');
 (function() {
 
     /**
+     * Creates a new line body.
+     * The options parameter is an object that specifies any properties you wish to override the defaults.
+     * See the properties section of the `Matter.Body` module for detailed information on what you can pass via the `options` object.
+     * @method line
+     * @param {number} x
+     * @param {number} y
+     * @param {number} width
+     * @param {number} height
+     * @param {object} [options]
+     * @return {body} A new line body
+     */
+    Bodies.line = function(x, y, x2, y2, options) {
+        options = options || {};
+        var pointA = {x:x, y:y}, pointB = {x:x2, y:y2};
+        var defaults = {
+            isSensor: false,
+            wireframes: true,
+            events: [],
+            render : {
+                fillStyle: "#4caf50",
+                lineWidth: 2,
+            },
+            property: { pointA, pointB },
+        };
+        options = Common.extend(defaults, options);
+        var lineWidth = options.render.lineWidth;
+        var sub = Vector.sub(pointA, pointB);
+        var lineLength = Vector.magnitude(sub) + lineWidth;
+        var line = {
+            btype: 'Line',
+            label: 'Line Body',
+            angle: Vector.angle(pointA, pointB),
+            position: { x: (x2 + x) / 2, y: (y + y2) / 2},
+            vertices: Vertices.fromPath('L 0 0 L ' + lineLength + ' 0 L ' + lineLength + ' ' + lineWidth + ' L 0 ' + lineWidth),
+        };
+        return Body.create(Common.extend({}, line, options));
+    };
+
+    /**
      * Creates a new rigid body model with a rectangle hull. 
      * The options parameter is an object that specifies any properties you wish to override the defaults.
      * See the properties section of the `Matter.Body` module for detailed information on what you can pass via the `options` object.
@@ -71,10 +110,14 @@ var Vector = require('../geometry/Vector');
             label: 'Text Body',
             position: { x: x, y: y },
             text: text,
+            isStatic: true,
+            isSensor: true,
+            render: {
+                text: {
+                    content: text
+                }
+            }
         };
-        // 文字默认静止
-        options.isStatic = true;
-        options.isSensor = true;
         return Body.create(Common.extend({}, text, options));
     };
 

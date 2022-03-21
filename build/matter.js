@@ -2261,6 +2261,35 @@ var Axes = __webpack_require__(12);
     };
 
     /**
+     * Update the render config of the body.
+     * @method updateRender
+     * @param {body} body
+     * @param {object} options
+     */
+    Body.updateRender = function(body, options, willRecover = true) {
+        if (!body || !options || Object.keys(options).length == 0)
+            return body;
+        // cache old render style for recover
+        if (options.render) {
+            if (willRecover == true)
+                body.renderCache = body.renderCache || Common.extend({}, true, body.render);
+            body.render = Common.extend(body.render, options.render);
+        }
+    };
+
+    /**
+     * Recover the render config of the body.
+     * @method recoverRender
+     * @param {body} body
+     */
+    Body.recoverRender = function(body) {
+        if (!body || !body.renderCache)
+            return body;
+        if (body.renderCache) {
+            body.render = Common.extend(body.render, body.renderCache);
+        }
+    };
+    /**
      * Sets the angular velocity of the body instantly. Position, angle, force etc. are unchanged. See also `Body.applyForce`.
      * @method setAngularVelocity
      * @param {body} body
@@ -3597,6 +3626,56 @@ var Body = __webpack_require__(5);
         return Bounds.create(vertices);
     };
 
+    /**
+     * Each all children in the composite, including updating physical properties (mass, area, axes, inertia), from a world-space point.
+     * @method each
+     * @param {composite} composite
+     * @param {bool} [recursive=true]
+     * @param {function} [callback]
+     */
+    Composite.each = function(composite, callback, id, recursive = true) {
+        if (!callback || typeof callback !== 'function')
+            return;
+
+        var bodies = recursive ? Composite.allBodies(composite) : composite.bodies;
+
+        for (var i = 0; i < bodies.length; i++) {
+            var body = bodies[i];
+            if (typeof id !== "number" && body.id == id) {
+                callback(i, body);
+                return;
+            }
+            callback(i, body);
+        }
+    };
+
+    /**
+     * Update the render config of the composite.
+     * @method updateRender
+     * @param {body} body
+     * @param {object} options
+     */
+    Composite.updateRender = function(composite, id, options, willRecover = true) {
+        if (!composite || !options || Object.keys(options).length == 0)
+            return composite;
+        Composite.each(composite, (i, body) => {
+            Body.updateRender(body, options, willRecover);
+        }, id, true);
+    };
+
+    /**
+     * Recover the render config of the composite.
+     * @method recoverRender
+     * @param {body} body
+     */
+    Composite.recoverRender = function(composite, id) {
+        if (!composite)
+            return composite;
+        Composite.each(composite, (i, body) => {
+            Body.recoverRender(body);
+        }, id, true);
+    };
+
     /*
     *
     *  Events Documentation
@@ -3902,6 +3981,45 @@ var Vector = __webpack_require__(2);
 (function() {
 
     /**
+     * Creates a new line body.
+     * The options parameter is an object that specifies any properties you wish to override the defaults.
+     * See the properties section of the `Matter.Body` module for detailed information on what you can pass via the `options` object.
+     * @method line
+     * @param {number} x
+     * @param {number} y
+     * @param {number} width
+     * @param {number} height
+     * @param {object} [options]
+     * @return {body} A new line body
+     */
+    Bodies.line = function(x, y, x2, y2, options) {
+        options = options || {};
+        var pointA = {x:x, y:y}, pointB = {x:x2, y:y2};
+        var defaults = {
+            isSensor: false,
+            wireframes: true,
+            events: [],
+            render : {
+                fillStyle: "#4caf50",
+                lineWidth: 2,
+            },
+            property: { pointA, pointB },
+        };
+        options = Common.extend(defaults, options);
+        var lineWidth = options.render.lineWidth;
+        var sub = Vector.sub(pointA, pointB);
+        var lineLength = Vector.magnitude(sub) + lineWidth;
+        var line = {
+            btype: 'Line',
+            label: 'Line Body',
+            angle: Vector.angle(pointA, pointB),
+            position: { x: (x2 + x) / 2, y: (y + y2) / 2},
+            vertices: Vertices.fromPath('L 0 0 L ' + lineLength + ' 0 L ' + lineLength + ' ' + lineWidth + ' L 0 ' + lineWidth),
+        };
+        return Body.create(Common.extend({}, line, options));
+    };
+
+    /**
      * Creates a new rigid body model with a rectangle hull. 
      * The options parameter is an object that specifies any properties you wish to override the defaults.
      * See the properties section of the `Matter.Body` module for detailed information on what you can pass via the `options` object.
@@ -3951,10 +4069,14 @@ var Vector = __webpack_require__(2);
             label: 'Text Body',
             position: { x: x, y: y },
             text: text,
+            isStatic: true,
+            isSensor: true,
+            render: {
+                text: {
+                    content: text
+                }
+            }
         };
-        // 文字默认静止
-        options.isStatic = true;
-        options.isSensor = true;
         return Body.create(Common.extend({}, text, options));
     };
 
@@ -6208,6 +6330,7 @@ var Body = __webpack_require__(5);
             options: {
                 width: 800,
                 height: 600,
+                dpr: 1,
                 pixelRatio: 1,
                 background: '#14151f',
                 wireframeBackground: '#14151f',
@@ -6595,7 +6718,6 @@ var Body = __webpack_require__(5);
             // revert view transforms
             Render.endViewTransform(render);
         }
-
         Events.trigger(render, 'afterRender', event);
 
         // log the time elapsed computing this update
@@ -6889,15 +7011,20 @@ var Body = __webpack_require__(5);
                     var text = _getText(render, part);
                     // width set
                     var width = text.width;
+                    var height = text.height;
                     var delta = text.padding;
-                    part.vertices[0].x = part.position.x - width / 2 - delta;
-                    part.vertices[0].y = part.position.y - text.height / 2 - delta;
-                    part.vertices[1].x = part.position.x + width / 2 + delta;
-                    part.vertices[1].y = part.position.y - text.height / 2 - delta;
-                    part.vertices[2].x = part.position.x + width / 2 + delta;
-                    part.vertices[2].y = part.position.y + text.height / 2 + delta;
-                    part.vertices[3].x = part.position.x - width / 2 - delta;
-                    part.vertices[3].y = part.position.y + text.height / 2 + delta;
+                    part.vertices[0].x = part.position.x + delta;
+                    part.vertices[0].y = part.position.y + delta;
+                    
+                    part.vertices[1].x = part.position.x + width - delta;
+                    part.vertices[1].y = part.position.y + delta;
+
+                    part.vertices[2].x = part.position.x + width - delta;
+                    part.vertices[2].y = part.position.y + height - delta;
+                    
+                    part.vertices[3].x = part.position.x + delta;
+                    part.vertices[3].y = part.position.y + height - delta;
+
                     Body.setVertices(body, part.vertices);
                     // Bounds.update(body.bounds, body.vertices, body.velocity);
                     break;
@@ -7042,7 +7169,7 @@ var Body = __webpack_require__(5);
                     if (part.circleRadius) {
                         c.beginPath();
                         c.arc(part.position.x, part.position.y, part.circleRadius, 0, 2 * Math.PI);
-                    } else if (part.btype == "Text") {
+                    } else if (part.btype == 'Text') {
                         c.beginPath();
                         c.save();
                         var text = _getText(render, part);
@@ -7054,6 +7181,16 @@ var Body = __webpack_require__(5);
                         c.textBaseline = text.textBaseline;
                         c.fillText(text.content, part.position.x, part.position.y, text.width - 2 * text.padding);
                         c.restore();
+                    } else if (part.btype == 'Line') {
+                        Common.extend(c, part.render);
+                        c.beginPath();
+                        if (part.render.lineDash && part.render.lineDash.length > 0) {
+                            c.setLineDash(part.render.lineDash);
+                        } else {
+                            c.setLineDash([]);
+                        }
+                        c.moveTo(part.property.pointA.x, part.property.pointA.y);
+                        c.lineTo(part.property.pointB.x, part.property.pointB.y);
                     }
                     /*
                     else if (part.btype == "Button") {
@@ -7093,7 +7230,7 @@ var Body = __webpack_require__(5);
                         c.fill();
                         c.beginPath();
                         var text = part.render.text || {};
-                        text.content = part.text;
+                        text.content = part.render.text.content;
                         text.size = part.render.height;
                         c.padding      = text.padding || 15;
                         c.family       = text.family || 'Arial';
@@ -7400,11 +7537,15 @@ var Body = __webpack_require__(5);
     // save canvas context
     function save(c) {
         return {
+            filter        : c.filter,
             font          : c.font,
             family        : c.family,
+            lineCap       : c.lineCap,
+            lineJoin      : c.lineJoin,
             lineWidth     : c.lineWidth,
             direction     : c.direction,
             textAlign     : c.textAlign,
+            miterLimit    : c.miterLimit,
             shadowBlur    : c.shadowBlur,
             shadowColor   : c.shadowColor,
             globalAlpha   : c.globalAlpha,
@@ -7413,6 +7554,10 @@ var Body = __webpack_require__(5);
             textBaseline  : c.textBaseline,
             shadowOffsetX : c.shadowOffsetX,
             shadowOffsetY : c.shadowOffsetY,
+            lineDash      : c.lineDash,
+            lineDashOffset: c.lineDashOffset,
+            imageSmoothingEnabled: c.imageSmoothingEnabled,
+            imageSmoothingQuality: c.imageSmoothingQuality,
             globalCompositeOperation: c.globalCompositeOperation,
         };
     }
@@ -7878,19 +8023,19 @@ var Body = __webpack_require__(5);
 
         if (text)
             return text;
-        var scaleFactor = 0.6;
         var c = render.context;
         part.render.text = part.render.text || {};
-        var content      = part.text;
+        var content      = part.render.text.content;
         var height       = part.render.text.size || 30;
         if (part.render.text.height) {
-            height = part.render.text.height * scaleFactor;
+            height = part.render.text.height;
         }
+        // height = height * render.options.dpr;
         var padding      = part.render.text.padding || 0;
         var family       = part.render.text.family || 'Arial';
         var fillStyle    = part.render.text.color || '#ffffff';
         var direction    = part.render.text.direction || 'inherit';
-        var textAlign    = part.render.text.textAlign || 'center';
+        var textAlign    = part.render.text.textAlign || 'start';
         var textBaseline = part.render.text.textBaseline || 'middle';
         // canvas context set font context
         c.save();
@@ -7902,6 +8047,7 @@ var Body = __webpack_require__(5);
         if (part.render.text.width) {
             width = part.render.text.width;
         }
+        // width = width * render.options.dpr;
         // new a text context cache
         text = render.text[part.id] = {
             context      : c,
@@ -9526,7 +9672,7 @@ var Bodies = __webpack_require__(8);
             wireframes: false,
             events: [],
             property: { width, height },
-            translateFactor: width * 0.01,
+            translateFactor: 0, //width * 0.01,
             render : {
                 fillStyle: "#4caf50",
                 strokeStyle: "#4caf50",
@@ -9536,8 +9682,9 @@ var Bodies = __webpack_require__(8);
                 text: {
                     color: '#ffffff',
                     padding: 0,
-                    width,
-                    height
+                    width: width * 0.8,
+                    height: height * 0.6,
+                    textAlign: 'center',
                 }
             },
         };
@@ -9571,7 +9718,9 @@ var Bodies = __webpack_require__(8);
                 callback: (object) => {
                     var body = object.element;
                     var belong = body.belong;
-                    Composite.translate(belong, { x: body.translateFactor, y: body.translateFactor });
+                    if (body.translateFactor && typeof body.translateFactor == "number" && body.translateFactor != 0)
+                        Composite.translate(belong, { x: body.translateFactor, y: body.translateFactor });
+                    Composite.updateRender(belong, null, {render: { opacity: 0.85 }});
                 }
             },
             {
@@ -9579,7 +9728,9 @@ var Bodies = __webpack_require__(8);
                 callback: (object) => {
                     var body = object.element;
                     var belong = body.belong;
-                    Composite.translate(belong, { x: -body.translateFactor, y: -body.translateFactor });
+                    if (body.translateFactor && typeof body.translateFactor == "number" && body.translateFactor != 0)
+                        Composite.translate(belong, { x: -body.translateFactor, y: -body.translateFactor });
+                    Composite.recoverRender(belong);
                 }
             },
         ];
@@ -10769,6 +10920,7 @@ var Common = __webpack_require__(0);
         runner.deltaMax = runner.deltaMax || 1000 / (runner.fps * 0.5);
         runner.fps = 1000 / runner.delta;
 
+        console.log("fps", runner);
         return runner;
     };
 

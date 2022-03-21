@@ -66,6 +66,7 @@ var Body = require('../body/Body');
             options: {
                 width: 800,
                 height: 600,
+                dpr: 1,
                 pixelRatio: 1,
                 background: '#14151f',
                 wireframeBackground: '#14151f',
@@ -453,7 +454,6 @@ var Body = require('../body/Body');
             // revert view transforms
             Render.endViewTransform(render);
         }
-
         Events.trigger(render, 'afterRender', event);
 
         // log the time elapsed computing this update
@@ -747,15 +747,20 @@ var Body = require('../body/Body');
                     var text = _getText(render, part);
                     // width set
                     var width = text.width;
+                    var height = text.height;
                     var delta = text.padding;
-                    part.vertices[0].x = part.position.x - width / 2 - delta;
-                    part.vertices[0].y = part.position.y - text.height / 2 - delta;
-                    part.vertices[1].x = part.position.x + width / 2 + delta;
-                    part.vertices[1].y = part.position.y - text.height / 2 - delta;
-                    part.vertices[2].x = part.position.x + width / 2 + delta;
-                    part.vertices[2].y = part.position.y + text.height / 2 + delta;
-                    part.vertices[3].x = part.position.x - width / 2 - delta;
-                    part.vertices[3].y = part.position.y + text.height / 2 + delta;
+                    part.vertices[0].x = part.position.x + delta;
+                    part.vertices[0].y = part.position.y + delta;
+                    
+                    part.vertices[1].x = part.position.x + width - delta;
+                    part.vertices[1].y = part.position.y + delta;
+
+                    part.vertices[2].x = part.position.x + width - delta;
+                    part.vertices[2].y = part.position.y + height - delta;
+                    
+                    part.vertices[3].x = part.position.x + delta;
+                    part.vertices[3].y = part.position.y + height - delta;
+
                     Body.setVertices(body, part.vertices);
                     // Bounds.update(body.bounds, body.vertices, body.velocity);
                     break;
@@ -900,7 +905,7 @@ var Body = require('../body/Body');
                     if (part.circleRadius) {
                         c.beginPath();
                         c.arc(part.position.x, part.position.y, part.circleRadius, 0, 2 * Math.PI);
-                    } else if (part.btype == "Text") {
+                    } else if (part.btype == 'Text') {
                         c.beginPath();
                         c.save();
                         var text = _getText(render, part);
@@ -912,6 +917,16 @@ var Body = require('../body/Body');
                         c.textBaseline = text.textBaseline;
                         c.fillText(text.content, part.position.x, part.position.y, text.width - 2 * text.padding);
                         c.restore();
+                    } else if (part.btype == 'Line') {
+                        Common.extend(c, part.render);
+                        c.beginPath();
+                        if (part.render.lineDash && part.render.lineDash.length > 0) {
+                            c.setLineDash(part.render.lineDash);
+                        } else {
+                            c.setLineDash([]);
+                        }
+                        c.moveTo(part.property.pointA.x, part.property.pointA.y);
+                        c.lineTo(part.property.pointB.x, part.property.pointB.y);
                     }
                     /*
                     else if (part.btype == "Button") {
@@ -951,7 +966,7 @@ var Body = require('../body/Body');
                         c.fill();
                         c.beginPath();
                         var text = part.render.text || {};
-                        text.content = part.text;
+                        text.content = part.render.text.content;
                         text.size = part.render.height;
                         c.padding      = text.padding || 15;
                         c.family       = text.family || 'Arial';
@@ -1258,11 +1273,15 @@ var Body = require('../body/Body');
     // save canvas context
     function save(c) {
         return {
+            filter        : c.filter,
             font          : c.font,
             family        : c.family,
+            lineCap       : c.lineCap,
+            lineJoin      : c.lineJoin,
             lineWidth     : c.lineWidth,
             direction     : c.direction,
             textAlign     : c.textAlign,
+            miterLimit    : c.miterLimit,
             shadowBlur    : c.shadowBlur,
             shadowColor   : c.shadowColor,
             globalAlpha   : c.globalAlpha,
@@ -1271,6 +1290,10 @@ var Body = require('../body/Body');
             textBaseline  : c.textBaseline,
             shadowOffsetX : c.shadowOffsetX,
             shadowOffsetY : c.shadowOffsetY,
+            lineDash      : c.lineDash,
+            lineDashOffset: c.lineDashOffset,
+            imageSmoothingEnabled: c.imageSmoothingEnabled,
+            imageSmoothingQuality: c.imageSmoothingQuality,
             globalCompositeOperation: c.globalCompositeOperation,
         };
     }
@@ -1738,16 +1761,17 @@ var Body = require('../body/Body');
             return text;
         var c = render.context;
         part.render.text = part.render.text || {};
-        var content      = part.text;
+        var content      = part.render.text.content;
         var height       = part.render.text.size || 30;
         if (part.render.text.height) {
             height = part.render.text.height;
         }
+        // height = height * render.options.dpr;
         var padding      = part.render.text.padding || 0;
         var family       = part.render.text.family || 'Arial';
         var fillStyle    = part.render.text.color || '#ffffff';
         var direction    = part.render.text.direction || 'inherit';
-        var textAlign    = part.render.text.textAlign || 'center';
+        var textAlign    = part.render.text.textAlign || 'start';
         var textBaseline = part.render.text.textBaseline || 'middle';
         // canvas context set font context
         c.save();
@@ -1759,6 +1783,7 @@ var Body = require('../body/Body');
         if (part.render.text.width) {
             width = part.render.text.width;
         }
+        // width = width * render.options.dpr;
         // new a text context cache
         text = render.text[part.id] = {
             context      : c,
