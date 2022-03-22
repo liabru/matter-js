@@ -264,9 +264,11 @@ var Body = require('../body/Body');
             if (body.isStatic || body.isSleeping)
                 continue;
 
+            // body antigravity
+            var bodyAntigravity = body.antigravity || { x: 1, y: 1, scale: 1 };
             // apply gravity
-            body.force.y += body.mass * gravity.y * gravityScale;
-            body.force.x += body.mass * gravity.x * gravityScale;
+            body.force.y += body.mass * gravity.y * gravityScale * bodyAntigravity.y * bodyAntigravity.scale;
+            body.force.x += body.mass * gravity.x * gravityScale * bodyAntigravity.x * bodyAntigravity.scale;
         }
     };
 

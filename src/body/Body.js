@@ -95,6 +95,11 @@ var Axes = require('../geometry/Axes');
             axes: null,
             area: 0,
             mass: 0,
+            antigravity: {
+                x: 1,
+                y: 1,
+                scale: 1
+            },
             inertia: 0,
             _original: null
         };
@@ -163,6 +168,7 @@ var Axes = require('../geometry/Axes');
             axes: options.axes || body.axes,
             area: options.area || body.area,
             mass: options.mass || body.mass,
+            antigravity: options.antigravity || body.antigravity,
             inertia: options.inertia || body.inertia
         });
 
@@ -209,6 +215,9 @@ var Axes = require('../geometry/Axes');
                 break;
             case 'mass':
                 Body.setMass(body, value);
+                break;
+            case 'antigravity':
+                Body.setAntigravity(body, value);
                 break;
             case 'density':
                 Body.setDensity(body, value);
@@ -260,6 +269,7 @@ var Axes = require('../geometry/Axes');
                     restitution: part.restitution,
                     friction: part.friction,
                     mass: part.mass,
+                    antigravity: part.antigravity,
                     inertia: part.inertia,
                     density: part.density,
                     inverseMass: part.inverseMass,
@@ -282,6 +292,7 @@ var Axes = require('../geometry/Axes');
                 part.restitution = part._original.restitution;
                 part.friction = part._original.friction;
                 part.mass = part._original.mass;
+                part.antigravity = part._original.antigravity;
                 part.inertia = part._original.inertia;
                 part.density = part._original.density;
                 part.inverseMass = part._original.inverseMass;
@@ -306,6 +317,24 @@ var Axes = require('../geometry/Axes');
         body.mass = mass;
         body.inverseMass = 1 / body.mass;
         body.density = body.mass / body.area;
+    };
+
+    /**
+     * Sets the antigravity of the body.
+     * antigravity is automatically updated while `Engine._bodiesApplyGravity`.
+     * @method setAntigravity
+     * @param {body} body
+     * @param {object} antigravity
+     */
+    Body.setAntigravity = function(body, antigravity) {
+        if (typeof antigravity === 'number') {
+            antigravity = {
+                x: 1,
+                y: antigravity,
+                scale: 1
+            };
+        }
+        body.antigravity = antigravity;
     };
 
     /**
