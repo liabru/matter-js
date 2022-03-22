@@ -152,8 +152,18 @@ var Body = require('../body/Body');
             Sleeping.afterCollisions(pairs.list, timing.timeScale);
 
         // trigger collision events
-        if (pairs.collisionStart.length > 0)
+        if (pairs.collisionStart.length > 0) {
             Events.trigger(engine, 'collisionStart', { pairs: pairs.collisionStart });
+            for (let index = 0; index < pairs.collisionStart.length; index++) {
+                const pair = pairs.collisionStart[index] || {};
+                if (pair.bodyA.events && pair.bodyA.events['collisionStart']) {
+                    Events.trigger(pair.bodyA, 'collisionStart', { pair: pair });
+                }
+                if (pair.bodyB.events && pair.bodyB.events['collisionStart']) {
+                    Events.trigger(pair.bodyB, 'collisionStart', { pair: pair });
+                }
+            }
+        }
 
         // iteratively resolve position between collisions
         Resolver.preSolvePosition(pairs.list);
@@ -176,11 +186,31 @@ var Body = require('../body/Body');
         }
 
         // trigger collision events
-        if (pairs.collisionActive.length > 0)
+        if (pairs.collisionActive.length > 0) {
             Events.trigger(engine, 'collisionActive', { pairs: pairs.collisionActive });
+            for (let index = 0; index < pairs.collisionStart.length; index++) {
+                const pair = pairs.collisionStart[index] || {};
+                if (pair.bodyA.events && pair.bodyA.events['collisionActive']) {
+                    Events.trigger(pair.bodyA, 'collisionActive', { pair: pair });
+                }
+                if (pair.bodyB.events && pair.bodyB.events['collisionActive']) {
+                    Events.trigger(pair.bodyB, 'collisionActive', { pair: pair });
+                }
+            }
+        }
 
-        if (pairs.collisionEnd.length > 0)
+        if (pairs.collisionEnd.length > 0) {
             Events.trigger(engine, 'collisionEnd', { pairs: pairs.collisionEnd });
+            for (let index = 0; index < pairs.collisionStart.length; index++) {
+                const pair = pairs.collisionStart[index] || {};
+                if (pair.bodyA.events && pair.bodyA.events['collisionEnd']) {
+                    Events.trigger(pair.bodyA, 'collisionEnd', { pair: pair });
+                }
+                if (pair.bodyB.events && pair.bodyB.events['collisionEnd']) {
+                    Events.trigger(pair.bodyB, 'collisionEnd', { pair: pair });
+                }
+            }
+        }
 
         // clear force buffers
         Engine._bodiesClearForces(allBodies);

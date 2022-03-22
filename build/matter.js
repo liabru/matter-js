@@ -1843,6 +1843,11 @@ var Axes = __webpack_require__(12);
             axes: null,
             area: 0,
             mass: 0,
+            antigravity: {
+                x: 1,
+                y: 1,
+                scale: 1
+            },
             inertia: 0,
             _original: null
         };
@@ -1911,6 +1916,7 @@ var Axes = __webpack_require__(12);
             axes: options.axes || body.axes,
             area: options.area || body.area,
             mass: options.mass || body.mass,
+            antigravity: options.antigravity || body.antigravity,
             inertia: options.inertia || body.inertia
         });
 
@@ -1957,6 +1963,9 @@ var Axes = __webpack_require__(12);
                 break;
             case 'mass':
                 Body.setMass(body, value);
+                break;
+            case 'antigravity':
+                Body.setAntigravity(body, value);
                 break;
             case 'density':
                 Body.setDensity(body, value);
@@ -2008,6 +2017,7 @@ var Axes = __webpack_require__(12);
                     restitution: part.restitution,
                     friction: part.friction,
                     mass: part.mass,
+                    antigravity: part.antigravity,
                     inertia: part.inertia,
                     density: part.density,
                     inverseMass: part.inverseMass,
@@ -2030,6 +2040,7 @@ var Axes = __webpack_require__(12);
                 part.restitution = part._original.restitution;
                 part.friction = part._original.friction;
                 part.mass = part._original.mass;
+                part.antigravity = part._original.antigravity;
                 part.inertia = part._original.inertia;
                 part.density = part._original.density;
                 part.inverseMass = part._original.inverseMass;
@@ -2054,6 +2065,24 @@ var Axes = __webpack_require__(12);
         body.mass = mass;
         body.inverseMass = 1 / body.mass;
         body.density = body.mass / body.area;
+    };
+
+    /**
+     * Sets the antigravity of the body.
+     * antigravity is automatically updated while `Engine._bodiesApplyGravity`.
+     * @method setAntigravity
+     * @param {body} body
+     * @param {object} antigravity
+     */
+    Body.setAntigravity = function(body, antigravity) {
+        if (typeof antigravity === 'number') {
+            antigravity = {
+                x: 1,
+                y: antigravity,
+                scale: 1
+            };
+        }
+        body.antigravity = antigravity;
     };
 
     /**
@@ -8616,8 +8645,18 @@ var Body = __webpack_require__(5);
             Sleeping.afterCollisions(pairs.list, timing.timeScale);
 
         // trigger collision events
-        if (pairs.collisionStart.length > 0)
+        if (pairs.collisionStart.length > 0) {
             Events.trigger(engine, 'collisionStart', { pairs: pairs.collisionStart });
+            for (let index = 0; index < pairs.collisionStart.length; index++) {
+                const pair = pairs.collisionStart[index] || {};
+                if (pair.bodyA.events && pair.bodyA.events['collisionStart']) {
+                    Events.trigger(pair.bodyA, 'collisionStart', { pair: pair });
+                }
+                if (pair.bodyB.events && pair.bodyB.events['collisionStart']) {
+                    Events.trigger(pair.bodyB, 'collisionStart', { pair: pair });
+                }
+            }
+        }
 
         // iteratively resolve position between collisions
         Resolver.preSolvePosition(pairs.list);
@@ -8640,11 +8679,31 @@ var Body = __webpack_require__(5);
         }
 
         // trigger collision events
-        if (pairs.collisionActive.length > 0)
+        if (pairs.collisionActive.length > 0) {
             Events.trigger(engine, 'collisionActive', { pairs: pairs.collisionActive });
+            for (let index = 0; index < pairs.collisionStart.length; index++) {
+                const pair = pairs.collisionStart[index] || {};
+                if (pair.bodyA.events && pair.bodyA.events['collisionActive']) {
+                    Events.trigger(pair.bodyA, 'collisionActive', { pair: pair });
+                }
+                if (pair.bodyB.events && pair.bodyB.events['collisionActive']) {
+                    Events.trigger(pair.bodyB, 'collisionActive', { pair: pair });
+                }
+            }
+        }
 
-        if (pairs.collisionEnd.length > 0)
+        if (pairs.collisionEnd.length > 0) {
             Events.trigger(engine, 'collisionEnd', { pairs: pairs.collisionEnd });
+            for (let index = 0; index < pairs.collisionStart.length; index++) {
+                const pair = pairs.collisionStart[index] || {};
+                if (pair.bodyA.events && pair.bodyA.events['collisionEnd']) {
+                    Events.trigger(pair.bodyA, 'collisionEnd', { pair: pair });
+                }
+                if (pair.bodyB.events && pair.bodyB.events['collisionEnd']) {
+                    Events.trigger(pair.bodyB, 'collisionEnd', { pair: pair });
+                }
+            }
+        }
 
         // clear force buffers
         Engine._bodiesClearForces(allBodies);
@@ -8728,9 +8787,11 @@ var Body = __webpack_require__(5);
             if (body.isStatic || body.isSleeping)
                 continue;
 
+            // body antigravity
+            var bodyAntigravity = body.antigravity || { x: 1, y: 1, scale: 1 };
             // apply gravity
-            body.force.y += body.mass * gravity.y * gravityScale;
-            body.force.x += body.mass * gravity.x * gravityScale;
+            body.force.y += body.mass * gravity.y * gravityScale * bodyAntigravity.y * bodyAntigravity.scale;
+            body.force.x += body.mass * gravity.x * gravityScale * bodyAntigravity.x * bodyAntigravity.scale;
         }
     };
 
