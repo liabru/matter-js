@@ -173,7 +173,7 @@ var Common = require('./Common');
 
     /**
      * Ends execution of `Runner.run` on the given `runner`, by canceling the animation frame request event loop.
-     * If you wish to only temporarily pause the engine, see `engine.enabled` instead.
+     * If you wish to only temporarily pause the engine, see `runner.enabled` instead.
      * @method stop
      * @param {runner} runner
      */
