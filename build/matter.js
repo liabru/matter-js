@@ -4865,6 +4865,7 @@ var Contact = __webpack_require__(17);
             id: Pair.id(bodyA, bodyB),
             bodyA: bodyA,
             bodyB: bodyB,
+            peers: { [bodyA.id]: bodyA, [bodyB.id]: bodyB },
             collision: collision,
             contacts: [],
             activeContacts: [],
@@ -4957,6 +4958,19 @@ var Contact = __webpack_require__(17);
         } else {
             return 'A' + bodyB.id + 'B' + bodyA.id;
         }
+    };
+
+    /**
+     * Check the body is peer of given pair.
+     * @method isPeer
+     * @param {pair} pair
+     * @param {body} body
+     * @return {boolean} bool
+     */
+    Pair.isPeer = function(pair, body) {
+        if(!pair || !pair.peers || !body || !body.id)
+            return false;
+        return pair.peers[body.id] && typeof pair.peers[body.id] !== 'undefined';
     };
 
 })();
@@ -8647,15 +8661,7 @@ var Body = __webpack_require__(5);
         // trigger collision events
         if (pairs.collisionStart.length > 0) {
             Events.trigger(engine, 'collisionStart', { pairs: pairs.collisionStart });
-            for (let index = 0; index < pairs.collisionStart.length; index++) {
-                const pair = pairs.collisionStart[index] || {};
-                if (pair.bodyA.events && pair.bodyA.events['collisionStart']) {
-                    Events.trigger(pair.bodyA, 'collisionStart', { pair: pair });
-                }
-                if (pair.bodyB.events && pair.bodyB.events['collisionStart']) {
-                    Events.trigger(pair.bodyB, 'collisionStart', { pair: pair });
-                }
-            }
+            collisionBody(engine, pairs, 'collisionStart');
         }
 
         // iteratively resolve position between collisions
@@ -8681,28 +8687,12 @@ var Body = __webpack_require__(5);
         // trigger collision events
         if (pairs.collisionActive.length > 0) {
             Events.trigger(engine, 'collisionActive', { pairs: pairs.collisionActive });
-            for (let index = 0; index < pairs.collisionStart.length; index++) {
-                const pair = pairs.collisionStart[index] || {};
-                if (pair.bodyA.events && pair.bodyA.events['collisionActive']) {
-                    Events.trigger(pair.bodyA, 'collisionActive', { pair: pair });
-                }
-                if (pair.bodyB.events && pair.bodyB.events['collisionActive']) {
-                    Events.trigger(pair.bodyB, 'collisionActive', { pair: pair });
-                }
-            }
+            collisionBody(engine, pairs, 'collisionActive');
         }
 
         if (pairs.collisionEnd.length > 0) {
             Events.trigger(engine, 'collisionEnd', { pairs: pairs.collisionEnd });
-            for (let index = 0; index < pairs.collisionStart.length; index++) {
-                const pair = pairs.collisionStart[index] || {};
-                if (pair.bodyA.events && pair.bodyA.events['collisionEnd']) {
-                    Events.trigger(pair.bodyA, 'collisionEnd', { pair: pair });
-                }
-                if (pair.bodyB.events && pair.bodyB.events['collisionEnd']) {
-                    Events.trigger(pair.bodyB, 'collisionEnd', { pair: pair });
-                }
-            }
+            collisionBody(engine, pairs, 'collisionEnd');
         }
 
         // clear force buffers
@@ -8716,6 +8706,26 @@ var Body = __webpack_require__(5);
         return engine;
     };
     
+    /**
+     * trigger the body's collision event. `collisionStart`, `collisionActive`, `collisionEnd`
+     * @method collisionBody
+     * @param {engine} engine
+     * @param {Pair} pair
+     * @param {string} eventName
+     */
+    function collisionBody(engine, pairs, eventName) {
+        var eventPairs = pairs[eventName];
+        for (let index = 0; index < eventPairs.length; index++) {
+            const pair = eventPairs[index] || {};
+            if (pair.bodyA && pair.bodyA.events && pair.bodyA.events[eventName]) {
+                Events.trigger(pair.bodyA, eventName, { pair: pair, engine: engine });
+            }
+            if (pair.bodyB && pair.bodyB.events && pair.bodyB.events[eventName]) {
+                Events.trigger(pair.bodyB, eventName, { pair: pair, engine: engine });
+            }
+        }
+    }
+
     /**
      * Merges two engines by keeping the configuration of `engineA` but replacing the world with the one from `engineB`.
      * @method merge
@@ -10607,6 +10617,8 @@ var Vector = __webpack_require__(2);
 
                                 Sleeping.set(body, false);
                                 Events.trigger(mouseConstraint, 'startdrag', { mouse: mouse, body: body });
+                                // body event handler: enddrag, longpress
+                                Events.trigger(body, 'startdrag', { mouse: mouse, body: body });
                                 break;
                             }
                         }
@@ -10621,12 +10633,9 @@ var Vector = __webpack_require__(2);
             constraint.pointB = null;
 
             if (body) {
-                body.event_count = (body.event_count || 0) + 1;
                 Events.trigger(mouseConstraint, 'enddrag', { mouse: mouse, body: body });
                 // body event handler: enddrag, longpress
-                if (body.event_count <= 1) {
-                    Events.trigger(body, 'enddrag', { mouse: mouse, body: body });
-                }
+                Events.trigger(body, 'enddrag', { mouse: mouse, body: body });
             }
         }
     };
