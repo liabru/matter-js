@@ -154,15 +154,7 @@ var Body = require('../body/Body');
         // trigger collision events
         if (pairs.collisionStart.length > 0) {
             Events.trigger(engine, 'collisionStart', { pairs: pairs.collisionStart });
-            for (let index = 0; index < pairs.collisionStart.length; index++) {
-                const pair = pairs.collisionStart[index] || {};
-                if (pair.bodyA.events && pair.bodyA.events['collisionStart']) {
-                    Events.trigger(pair.bodyA, 'collisionStart', { pair: pair });
-                }
-                if (pair.bodyB.events && pair.bodyB.events['collisionStart']) {
-                    Events.trigger(pair.bodyB, 'collisionStart', { pair: pair });
-                }
-            }
+            collisionBody(engine, pairs, 'collisionStart');
         }
 
         // iteratively resolve position between collisions
@@ -188,28 +180,12 @@ var Body = require('../body/Body');
         // trigger collision events
         if (pairs.collisionActive.length > 0) {
             Events.trigger(engine, 'collisionActive', { pairs: pairs.collisionActive });
-            for (let index = 0; index < pairs.collisionStart.length; index++) {
-                const pair = pairs.collisionStart[index] || {};
-                if (pair.bodyA.events && pair.bodyA.events['collisionActive']) {
-                    Events.trigger(pair.bodyA, 'collisionActive', { pair: pair });
-                }
-                if (pair.bodyB.events && pair.bodyB.events['collisionActive']) {
-                    Events.trigger(pair.bodyB, 'collisionActive', { pair: pair });
-                }
-            }
+            collisionBody(engine, pairs, 'collisionActive');
         }
 
         if (pairs.collisionEnd.length > 0) {
             Events.trigger(engine, 'collisionEnd', { pairs: pairs.collisionEnd });
-            for (let index = 0; index < pairs.collisionStart.length; index++) {
-                const pair = pairs.collisionStart[index] || {};
-                if (pair.bodyA.events && pair.bodyA.events['collisionEnd']) {
-                    Events.trigger(pair.bodyA, 'collisionEnd', { pair: pair });
-                }
-                if (pair.bodyB.events && pair.bodyB.events['collisionEnd']) {
-                    Events.trigger(pair.bodyB, 'collisionEnd', { pair: pair });
-                }
-            }
+            collisionBody(engine, pairs, 'collisionEnd');
         }
 
         // clear force buffers
@@ -223,6 +199,26 @@ var Body = require('../body/Body');
         return engine;
     };
     
+    /**
+     * trigger the body's collision event. `collisionStart`, `collisionActive`, `collisionEnd`
+     * @method collisionBody
+     * @param {engine} engine
+     * @param {Pair} pair
+     * @param {string} eventName
+     */
+    function collisionBody(engine, pairs, eventName) {
+        var eventPairs = pairs[eventName];
+        for (let index = 0; index < eventPairs.length; index++) {
+            const pair = eventPairs[index] || {};
+            if (pair.bodyA && pair.bodyA.events && pair.bodyA.events[eventName]) {
+                Events.trigger(pair.bodyA, eventName, { pair: pair, engine: engine });
+            }
+            if (pair.bodyB && pair.bodyB.events && pair.bodyB.events[eventName]) {
+                Events.trigger(pair.bodyB, eventName, { pair: pair, engine: engine });
+            }
+        }
+    }
+
     /**
      * Merges two engines by keeping the configuration of `engineA` but replacing the world with the one from `engineB`.
      * @method merge

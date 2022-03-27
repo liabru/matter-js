@@ -112,6 +112,8 @@ var Vector = require('../geometry/Vector');
 
                                 Sleeping.set(body, false);
                                 Events.trigger(mouseConstraint, 'startdrag', { mouse: mouse, body: body });
+                                // body event handler: enddrag, longpress
+                                Events.trigger(body, 'startdrag', { mouse: mouse, body: body });
                                 break;
                             }
                         }
@@ -126,12 +128,9 @@ var Vector = require('../geometry/Vector');
             constraint.pointB = null;
 
             if (body) {
-                body.event_count = (body.event_count || 0) + 1;
                 Events.trigger(mouseConstraint, 'enddrag', { mouse: mouse, body: body });
                 // body event handler: enddrag, longpress
-                if (body.event_count <= 1) {
-                    Events.trigger(body, 'enddrag', { mouse: mouse, body: body });
-                }
+                Events.trigger(body, 'enddrag', { mouse: mouse, body: body });
             }
         }
     };

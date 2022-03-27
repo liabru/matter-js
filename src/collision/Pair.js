@@ -27,6 +27,7 @@ var Contact = require('./Contact');
             id: Pair.id(bodyA, bodyB),
             bodyA: bodyA,
             bodyB: bodyB,
+            peers: { [bodyA.id]: bodyA, [bodyB.id]: bodyB },
             collision: collision,
             contacts: [],
             activeContacts: [],
@@ -119,6 +120,19 @@ var Contact = require('./Contact');
         } else {
             return 'A' + bodyB.id + 'B' + bodyA.id;
         }
+    };
+
+    /**
+     * Check the body is peer of given pair.
+     * @method isPeer
+     * @param {pair} pair
+     * @param {body} body
+     * @return {boolean} bool
+     */
+    Pair.isPeer = function(pair, body) {
+        if(!pair || !pair.peers || !body || !body.id)
+            return false;
+        return pair.peers[body.id] && typeof pair.peers[body.id] !== 'undefined';
     };
 
 })();

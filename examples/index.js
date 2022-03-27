@@ -20,6 +20,7 @@ module.exports = {
     gravity: require('./gravity.js'),
     gyro: require('./gyro.js'),
     manipulation: require('./manipulation.js'),
+    mechanism: require('./mechanism.js'),
     mixed: require('./mixed.js'),
     newtonsCradle: require('./newtonsCradle.js'),
     ragdoll: require('./ragdoll.js'),
