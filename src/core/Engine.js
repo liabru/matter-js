@@ -71,7 +71,7 @@ var Body = require('../body/Body');
     };
 
     /**
-     * Moves the simulation forward in time by `delta` ms.
+     * Moves the simulation forward in time by `delta` milliseconds.
      * Triggers `beforeUpdate` and `afterUpdate` events.
      * Triggers `collisionStart`, `collisionActive` and `collisionEnd` events.
      * @method update
@@ -244,7 +244,9 @@ var Body = require('../body/Body');
     };
 
     /**
-     * Applies a mass dependant force to all given bodies.
+     * Applies gravitational acceleration to all `bodies`.
+     * This models a [uniform gravitational field](https://en.wikipedia.org/wiki/Gravity_of_Earth), similar to near the surface of a planet.
+     * 
      * @method _bodiesApplyGravity
      * @private
      * @param {body[]} bodies
@@ -264,7 +266,7 @@ var Body = require('../body/Body');
             if (body.isStatic || body.isSleeping)
                 continue;
 
-            // apply gravity
+            // add the resultant force of gravity
             body.force.y += body.mass * gravity.y * gravityScale;
             body.force.x += body.mass * gravity.x * gravityScale;
         }
@@ -500,7 +502,14 @@ var Body = require('../body/Body');
      */
 
     /**
-     * The gravity to apply on all bodies in `engine.world`.
+     * An optional gravitational acceleration applied to all bodies in `engine.world` on every update.
+     * 
+     * This models a [uniform gravitational field](https://en.wikipedia.org/wiki/Gravity_of_Earth), similar to near the surface of a planet. For gravity in other contexts, disable this and apply forces as needed.
+     * 
+     * To disable set the `scale` component to `0`.
+     * 
+     * This is split into three components for ease of use:  
+     * a normalised direction (`x` and `y`) and magnitude (`scale`).
      *
      * @property gravity
      * @type object
@@ -523,7 +532,7 @@ var Body = require('../body/Body');
      */
 
     /**
-     * The gravity scale factor.
+     * The magnitude of the gravitational acceleration.
      *
      * @property gravity.scale
      * @type object
