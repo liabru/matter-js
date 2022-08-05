@@ -49,9 +49,10 @@ var Bounds = require('../geometry/Bounds');
      * Find a solution for pair positions.
      * @method solvePosition
      * @param {pair[]} pairs
+     * @param {number} delta
      * @param {number} positionIterations
      */
-    Resolver.solvePosition = function(pairs, positionIterations) {
+    Resolver.solvePosition = function(pairs, delta, positionIterations) {
         var i,
             pair,
             collision,
@@ -61,6 +62,7 @@ var Bounds = require('../geometry/Bounds');
             contactShare,
             positionImpulse,
             positionDampen = Resolver._positionDampen * Common.clamp(20 / positionIterations, 0, 1),
+            slopDampen = delta / Common._timeUnit,
             pairsLength = pairs.length;
 
         // find impulses required to resolve penetration
@@ -91,7 +93,7 @@ var Bounds = require('../geometry/Bounds');
             bodyA = collision.parentA;
             bodyB = collision.parentB;
             normal = collision.normal;
-            positionImpulse = pair.separation - pair.slop;
+            positionImpulse = pair.separation - pair.slop * slopDampen;
 
             if (bodyA.isStatic || bodyB.isStatic)
                 positionImpulse *= 2;

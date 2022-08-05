@@ -186,8 +186,9 @@ var Common = require('../core/Common');
         // solve distance constraint with Gauss-Siedel method
         var difference = (currentLength - constraint.length) / currentLength,
             isRigid = constraint.stiffness >= 1 || constraint.length === 0,
-            stiffness = isRigid ? constraint.stiffness : constraint.stiffness * timeScale * timeScale,
-            damping = constraint.damping * timeScale,
+            stiffness = isRigid ? constraint.stiffness * timeScale 
+                : constraint.stiffness * timeScale * timeScale,
+            damping = constraint.damping * timeScale * timeScale,
             force = Vector.mult(delta, difference * stiffness),
             massTotal = (bodyA ? bodyA.inverseMass : 0) + (bodyB ? bodyB.inverseMass : 0),
             inertiaTotal = (bodyA ? bodyA.inverseInertia : 0) + (bodyB ? bodyB.inverseInertia : 0),
