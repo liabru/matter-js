@@ -144,7 +144,7 @@ var Body = require('../body/Body');
 
         // wake up bodies involved in collisions
         if (engine.enableSleeping)
-            Sleeping.afterCollisions(pairs.list, delta);
+            Sleeping.afterCollisions(pairs.list);
 
         // iteratively resolve position between collisions
         Resolver.preSolvePosition(pairs.list);
@@ -435,7 +435,7 @@ var Body = require('../body/Body');
     /**
      * A `Number` that specifies the current simulation-time in milliseconds starting from `0`. 
      * It is incremented on every `Engine.update` by the given `delta` argument. 
-     *
+     * 
      * @property timing.timestamp
      * @type number
      * @default 0
@@ -446,7 +446,7 @@ var Body = require('../body/Body');
      * It is updated by timing from the start of the last `Engine.update` call until it ends.
      *
      * This value will also include the total execution time of all event handlers directly or indirectly triggered by the engine update.
-     *
+     * 
      * @property timing.lastElapsed
      * @type number
      * @default 0
@@ -454,7 +454,7 @@ var Body = require('../body/Body');
 
     /**
      * A `Number` that represents the `delta` value used in the last engine update.
-     *
+     * 
      * @property timing.lastDelta
      * @type number
      * @default 0
@@ -516,15 +516,15 @@ var Body = require('../body/Body');
      */
 
     /**
-     * The gravity x component.
-     *
+     * The gravitational direction normal `x` component, to be multiplied by `gravity.scale`.
+     * 
      * @property gravity.x
      * @type object
      * @default 0
      */
 
     /**
-     * The gravity y component.
+     * The gravitational direction normal `y` component, to be multiplied by `gravity.scale`.
      *
      * @property gravity.y
      * @type object
@@ -533,7 +533,7 @@ var Body = require('../body/Body');
 
     /**
      * The magnitude of the gravitational acceleration.
-     *
+     * 
      * @property gravity.scale
      * @type object
      * @default 0.001

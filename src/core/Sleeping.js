@@ -63,9 +63,8 @@ var Common = require('./Common');
      * Given a set of colliding pairs, wakes the sleeping bodies involved.
      * @method afterCollisions
      * @param {pair[]} pairs
-     * @param {number} delta
      */
-    Sleeping.afterCollisions = function(pairs, delta) {
+    Sleeping.afterCollisions = function(pairs) {
         var motionSleepThreshold = Sleeping._motionSleepThreshold;
 
         // wake up bodies involved in collisions
