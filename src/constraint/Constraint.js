@@ -188,7 +188,7 @@ var Common = require('../core/Common');
             isRigid = constraint.stiffness >= 1 || constraint.length === 0,
             stiffness = isRigid ? constraint.stiffness * timeScale 
                 : constraint.stiffness * timeScale * timeScale,
-            damping = constraint.damping * timeScale * timeScale,
+            damping = constraint.damping * timeScale,
             force = Vector.mult(delta, difference * stiffness),
             massTotal = (bodyA ? bodyA.inverseMass : 0) + (bodyB ? bodyB.inverseMass : 0),
             inertiaTotal = (bodyA ? bodyA.inverseInertia : 0) + (bodyB ? bodyB.inverseInertia : 0),
