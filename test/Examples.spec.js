@@ -1,7 +1,7 @@
 /* eslint-env es6 */
 "use strict";
 
-jest.setTimeout(30 * 1000);
+jest.setTimeout(2 * 60 * 1000);
 
 const fs = require('fs');
 
@@ -41,7 +41,7 @@ const captureExamples = async useDev => {
     const overlapRuns = await Promise.all(examples.map(name => multiThreadWorker.runExample({
         name,
         useDev,
-        updates: 1,
+        updates: 2,
         stableSort: true,
         jitter: excludeJitter.includes(name) ? 0 : 1e-10
     })));

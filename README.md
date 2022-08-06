@@ -124,9 +124,13 @@ Alternatively you can download a [stable release](https://github.com/liabru/matt
 
     <script src="matter.js" type="text/javascript"></script>
 
-### Webpack
+### Performance with other tools (e.g. Webpack, Vue etc.)
 
-Some [webpack](https://webpack.js.org/) configs including the default may impact your project's performance during development, for a solution see [issue](https://github.com/liabru/matter-js/issues/1001).
+Bundlers and frameworks may reduce real-time performance when using their default configs, especially in development modes.
+
+When using [Webpack](https://webpack.js.org/), the default sourcemap config can have a large impact, for a solution see [issue](https://github.com/liabru/matter-js/issues/1001).
+
+When using [Vue.js](https://vuejs.org/), watchers can have a large impact, for a solution see [issue](https://github.com/liabru/matter-js/issues/1001#issuecomment-998911435). 
 
 ### Usage
 
