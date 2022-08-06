@@ -42,7 +42,9 @@ Example.slingshot = function() {
         elastic = Constraint.create({ 
             pointA: anchor, 
             bodyB: rock, 
-            stiffness: 0.015
+            length: 0.01,
+            damping: 0.01,
+            stiffness: 0.05
         });
 
     var pyramid = Composites.pyramid(500, 300, 9, 10, 0, 0, function(x, y) {
