@@ -62,7 +62,7 @@ var Bounds = require('../geometry/Bounds');
             contactShare,
             positionImpulse,
             positionDampen = Resolver._positionDampen * Common.clamp(20 / positionIterations, 0, 1),
-            slopDampen = delta / Common._timeUnit,
+            slopDampen = Common.clamp(delta / Common._timeUnit, 0, 1),
             pairsLength = pairs.length;
 
         // find impulses required to resolve penetration
