@@ -400,7 +400,7 @@ var Axes = require('../geometry/Axes');
      * Note that this method will ensure that the first part in `body.parts` will always be the `body`.
      * @method setParts
      * @param {body} body
-     * @param [body] parts
+     * @param {body[]} parts
      * @param {bool} [autoHull=true]
      */
     Body.setParts = function(body, parts, autoHull) {

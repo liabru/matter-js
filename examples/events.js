@@ -47,7 +47,7 @@ Example.events = function() {
 
         // apply random forces every 5 secs
         if (Common.now() - lastTime >= 5000) {
-            shakeScene(engine, event.delta);
+            shakeScene(engine);
 
             // update last time
             lastTime = Common.now();
@@ -107,15 +107,14 @@ Example.events = function() {
     
     Composite.add(world, stack);
 
-    var shakeScene = function(engine, delta) {
-        var timeScale = delta / 1000;
+    var shakeScene = function(engine) {
         var bodies = Composite.allBodies(engine.world);
 
         for (var i = 0; i < bodies.length; i++) {
             var body = bodies[i];
 
             if (!body.isStatic && body.position.y >= 500) {
-                // Scale force accounting for time delta.
+                // Scale force accounting for mass
                 var forceMagnitude = (0.03 * body.mass);
 
                 Body.applyForce(body, body.position, { 
@@ -147,7 +146,7 @@ Example.events = function() {
     Events.on(mouseConstraint, 'mousedown', function(event) {
         var mousePosition = event.mouse.position;
         console.log('mousedown at ' + mousePosition.x + ' ' + mousePosition.y);
-        shakeScene(engine, event.delta);
+        shakeScene(engine);
     });
 
     // an example of using mouse events on a mouse
