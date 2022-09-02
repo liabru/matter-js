@@ -88,7 +88,7 @@ var Body = require('../body/Body');
             timestamp = timing.timestamp,
             i;
 
-        delta = typeof delta !== 'undefined' ? delta : Common._timeUnit;
+        delta = typeof delta !== 'undefined' ? delta : Common._baseDelta;
         delta *= timing.timeScale;
 
         // increment timestamp

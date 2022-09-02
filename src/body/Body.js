@@ -759,7 +759,7 @@ var Axes = require('../geometry/Axes');
             correction = Body._timeCorrection ? deltaTime / (body.deltaTime || deltaTime) : 1;
 
         // from the previous step
-        var frictionAir = 1 - body.frictionAir * (deltaTime / Common._timeUnit),
+        var frictionAir = 1 - body.frictionAir * (deltaTime / Common._baseDelta),
             velocityPrevX = (body.position.x - body.positionPrev.x) * correction,
             velocityPrevY = (body.position.y - body.positionPrev.y) * correction;
 

@@ -113,7 +113,7 @@ var Common = require('../core/Common');
      * @param {number} delta
      */
     Constraint.solveAll = function(constraints, delta) {
-        var timeScale = Common.clamp(delta / Common._timeUnit, 0, 1);
+        var timeScale = Common.clamp(delta / Common._baseDelta, 0, 1);
 
         // Solve fixed constraints first.
         for (var i = 0; i < constraints.length; i += 1) {
