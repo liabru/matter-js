@@ -50,9 +50,9 @@ var Bounds = require('../geometry/Bounds');
      * @method solvePosition
      * @param {pair[]} pairs
      * @param {number} delta
-     * @param {number} positionIterations
+     * @param {number} [damping=1]
      */
-    Resolver.solvePosition = function(pairs, delta, positionIterations) {
+    Resolver.solvePosition = function(pairs, delta, damping) {
         var i,
             pair,
             collision,
@@ -61,7 +61,7 @@ var Bounds = require('../geometry/Bounds');
             normal,
             contactShare,
             positionImpulse,
-            positionDampen = Resolver._positionDampen * Common.clamp(20 / positionIterations, 0, 1),
+            positionDampen = Resolver._positionDampen * (damping || 1),
             slopDampen = Common.clamp(delta / Common._timeUnit, 0, 1),
             pairsLength = pairs.length;
 

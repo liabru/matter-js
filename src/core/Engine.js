@@ -147,9 +147,11 @@ var Body = require('../body/Body');
             Sleeping.afterCollisions(pairs.list);
 
         // iteratively resolve position between collisions
+        var positionDamping = Common.clamp(20 / engine.positionIterations, 0, 1);
+        
         Resolver.preSolvePosition(pairs.list);
         for (i = 0; i < engine.positionIterations; i++) {
-            Resolver.solvePosition(pairs.list, delta, engine.positionIterations);
+            Resolver.solvePosition(pairs.list, delta, positionDamping);
         }
         Resolver.postSolvePosition(allBodies);
 
