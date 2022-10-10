@@ -742,6 +742,9 @@ var Mouse = require('../core/Mouse');
                     c.translate(part.position.x, part.position.y);
                     c.rotate(part.angle);
 
+                    // support img style filter
+                    if (texture.style && texture.style.filter)
+                        context.filter = texture.style.filter;
                     c.drawImage(
                         texture,
                         texture.width * -sprite.xOffset * sprite.xScale,
@@ -749,6 +752,10 @@ var Mouse = require('../core/Mouse');
                         texture.width * sprite.xScale,
                         texture.height * sprite.yScale
                     );
+                    // should reset context.filter after draw
+                    if (texture.style && texture.style.filter)
+                        context.filter = "none";
+
 
                     // revert translation, hopefully faster than save / restore
                     c.rotate(-part.angle);
