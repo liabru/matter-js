@@ -4655,8 +4655,10 @@ var Common = __webpack_require__(0);
      */
     Constraint.pointAWorld = function(constraint) {
         return {
-            x: (constraint.bodyA ? constraint.bodyA.position.x : 0) + constraint.pointA.x,
-            y: (constraint.bodyA ? constraint.bodyA.position.y : 0) + constraint.pointA.y
+            x: (constraint.bodyA ? constraint.bodyA.position.x : 0) 
+                + (constraint.pointA ? constraint.pointA.x : 0),
+            y: (constraint.bodyA ? constraint.bodyA.position.y : 0) 
+                + (constraint.pointA ? constraint.pointA.y : 0)
         };
     };
 
@@ -4668,8 +4670,10 @@ var Common = __webpack_require__(0);
      */
     Constraint.pointBWorld = function(constraint) {
         return {
-            x: (constraint.bodyB ? constraint.bodyB.position.x : 0) + constraint.pointB.x,
-            y: (constraint.bodyB ? constraint.bodyB.position.y : 0) + constraint.pointB.y
+            x: (constraint.bodyB ? constraint.bodyB.position.x : 0) 
+                + (constraint.pointB ? constraint.pointB.x : 0),
+            y: (constraint.bodyB ? constraint.bodyB.position.y : 0) 
+                + (constraint.pointB ? constraint.pointB.y : 0)
         };
     };
 
@@ -5161,7 +5165,7 @@ var Vector = __webpack_require__(2);
                 }
 
                 parts.push({
-                    position: { x: x, y: y },
+                    position: Vertices.centre(vertices),
                     vertices: vertices
                 });
             } else {
@@ -6070,7 +6074,6 @@ var Mouse = __webpack_require__(13);
      */
     Render.create = function(options) {
         var defaults = {
-            controller: Render,
             engine: null,
             element: null,
             canvas: null,
@@ -6142,6 +6145,7 @@ var Mouse = __webpack_require__(13);
         };
 
         // for temporary back compatibility only
+        render.controller = Render;
         render.options.showBroadphase = false;
 
         if (render.options.pixelRatio !== 1) {
@@ -6150,8 +6154,6 @@ var Mouse = __webpack_require__(13);
 
         if (Common.isElement(render.element)) {
             render.element.appendChild(render.canvas);
-        } else if (!render.canvas.parentNode) {
-            Common.log('Render.create: options.element was undefined, render.canvas was created but not appended', 'warn');
         }
 
         return render;
@@ -7551,6 +7553,7 @@ var Mouse = __webpack_require__(13);
     /**
      * A back-reference to the `Matter.Render` module.
      *
+     * @deprecated
      * @property controller
      * @type render
      */
