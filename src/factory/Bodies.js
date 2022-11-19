@@ -259,7 +259,7 @@ var Vector = require('../geometry/Vector');
                 }
 
                 parts.push({
-                    position: { x: x, y: y },
+                    position: Vertices.centre(vertices),
                     vertices: vertices
                 });
             } else {
