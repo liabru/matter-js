@@ -143,6 +143,9 @@ module.exports = Common;
     Common._warnedOnce = {};
     Common._decomp = null;
     
+    Common._2PI = 2 * Math.PI;
+    Common._3PI = 3 * Math.PI;
+
     /**
      * Extends the object in the first argument using the object in the second argument.
      * @method extend
@@ -377,6 +380,43 @@ module.exports = Common;
      */
     Common.sign = function(value) {
         return value < 0 ? -1 : 1;
+    };
+
+    /**
+     * Returns the normalised signed difference between the two angles in radians [-PI, PI].
+     * @method angleDiff
+     * @param {number} angleA the first angle in radians
+     * @param {number} angleB the second angle in radians
+     * @return {number} the normalised signed difference
+     */
+    Common.angleDiff = function(angleA, angleB) {
+        return ((((angleA - angleB) % Common._2PI) + Common._3PI) % Common._2PI) - Math.PI;
+    };
+
+    /**
+     * Clamps the given `angle` in radians between `angleMin` and `angleMax` inclusive.
+     * @method clampAngle
+     * @param {number} angleMin the angle minimum in radians
+     * @param {number} angleMax the angle maximum in radians
+     * @return {number} the clamped angle
+     */
+    Common.clampAngle = function(angle, angleMin, angleMax) {
+        if (angleMax - angleMin === 0) {
+            return angleMax;
+        }
+
+        var deltaMin = Common.angleDiff(angle, angleMin);
+        var deltaMax = Common.angleDiff(angle, angleMax);
+
+        if (deltaMin > 0 && deltaMax < 0) {
+            return angle;
+        }
+
+        if (Math.abs(deltaMin) < Math.abs(deltaMax)) {
+            return angle - deltaMin;
+        }
+
+        return angle - deltaMax;
     };
     
     /**
@@ -4347,8 +4387,12 @@ var Contact = __webpack_require__(17);
 
 /**
 * The `Matter.Constraint` module contains methods for creating and manipulating constraints.
-* Constraints are used for specifying that a fixed distance must be maintained between two bodies (or a body and a fixed world-space position).
-* The stiffness of constraints can be modified to create springs or elastic.
+* 
+* Constraints are used for specifying that a fixed distance or angle must be maintained between bodies or fixed points.
+* 
+* The stiffness and damping can be modified for a spring-like effect.
+*
+* The angle range and angle stiffness can also be limited if needed.
 *
 * See the included usage [examples](https://github.com/liabru/matter-js/tree/master/examples).
 *
@@ -4370,15 +4414,23 @@ var Common = __webpack_require__(0);
 
     Constraint._warming = 0.4;
     Constraint._torqueDampen = 1;
+    Constraint._angleLimitDampen = 0.5;
     Constraint._minLength = 0.000001;
 
     /**
      * Creates a new constraint.
-     * All properties have default values, and many are pre-calculated automatically based on other properties.
-     * To simulate a revolute constraint (or pin joint) set `length: 0` and a high `stiffness` value (e.g. `0.7` or above).
-     * If the constraint is unstable, try lowering the `stiffness` value and / or increasing `engine.constraintIterations`.
-     * For compound bodies, constraints must be applied to the parent body (not one of its parts).
-     * See the properties section below for detailed information on what you can pass via the `options` object.
+     * 
+     * All properties have default values and some may be calculated automatically based on other properties.
+     * 
+     * To simulate a pin constraint (or revolute joint) set `length: 0` and a high `stiffness` value (e.g. `0.7` or above).
+     * 
+     * To limit the range of angles of the constraint see the set of angle properties.
+     * 
+     * If the constraint is unstable, try lowering the `stiffness` value or increasing `engine.constraintIterations`.
+     * 
+     * For compound bodies, constraints must be applied to the parent body and not its parts.
+     * 
+     * See the properties section which may be set through the `options` object.
      * @method create
      * @param {} options
      * @return {constraint} constraint
@@ -4395,8 +4447,9 @@ var Common = __webpack_require__(0);
         // calculate static length using initial world space points
         var initialPointA = constraint.bodyA ? Vector.add(constraint.bodyA.position, constraint.pointA) : constraint.pointA,
             initialPointB = constraint.bodyB ? Vector.add(constraint.bodyB.position, constraint.pointB) : constraint.pointB,
-            length = Vector.magnitude(Vector.sub(initialPointA, initialPointB));
-    
+            length = Vector.magnitude(Vector.sub(initialPointA, initialPointB)),
+            angle = Vector.angle(initialPointA, initialPointB);
+        
         constraint.length = typeof constraint.length !== 'undefined' ? constraint.length : length;
 
         // option defaults
@@ -4406,9 +4459,23 @@ var Common = __webpack_require__(0);
         constraint.stiffness = constraint.stiffness || (constraint.length > 0 ? 1 : 0.7);
         constraint.damping = constraint.damping || 0;
         constraint.angularStiffness = constraint.angularStiffness || 0;
-        constraint.angleA = constraint.bodyA ? constraint.bodyA.angle : constraint.angleA;
-        constraint.angleB = constraint.bodyB ? constraint.bodyB.angle : constraint.angleB;
+        constraint.angleAPrev = constraint.bodyA ? constraint.bodyA.angle : constraint.angleAPrev;
+        constraint.angleBPrev = constraint.bodyB ? constraint.bodyB.angle : constraint.angleBPrev;
         constraint.plugin = {};
+
+        constraint.angleA = typeof constraint.angleA !== 'undefined' ? 
+            constraint.angleA : (constraint.bodyA ? 0 : angle);
+
+        constraint.angleAStiffness = constraint.angleAStiffness || 0;
+        constraint.angleAMin = constraint.angleAMin || 0;
+        constraint.angleAMax = constraint.angleAMax || 0;
+
+        constraint.angleB = typeof constraint.angleB !== 'undefined' ? 
+            constraint.angleB : (constraint.bodyB ? 0 : angle);
+
+        constraint.angleBStiffness = constraint.angleBStiffness || 0;
+        constraint.angleBMin = constraint.angleBMin || 0;
+        constraint.angleBMax = constraint.angleBMax || 0;
 
         // render
         var render = {
@@ -4416,7 +4483,8 @@ var Common = __webpack_require__(0);
             lineWidth: 2,
             strokeStyle: '#ffffff',
             type: 'line',
-            anchors: true
+            anchors: true,
+            angles: true
         };
 
         if (constraint.length === 0 && constraint.stiffness > 0.1) {
@@ -4501,14 +4569,14 @@ var Common = __webpack_require__(0);
 
         // update reference angle
         if (bodyA && !bodyA.isStatic) {
-            Vector.rotate(pointA, bodyA.angle - constraint.angleA, pointA);
-            constraint.angleA = bodyA.angle;
+            Vector.rotate(pointA, bodyA.angle - constraint.angleAPrev, pointA);
+            constraint.angleAPrev = bodyA.angle;
         }
         
         // update reference angle
         if (bodyB && !bodyB.isStatic) {
-            Vector.rotate(pointB, bodyB.angle - constraint.angleB, pointB);
-            constraint.angleB = bodyB.angle;
+            Vector.rotate(pointB, bodyB.angle - constraint.angleBPrev, pointB);
+            constraint.angleBPrev = bodyB.angle;
         }
 
         var pointAWorld = pointA,
@@ -4535,11 +4603,29 @@ var Common = __webpack_require__(0);
             massTotal = (bodyA ? bodyA.inverseMass : 0) + (bodyB ? bodyB.inverseMass : 0),
             inertiaTotal = (bodyA ? bodyA.inverseInertia : 0) + (bodyB ? bodyB.inverseInertia : 0),
             resistanceTotal = massTotal + inertiaTotal,
+            angleAStiffness = (constraint.angleAStiffness < 1 ? constraint.angleAStiffness * timeScale : constraint.angleAStiffness) * Constraint._angleLimitDampen,
+            angleBStiffness = (constraint.angleBStiffness < 1 ? constraint.angleBStiffness * timeScale : constraint.angleBStiffness) * Constraint._angleLimitDampen,
             torque,
             share,
             normal,
             normalVelocity,
-            relativeVelocity;
+            relativeVelocity,
+            angleLimitPointA,
+            angleLimitPointB;
+
+        if (constraint.angleAStiffness) {
+            angleLimitPointA = Constraint.solveAngleLimits(
+                constraint, bodyA, constraint.angleA, constraint.angleAMin, 
+                constraint.angleAMax, delta, -1, currentLength, pointAWorld, pointBWorld
+            );
+        }
+
+        if (constraint.angleBStiffness) {
+            angleLimitPointB = Constraint.solveAngleLimits(
+                constraint, bodyB, constraint.angleB, constraint.angleBMin, 
+                constraint.angleBMax, delta, 1, currentLength, pointBWorld, pointAWorld
+            );
+        }
 
         if (constraint.damping) {
             var zero = Vector.create();
@@ -4556,6 +4642,12 @@ var Common = __webpack_require__(0);
         if (bodyA && !bodyA.isStatic) {
             share = bodyA.inverseMass / massTotal;
 
+            // temporarily add angular limit force from pointB if pinned
+            if (angleLimitPointB && (!bodyB || bodyB.isStatic)) {
+                force.x -= angleLimitPointB.x * angleBStiffness;
+                force.y -= angleLimitPointB.y * angleBStiffness;
+            }
+
             // keep track of applied impulses for post solving
             bodyA.constraintImpulse.x -= force.x * share;
             bodyA.constraintImpulse.y -= force.y * share;
@@ -4570,14 +4662,33 @@ var Common = __webpack_require__(0);
                 bodyA.positionPrev.y -= constraint.damping * normal.y * normalVelocity * share;
             }
 
-            // apply torque
+            // find torque to apply
             torque = (Vector.cross(pointA, force) / resistanceTotal) * Constraint._torqueDampen * bodyA.inverseInertia * (1 - constraint.angularStiffness);
+
+            // add any torque from angular limit at pointA
+            if (angleLimitPointA) {
+                torque -= angleLimitPointA.angle * angleAStiffness;
+            }
+
+            // apply torque
             bodyA.constraintImpulse.angle -= torque;
             bodyA.angle -= torque;
+
+            // remove angular limit from pointB
+            if (angleLimitPointB && (!bodyB || bodyB.isStatic)) {
+                force.x += angleLimitPointB.x * angleBStiffness;
+                force.y += angleLimitPointB.y * angleBStiffness;
+            }
         }
 
         if (bodyB && !bodyB.isStatic) {
             share = bodyB.inverseMass / massTotal;
+
+            // add angular limit force from pointA if pinned
+            if (angleLimitPointA && (!bodyA || bodyA.isStatic)) {
+                force.x += angleLimitPointA.x * angleAStiffness;
+                force.y += angleLimitPointA.y * angleAStiffness;
+            }
 
             // keep track of applied impulses for post solving
             bodyB.constraintImpulse.x += force.x * share;
@@ -4593,8 +4704,15 @@ var Common = __webpack_require__(0);
                 bodyB.positionPrev.y += constraint.damping * normal.y * normalVelocity * share;
             }
 
-            // apply torque
+            // find torque to apply
             torque = (Vector.cross(pointB, force) / resistanceTotal) * Constraint._torqueDampen * bodyB.inverseInertia * (1 - constraint.angularStiffness);
+            
+            // add any torque from angular limit at pointB
+            if (angleLimitPointB) {
+                torque += angleLimitPointB.angle * angleBStiffness;
+            }
+            
+            // apply torque
             bodyB.constraintImpulse.angle += torque;
             bodyB.angle += torque;
         }
@@ -4655,8 +4773,10 @@ var Common = __webpack_require__(0);
      */
     Constraint.pointAWorld = function(constraint) {
         return {
-            x: (constraint.bodyA ? constraint.bodyA.position.x : 0) + constraint.pointA.x,
-            y: (constraint.bodyA ? constraint.bodyA.position.y : 0) + constraint.pointA.y
+            x: (constraint.bodyA ? constraint.bodyA.position.x : 0) 
+                + (constraint.pointA ? constraint.pointA.x : 0),
+            y: (constraint.bodyA ? constraint.bodyA.position.y : 0) 
+                + (constraint.pointA ? constraint.pointA.y : 0)
         };
     };
 
@@ -4668,8 +4788,50 @@ var Common = __webpack_require__(0);
      */
     Constraint.pointBWorld = function(constraint) {
         return {
-            x: (constraint.bodyB ? constraint.bodyB.position.x : 0) + constraint.pointB.x,
-            y: (constraint.bodyB ? constraint.bodyB.position.y : 0) + constraint.pointB.y
+            x: (constraint.bodyB ? constraint.bodyB.position.x : 0) 
+                + (constraint.pointB ? constraint.pointB.x : 0),
+            y: (constraint.bodyB ? constraint.bodyB.position.y : 0) 
+                + (constraint.pointB ? constraint.pointB.y : 0)
+        };
+    };
+    
+    /**
+     * Solves angle limits on the constraint.
+     * @private
+     * @method solveAngleLimits
+     */
+    Constraint.solveAngleLimits = function(constraint, body, angle, angleMin, angleMax, delta, direction, currentLength, pointAWorld, pointBWorld) {
+        var currentAngle = (body ? body.angle : 0) + (constraint.length > 0 ? angle : 0),
+            min = angleMin < angleMax ? angleMin : angleMax,
+            max = angleMax > angleMin ? angleMax : angleMin,
+            angleNormal = { x: Math.cos(currentAngle), y: Math.sin(currentAngle) },
+            angleDelta;
+
+        if (constraint.length === 0) {
+            // use absolute angle for pin constraints
+            angleDelta = Common.angleDiff(angle, currentAngle);
+        } else {
+            // otherwise use relative angle
+            angleDelta = Math.atan2(
+                angleNormal.x * delta.y * direction - angleNormal.y * delta.x * direction,
+                angleNormal.x * delta.x * direction + angleNormal.y * delta.y * direction
+            );
+        }
+
+        // no impulse required if angle within limits
+        if (angleDelta > min && angleDelta < max) {
+            return null;
+        }
+
+        // find the clamped angle and clamp the normal
+        var angleClamped = Common.clampAngle(angleDelta, min, max),
+            normalLimited = Vector.rotate(angleNormal, angleClamped);
+
+        // return the impulses required to correct the angle
+        return {
+            x: pointAWorld.x + normalLimited.x * currentLength - pointBWorld.x, 
+            y: pointAWorld.y + normalLimited.y * currentLength - pointBWorld.y,
+            angle: Common.angleDiff(angleDelta, angleClamped)
         };
     };
 
@@ -4680,7 +4842,7 @@ var Common = __webpack_require__(0);
     */
 
     /**
-     * An integer `Number` uniquely identifying number generated in `Composite.create` by `Common.nextId`.
+     * An integer `Number` uniquely identifying number generated in `Constraint.create` by `Common.nextId`.
      *
      * @property id
      * @type number
@@ -4755,6 +4917,14 @@ var Common = __webpack_require__(0);
      */
 
     /**
+     * A `Boolean` that defines if the constraint's anglular limits should be rendered.
+     *
+     * @property render.angles
+     * @type boolean
+     * @default true
+     */
+
+    /**
      * The first possible `Body` that this constraint is attached to.
      *
      * @property bodyA
@@ -4788,7 +4958,9 @@ var Common = __webpack_require__(0);
 
     /**
      * A `Number` that specifies the stiffness of the constraint, i.e. the rate at which it returns to its resting `constraint.length`.
+     * 
      * A value of `1` means the constraint should be very stiff.
+     * 
      * A value of `0.2` means the constraint acts like a soft spring.
      *
      * @property stiffness
@@ -4799,8 +4971,11 @@ var Common = __webpack_require__(0);
     /**
      * A `Number` that specifies the damping of the constraint, 
      * i.e. the amount of resistance applied to each body based on their velocities to limit the amount of oscillation.
+     * 
      * Damping will only be apparent when the constraint also has a very low `stiffness`.
+     * 
      * A value of `0.1` means the constraint will apply heavy damping, resulting in little to no oscillation.
+     * 
      * A value of `0` means the constraint will apply no damping.
      *
      * @property damping
@@ -4810,10 +4985,119 @@ var Common = __webpack_require__(0);
 
     /**
      * A `Number` that specifies the target resting length of the constraint. 
+     * 
      * It is calculated automatically in `Constraint.create` from initial positions of the `constraint.bodyA` and `constraint.bodyB`.
      *
      * @property length
      * @type number
+     */
+
+    /**
+     * A `Number` in radians that specifies the limiting angle of the constraint about `constraint.pointA`.
+     * 
+     * Only applies if `constraint.angleAStiffness > 0`.
+     * 
+     * Defaults to the initial angle of the constraint or `0`.
+     * 
+     * The angle is relative to `constraint.bodyA.angle` if `constraint.bodyA` is set, otherwise is absolute.
+     * 
+     * When absolute the angle is measured between the vector `constraint.pointA - constraint.pointB` and the x-axis.
+     *
+     * @property angleA
+     * @type number
+     * @default the initial relative constraint angle
+     */
+
+    /**
+     * A `Number` that specifies the stiffness of angular limits about `constraint.pointA`.  
+     * 
+     * A value of `0` (default) means the constraint will not limit the angle.  
+     * 
+     * A value of `0.01` means the constraint will softly limit the angle.  
+     * 
+     * A value of `1` means the constraint will rigidly limit the angle.  
+     *
+     * @property angleAStiffness
+     * @type number
+     * @default 0
+     */
+
+    /**
+     * A `Number` in radians that specifies the lower angular limit 
+     * about `constraint.pointA` relative to `constraint.angleA`.  
+     * 
+     * A value of `-0.5` means the constraint is limited to `0.5` radians 
+     * anti-clockwise of `constraint.angleA`, or clockwise if the value is positive.
+     *
+     * @property angleAMin
+     * @type number
+     * @default 0
+     */
+
+    /**
+     * A `Number` in radians that specifies the upper angular limit 
+     * about `constraint.pointA` relative to `constraint.angleA`.
+     * 
+     * A value of `-0.5` means the constraint is limited to `0.5` radians 
+     * anti-clockwise of `constraint.angleA`, or clockwise if the value is positive.
+     *
+     * @property angleAMax
+     * @type number
+     * @default 0
+     */
+
+    /**
+     * A `Number` in radians that specifies the limiting angle of the constraint about `constraint.pointB`.
+     * 
+     * Only applies if `constraint.angleBStiffness > 0`.
+     * 
+     * Defaults to the initial angle of the constraint or `0`.
+     * 
+     * The angle is relative to `constraint.bodyB.angle` if `constraint.bodyB` is set, otherwise is absolute.
+     * 
+     * When absolute the angle is measured between the vector `constraint.pointA - constraint.pointB` and the x-axis.
+     *
+     * @property angleB
+     * @type number
+     * @default the initial relative constraint angle
+     */
+
+    /**
+     * A `Number` that specifies the stiffness of angular limits about `constraint.pointB`.  
+     * 
+     * A value of `0` (default) means the constraint will not limit the angle.  
+     * 
+     * A value of `0.01` means the constraint will softly limit the angle.  
+     * 
+     * A value of `1` means the constraint will rigidly limit the angle.  
+     *
+     * @property angleBStiffness
+     * @type number
+     * @default 0
+     */
+
+    /**
+     * A `Number` in radians that specifies the lower angular limit 
+     * about `constraint.pointB` relative to `constraint.angleB`.  
+     * 
+     * A value of `-0.5` means the constraint is limited to `0.5` radians 
+     * anti-clockwise of `constraint.angleB`, or clockwise if the value is positive.
+     *
+     * @property angleBMin
+     * @type number
+     * @default 0
+     */
+
+    /**
+     * A `Number` in radians that specifies the upper angular limit 
+     * about `constraint.pointB` relative to `constraint.angleB`.
+     * 
+     * A value of `-0.5` means the constraint is limited to `0.5` radians 
+     * anti-clockwise of `constraint.angleB`, or clockwise if the value is positive.
+     *
+     * @property angleBMax
+     * @type number
+     * @default 0
      */
 
     /**
@@ -6070,7 +6354,6 @@ var Mouse = __webpack_require__(13);
      */
     Render.create = function(options) {
         var defaults = {
-            controller: Render,
             engine: null,
             element: null,
             canvas: null,
@@ -6142,6 +6425,7 @@ var Mouse = __webpack_require__(13);
         };
 
         // for temporary back compatibility only
+        render.controller = Render;
         render.options.showBroadphase = false;
 
         if (render.options.pixelRatio !== 1) {
@@ -6150,8 +6434,6 @@ var Mouse = __webpack_require__(13);
 
         if (Common.isElement(render.element)) {
             render.element.appendChild(render.canvas);
-        } else if (!render.canvas.parentNode) {
-            Common.log('Render.create: options.element was undefined, render.canvas was created but not appended', 'warn');
         }
 
         return render;
@@ -6675,17 +6957,17 @@ var Mouse = __webpack_require__(13);
                 start = constraint.pointA;
             }
 
+            if (bodyB) {
+                end = Vector.add(bodyB.position, constraint.pointB);
+            } else {
+                end = constraint.pointB;
+            }
+
             if (constraint.render.type === 'pin') {
                 c.beginPath();
                 c.arc(start.x, start.y, 3, 0, 2 * Math.PI);
                 c.closePath();
             } else {
-                if (bodyB) {
-                    end = Vector.add(bodyB.position, constraint.pointB);
-                } else {
-                    end = constraint.pointB;
-                }
-
                 c.beginPath();
                 c.moveTo(start.x, start.y);
 
@@ -6721,6 +7003,32 @@ var Mouse = __webpack_require__(13);
                 c.arc(end.x, end.y, 3, 0, 2 * Math.PI);
                 c.closePath();
                 c.fill();
+            }
+
+            if (constraint.render.angles && constraint.angleAStiffness) {
+                var relativeAngle = (constraint.length > 0 && constraint.bodyA ? constraint.bodyA.angle : 0) + constraint.angleA;
+                c.beginPath();
+                c.moveTo(start.x, start.y);
+                c.arc(start.x, start.y, 12, relativeAngle + constraint.angleAMin, 
+                    relativeAngle + constraint.angleAMax + 0.0001, constraint.angleAMin <= constraint.angleAMax);
+                c.lineTo(start.x, start.y);
+                c.closePath();
+                c.strokeStyle = 'rgba(255,255,255,' + (0.3 + 0.3 * constraint.angleAStiffness) + ')';
+                c.lineWidth = 1.2;
+                c.stroke();
+            }
+
+            if (constraint.render.angles && constraint.angleBStiffness) {
+                var relativeAngle = (constraint.length > 0 && constraint.bodyB ? constraint.bodyB.angle : 0) + constraint.angleB;
+                c.beginPath();
+                c.moveTo(end.x, end.y);
+                c.arc(end.x, end.y, 12, relativeAngle + constraint.angleBMin,
+                    relativeAngle + constraint.angleBMax + 0.0001, constraint.angleBMin <= constraint.angleBMax);
+                c.lineTo(end.x, end.y);
+                c.closePath();
+                c.strokeStyle = 'rgba(255,255,255,' + (0.3 + 0.3 * constraint.angleBStiffness) + ')';
+                c.lineWidth = 1.2;
+                c.stroke();
             }
         }
     };
@@ -7551,6 +7859,7 @@ var Mouse = __webpack_require__(13);
     /**
      * A back-reference to the `Matter.Render` module.
      *
+     * @deprecated
      * @property controller
      * @type render
      */
@@ -9852,7 +10161,7 @@ var Bounds = __webpack_require__(1);
                                 constraint.pointA = mouse.position;
                                 constraint.bodyB = mouseConstraint.body = body;
                                 constraint.pointB = { x: mouse.position.x - body.position.x, y: mouse.position.y - body.position.y };
-                                constraint.angleB = body.angle;
+                                constraint.angleBPrev = body.angle;
 
                                 Sleeping.set(body, false);
                                 Events.trigger(mouseConstraint, 'startdrag', { mouse: mouse, body: body });
