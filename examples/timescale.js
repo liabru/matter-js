@@ -42,16 +42,18 @@ Example.timescale = function() {
         Bodies.rectangle(0, 300, 50, 600, { isStatic: true })
     ]);
 
-    var explosion = function(engine) {
+    var explosion = function(engine, delta) {
+        var timeScale = (1000 / 60) / delta;
         var bodies = Composite.allBodies(engine.world);
 
         for (var i = 0; i < bodies.length; i++) {
             var body = bodies[i];
 
             if (!body.isStatic && body.position.y >= 500) {
-                // Scale force accounting for mass
-                var forceMagnitude = (0.05 * body.mass);
+                // scale force for mass and time applied
+                var forceMagnitude = (0.05 * body.mass) * timeScale;
 
+                // apply the force over a single update
                 Body.applyForce(body, body.position, {
                     x: (forceMagnitude + Common.random() * forceMagnitude) * Common.choose([1, -1]), 
                     y: -forceMagnitude + Common.random() * -forceMagnitude
