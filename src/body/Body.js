@@ -801,15 +801,22 @@ var Axes = require('../geometry/Axes');
     };
 
     /**
-     * Applies a force to a body from a given world-space position for a _single update_, including resulting torque.
-     * The position must be specified. Using `body.position` results in zero torque.
+     * Applies the `force` to the `body` from the force origin `position` in world-space, over a single timestep, including applying any resulting angular torque.
      * 
-     * Forces create an acceleration that acts over time, so may need to be applied over multiple updates for the body to gain a visible momentum.
+     * Forces are useful for effects like gravity, wind or rocket thrust, but can be difficult in practice when precise control is needed. In these cases see `Body.setVelocity` and `Body.setPosition` as an alternative.
      * 
-     * See also `Body.setVelocity` and related methods which do not require any time for acceleration to reach the given velocity.
+     * The force from this function is only applied once for the duration of a single timestep, in other words the duration depends directly on the current engine update `delta` and the rate of calls to this function.
+     * 
+     * Therefore to account for time, you should apply the force constantly over as many engine updates as equivalent to the intended duration.
+     * 
+     * If all or part of the force duration is some fraction of a timestep, first multiply the force by `duration / timestep`.
+     * 
+     * The force origin `position` in world-space must also be specified. Passing `body.position` will result in zero angular effect as the force origin would be at the centre of mass.
+     * 
+     * The `body` will take time to accelerate under a force, the resulting effect depends on duration of the force, the body mass and other forces on the body including friction combined.
      * @method applyForce
      * @param {body} body
-     * @param {vector} position
+     * @param {vector} position The force origin in world-space. Pass `body.position` to avoid angular torque.
      * @param {vector} force
      */
     Body.applyForce = function(body, position, force) {
@@ -988,7 +995,7 @@ var Axes = require('../geometry/Axes');
 
     /**
      * A `Vector` that accumulates the total force applied to the body for a single update.
-     * Force is zeroed after every `Body.update`, so constant forces should be applied for every update they are needed. See also `Body.applyForce`.
+     * Force is zeroed after every `Engine.update`, so constant forces should be applied for every update they are needed. See also `Body.applyForce`.
      * 
      * @property force
      * @type vector
@@ -997,7 +1004,7 @@ var Axes = require('../geometry/Axes');
 
     /**
      * A `Number` that accumulates the total torque (turning force) applied to the body for a single update. See also `Body.applyForce`.
-     * Torque is zeroed after every `Body.update`, so constant torques should be applied for every update they are needed.
+     * Torque is zeroed after every `Engine.update`, so constant torques should be applied for every update they are needed.
      *
      * Torques are converted to acceleration on every update, which depends on body inertia and the engine update delta.
      * 
