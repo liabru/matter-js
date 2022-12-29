@@ -296,7 +296,7 @@ var Body = require('../body/Body');
 
     /**
      * Applies `Body.updateVelocities` to all given `bodies`.
-     * @method _bodiesUpdate
+     * @method _bodiesUpdateVelocities
      * @private
      * @param {body[]} bodies
      */

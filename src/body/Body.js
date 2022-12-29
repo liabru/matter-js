@@ -953,7 +953,7 @@ var Axes = require('../geometry/Axes');
      */
 
     /**
-     * A `Number` specifying the angle of the body.
+     * A `Number` specifying the angle of the body, in radians.
      *
      * @property angle
      * @type number
@@ -1006,7 +1006,7 @@ var Axes = require('../geometry/Axes');
      * A `Number` that accumulates the total torque (turning force) applied to the body for a single update. See also `Body.applyForce`.
      * Torque is zeroed after every `Engine.update`, so constant torques should be applied for every update they are needed.
      *
-     * Torques are converted to acceleration on every update, which depends on body inertia and the engine update delta.
+     * Torques result in angular acceleration on every update, which depends on body inertia and the engine update delta.
      * 
      * @property torque
      * @type number
@@ -1150,7 +1150,7 @@ var Axes = require('../geometry/Axes');
      */
 
     /**
-     * _Read only_. Automatically calculated when vertices, mass or density are set.
+     * _Read only_. Automatically calculated when vertices, mass or density are set or set through `Body.setInertia`.
      * 
      * A `Number` that defines the moment of inertia of the body. This is the second moment of area in two dimensions.
      * 
@@ -1162,7 +1162,7 @@ var Axes = require('../geometry/Axes');
      */
 
     /**
-     * _Read only_. Automatically calculated when vertices, mass or density are set.
+     * _Read only_. Automatically calculated when vertices, mass or density are set or calculated by `Body.setInertia`.
      * 
      * A `Number` that defines the inverse moment of inertia of the body (`1 / inertia`).
      * 
