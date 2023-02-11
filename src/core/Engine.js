@@ -71,25 +71,15 @@ var Body = require('../body/Body');
     };
 
     /**
-     * Moves the simulation forward in time by `delta` ms.
-     * The `correction` argument is an optional `Number` that specifies the time correction factor to apply to the update.
-     * This can help improve the accuracy of the simulation in cases where `delta` is changing between updates.
-     * The value of `correction` is defined as `delta / lastDelta`, i.e. the percentage change of `delta` over the last step.
-     * Therefore the value is always `1` (no correction) when `delta` constant (or when no correction is desired, which is the default).
-     * See the paper on <a href="http://lonesock.net/article/verlet.html">Time Corrected Verlet</a> for more information.
-     *
+     * Moves the simulation forward in time by `delta` milliseconds.
      * Triggers `beforeUpdate` and `afterUpdate` events.
      * Triggers `collisionStart`, `collisionActive` and `collisionEnd` events.
      * @method update
      * @param {engine} engine
      * @param {number} [delta=16.666]
-     * @param {number} [correction=1]
      */
-    Engine.update = function(engine, delta, correction) {
+    Engine.update = function(engine, delta) {
         var startTime = Common.now();
-
-        delta = delta || 1000 / 60;
-        correction = correction || 1;
 
         var world = engine.world,
             detector = engine.detector,
@@ -98,13 +88,17 @@ var Body = require('../body/Body');
             timestamp = timing.timestamp,
             i;
 
+        delta = typeof delta !== 'undefined' ? delta : Common._baseDelta;
+        delta *= timing.timeScale;
+
         // increment timestamp
-        timing.timestamp += delta * timing.timeScale;
-        timing.lastDelta = delta * timing.timeScale;
+        timing.timestamp += delta;
+        timing.lastDelta = delta;
 
         // create an event object
         var event = {
-            timestamp: timing.timestamp
+            timestamp: timing.timestamp,
+            delta: delta
         };
 
         Events.trigger(engine, 'beforeUpdate', event);
@@ -113,30 +107,31 @@ var Body = require('../body/Body');
         var allBodies = Composite.allBodies(world),
             allConstraints = Composite.allConstraints(world);
 
-        // update the detector bodies if they have changed
+        // if the world has changed
         if (world.isModified) {
+            // update the detector bodies
             Detector.setBodies(detector, allBodies);
-        }
 
-        // reset all composite modified flags
-        if (world.isModified) {
+            // reset all composite modified flags
             Composite.setModified(world, false, false, true);
         }
 
         // update sleeping if enabled
         if (engine.enableSleeping)
-            Sleeping.update(allBodies, timing.timeScale);
+            Sleeping.update(allBodies, delta);
 
         // apply gravity to all bodies
         Engine._bodiesApplyGravity(allBodies, engine.gravity);
 
         // update all body position and rotation by integration
-        Engine._bodiesUpdate(allBodies, delta, timing.timeScale, correction, world.bounds);
+        if (delta > 0) {
+            Engine._bodiesUpdate(allBodies, delta);
+        }
 
         // update all constraints (first pass)
         Constraint.preSolveAll(allBodies);
         for (i = 0; i < engine.constraintIterations; i++) {
-            Constraint.solveAll(allConstraints, timing.timeScale);
+            Constraint.solveAll(allConstraints, delta);
         }
         Constraint.postSolveAll(allBodies);
 
@@ -149,33 +144,37 @@ var Body = require('../body/Body');
 
         // wake up bodies involved in collisions
         if (engine.enableSleeping)
-            Sleeping.afterCollisions(pairs.list, timing.timeScale);
-
-        // trigger collision events
-        if (pairs.collisionStart.length > 0)
-            Events.trigger(engine, 'collisionStart', { pairs: pairs.collisionStart });
+            Sleeping.afterCollisions(pairs.list);
 
         // iteratively resolve position between collisions
+        var positionDamping = Common.clamp(20 / engine.positionIterations, 0, 1);
+        
         Resolver.preSolvePosition(pairs.list);
         for (i = 0; i < engine.positionIterations; i++) {
-            Resolver.solvePosition(pairs.list, timing.timeScale);
+            Resolver.solvePosition(pairs.list, delta, positionDamping);
         }
         Resolver.postSolvePosition(allBodies);
 
         // update all constraints (second pass)
         Constraint.preSolveAll(allBodies);
         for (i = 0; i < engine.constraintIterations; i++) {
-            Constraint.solveAll(allConstraints, timing.timeScale);
+            Constraint.solveAll(allConstraints, delta);
         }
         Constraint.postSolveAll(allBodies);
 
         // iteratively resolve velocity between collisions
         Resolver.preSolveVelocity(pairs.list);
         for (i = 0; i < engine.velocityIterations; i++) {
-            Resolver.solveVelocity(pairs.list, timing.timeScale);
+            Resolver.solveVelocity(pairs.list, delta);
         }
 
+        // update body speed and velocity properties
+        Engine._bodiesUpdateVelocities(allBodies);
+
         // trigger collision events
+        if (pairs.collisionStart.length > 0)
+            Events.trigger(engine, 'collisionStart', { pairs: pairs.collisionStart });
+
         if (pairs.collisionActive.length > 0)
             Events.trigger(engine, 'collisionActive', { pairs: pairs.collisionActive });
 
@@ -234,7 +233,9 @@ var Body = require('../body/Body');
      * @param {body[]} bodies
      */
     Engine._bodiesClearForces = function(bodies) {
-        for (var i = 0; i < bodies.length; i++) {
+        var bodiesLength = bodies.length;
+
+        for (var i = 0; i < bodiesLength; i++) {
             var body = bodies[i];
 
             // reset force buffers
@@ -245,51 +246,65 @@ var Body = require('../body/Body');
     };
 
     /**
-     * Applys a mass dependant force to all given bodies.
+     * Applies gravitational acceleration to all `bodies`.
+     * This models a [uniform gravitational field](https://en.wikipedia.org/wiki/Gravity_of_Earth), similar to near the surface of a planet.
+     * 
      * @method _bodiesApplyGravity
      * @private
      * @param {body[]} bodies
      * @param {vector} gravity
      */
     Engine._bodiesApplyGravity = function(bodies, gravity) {
-        var gravityScale = typeof gravity.scale !== 'undefined' ? gravity.scale : 0.001;
+        var gravityScale = typeof gravity.scale !== 'undefined' ? gravity.scale : 0.001,
+            bodiesLength = bodies.length;
 
         if ((gravity.x === 0 && gravity.y === 0) || gravityScale === 0) {
             return;
         }
         
-        for (var i = 0; i < bodies.length; i++) {
+        for (var i = 0; i < bodiesLength; i++) {
             var body = bodies[i];
 
             if (body.isStatic || body.isSleeping)
                 continue;
 
-            // apply gravity
+            // add the resultant force of gravity
             body.force.y += body.mass * gravity.y * gravityScale;
             body.force.x += body.mass * gravity.x * gravityScale;
         }
     };
 
     /**
-     * Applys `Body.update` to all given `bodies`.
+     * Applies `Body.update` to all given `bodies`.
      * @method _bodiesUpdate
      * @private
      * @param {body[]} bodies
-     * @param {number} deltaTime 
-     * The amount of time elapsed between updates
-     * @param {number} timeScale
-     * @param {number} correction 
-     * The Verlet correction factor (deltaTime / lastDeltaTime)
-     * @param {bounds} worldBounds
+     * @param {number} delta The amount of time elapsed between updates
      */
-    Engine._bodiesUpdate = function(bodies, deltaTime, timeScale, correction, worldBounds) {
-        for (var i = 0; i < bodies.length; i++) {
+    Engine._bodiesUpdate = function(bodies, delta) {
+        var bodiesLength = bodies.length;
+
+        for (var i = 0; i < bodiesLength; i++) {
             var body = bodies[i];
 
             if (body.isStatic || body.isSleeping)
                 continue;
 
-            Body.update(body, deltaTime, timeScale, correction);
+            Body.update(body, delta);
+        }
+    };
+
+    /**
+     * Applies `Body.updateVelocities` to all given `bodies`.
+     * @method _bodiesUpdateVelocities
+     * @private
+     * @param {body[]} bodies
+     */
+    Engine._bodiesUpdateVelocities = function(bodies) {
+        var bodiesLength = bodies.length;
+
+        for (var i = 0; i < bodiesLength; i++) {
+            Body.updateVelocities(bodies[i]);
         }
     };
 
@@ -306,6 +321,7 @@ var Body = require('../body/Body');
     * @event beforeUpdate
     * @param {object} event An event object
     * @param {number} event.timestamp The engine.timing.timestamp of the event
+    * @param {number} event.delta The delta time in milliseconds value used in the update
     * @param {engine} event.source The source object of the event
     * @param {string} event.name The name of the event
     */
@@ -316,6 +332,7 @@ var Body = require('../body/Body');
     * @event afterUpdate
     * @param {object} event An event object
     * @param {number} event.timestamp The engine.timing.timestamp of the event
+    * @param {number} event.delta The delta time in milliseconds value used in the update
     * @param {engine} event.source The source object of the event
     * @param {string} event.name The name of the event
     */
@@ -327,6 +344,7 @@ var Body = require('../body/Body');
     * @param {object} event An event object
     * @param {pair[]} event.pairs List of affected pairs
     * @param {number} event.timestamp The engine.timing.timestamp of the event
+    * @param {number} event.delta The delta time in milliseconds value used in the update
     * @param {engine} event.source The source object of the event
     * @param {string} event.name The name of the event
     */
@@ -338,6 +356,7 @@ var Body = require('../body/Body');
     * @param {object} event An event object
     * @param {pair[]} event.pairs List of affected pairs
     * @param {number} event.timestamp The engine.timing.timestamp of the event
+    * @param {number} event.delta The delta time in milliseconds value used in the update
     * @param {engine} event.source The source object of the event
     * @param {string} event.name The name of the event
     */
@@ -349,6 +368,7 @@ var Body = require('../body/Body');
     * @param {object} event An event object
     * @param {pair[]} event.pairs List of affected pairs
     * @param {number} event.timestamp The engine.timing.timestamp of the event
+    * @param {number} event.delta The delta time in milliseconds value used in the update
     * @param {engine} event.source The source object of the event
     * @param {string} event.name The name of the event
     */
@@ -417,7 +437,7 @@ var Body = require('../body/Body');
     /**
      * A `Number` that specifies the current simulation-time in milliseconds starting from `0`. 
      * It is incremented on every `Engine.update` by the given `delta` argument. 
-     *
+     * 
      * @property timing.timestamp
      * @type number
      * @default 0
@@ -428,7 +448,7 @@ var Body = require('../body/Body');
      * It is updated by timing from the start of the last `Engine.update` call until it ends.
      *
      * This value will also include the total execution time of all event handlers directly or indirectly triggered by the engine update.
-     *
+     * 
      * @property timing.lastElapsed
      * @type number
      * @default 0
@@ -436,7 +456,7 @@ var Body = require('../body/Body');
 
     /**
      * A `Number` that represents the `delta` value used in the last engine update.
-     *
+     * 
      * @property timing.lastDelta
      * @type number
      * @default 0
@@ -484,22 +504,29 @@ var Body = require('../body/Body');
      */
 
     /**
-     * The gravity to apply on all bodies in `engine.world`.
+     * An optional gravitational acceleration applied to all bodies in `engine.world` on every update.
+     * 
+     * This models a [uniform gravitational field](https://en.wikipedia.org/wiki/Gravity_of_Earth), similar to near the surface of a planet. For gravity in other contexts, disable this and apply forces as needed.
+     * 
+     * To disable set the `scale` component to `0`.
+     * 
+     * This is split into three components for ease of use:  
+     * a normalised direction (`x` and `y`) and magnitude (`scale`).
      *
      * @property gravity
      * @type object
      */
 
     /**
-     * The gravity x component.
-     *
+     * The gravitational direction normal `x` component, to be multiplied by `gravity.scale`.
+     * 
      * @property gravity.x
      * @type object
      * @default 0
      */
 
     /**
-     * The gravity y component.
+     * The gravitational direction normal `y` component, to be multiplied by `gravity.scale`.
      *
      * @property gravity.y
      * @type object
@@ -507,8 +534,8 @@ var Body = require('../body/Body');
      */
 
     /**
-     * The gravity scale factor.
-     *
+     * The magnitude of the gravitational acceleration.
+     * 
      * @property gravity.scale
      * @type object
      * @default 0.001

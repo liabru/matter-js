@@ -50,19 +50,20 @@ Example.compositeManipulation = function() {
     engine.gravity.y = 0;
 
     Events.on(engine, 'afterUpdate', function(event) {
-        var time = engine.timing.timestamp;
+        var time = engine.timing.timestamp,
+            timeScale = (event.delta || (1000 / 60)) / 1000;
 
         Composite.translate(stack, {
-            x: Math.sin(time * 0.001) * 2,
+            x: Math.sin(time * 0.001) * 10 * timeScale,
             y: 0
         });
 
-        Composite.rotate(stack, Math.sin(time * 0.001) * 0.01, {
+        Composite.rotate(stack, Math.sin(time * 0.001) * 0.75 * timeScale, {
             x: 300,
             y: 300
         });
 
-        var scale = 1 + (Math.sin(time * 0.001) * 0.01);
+        var scale = 1 + (Math.sin(time * 0.001) * 0.75 * timeScale);
 
         Composite.scale(stack, scale, scale, {
             x: 300,

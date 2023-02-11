@@ -9,11 +9,9 @@ Example.ragdoll = function() {
         Common = Matter.Common,
         Composite = Matter.Composite,
         Composites = Matter.Composites,
-        Constraint = Matter.Constraint,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
-        Bodies = Matter.Bodies,
-        Vector = Matter.Vector;
+        Bodies = Matter.Bodies;
 
     // create engine
     var engine = Engine.create(),
@@ -82,21 +80,20 @@ Example.ragdoll = function() {
     Composite.add(world, [stack, obstacles, ragdolls]);
 
     var timeScaleTarget = 1,
-        counter = 0;
+        lastTime = Common.now();
 
     Events.on(engine, 'afterUpdate', function(event) {
+        var timeScale = (event.delta || (1000 / 60)) / 1000;
+
         // tween the timescale for slow-mo
         if (mouse.button === -1) {
-            engine.timing.timeScale += (timeScaleTarget - engine.timing.timeScale) * 0.05;
+            engine.timing.timeScale += (timeScaleTarget - engine.timing.timeScale) * 3 * timeScale;
         } else {
             engine.timing.timeScale = 1;
         }
 
-        counter += 1;
-
-        // every 1.5 sec
-        if (counter >= 60 * 1.5) {
-
+        // every 2 sec (real time)
+        if (Common.now() - lastTime >= 2000) {
             // flip the timescale
             if (timeScaleTarget < 1) {
                 timeScaleTarget = 1;
@@ -104,8 +101,8 @@ Example.ragdoll = function() {
                 timeScaleTarget = 0.05;
             }
 
-            // reset counter
-            counter = 0;
+            // update last time
+            lastTime = Common.now();
         }
 
         for (var i = 0; i < stack.bodies.length; i += 1) {
@@ -113,8 +110,8 @@ Example.ragdoll = function() {
 
             // animate stairs
             Body.translate(body, {
-                x: -0.5 * engine.timing.timeScale,
-                y: -0.5 * engine.timing.timeScale
+                x: -30 * timeScale,
+                y: -30 * timeScale
             });
 
             // loop stairs when they go off screen

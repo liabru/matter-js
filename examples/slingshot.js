@@ -9,6 +9,7 @@ Example.slingshot = function() {
         Constraint = Matter.Constraint,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
+        Body = Matter.Body,
         Composite = Matter.Composite,
         Bodies = Matter.Bodies;
 
@@ -41,6 +42,8 @@ Example.slingshot = function() {
         elastic = Constraint.create({ 
             pointA: anchor, 
             bodyB: rock, 
+            length: 0.01,
+            damping: 0.01,
             stiffness: 0.05
         });
 
@@ -58,6 +61,12 @@ Example.slingshot = function() {
 
     Events.on(engine, 'afterUpdate', function() {
         if (mouseConstraint.mouse.button === -1 && (rock.position.x > 190 || rock.position.y < 430)) {
+            // Limit maximum speed of current rock.
+            if (Body.getSpeed(rock) > 45) {
+                Body.setSpeed(rock, 45);
+            }
+
+            // Release current rock and add a new one.
             rock = Bodies.polygon(170, 450, 7, 20, rockOptions);
             Composite.add(engine.world, rock);
             elastic.bodyB = rock;

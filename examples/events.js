@@ -39,13 +39,19 @@ Example.events = function() {
         // do something with event.object
     });
 
+    var lastTime = Common.now();
+
     // an example of using beforeUpdate event on an engine
     Events.on(engine, 'beforeUpdate', function(event) {
         var engine = event.source;
 
         // apply random forces every 5 secs
-        if (event.timestamp % 5000 < 50)
+        if (Common.now() - lastTime >= 5000) {
             shakeScene(engine);
+
+            // update last time
+            lastTime = Common.now();
+        }
     });
 
     // an example of using collisionStart event on an engine
@@ -102,14 +108,17 @@ Example.events = function() {
     Composite.add(world, stack);
 
     var shakeScene = function(engine) {
+        var timeScale = (1000 / 60) / engine.timing.lastDelta;
         var bodies = Composite.allBodies(engine.world);
 
         for (var i = 0; i < bodies.length; i++) {
             var body = bodies[i];
 
             if (!body.isStatic && body.position.y >= 500) {
-                var forceMagnitude = 0.02 * body.mass;
+                // scale force for mass and time applied
+                var forceMagnitude = (0.03 * body.mass) * timeScale;
 
+                // apply the force over a single update
                 Body.applyForce(body, body.position, { 
                     x: (forceMagnitude + Common.random() * forceMagnitude) * Common.choose([1, -1]), 
                     y: -forceMagnitude + Common.random() * -forceMagnitude

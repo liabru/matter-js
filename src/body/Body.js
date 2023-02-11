@@ -1,7 +1,6 @@
 /**
-* The `Matter.Body` module contains methods for creating and manipulating body models.
-* A `Matter.Body` is a rigid body that can be simulated by a `Matter.Engine`.
-* Factories for commonly used body configurations (such as rectangles, circles and other polygons) can be found in the module `Matter.Bodies`.
+* The `Matter.Body` module contains methods for creating and manipulating rigid bodies.
+* For creating bodies with common configurations such as rectangles, circles and other polygons see the module `Matter.Bodies`.
 *
 * See the included usage [examples](https://github.com/liabru/matter-js/tree/master/examples).
 
@@ -15,17 +14,18 @@ module.exports = Body;
 var Vertices = require('../geometry/Vertices');
 var Vector = require('../geometry/Vector');
 var Sleeping = require('../core/Sleeping');
-var Render = require('../render/Render');
 var Common = require('../core/Common');
 var Bounds = require('../geometry/Bounds');
 var Axes = require('../geometry/Axes');
 
 (function() {
 
+    Body._timeCorrection = true;
     Body._inertiaScale = 4;
     Body._nextCollidingGroupId = 1;
     Body._nextNonCollidingGroupId = -1;
     Body._nextCategory = 0x0001;
+    Body._baseDelta = 1000 / 60;
 
     /**
      * Creates a new rigid body model. The options parameter is an object that specifies any properties you wish to override the defaults.
@@ -96,6 +96,7 @@ var Axes = require('../geometry/Axes');
             area: 0,
             mass: 0,
             inertia: 0,
+            deltaTime: 1000 / 60,
             _original: null
         };
 
@@ -231,6 +232,12 @@ var Axes = require('../geometry/Axes');
             case 'angularVelocity':
                 Body.setAngularVelocity(body, value);
                 break;
+            case 'speed':
+                Body.setSpeed(body, value);
+                break;
+            case 'angularSpeed':
+                Body.setAngularSpeed(body, value);
+                break;
             case 'parts':
                 Body.setParts(body, value);
                 break;
@@ -320,7 +327,7 @@ var Axes = require('../geometry/Axes');
     };
 
     /**
-     * Sets the moment of inertia (i.e. second moment of area) of the body. 
+     * Sets the moment of inertia of the body. This is the second moment of area in two dimensions.
      * Inverse inertia is automatically updated to reflect the change. Mass is not changed.
      * @method setInertia
      * @param {body} body
@@ -337,8 +344,8 @@ var Axes = require('../geometry/Axes');
      * They are then automatically translated to world space based on `body.position`.
      *
      * The `vertices` argument should be passed as an array of `Matter.Vector` points (or a `Matter.Vertices` array).
-     * Vertices must form a convex hull, concave hulls are not supported.
-     *
+     * Vertices must form a convex hull. Concave vertices must be decomposed into convex parts.
+     * 
      * @method setVertices
      * @param {body} body
      * @param {vector[]} vertices
@@ -375,7 +382,7 @@ var Axes = require('../geometry/Axes');
      * Note that this method will ensure that the first part in `body.parts` will always be the `body`.
      * @method setParts
      * @param {body} body
-     * @param [body] parts
+     * @param {body[]} parts
      * @param {bool} [autoHull=true]
      */
     Body.setParts = function(body, parts, autoHull) {
@@ -457,15 +464,26 @@ var Axes = require('../geometry/Axes');
     };
 
     /**
-     * Sets the position of the body instantly. Velocity, angle, force etc. are unchanged.
+     * Sets the position of the body. By default velocity is unchanged.
+     * If `updateVelocity` is `true` then velocity is inferred from the change in position.
      * @method setPosition
      * @param {body} body
      * @param {vector} position
+     * @param {boolean} [updateVelocity=false]
      */
-    Body.setPosition = function(body, position) {
+    Body.setPosition = function(body, position, updateVelocity) {
         var delta = Vector.sub(position, body.position);
-        body.positionPrev.x += delta.x;
-        body.positionPrev.y += delta.y;
+
+        if (updateVelocity) {
+            body.positionPrev.x = body.position.x;
+            body.positionPrev.y = body.position.y;
+            body.velocity.x = delta.x;
+            body.velocity.y = delta.y;
+            body.speed = Vector.magnitude(delta);
+        } else {
+            body.positionPrev.x += delta.x;
+            body.positionPrev.y += delta.y;
+        }
 
         for (var i = 0; i < body.parts.length; i++) {
             var part = body.parts[i];
@@ -477,14 +495,23 @@ var Axes = require('../geometry/Axes');
     };
 
     /**
-     * Sets the angle of the body instantly. Angular velocity, position, force etc. are unchanged.
+     * Sets the angle of the body. By default angular velocity is unchanged.
+     * If `updateVelocity` is `true` then angular velocity is inferred from the change in angle.
      * @method setAngle
      * @param {body} body
      * @param {number} angle
+     * @param {boolean} [updateVelocity=false]
      */
-    Body.setAngle = function(body, angle) {
+    Body.setAngle = function(body, angle, updateVelocity) {
         var delta = angle - body.angle;
-        body.anglePrev += delta;
+        
+        if (updateVelocity) {
+            body.anglePrev = body.angle;
+            body.angularVelocity = delta;
+            body.angularSpeed = Math.abs(delta);
+        } else {
+            body.anglePrev += delta;
+        }
 
         for (var i = 0; i < body.parts.length; i++) {
             var part = body.parts[i];
@@ -499,51 +526,128 @@ var Axes = require('../geometry/Axes');
     };
 
     /**
-     * Sets the linear velocity of the body instantly. Position, angle, force etc. are unchanged. See also `Body.applyForce`.
+     * Sets the current linear velocity of the body.  
+     * Affects body speed.
      * @method setVelocity
      * @param {body} body
      * @param {vector} velocity
      */
     Body.setVelocity = function(body, velocity) {
-        body.positionPrev.x = body.position.x - velocity.x;
-        body.positionPrev.y = body.position.y - velocity.y;
-        body.velocity.x = velocity.x;
-        body.velocity.y = velocity.y;
+        var timeScale = body.deltaTime / Body._baseDelta;
+        body.positionPrev.x = body.position.x - velocity.x * timeScale;
+        body.positionPrev.y = body.position.y - velocity.y * timeScale;
+        body.velocity.x = (body.position.x - body.positionPrev.x) / timeScale;
+        body.velocity.y = (body.position.y - body.positionPrev.y) / timeScale;
         body.speed = Vector.magnitude(body.velocity);
     };
 
     /**
-     * Sets the angular velocity of the body instantly. Position, angle, force etc. are unchanged. See also `Body.applyForce`.
+     * Gets the current linear velocity of the body.
+     * @method getVelocity
+     * @param {body} body
+     * @return {vector} velocity
+     */
+    Body.getVelocity = function(body) {
+        var timeScale = Body._baseDelta / body.deltaTime;
+
+        return {
+            x: (body.position.x - body.positionPrev.x) * timeScale,
+            y: (body.position.y - body.positionPrev.y) * timeScale
+        };
+    };
+
+    /**
+     * Gets the current linear speed of the body.  
+     * Equivalent to the magnitude of its velocity.
+     * @method getSpeed
+     * @param {body} body
+     * @return {number} speed
+     */
+    Body.getSpeed = function(body) {
+        return Vector.magnitude(Body.getVelocity(body));
+    };
+
+    /**
+     * Sets the current linear speed of the body.  
+     * Direction is maintained. Affects body velocity.
+     * @method setSpeed
+     * @param {body} body
+     * @param {number} speed
+     */
+    Body.setSpeed = function(body, speed) {
+        Body.setVelocity(body, Vector.mult(Vector.normalise(Body.getVelocity(body)), speed));
+    };
+
+    /**
+     * Sets the current rotational velocity of the body.  
+     * Affects body angular speed.
      * @method setAngularVelocity
      * @param {body} body
      * @param {number} velocity
      */
     Body.setAngularVelocity = function(body, velocity) {
-        body.anglePrev = body.angle - velocity;
-        body.angularVelocity = velocity;
+        var timeScale = body.deltaTime / Body._baseDelta;
+        body.anglePrev = body.angle - velocity * timeScale;
+        body.angularVelocity = (body.angle - body.anglePrev) / timeScale;
         body.angularSpeed = Math.abs(body.angularVelocity);
     };
 
     /**
-     * Moves a body by a given vector relative to its current position, without imparting any velocity.
-     * @method translate
+     * Gets the current rotational velocity of the body.
+     * @method getAngularVelocity
      * @param {body} body
-     * @param {vector} translation
+     * @return {number} angular velocity
      */
-    Body.translate = function(body, translation) {
-        Body.setPosition(body, Vector.add(body.position, translation));
+    Body.getAngularVelocity = function(body) {
+        return (body.angle - body.anglePrev) * Body._baseDelta / body.deltaTime;
     };
 
     /**
-     * Rotates a body by a given angle relative to its current angle, without imparting any angular velocity.
+     * Gets the current rotational speed of the body.  
+     * Equivalent to the magnitude of its angular velocity.
+     * @method getAngularSpeed
+     * @param {body} body
+     * @return {number} angular speed
+     */
+    Body.getAngularSpeed = function(body) {
+        return Math.abs(Body.getAngularVelocity(body));
+    };
+
+    /**
+     * Sets the current rotational speed of the body.  
+     * Direction is maintained. Affects body angular velocity.
+     * @method setAngularSpeed
+     * @param {body} body
+     * @param {number} speed
+     */
+    Body.setAngularSpeed = function(body, speed) {
+        Body.setAngularVelocity(body, Common.sign(Body.getAngularVelocity(body)) * speed);
+    };
+
+    /**
+     * Moves a body by a given vector relative to its current position. By default velocity is unchanged.
+     * If `updateVelocity` is `true` then velocity is inferred from the change in position.
+     * @method translate
+     * @param {body} body
+     * @param {vector} translation
+     * @param {boolean} [updateVelocity=false]
+     */
+    Body.translate = function(body, translation, updateVelocity) {
+        Body.setPosition(body, Vector.add(body.position, translation), updateVelocity);
+    };
+
+    /**
+     * Rotates a body by a given angle relative to its current angle. By default angular velocity is unchanged.
+     * If `updateVelocity` is `true` then angular velocity is inferred from the change in angle.
      * @method rotate
      * @param {body} body
      * @param {number} rotation
      * @param {vector} [point]
+     * @param {boolean} [updateVelocity=false]
      */
-    Body.rotate = function(body, rotation, point) {
+    Body.rotate = function(body, rotation, point, updateVelocity) {
         if (!point) {
-            Body.setAngle(body, body.angle + rotation);
+            Body.setAngle(body, body.angle + rotation, updateVelocity);
         } else {
             var cos = Math.cos(rotation),
                 sin = Math.sin(rotation),
@@ -553,9 +657,9 @@ var Axes = require('../geometry/Axes');
             Body.setPosition(body, {
                 x: point.x + (dx * cos - dy * sin),
                 y: point.y + (dx * sin + dy * cos)
-            });
+            }, updateVelocity);
 
-            Body.setAngle(body, body.angle + rotation);
+            Body.setAngle(body, body.angle + rotation, updateVelocity);
         }
     };
 
@@ -624,38 +728,37 @@ var Axes = require('../geometry/Axes');
     };
 
     /**
-     * Performs a simulation step for the given `body`, including updating position and angle using Verlet integration.
+     * Performs an update by integrating the equations of motion on the `body`.
+     * This is applied every update by `Matter.Engine` automatically.
      * @method update
      * @param {body} body
-     * @param {number} deltaTime
-     * @param {number} timeScale
-     * @param {number} correction
+     * @param {number} [deltaTime=16.666]
      */
-    Body.update = function(body, deltaTime, timeScale, correction) {
-        var deltaTimeSquared = Math.pow(deltaTime * timeScale * body.timeScale, 2);
+    Body.update = function(body, deltaTime) {
+        deltaTime = (typeof deltaTime !== 'undefined' ? deltaTime : (1000 / 60)) * body.timeScale;
+
+        var deltaTimeSquared = deltaTime * deltaTime,
+            correction = Body._timeCorrection ? deltaTime / (body.deltaTime || deltaTime) : 1;
 
         // from the previous step
-        var frictionAir = 1 - body.frictionAir * timeScale * body.timeScale,
-            velocityPrevX = body.position.x - body.positionPrev.x,
-            velocityPrevY = body.position.y - body.positionPrev.y;
+        var frictionAir = 1 - body.frictionAir * (deltaTime / Common._baseDelta),
+            velocityPrevX = (body.position.x - body.positionPrev.x) * correction,
+            velocityPrevY = (body.position.y - body.positionPrev.y) * correction;
 
         // update velocity with Verlet integration
-        body.velocity.x = (velocityPrevX * frictionAir * correction) + (body.force.x / body.mass) * deltaTimeSquared;
-        body.velocity.y = (velocityPrevY * frictionAir * correction) + (body.force.y / body.mass) * deltaTimeSquared;
+        body.velocity.x = (velocityPrevX * frictionAir) + (body.force.x / body.mass) * deltaTimeSquared;
+        body.velocity.y = (velocityPrevY * frictionAir) + (body.force.y / body.mass) * deltaTimeSquared;
 
         body.positionPrev.x = body.position.x;
         body.positionPrev.y = body.position.y;
         body.position.x += body.velocity.x;
         body.position.y += body.velocity.y;
+        body.deltaTime = deltaTime;
 
         // update angular velocity with Verlet integration
         body.angularVelocity = ((body.angle - body.anglePrev) * frictionAir * correction) + (body.torque / body.inertia) * deltaTimeSquared;
         body.anglePrev = body.angle;
         body.angle += body.angularVelocity;
-
-        // track speed and acceleration
-        body.speed = Vector.magnitude(body.velocity);
-        body.angularSpeed = Math.abs(body.angularVelocity);
 
         // transform the body geometry
         for (var i = 0; i < body.parts.length; i++) {
@@ -681,16 +784,45 @@ var Axes = require('../geometry/Axes');
     };
 
     /**
-     * Applies a force to a body from a given world-space position, including resulting torque.
+     * Updates properties `body.velocity`, `body.speed`, `body.angularVelocity` and `body.angularSpeed` which are normalised in relation to `Body._baseDelta`.
+     * @method updateVelocities
+     * @param {body} body
+     */
+    Body.updateVelocities = function(body) {
+        var timeScale = Body._baseDelta / body.deltaTime,
+            bodyVelocity = body.velocity;
+
+        bodyVelocity.x = (body.position.x - body.positionPrev.x) * timeScale;
+        bodyVelocity.y = (body.position.y - body.positionPrev.y) * timeScale;
+        body.speed = Math.sqrt((bodyVelocity.x * bodyVelocity.x) + (bodyVelocity.y * bodyVelocity.y));
+
+        body.angularVelocity = (body.angle - body.anglePrev) * timeScale;
+        body.angularSpeed = Math.abs(body.angularVelocity);
+    };
+
+    /**
+     * Applies the `force` to the `body` from the force origin `position` in world-space, over a single timestep, including applying any resulting angular torque.
+     * 
+     * Forces are useful for effects like gravity, wind or rocket thrust, but can be difficult in practice when precise control is needed. In these cases see `Body.setVelocity` and `Body.setPosition` as an alternative.
+     * 
+     * The force from this function is only applied once for the duration of a single timestep, in other words the duration depends directly on the current engine update `delta` and the rate of calls to this function.
+     * 
+     * Therefore to account for time, you should apply the force constantly over as many engine updates as equivalent to the intended duration.
+     * 
+     * If all or part of the force duration is some fraction of a timestep, first multiply the force by `duration / timestep`.
+     * 
+     * The force origin `position` in world-space must also be specified. Passing `body.position` will result in zero angular effect as the force origin would be at the centre of mass.
+     * 
+     * The `body` will take time to accelerate under a force, the resulting effect depends on duration of the force, the body mass and other forces on the body including friction combined.
      * @method applyForce
      * @param {body} body
-     * @param {vector} position
+     * @param {vector} position The force origin in world-space. Pass `body.position` to avoid angular torque.
      * @param {vector} force
      */
     Body.applyForce = function(body, position, force) {
+        var offset = { x: position.x - body.position.x, y: position.y - body.position.y };
         body.force.x += force.x;
         body.force.y += force.y;
-        var offset = { x: position.x - body.position.x, y: position.y - body.position.y };
         body.torque += offset.x * force.y - offset.y * force.x;
     };
 
@@ -769,12 +901,14 @@ var Axes = require('../geometry/Axes');
      */
 
     /**
+     * _Read only_. Set by `Body.create`.
+     * 
      * A `String` denoting the type of object.
      *
+     * @readOnly
      * @property type
      * @type string
      * @default "body"
-     * @readOnly
      */
 
     /**
@@ -786,6 +920,8 @@ var Axes = require('../geometry/Axes');
      */
 
     /**
+     * _Read only_. Use `Body.setParts` to set. 
+     * 
      * An array of bodies that make up this body. 
      * The first body in the array must always be a self reference to the current body instance.
      * All bodies in the `parts` array together form a single rigid compound body.
@@ -793,6 +929,7 @@ var Axes = require('../geometry/Axes');
      * Parts themselves should never be added to a `World`, only the parent body should be.
      * Use `Body.setParts` when setting parts to ensure correct updates of all properties.
      *
+     * @readOnly
      * @property parts
      * @type body[]
      */
@@ -805,10 +942,12 @@ var Axes = require('../geometry/Axes');
      */
 
     /**
-     * A self reference if the body is _not_ a part of another body.
-     * Otherwise this is a reference to the body that this is a part of.
-     * See `body.parts`.
+     * _Read only_. Updated by `Body.setParts`.
+     * 
+     * A reference to the body that this is a part of. See `body.parts`.
+     * This is a self reference if the body is not a part of another body.
      *
+     * @readOnly
      * @property parent
      * @type body
      */
@@ -822,48 +961,65 @@ var Axes = require('../geometry/Axes');
      */
 
     /**
+     * _Read only_. Use `Body.setVertices` or `Body.setParts` to set. See also `Bodies.fromVertices`.
+     * 
      * An array of `Vector` objects that specify the convex hull of the rigid body.
      * These should be provided about the origin `(0, 0)`. E.g.
      *
-     *     [{ x: 0, y: 0 }, { x: 25, y: 50 }, { x: 50, y: 0 }]
+     * `[{ x: 0, y: 0 }, { x: 25, y: 50 }, { x: 50, y: 0 }]`
+     * 
+     * Vertices must always be convex, in clockwise order and must not contain any duplicate points.
+     * 
+     * Concave vertices should be decomposed into convex `parts`, see `Bodies.fromVertices` and `Body.setParts`.
      *
-     * When passed via `Body.create`, the vertices are translated relative to `body.position` (i.e. world-space, and constantly updated by `Body.update` during simulation).
-     * The `Vector` objects are also augmented with additional properties required for efficient collision detection. 
+     * When set the vertices are translated such that `body.position` is at the centre of mass.
+     * Many other body properties are automatically calculated from these vertices when set including `density`, `area` and `inertia`.
+     * 
+     * The module `Matter.Vertices` contains useful methods for working with vertices.
      *
-     * Other properties such as `inertia` and `bounds` are automatically calculated from the passed vertices (unless provided via `options`).
-     * Concave hulls are not currently supported. The module `Matter.Vertices` contains useful methods for working with vertices.
-     *
+     * @readOnly
      * @property vertices
      * @type vector[]
      */
 
     /**
+     * _Read only_. Use `Body.setPosition` to set. 
+     * 
      * A `Vector` that specifies the current world-space position of the body.
-     *
+     * 
+     * @readOnly
      * @property position
      * @type vector
      * @default { x: 0, y: 0 }
      */
 
     /**
-     * A `Vector` that specifies the force to apply in the current step. It is zeroed after every `Body.update`. See also `Body.applyForce`.
-     *
+     * A `Vector` that accumulates the total force applied to the body for a single update.
+     * Force is zeroed after every `Engine.update`, so constant forces should be applied for every update they are needed. See also `Body.applyForce`.
+     * 
      * @property force
      * @type vector
      * @default { x: 0, y: 0 }
      */
 
     /**
-     * A `Number` that specifies the torque (turning force) to apply in the current step. It is zeroed after every `Body.update`.
+     * A `Number` that accumulates the total torque (turning force) applied to the body for a single update. See also `Body.applyForce`.
+     * Torque is zeroed after every `Engine.update`, so constant torques should be applied for every update they are needed.
      *
+     * Torques result in angular acceleration on every update, which depends on body inertia and the engine update delta.
+     * 
      * @property torque
      * @type number
      * @default 0
      */
 
     /**
-     * A `Number` that _measures_ the current speed of the body after the last `Body.update`. It is read-only and always positive (it's the magnitude of `body.velocity`).
-     *
+     * _Read only_. Use `Body.setSpeed` to set. 
+     * 
+     * See `Body.getSpeed` for details.
+     * 
+     * Equivalent to the magnitude of `body.velocity` (always positive).
+     * 
      * @readOnly
      * @property speed
      * @type number
@@ -871,18 +1027,12 @@ var Axes = require('../geometry/Axes');
      */
 
     /**
-     * A `Number` that _measures_ the current angular speed of the body after the last `Body.update`. It is read-only and always positive (it's the magnitude of `body.angularVelocity`).
-     *
-     * @readOnly
-     * @property angularSpeed
-     * @type number
-     * @default 0
-     */
-
-    /**
-     * A `Vector` that _measures_ the current velocity of the body after the last `Body.update`. It is read-only. 
-     * If you need to modify a body's velocity directly, you should either apply a force or simply change the body's `position` (as the engine uses position-Verlet integration).
-     *
+     * _Read only_. Use `Body.setVelocity` to set. 
+     * 
+     * See `Body.getVelocity` for details.
+     * 
+     * Equivalent to the magnitude of `body.angularVelocity` (always positive).
+     * 
      * @readOnly
      * @property velocity
      * @type vector
@@ -890,8 +1040,22 @@ var Axes = require('../geometry/Axes');
      */
 
     /**
-     * A `Number` that _measures_ the current angular velocity of the body after the last `Body.update`. It is read-only. 
-     * If you need to modify a body's angular velocity directly, you should apply a torque or simply change the body's `angle` (as the engine uses position-Verlet integration).
+     * _Read only_. Use `Body.setAngularSpeed` to set. 
+     * 
+     * See `Body.getAngularSpeed` for details.
+     * 
+     * 
+     * @readOnly
+     * @property angularSpeed
+     * @type number
+     * @default 0
+     */
+
+    /**
+     * _Read only_. Use `Body.setAngularVelocity` to set. 
+     * 
+     * See `Body.getAngularVelocity` for details.
+     * 
      *
      * @readOnly
      * @property angularVelocity
@@ -900,9 +1064,11 @@ var Axes = require('../geometry/Axes');
      */
 
     /**
+     * _Read only_. Use `Body.setStatic` to set. 
+     * 
      * A flag that indicates whether a body is considered static. A static body can never change position or angle and is completely fixed.
-     * If you need to set a body as static after its creation, you should use `Body.setStatic` as this requires more than just setting this flag.
      *
+     * @readOnly
      * @property isStatic
      * @type boolean
      * @default false
@@ -917,18 +1083,23 @@ var Axes = require('../geometry/Axes');
      */
 
     /**
+     * _Read only_. Use `Sleeping.set` to set. 
+     * 
      * A flag that indicates whether the body is considered sleeping. A sleeping body acts similar to a static body, except it is only temporary and can be awoken.
-     * If you need to set a body as sleeping, you should use `Sleeping.set` as this requires more than just setting this flag.
      *
+     * @readOnly
      * @property isSleeping
      * @type boolean
      * @default false
      */
 
     /**
-     * A `Number` that _measures_ the amount of movement a body currently has (a combination of `speed` and `angularSpeed`). It is read-only and always positive.
-     * It is used and updated by the `Matter.Sleeping` module during simulation to decide if a body has come to rest.
+     * _Read only_. Calculated during engine update only when sleeping is enabled.
+     * 
+     * A `Number` that loosely measures the amount of movement a body currently has.
      *
+     * Derived from `body.speed^2 + body.angularSpeed^2`. See `Sleeping.update`.
+     * 
      * @readOnly
      * @property motion
      * @type number
@@ -936,52 +1107,66 @@ var Axes = require('../geometry/Axes');
      */
 
     /**
-     * A `Number` that defines the number of updates in which this body must have near-zero velocity before it is set as sleeping by the `Matter.Sleeping` module (if sleeping is enabled by the engine).
-     *
+     * A `Number` that defines the length of time during which this body must have near-zero velocity before it is set as sleeping by the `Matter.Sleeping` module (if sleeping is enabled by the engine).
+     * 
      * @property sleepThreshold
      * @type number
      * @default 60
      */
 
     /**
-     * A `Number` that defines the density of the body, that is its mass per unit area.
-     * If you pass the density via `Body.create` the `mass` property is automatically calculated for you based on the size (area) of the object.
-     * This is generally preferable to simply setting mass and allows for more intuitive definition of materials (e.g. rock has a higher density than wood).
+     * _Read only_. Use `Body.setDensity` to set. 
+     * 
+     * A `Number` that defines the density of the body (mass per unit area).
+     * 
+     * Mass will also be updated when set.
      *
+     * @readOnly
      * @property density
      * @type number
      * @default 0.001
      */
 
     /**
-     * A `Number` that defines the mass of the body, although it may be more appropriate to specify the `density` property instead.
-     * If you modify this value, you must also modify the `body.inverseMass` property (`1 / mass`).
-     *
+     * _Read only_. Use `Body.setMass` to set. 
+     * 
+     * A `Number` that defines the mass of the body.
+     * 
+     * Density will also be updated when set.
+     * 
+     * @readOnly
      * @property mass
      * @type number
      */
 
     /**
+     * _Read only_. Use `Body.setMass` to set. 
+     * 
      * A `Number` that defines the inverse mass of the body (`1 / mass`).
-     * If you modify this value, you must also modify the `body.mass` property.
      *
+     * @readOnly
      * @property inverseMass
      * @type number
      */
 
     /**
-     * A `Number` that defines the moment of inertia (i.e. second moment of area) of the body.
-     * It is automatically calculated from the given convex hull (`vertices` array) and density in `Body.create`.
-     * If you modify this value, you must also modify the `body.inverseInertia` property (`1 / inertia`).
-     *
+     * _Read only_. Automatically calculated when vertices, mass or density are set or set through `Body.setInertia`.
+     * 
+     * A `Number` that defines the moment of inertia of the body. This is the second moment of area in two dimensions.
+     * 
+     * Can be manually set to `Infinity` to prevent rotation of the body. See `Body.setInertia`.
+     * 
+     * @readOnly
      * @property inertia
      * @type number
      */
 
     /**
+     * _Read only_. Automatically calculated when vertices, mass or density are set or calculated by `Body.setInertia`.
+     * 
      * A `Number` that defines the inverse moment of inertia of the body (`1 / inertia`).
-     * If you modify this value, you must also modify the `body.inertia` property.
-     *
+     * 
+     * @readOnly
      * @property inverseInertia
      * @type number
      */
@@ -992,7 +1177,7 @@ var Axes = require('../geometry/Axes');
      * A value of `0.8` means the body may bounce back with approximately 80% of its kinetic energy.
      * Note that collision response is based on _pairs_ of bodies, and that `restitution` values are _combined_ with the following formula:
      *
-     *     Math.max(bodyA.restitution, bodyB.restitution)
+     * `Math.max(bodyA.restitution, bodyB.restitution)`
      *
      * @property restitution
      * @type number
@@ -1009,7 +1194,7 @@ var Axes = require('../geometry/Axes');
      * The engine uses a Coulomb friction model including static and kinetic friction.
      * Note that collision response is based on _pairs_ of bodies, and that `friction` values are _combined_ with the following formula:
      *
-     *     Math.min(bodyA.friction, bodyB.friction)
+     * `Math.min(bodyA.friction, bodyB.friction)`
      *
      * @property friction
      * @type number
@@ -1094,9 +1279,11 @@ var Axes = require('../geometry/Axes');
      */
 
     /**
-     * A `Number` that specifies a tolerance on how far a body is allowed to 'sink' or rotate into other bodies.
-     * Avoid changing this value unless you understand the purpose of `slop` in physics engines.
-     * The default should generally suffice, although very large bodies may require larger values for stable stacking.
+     * A `Number` that specifies a thin boundary around the body where it is allowed to slightly sink into other bodies.
+     * 
+     * This is required for proper collision response, including friction and restitution effects.
+     * 
+     * The default should generally suffice in most cases. You may need to decrease this value for very small bodies that are nearing the default value in scale.
      *
      * @property slop
      * @type number
@@ -1104,11 +1291,23 @@ var Axes = require('../geometry/Axes');
      */
 
     /**
-     * A `Number` that allows per-body time scaling, e.g. a force-field where bodies inside are in slow-motion, while others are at full speed.
+     * A `Number` that specifies per-body time scaling.
      *
      * @property timeScale
      * @type number
      * @default 1
+     */
+
+    /**
+     * _Read only_. Updated during engine update.
+     * 
+     * A `Number` that records the last delta time value used to update this body.
+     * Used to calculate speed and velocity.
+     *
+     * @readOnly
+     * @property deltaTime
+     * @type number
+     * @default 1000 / 60
      */
 
     /**
@@ -1208,17 +1407,23 @@ var Axes = require('../geometry/Axes');
      */
 
     /**
+     * _Read only_. Calculated automatically when vertices are set.
+     * 
      * An array of unique axis vectors (edge normals) used for collision detection.
-     * These are automatically calculated from the given convex hull (`vertices` array) in `Body.create`.
+     * These are automatically calculated when vertices are set.
      * They are constantly updated by `Body.update` during the simulation.
      *
+     * @readOnly
      * @property axes
      * @type vector[]
      */
      
     /**
-     * A `Number` that _measures_ the area of the body's convex hull, calculated at creation by `Body.create`.
-     *
+     * _Read only_. Calculated automatically when vertices are set.
+     * 
+     * A `Number` that measures the area of the body's convex hull.
+     * 
+     * @readOnly
      * @property area
      * @type string
      * @default 
@@ -1226,8 +1431,8 @@ var Axes = require('../geometry/Axes');
 
     /**
      * A `Bounds` object that defines the AABB region for the body.
-     * It is automatically calculated from the given convex hull (`vertices` array) in `Body.create` and constantly updated by `Body.update` during simulation.
-     *
+     * It is automatically calculated when vertices are set and constantly updated by `Body.update` during simulation.
+     * 
      * @property bounds
      * @type bounds
      */

@@ -34,7 +34,7 @@ Example.remove = function() {
     Runner.run(runner, engine);
 
     var stack = null,
-        updateCount = 0;
+        lastTimestamp = 0;
 
     var createStack = function() {
         return Composites.stack(20, 20, 10, 5, 0, 0, function(x, y) {
@@ -62,14 +62,13 @@ Example.remove = function() {
     };
 
     // add and remove stacks every few updates
-    Events.on(engine, 'afterUpdate', function() {
+    Events.on(engine, 'afterUpdate', function(event) {
         // limit rate
-        if (stack && updateCount <= 50) {
-            updateCount += 1;
+        if (stack && event.timestamp - lastTimestamp < 800) {
             return;
         }
 
-        updateCount = 0;
+        lastTimestamp = event.timestamp;
 
         // remove last stack
         if (stack) {

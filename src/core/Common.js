@@ -10,6 +10,7 @@ module.exports = Common;
 
 (function() {
 
+    Common._baseDelta = 1000 / 60;
     Common._nextId = 0;
     Common._seed = 0;
     Common._nowStartTime = +(new Date());
@@ -322,7 +323,8 @@ module.exports = Common;
      * - 2 = Info
      * - 3 = Warn
      * - 4 = Error
-     * @property Common.logLevel
+     * @static
+     * @property logLevel
      * @type {Number}
      * @default 1
      */
