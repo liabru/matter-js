@@ -146,6 +146,10 @@ var Body = require('../body/Body');
         if (engine.enableSleeping)
             Sleeping.afterCollisions(pairs.list);
 
+        // trigger collision events
+        if (pairs.collisionStart.length > 0)
+            Events.trigger(engine, 'collisionStart', { pairs: pairs.collisionStart });
+
         // iteratively resolve position between collisions
         var positionDamping = Common.clamp(20 / engine.positionIterations, 0, 1);
         
@@ -172,9 +176,6 @@ var Body = require('../body/Body');
         Engine._bodiesUpdateVelocities(allBodies);
 
         // trigger collision events
-        if (pairs.collisionStart.length > 0)
-            Events.trigger(engine, 'collisionStart', { pairs: pairs.collisionStart });
-
         if (pairs.collisionActive.length > 0)
             Events.trigger(engine, 'collisionActive', { pairs: pairs.collisionActive });
 
