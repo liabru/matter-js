@@ -1,3 +1,39 @@
+## 0.19.0 (2023-02-16)
+
+See the release [readme](https://github.com/liabru/matter-js/blob/0.19.0/README.md) for further information.
+
+* added readme note about vue watchers ([035481c](https://github.com/liabru/matter-js/commit/035481c))
+* added readonly body.deltaTime ([0784a5b](https://github.com/liabru/matter-js/commit/0784a5b))
+* added speed setters to Body.set ([3ff6ff4](https://github.com/liabru/matter-js/commit/3ff6ff4))
+* added support for Matter.Runner and Matter.Render in tests ([7d7bad0](https://github.com/liabru/matter-js/commit/7d7bad0))
+* added updateVelocity argument to Body.setPosition, Body.setAngle, Body.translate, Body.rotate ([db8b73f](https://github.com/liabru/matter-js/commit/db8b73f))
+* changed engine collisionStart event to trigger after resolving and after updating body velocities ([70600a8](https://github.com/liabru/matter-js/commit/70600a8))
+* changed examples to be delta independent ([d7e4f58](https://github.com/liabru/matter-js/commit/d7e4f58))
+* deprecated render.controller property ([04d229e](https://github.com/liabru/matter-js/commit/04d229e))
+* derived velocity from position in setters ([b6de9ed](https://github.com/liabru/matter-js/commit/b6de9ed))
+* fixed issues with engine event.delta ([6f5af77](https://github.com/liabru/matter-js/commit/6f5af77))
+* handle null constraint points in Constraint.pointAWorld and Constraint.pointBWorld ([e414464](https://github.com/liabru/matter-js/commit/e414464))
+* improved Body.applyForce docs ([3a8264c](https://github.com/liabru/matter-js/commit/3a8264c))
+* improved delta factors in resolver and constraint stiffness ([9dc6be7](https://github.com/liabru/matter-js/commit/9dc6be7))
+* improved Matter.Body docs for functions and properties including readonly ([85a9eb2](https://github.com/liabru/matter-js/commit/85a9eb2))
+* improved Matter.Engine docs ([50fc8f2](https://github.com/liabru/matter-js/commit/50fc8f2))
+* improved slingshot example constraint ([c6a1a6d](https://github.com/liabru/matter-js/commit/c6a1a6d))
+* improved delta consistency ([87af8a1](https://github.com/liabru/matter-js/commit/87af8a1))
+* improved Example.newtonsCradle ([b2bd492](https://github.com/liabru/matter-js/commit/b2bd492))
+* removed render element warning ([459425b](https://github.com/liabru/matter-js/commit/459425b))
+* removed unused delta params ([a572968](https://github.com/liabru/matter-js/commit/a572968))
+* updated body docs ([6bb2855](https://github.com/liabru/matter-js/commit/6bb2855))
+* updated body velocity properties after resolving ([d52f7e6](https://github.com/liabru/matter-js/commit/d52f7e6))
+* updated Example.manipulation ([5ddac71](https://github.com/liabru/matter-js/commit/5ddac71))
+* updated Example.ragdoll ([ec38638](https://github.com/liabru/matter-js/commit/ec38638))
+* updated Example.staticFriction and Example.timeScale ([11d5e73](https://github.com/liabru/matter-js/commit/11d5e73))
+* updated Matter.Body docs ([db780c3](https://github.com/liabru/matter-js/commit/db780c3))
+* updated timing improvements ([10a2a07](https://github.com/liabru/matter-js/commit/10a2a07))
+* used Body.getVelocity in Matter.Render ([bf90bdd](https://github.com/liabru/matter-js/commit/bf90bdd))
+* used speed getter in Matter.Sleeping and Matter.Render ([6579dfd](https://github.com/liabru/matter-js/commit/6579dfd))
+
+
+
 ## 0.18.0 (2021-12-15)
 
 * added test capture sort to improve comparison ([ea3c11b](https://github.com/liabru/matter-js/commit/ea3c11b))

@@ -1,3 +1,56 @@
+## ▲.● matter.js `0.19.0`
+
+Release notes for `0.19.0`. See the release [readme](https://github.com/liabru/matter-js/blob/0.19.0/README.md) for further information.
+
+### Highlights ✺
+
+- Changed `Body.setAngularVelocity` and `Body.setVelocity` to be timestep independent
+- Improved similarity of results between different timesteps based on `60hz` as a baseline
+- Added timestep independent `Body.setSpeed`, `Body.setAngularSpeed`, `Body.getSpeed`, `Body.getVelocity`, `Body.getAngularVelocity`
+- Added optional `updateVelocity` argument to `Body.setPosition`, `Body.setAngle`, `Body.translate`, `Body.rotate`
+- Added extended documentation for `Body.applyForce`
+- Moved time correction feature from `Engine.update` to be built-in to `Matter.Body`
+- Improved [documentation](https://brm.io/matter-js/docs/) pages
+
+### Changes ✲
+
+See the release [compare page](https://github.com/liabru/matter-js/compare/0.18.0...0.19.0) and the [changelog](https://github.com/liabru/matter-js/blob/0.19.0/CHANGELOG.md) for a more detailed list of changes.
+
+### Migration ⌲
+
+See [PR #777](https://github.com/liabru/matter-js/pull/777#issue-487893963) for related changes and notes useful for migration.
+
+### Comparison ⎄
+
+For more information see [comparison method](https://github.com/liabru/matter-js/pull/794).
+
+```ocaml
+Output comparison of 43 examples at 60hz against previous release matter-js@0.18.0
+
+Behaviour    100.00%   Similarity  100.00%   Overlap   +0.00%  
+Performance  -0.80%   Memory      +0.05%   Filesize  +1.67%  78.97 KB  
+
+airFriction · · avalanche · · ballPool · · bridge · · car · · catapult · · 
+chains · · circleStack · · cloth · · collisionFiltering · · compositeManipulation · · 
+compound · · compoundStack · · concave · · constraints · · doublePendulum · · 
+events · · friction · · gravity · · gyro · · manipulation · · 
+mixed · · newtonsCradle · · pyramid · · ragdoll · · raycasting · · 
+remove · · restitution · · rounded · · sensors · · sleeping · ◆
+slingshot · · softBody · · sprites · · stack · · staticFriction · · 
+stats · · stress · · stress2 · · stress3 · · timescale · · 
+views · · wreckingBall · ·   
+
+where  · no change  ● extrinsics changed  ◆ intrinsics changed
+    
+▶ code -n -d test/__compare__/examples-build.json test/__compare__/examples-dev.json
+```
+
+### Contributors ♥︎
+
+Many thanks to the [contributors](https://github.com/liabru/matter-js/compare/0.18.0...0.19.0) of this release, [past contributors](https://github.com/liabru/matter-js/graphs/contributors) as well those involved in the [community](https://github.com/liabru/matter-js/issues) for your input and support.
+
+---
+
 ## ▲.● matter.js `0.18.0`
 
 Release notes for `0.18.0`. See the release [readme](https://github.com/liabru/matter-js/blob/0.18.0/README.md) for further information.
