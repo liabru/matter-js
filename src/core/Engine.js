@@ -72,7 +72,7 @@ var Body = require('../body/Body');
 
     /**
      * Moves the simulation forward in time by `delta` milliseconds.
-     * Triggers `beforeUpdate` and `afterUpdate` events.
+     * Triggers `beforeUpdate`, `beforeSolve` and `afterUpdate` events.
      * Triggers `collisionStart`, `collisionActive` and `collisionEnd` events.
      * @method update
      * @param {engine} engine
@@ -127,6 +127,8 @@ var Body = require('../body/Body');
         if (delta > 0) {
             Engine._bodiesUpdate(allBodies, delta);
         }
+
+        Events.trigger(engine, 'beforeSolve', event);
 
         // update all constraints (first pass)
         Constraint.preSolveAll(allBodies);
@@ -320,6 +322,17 @@ var Body = require('../body/Body');
     * Fired just before an update
     *
     * @event beforeUpdate
+    * @param {object} event An event object
+    * @param {number} event.timestamp The engine.timing.timestamp of the event
+    * @param {number} event.delta The delta time in milliseconds value used in the update
+    * @param {engine} event.source The source object of the event
+    * @param {string} event.name The name of the event
+    */
+
+    /**
+    * Fired after bodies updated based on their velocity and forces, but before any collision detection, constraints and resolving etc.
+    *
+    * @event beforeSolve
     * @param {object} event An event object
     * @param {number} event.timestamp The engine.timing.timestamp of the event
     * @param {number} event.delta The delta time in milliseconds value used in the update
