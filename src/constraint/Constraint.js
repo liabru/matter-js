@@ -335,6 +335,33 @@ var Common = require('../core/Common');
         };
     };
 
+    /**
+     * Returns the current length of the constraint. 
+     * This is the distance between both of the constraint's end points.
+     * See `constraint.length` for the target rest length.
+     * @method currentLength
+     * @param {constraint} constraint
+     * @returns {number} the current length
+     */
+    Constraint.currentLength = function(constraint) {
+        var pointAX = (constraint.bodyA ? constraint.bodyA.position.x : 0) 
+            + (constraint.pointA ? constraint.pointA.x : 0);
+
+        var pointAY = (constraint.bodyA ? constraint.bodyA.position.y : 0) 
+            + (constraint.pointA ? constraint.pointA.y : 0);
+
+        var pointBX = (constraint.bodyB ? constraint.bodyB.position.x : 0) 
+            + (constraint.pointB ? constraint.pointB.x : 0);
+            
+        var pointBY = (constraint.bodyB ? constraint.bodyB.position.y : 0) 
+            + (constraint.pointB ? constraint.pointB.y : 0);
+
+        var deltaX = pointAX - pointBX;
+        var deltaY = pointAY - pointBY;
+
+        return Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+    };
+
     /*
     *
     *  Properties Documentation
