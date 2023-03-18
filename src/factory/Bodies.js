@@ -54,6 +54,7 @@ var Vector = require('../geometry/Vector');
     
     /**
      * Creates a new rigid body model with a trapezoid hull. 
+     * The `slope` is parameterised as a fraction of `width` and must be < 1 to form a valid trapezoid. 
      * The options parameter is an object that specifies any properties you wish to override the defaults.
      * See the properties section of the `Matter.Body` module for detailed information on what you can pass via the `options` object.
      * @method trapezoid
@@ -61,12 +62,16 @@ var Vector = require('../geometry/Vector');
      * @param {number} y
      * @param {number} width
      * @param {number} height
-     * @param {number} slope
+     * @param {number} slope Must be a number < 1.
      * @param {object} [options]
      * @return {body} A new trapezoid body
      */
     Bodies.trapezoid = function(x, y, width, height, slope, options) {
         options = options || {};
+
+        if (slope >= 1) {
+            Common.warn('Bodies.trapezoid: slope parameter must be < 1.');
+        }
 
         slope *= 0.5;
         var roof = (1 - (slope * 2)) * width;
