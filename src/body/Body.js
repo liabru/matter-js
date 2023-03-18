@@ -1437,4 +1437,17 @@ var Axes = require('../geometry/Axes');
      * @type bounds
      */
 
+    /**
+     * Temporarily may hold parameters to be passed to `Vertices.chamfer` where supported by external functions.
+     * 
+     * See `Vertices.chamfer` for possible parameters this object may hold.
+     * 
+     * Currently only functions inside `Matter.Bodies` provide a utility using this property as a vertices pre-processing option.
+     * 
+     * Alternatively consider using `Vertices.chamfer` directly on vertices before passing them to a body creation function.
+     * 
+     * @property chamfer
+     * @type object|null|undefined
+     */
+
 })();
