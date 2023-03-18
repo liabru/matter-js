@@ -376,10 +376,15 @@ var Axes = require('../geometry/Axes');
     };
 
     /**
-     * Sets the parts of the `body` and updates mass, inertia and centroid.
-     * Each part will have its parent set to `body`.
-     * By default the convex hull will be automatically computed and set on `body`, unless `autoHull` is set to `false.`
-     * Note that this method will ensure that the first part in `body.parts` will always be the `body`.
+     * Sets the parts of the `body`. 
+     * 
+     * See `body.parts` for details and requirements on how parts are used.
+     * 
+     * This function updates `body` mass, inertia and centroid based on the parts geometry.  
+     * Sets each `part.parent` to be this `body`.  
+     * 
+     * The convex hull is computed and set on this `body` (unless `autoHull` is `false`).  
+     * Automatically ensures that the first part in `body.parts` is the `body`.
      * @method setParts
      * @param {body} body
      * @param {body[]} parts
@@ -922,12 +927,21 @@ var Axes = require('../geometry/Axes');
     /**
      * _Read only_. Use `Body.setParts` to set. 
      * 
-     * An array of bodies that make up this body. 
-     * The first body in the array must always be a self reference to the current body instance.
-     * All bodies in the `parts` array together form a single rigid compound body.
-     * Parts are allowed to overlap, have gaps or holes or even form concave bodies.
-     * Parts themselves should never be added to a `World`, only the parent body should be.
-     * Use `Body.setParts` when setting parts to ensure correct updates of all properties.
+     * An array of bodies ('parts') that make up this body. The first body in this array must always be a self-reference to this `body`.  
+     * 
+     * The parts are fixed together and will move and rotate as a single rigid body.
+     * 
+     * Parts when combined are allowed to overlap, form gaps, have holes so can be used to create complex concave bodies unlike bodies with a single part.
+     * 
+     * Only the geometry of the parts is considered, e.g. the individual material properties of parts (e.g. `part.friction`) are not used in favour of the parent body's properties.
+     * 
+     * Parts individual vertices must still be convex.  
+     * Parts should not have their own parts, they are not handled recursively.  
+     * Parts should not be added to the world directly or any other body or composite.  
+     * 
+     * A body with more than one part is sometimes referred to as a 'compound' body. 
+     * 
+     * Use `Body.setParts` when setting parts to ensure correct updates of all properties.  
      *
      * @readOnly
      * @property parts
