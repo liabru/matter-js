@@ -100,6 +100,7 @@ var Common = require('../core/Common');
         mouse.mousewheel = function(event) {
             mouse.wheelDelta = Math.max(-1, Math.min(1, event.wheelDelta || -event.detail));
             event.preventDefault();
+            mouse.sourceEvents.mousewheel = event;
         };
 
         Mouse.setElement(mouse, mouse.element);
