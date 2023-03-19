@@ -927,7 +927,7 @@ var Axes = require('../geometry/Axes');
     /**
      * _Read only_. Use `Body.setParts` to set. 
      * 
-     * An array of bodies ('parts') that make up this body. The first body in this array must always be a self-reference to this `body`.  
+     * An array of bodies (the 'parts') that make up this body (the 'parent'). The first body in this array must always be a self-reference to this `body`.  
      * 
      * The parts are fixed together and will move and rotate as a single rigid body.
      * 
