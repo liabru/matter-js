@@ -380,6 +380,8 @@ var Axes = require('../geometry/Axes');
      * 
      * See `body.parts` for details and requirements on how parts are used.
      * 
+     * See Bodies.fromVertices for a related utility.
+     * 
      * This function updates `body` mass, inertia and centroid based on the parts geometry.  
      * Sets each `part.parent` to be this `body`.  
      * 
@@ -927,17 +929,24 @@ var Axes = require('../geometry/Axes');
     /**
      * _Read only_. Use `Body.setParts` to set. 
      * 
+     * See `Bodies.fromVertices` for a related utility.
+     * 
      * An array of bodies (the 'parts') that make up this body (the 'parent'). The first body in this array must always be a self-reference to this `body`.  
      * 
-     * The parts are fixed together and will move and rotate as a single rigid body.
+     * The parts are fixed together and therefore perform as a single unified rigid body.
      * 
-     * Parts when combined are allowed to overlap, form gaps, have holes so can be used to create complex concave bodies unlike bodies with a single part.
+     * Parts in relation to each other are allowed to overlap, as well as form gaps or holes, so can be used to create complex concave bodies unlike when using a single part. 
      * 
-     * Only the geometry of the parts is considered, e.g. the individual material properties of parts (e.g. `part.friction`) are not used in favour of the parent body's properties.
+     * Use properties and functions on the parent `body` rather than on parts.
+     *   
+     * Outside of their geometry, most properties on parts are not considered or updated.  
+     * As such 'per-part' material properties among others are not currently considered.
      * 
-     * Parts individual vertices must still be convex.  
+     * Parts should be created specifically for their parent body.  
+     * Parts should not be shared or reused between bodies, only one parent is supported.  
      * Parts should not have their own parts, they are not handled recursively.  
-     * Parts should not be added to the world directly or any other body or composite.  
+     * Parts should not be added to the world directly or any other composite.  
+     * Parts own vertices must be convex and in clockwise order.   
      * 
      * A body with more than one part is sometimes referred to as a 'compound' body. 
      * 
