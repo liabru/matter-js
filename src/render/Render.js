@@ -186,6 +186,36 @@ var Mouse = require('../core/Mouse');
     };
 
     /**
+     * Sets the render `width` and `height`.
+     * 
+     * Updates the canvas accounting for `render.options.pixelRatio`.  
+     * 
+     * Updates the bottom right render bound `render.bounds.max` relative to the provided `width` and `height`.
+     * The top left render bound `render.bounds.min` isn't changed.
+     * 
+     * Follow this call with `Render.lookAt` if you need to change the render bounds.
+     * 
+     * See also `Render.setPixelRatio`.
+     * @method setSize
+     * @param {render} render
+     * @param {number} width The width (in CSS pixels)
+     * @param {number} height The height (in CSS pixels)
+     */
+    Render.setSize = function(render, width, height) {
+        render.options.width = width;
+        render.options.height = height;
+        render.bounds.max.x = render.bounds.min.x + width;
+        render.bounds.max.y = render.bounds.min.y + height;
+
+        if (render.options.pixelRatio !== 1) {
+            Render.setPixelRatio(render, render.options.pixelRatio);
+        } else {
+            render.canvas.width = width;
+            render.canvas.height = height;
+        }
+    };
+
+    /**
      * Positions and sizes the viewport around the given object bounds.
      * Objects must have at least one of the following properties:
      * - `object.bounds`
