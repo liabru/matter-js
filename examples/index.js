@@ -28,6 +28,7 @@ module.exports = {
     restitution: require('./restitution.js'),
     rounded: require('./rounded.js'),
     remove: require('./remove.js'),
+    renderResize: require('./renderResize.js'),
     sensors: require('./sensors.js'),
     sleeping: require('./sleeping.js'),
     slingshot: require('./slingshot.js'),
