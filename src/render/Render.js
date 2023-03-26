@@ -69,6 +69,7 @@ var Mouse = require('../core/Mouse');
                 pixelRatio: 1,
                 background: '#14151f',
                 wireframeBackground: '#14151f',
+                wireframeStrokeStyle: '#bbb',
                 hasBounds: !!options.bounds,
                 enabled: true,
                 wireframes: true,
@@ -821,7 +822,7 @@ var Mouse = require('../core/Mouse');
                         c.fill();
                     } else {
                         c.lineWidth = 1;
-                        c.strokeStyle = '#bbb';
+                        c.strokeStyle = render.options.wireframeStrokeStyle;
                         c.stroke();
                     }
                 }
@@ -880,7 +881,7 @@ var Mouse = require('../core/Mouse');
         }
 
         c.lineWidth = 1;
-        c.strokeStyle = '#bbb';
+        c.strokeStyle = render.options.wireframeStrokeStyle;
         c.stroke();
     };
 
@@ -1659,12 +1660,21 @@ var Mouse = require('../core/Mouse');
      */
 
     /**
-     * A CSS background color string to use when `render.options.wireframes` is enabled.
+     * A CSS color string to use for background when `render.options.wireframes` is enabled.
      * This may be also set to `'transparent'` or equivalent.
      *
      * @property options.wireframeBackground
      * @type string
      * @default '#14151f'
+     */
+
+    /**
+     * A CSS color string to use for stroke when `render.options.wireframes` is enabled.
+     * This may be also set to `'transparent'` or equivalent.
+     *
+     * @property options.wireframeStrokeStyle
+     * @type string
+     * @default '#bbb'
      */
 
     /**
