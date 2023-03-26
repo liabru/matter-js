@@ -260,18 +260,19 @@ var Axes = require('../geometry/Axes');
     Body.setStatic = function(body, isStatic) {
         for (var i = 0; i < body.parts.length; i++) {
             var part = body.parts[i];
-            part.isStatic = isStatic;
 
             if (isStatic) {
-                part._original = {
-                    restitution: part.restitution,
-                    friction: part.friction,
-                    mass: part.mass,
-                    inertia: part.inertia,
-                    density: part.density,
-                    inverseMass: part.inverseMass,
-                    inverseInertia: part.inverseInertia
-                };
+                if (!part.isStatic) {
+                    part._original = {
+                        restitution: part.restitution,
+                        friction: part.friction,
+                        mass: part.mass,
+                        inertia: part.inertia,
+                        density: part.density,
+                        inverseMass: part.inverseMass,
+                        inverseInertia: part.inverseInertia
+                    };
+                }
 
                 part.restitution = 0;
                 part.friction = 1;
@@ -296,6 +297,8 @@ var Axes = require('../geometry/Axes');
 
                 part._original = null;
             }
+
+            part.isStatic = isStatic;
         }
     };
 
