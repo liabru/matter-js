@@ -102,7 +102,7 @@ Example.renderResize = function() {
             x: 50,
             y: 50
         });
-    }
+    };
 
     // add window resize handler
     window.addEventListener('resize', handleWindowResize);
