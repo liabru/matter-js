@@ -248,25 +248,23 @@ var Bounds = require('../geometry/Bounds');
             var collision = pair.collision,
                 bodyA = collision.parentA,
                 bodyB = collision.parentB,
-                bodyAVelocity = bodyA.velocity,
-                bodyBVelocity = bodyB.velocity,
                 normalX = collision.normal.x,
                 normalY = collision.normal.y,
                 tangentX = collision.tangent.x,
                 tangentY = collision.tangent.y,
+                inverseMassTotal = pair.inverseMass,
+                friction = pair.friction * pair.frictionStatic * frictionNormalMultiplier,
                 contacts = pair.contacts,
                 contactCount = pair.contactCount,
-                contactShare = 1 / contactCount,
-                inverseMassTotal = bodyA.inverseMass + bodyB.inverseMass,
-                friction = pair.friction * pair.frictionStatic * frictionNormalMultiplier;
+                contactShare = 1 / contactCount;
 
-            // update body velocities
-            bodyAVelocity.x = bodyA.position.x - bodyA.positionPrev.x;
-            bodyAVelocity.y = bodyA.position.y - bodyA.positionPrev.y;
-            bodyBVelocity.x = bodyB.position.x - bodyB.positionPrev.x;
-            bodyBVelocity.y = bodyB.position.y - bodyB.positionPrev.y;
-            bodyA.angularVelocity = bodyA.angle - bodyA.anglePrev;
-            bodyB.angularVelocity = bodyB.angle - bodyB.anglePrev;
+            // get body velocities
+            var bodyAVelocityX = bodyA.position.x - bodyA.positionPrev.x,
+                bodyAVelocityY = bodyA.position.y - bodyA.positionPrev.y,
+                bodyAAngularVelocity = bodyA.angle - bodyA.anglePrev,
+                bodyBVelocityX = bodyB.position.x - bodyB.positionPrev.x,
+                bodyBVelocityY = bodyB.position.y - bodyB.positionPrev.y,
+                bodyBAngularVelocity = bodyB.angle - bodyB.anglePrev;
 
             // resolve each contact
             for (j = 0; j < contactCount; j++) {
@@ -278,10 +276,10 @@ var Bounds = require('../geometry/Bounds');
                     offsetBX = contactVertex.x - bodyB.position.x,
                     offsetBY = contactVertex.y - bodyB.position.y;
  
-                var velocityPointAX = bodyAVelocity.x - offsetAY * bodyA.angularVelocity,
-                    velocityPointAY = bodyAVelocity.y + offsetAX * bodyA.angularVelocity,
-                    velocityPointBX = bodyBVelocity.x - offsetBY * bodyB.angularVelocity,
-                    velocityPointBY = bodyBVelocity.y + offsetBX * bodyB.angularVelocity;
+                var velocityPointAX = bodyAVelocityX - offsetAY * bodyAAngularVelocity,
+                    velocityPointAY = bodyAVelocityY + offsetAX * bodyAAngularVelocity,
+                    velocityPointBX = bodyBVelocityX - offsetBY * bodyBAngularVelocity,
+                    velocityPointBY = bodyBVelocityY + offsetBX * bodyBAngularVelocity;
 
                 var relativeVelocityX = velocityPointAX - velocityPointBX,
                     relativeVelocityY = velocityPointAY - velocityPointBY;
