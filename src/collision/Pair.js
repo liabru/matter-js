@@ -125,11 +125,8 @@ var Contact = require('./Contact');
      * @return {string} Unique pairId
      */
     Pair.id = function(bodyA, bodyB) {
-        if (bodyA.id < bodyB.id) {
-            return 'A' + bodyA.id + 'B' + bodyB.id;
-        } else {
-            return 'A' + bodyB.id + 'B' + bodyA.id;
-        }
+        return bodyA.id < bodyB.id ? bodyA.id.toString(36) + ':' + bodyB.id.toString(36) 
+            : bodyB.id.toString(36) + ':' + bodyA.id.toString(36);
     };
 
 })();
