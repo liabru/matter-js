@@ -153,7 +153,7 @@ var Pair = require('./Pair');
         }
 
         // update supports array size
-        supports.length = supportCount;
+            supports.length = supportCount;
 
         return collision;
     };
@@ -230,32 +230,6 @@ var Pair = require('./Pair');
 
         result.axis = axes[overlapAxisNumber];
         result.overlap = overlapMin;
-    };
-
-    /**
-     * Projects vertices on an axis and returns an interval.
-     * @method _projectToAxis
-     * @private
-     * @param {} projection
-     * @param {} vertices
-     * @param {} axis
-     */
-    Collision._projectToAxis = function(projection, vertices, axis) {
-        var min = vertices[0].x * axis.x + vertices[0].y * axis.y,
-            max = min;
-
-        for (var i = 1; i < vertices.length; i += 1) {
-            var dot = vertices[i].x * axis.x + vertices[i].y * axis.y;
-
-            if (dot > max) { 
-                max = dot; 
-            } else if (dot < min) { 
-                min = dot; 
-            }
-        }
-
-        projection.min = min;
-        projection.max = max;
     };
 
     /**
