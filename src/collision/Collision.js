@@ -47,7 +47,8 @@ var Pair = require('./Pair');
             normal: { x: 0, y: 0 },
             tangent: { x: 0, y: 0 },
             penetration: { x: 0, y: 0 },
-            supports: []
+            supports: [null, null],
+            supportCount: 0
         };
     };
 
@@ -152,10 +153,8 @@ var Pair = require('./Pair');
             supports[supportCount++] = supportsB[0];
         }
 
-        // update supports array size if changed
-        if (supports.length !== supportCount) {
-            supports.length = supportCount;
-        }
+        // update support count
+        collision.supportCount = supportCount;
 
         return collision;
     };
@@ -374,11 +373,26 @@ var Pair = require('./Pair');
 
     /**
      * An array of body vertices that represent the support points in the collision.
+     * 
+     * _Note:_ Only the first `collision.supportCount` items of `collision.supports` are active.
+     * Therefore use `collision.supportCount` instead of `collision.supports.length` when iterating the active supports.
+     * 
      * These are the deepest vertices (along the collision normal) of each body that are contained by the other body's vertices.
      *
      * @property supports
      * @type vector[]
      * @default []
+     */
+
+    /**
+     * The number of active supports for this collision found in `collision.supports`.
+     * 
+     * _Note:_ Only the first `collision.supportCount` items of `collision.supports` are active.
+     * Therefore use `collision.supportCount` instead of `collision.supports.length` when iterating the active supports.
+     *
+     * @property supportCount
+     * @type number
+     * @default 0
      */
 
 })();

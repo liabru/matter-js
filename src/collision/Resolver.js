@@ -29,7 +29,7 @@ var Bounds = require('../geometry/Bounds');
     Resolver.preSolvePosition = function(pairs) {
         var i,
             pair,
-            activeCount,
+            contactCount,
             pairsLength = pairs.length;
 
         // find total contacts on each body
@@ -39,9 +39,9 @@ var Bounds = require('../geometry/Bounds');
             if (!pair.isActive)
                 continue;
             
-            activeCount = pair.activeContacts.length;
-            pair.collision.parentA.totalContacts += activeCount;
-            pair.collision.parentB.totalContacts += activeCount;
+            contactCount = pair.contactCount;
+            pair.collision.parentA.totalContacts += contactCount;
+            pair.collision.parentB.totalContacts += contactCount;
         }
     };
 
@@ -176,8 +176,8 @@ var Bounds = require('../geometry/Bounds');
             if (!pair.isActive || pair.isSensor)
                 continue;
             
-            var contacts = pair.activeContacts,
-                contactsLength = contacts.length,
+            var contacts = pair.contacts,
+                contactCount = pair.contactCount,
                 collision = pair.collision,
                 bodyA = collision.parentA,
                 bodyB = collision.parentB,
@@ -185,7 +185,7 @@ var Bounds = require('../geometry/Bounds');
                 tangent = collision.tangent;
     
             // resolve each contact
-            for (j = 0; j < contactsLength; j++) {
+            for (j = 0; j < contactCount; j++) {
                 var contact = contacts[j],
                     contactVertex = contact.vertex,
                     normalImpulse = contact.normalImpulse,
@@ -254,9 +254,9 @@ var Bounds = require('../geometry/Bounds');
                 normalY = collision.normal.y,
                 tangentX = collision.tangent.x,
                 tangentY = collision.tangent.y,
-                contacts = pair.activeContacts,
-                contactsLength = contacts.length,
-                contactShare = 1 / contactsLength,
+                contacts = pair.contacts,
+                contactCount = pair.contactCount,
+                contactShare = 1 / contactCount,
                 inverseMassTotal = bodyA.inverseMass + bodyB.inverseMass,
                 friction = pair.friction * pair.frictionStatic * frictionNormalMultiplier;
 
@@ -269,7 +269,7 @@ var Bounds = require('../geometry/Bounds');
             bodyB.angularVelocity = bodyB.angle - bodyB.anglePrev;
 
             // resolve each contact
-            for (j = 0; j < contactsLength; j++) {
+            for (j = 0; j < contactCount; j++) {
                 var contact = contacts[j],
                     contactVertex = contact.vertex;
 
