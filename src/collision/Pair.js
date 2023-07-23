@@ -74,18 +74,26 @@ var Contact = require('./Contact');
         pair.slop = parentA.slop > parentB.slop ? parentA.slop : parentB.slop;
 
         collision.pair = pair;
-        activeContacts.length = 0;
+
+        var activeContactIndex = 0,
+            supportsLength = supports.length;
         
-        for (var i = 0; i < supports.length; i++) {
+        for (var i = 0; i < supportsLength; i++) {
             var support = supports[i],
                 contactId = support.body === parentA ? support.index : parentAVerticesLength + support.index,
                 contact = contacts[contactId];
 
             if (contact) {
-                activeContacts.push(contact);
+                activeContacts[activeContactIndex++] = contact;
             } else {
-                activeContacts.push(contacts[contactId] = Contact.create(support));
+                contact = Contact.create(support);
+                activeContacts[activeContactIndex++] = contact;
+                contacts[contactId] = contact;
             }
+        }
+
+        if (activeContacts.length !== activeContactIndex) {
+            activeContacts.length = activeContactIndex;
         }
     };
     

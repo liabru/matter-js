@@ -152,8 +152,10 @@ var Pair = require('./Pair');
             supports[supportCount++] = supportsB[0];
         }
 
-        // update supports array size
+        // update supports array size if changed
+        if (supports.length !== supportCount) {
             supports.length = supportCount;
+        }
 
         return collision;
     };

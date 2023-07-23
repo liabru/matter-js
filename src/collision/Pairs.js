@@ -39,20 +39,18 @@ var Common = require('../core/Common');
     Pairs.update = function(pairs, collisions, timestamp) {
         var pairsList = pairs.list,
             pairsListLength = pairsList.length,
+            pairsListIndex = pairsListLength,
             pairsTable = pairs.table,
             collisionsLength = collisions.length,
             collisionStart = pairs.collisionStart,
             collisionEnd = pairs.collisionEnd,
             collisionActive = pairs.collisionActive,
+            collisionStartIndex = 0,
+            collisionEndIndex = 0,
+            collisionActiveIndex = 0,
             collision,
-            pairIndex,
             pair,
             i;
-
-        // clear collision state arrays, but maintain old reference
-        collisionStart.length = 0;
-        collisionEnd.length = 0;
-        collisionActive.length = 0;
 
         for (i = 0; i < pairsListLength; i++) {
             pairsList[i].confirmedActive = false;
@@ -66,10 +64,10 @@ var Common = require('../core/Common');
                 // pair already exists (but may or may not be active)
                 if (pair.isActive) {
                     // pair exists and is active
-                    collisionActive.push(pair);
+                    collisionActive[collisionActiveIndex++] = pair;
                 } else {
                     // pair exists but was inactive, so a collision has just started again
-                    collisionStart.push(pair);
+                    collisionStart[collisionStartIndex++] = pair;
                 }
 
                 // update the pair
@@ -80,14 +78,14 @@ var Common = require('../core/Common');
                 pair = Pair.create(collision, timestamp);
                 pairsTable[pair.id] = pair;
 
-                // push the new pair
-                collisionStart.push(pair);
-                pairsList.push(pair);
+                // add the new pair
+                collisionStart[collisionStartIndex++] = pair;
+                pairsList[pairsListIndex++] = pair;
             }
         }
 
         // find pairs that are no longer active
-        var removePairIndex = [];
+        pairsListIndex = 0;
         pairsListLength = pairsList.length;
 
         for (i = 0; i < pairsListLength; i++) {
@@ -95,20 +93,32 @@ var Common = require('../core/Common');
             
             if (!pair.confirmedActive) {
                 Pair.setActive(pair, false, timestamp);
-                collisionEnd.push(pair);
+                collisionEnd[collisionEndIndex++] = pair;
 
+                // remove inactive pairs
                 if (!pair.collision.bodyA.isSleeping && !pair.collision.bodyB.isSleeping) {
-                    removePairIndex.push(i);
+                    delete pairsTable[pair.id];
                 }
+            } else {
+                pairsList[pairsListIndex++] = pair;
             }
         }
 
-        // remove inactive pairs
-        for (i = 0; i < removePairIndex.length; i++) {
-            pairIndex = removePairIndex[i] - i;
-            pair = pairsList[pairIndex];
-            pairsList.splice(pairIndex, 1);
-            delete pairsTable[pair.id];
+        // update array lengths if changed
+        if (pairsList.length !== pairsListIndex) {
+            pairsList.length = pairsListIndex;
+        }
+
+        if (collisionStart.length !== collisionStartIndex) {
+            collisionStart.length = collisionStartIndex;
+        }
+
+        if (collisionEnd.length !== collisionEndIndex) {
+            collisionEnd.length = collisionEndIndex;
+        }
+
+        if (collisionActive.length !== collisionActiveIndex) {
+            collisionActive.length = collisionActiveIndex;
         }
     };
 
