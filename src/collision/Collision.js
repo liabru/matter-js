@@ -275,15 +275,15 @@ var Pair = require('./Pair');
             bodyAPositionY = bodyA.position.y,
             normalX = normal.x * direction,
             normalY = normal.y * direction,
-            nearestDistance = Number.MAX_VALUE,
-            vertexA,
-            vertexB,
+            vertexA = vertices[0],
+            vertexB = vertexA,
+            nearestDistance = normalX * (bodyAPositionX - vertexB.x) + normalY * (bodyAPositionY - vertexB.y),
             vertexC,
             distance,
             j;
 
         // find deepest vertex relative to the axis
-        for (j = 0; j < verticesLength; j += 1) {
+        for (j = 1; j < verticesLength; j += 1) {
             vertexB = vertices[j];
             distance = normalX * (bodyAPositionX - vertexB.x) + normalY * (bodyAPositionY - vertexB.y);
 
