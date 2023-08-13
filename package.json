@@ -50,7 +50,7 @@
     "lint": "eslint 'src/**/*.js' 'demo/src/**/*.js' 'examples/*.js' 'webpack.*.js'",
     "doc": "yuidoc --config yuidoc.json --project-version $npm_package_version",
     "doc-watch": "nodemon --delay 3 --watch 'matter-doc-theme' --watch src -e 'js,html,css,handlebars' --exec 'npm run doc'",
-    "benchmark": "EXAMPLES=stress3 npm run test-node",
+    "benchmark": "npm run test-node -- --examples=stress3,stress4 --updates=300 --repeats=3",
     "test": "npm run test-node",
     "test-node": "npm run build-dev && node --expose-gc node_modules/.bin/jest --force-exit --no-cache --runInBand ./test/Examples.spec.js",
     "test-browser": "node --expose-gc node_modules/.bin/jest --force-exit --no-cache --runInBand ./test/Browser.spec.js",
