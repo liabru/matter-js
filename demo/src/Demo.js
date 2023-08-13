@@ -41,8 +41,10 @@ var demo = function(examples, isDev) {
     document.title = 'Matter.js Demo' + (isDev ? ' ・ Dev' : '');
 
     if (isDev) {
-        var buttonSource = demo.dom.buttonSource;
-        var buttonCompare = buttonSource.cloneNode(true);
+        // add compare button
+        var buttonSource = demo.dom.buttonSource,
+            buttonCompare = buttonSource.cloneNode(true);
+
         buttonCompare.textContent = '⎄';
         buttonCompare.title = 'Compare';
         buttonCompare.href = '?compare';
@@ -52,10 +54,28 @@ var demo = function(examples, isDev) {
             window.location = '?compare#' + demo.example.id;
             event.preventDefault();
         });
+
         buttonSource.parentNode.insertBefore(buttonCompare, buttonSource.nextSibling);
 
+        // always show debug info
         Matter.before('Render.create', function(renderOptions) {
             renderOptions.options.showDebug = true;
+        });
+
+        // arrow key navigation of examples
+        document.addEventListener('keyup', function(event) {
+            var isBackKey = event.key === 'ArrowLeft' || event.key === 'ArrowUp',
+                isForwardKey = event.key === 'ArrowRight' || event.key === 'ArrowDown';
+
+            if (isBackKey || isForwardKey) {
+                var direction = isBackKey ? -1 : 1,
+                    currentExampleIndex = demo.examples.findIndex(function(example) { 
+                        return example.id === demo.example.id;
+                    }),
+                    nextExample = demo.examples[(demo.examples.length + currentExampleIndex + direction) % demo.examples.length];
+                
+                MatterTools.Demo.setExample(demo, nextExample);
+            }
         });
     }
 

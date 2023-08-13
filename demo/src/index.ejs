@@ -47,6 +47,14 @@
         opacity: 0.5;
         background: transparent !important;
       }
+
+      @media only screen and (min-width: 1300px) {
+        /* reduce hit testing when using matter-tools */
+        .matter-demo canvas {
+          position: relative;
+          z-index: 20;
+        }
+      }
     </style>
   </head>
   <body><% for (var chunk in htmlWebpackPlugin.files.js) { %>

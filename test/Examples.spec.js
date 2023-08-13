@@ -10,7 +10,8 @@ const {
     comparisonReport, 
     logReport, 
     toMatchExtrinsics, 
-    toMatchIntrinsics 
+    toMatchIntrinsics,
+    getArg
 } = require('./TestTools');
 
 const Example = requireUncached('../examples/index');
@@ -18,9 +19,11 @@ const MatterBuild = requireUncached('../build/matter');
 const { versionSatisfies } = requireUncached('../src/core/Plugin');
 const Worker = require('jest-worker').default;
 
-const specificExamples = process.env.EXAMPLES ? process.env.EXAMPLES.split(' ') : null;
-const testComparison = process.env.COMPARE === 'true';
-const saveComparison = process.env.SAVE === 'true';
+const testComparison = getArg('compare', null) === 'true';
+const saveComparison = getArg('save', null) === 'true';
+const specificExamples = getArg('examples', null, (val) => val.split(','));
+const repeats = getArg('repeats', 1, parseFloat);
+const updates = getArg('updates', 150, parseFloat);
 
 const excludeExamples = ['svg', 'terrain'];
 const excludeJitter = ['stack', 'circleStack', 'restitution', 'staticFriction', 'friction', 'newtonsCradle', 'catapult'];
@@ -42,6 +45,7 @@ const captureExamples = async useDev => {
         name,
         useDev,
         updates: 2,
+        repeats: 1,
         stableSort: true,
         jitter: excludeJitter.includes(name) ? 0 : 1e-10
     })));
@@ -50,6 +54,7 @@ const captureExamples = async useDev => {
         name,
         useDev,
         updates: 2,
+        repeats: 1,
         stableSort: true,
         jitter: excludeJitter.includes(name) ? 0 : 1e-10
     })));
@@ -58,6 +63,7 @@ const captureExamples = async useDev => {
         name,
         useDev,
         updates: 2,
+        repeats: 1,
         stableSort: false,
         jitter: excludeJitter.includes(name) ? 0 : 1e-10
     })));
@@ -72,7 +78,8 @@ const captureExamples = async useDev => {
     const completeRuns = await Promise.all(examples.map(name => singleThreadWorker.runExample({
         name,
         useDev,
-        updates: 150,
+        updates: updates,
+        repeats: repeats,
         stableSort: false,
         jitter: excludeJitter.includes(name) ? 0 : 1e-10
     })));
