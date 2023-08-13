@@ -24,7 +24,6 @@ jobs:
         cache: 'npm'
     - run: npm ci
     - run: npm run lint
-    - run: npm run benchmark
-    - run: npm run test
     - run: npm run build
     - run: npm run build-demo
+    - run: npm run test
