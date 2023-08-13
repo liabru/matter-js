@@ -254,6 +254,11 @@ const requireUncached = path => {
     return module;
 };
 
+const getArg = (name, defaultValue=null, parser=(v) => v) => {
+    const value = process.argv.find(arg => arg.startsWith(`--${name}=`));
+    return value ? parser(value.split('=')[1]) : defaultValue;
+};
+
 const toMatchExtrinsics = {
     toMatchExtrinsics(received, value) {
         const similaritys = extrinsicSimilarity(received, value, 'extrinsic');
@@ -286,6 +291,6 @@ const toMatchIntrinsics = {
 };
 
 module.exports = {
-    requireUncached, comparisonReport, logReport,
+    requireUncached, comparisonReport, logReport, getArg,
     serialize, toMatchExtrinsics, toMatchIntrinsics
 };

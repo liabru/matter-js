@@ -13,50 +13,57 @@ const runExample = options => {
     frameCallbacks
   } = prepareEnvironment(options);
 
-  const Examples = requireUncached('../examples/index');
-  const example = Examples[options.name]();
-
-  const engine = example.engine;
-  const runner = example.runner;
-  const render = example.render;
-  
   let totalMemory = 0;
   let totalDuration = 0;
   let overlapTotal = 0;
   let overlapCount = 0;
   let i;
-
-  if (global.gc) {
-    global.gc();
-  }
+  let j;
 
   try {
-    for (i = 0; i < options.updates; i += 1) {
-      const time = i * runner.delta;
-      const callbackCount = frameCallbacks.length;
+    let runner;
+    let engine;
+    let render;
 
-      for (let p = 0; p < callbackCount; p += 1) {
-        totalMemory += process.memoryUsage().heapUsed;
-        const callback = frameCallbacks.shift();
-        const startTime = process.hrtime();
-
-        callback(time);
-
-        const duration = process.hrtime(startTime);
-        totalMemory += process.memoryUsage().heapUsed;
-        totalDuration += duration[0] * 1e9 + duration[1];
+    for (i = 0; i < options.repeats; i += 1) {
+      if (global.gc) {
+        global.gc();
       }
 
-      const pairsList = engine.pairs.list;
-      const pairsListLength = engine.pairs.list.length;
+      const Examples = requireUncached('../examples/index');
+      const example = Examples[options.name]();
 
-      for (let p = 0; p < pairsListLength; p += 1) {
-        const pair = pairsList[p];
-        const separation = pair.separation - pair.slop;
+      runner = example.runner;
+      engine = example.engine;
+      render = example.render;
+      
+      for (j = 0; j < options.updates; j += 1) {
+        const time = j * runner.delta;
+        const callbackCount = frameCallbacks.length;
 
-        if (pair.isActive && !pair.isSensor) {
-          overlapTotal += separation > 0 ? separation : 0;
-          overlapCount += 1;
+        for (let p = 0; p < callbackCount; p += 1) {
+          totalMemory += process.memoryUsage().heapUsed;
+          const callback = frameCallbacks.shift();
+          const startTime = process.hrtime();
+
+          callback(time);
+
+          const duration = process.hrtime(startTime);
+          totalMemory += process.memoryUsage().heapUsed;
+          totalDuration += duration[0] * 1e9 + duration[1];
+        }
+
+        const pairsList = engine.pairs.list;
+        const pairsListLength = engine.pairs.list.length;
+
+        for (let p = 0; p < pairsListLength; p += 1) {
+          const pair = pairsList[p];
+          const separation = pair.separation - pair.slop;
+
+          if (pair.isActive && !pair.isSensor) {
+            overlapTotal += separation > 0 ? separation : 0;
+            overlapCount += 1;
+          }
         }
       }
     }
@@ -75,7 +82,7 @@ const runExample = options => {
     };
 
   } catch (err) {
-    err.message = `On example '${options.name}' update ${i}:\n\n  ${err.message}`;
+    err.message = `On example '${options.name}' update ${j}:\n\n  ${err.message}`;
     throw err;
   }
 };
