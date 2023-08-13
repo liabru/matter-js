@@ -52,10 +52,6 @@ var Common = require('../core/Common');
             pair,
             i;
 
-        for (i = 0; i < pairsListLength; i++) {
-            pairsList[i].confirmedActive = false;
-        }
-
         for (i = 0; i < collisionsLength; i++) {
             collision = collisions[i];
             pair = collision.pair;
@@ -72,7 +68,6 @@ var Common = require('../core/Common');
 
                 // update the pair
                 Pair.update(pair, collision, timestamp);
-                pair.confirmedActive = true;
             } else {
                 // pair did not exist, create a new pair
                 pair = Pair.create(collision, timestamp);
@@ -91,7 +86,7 @@ var Common = require('../core/Common');
         for (i = 0; i < pairsListLength; i++) {
             pair = pairsList[i];
             
-            if (!pair.confirmedActive) {
+            if (pair.timeUpdated < timestamp) {
                 Pair.setActive(pair, false, timestamp);
                 collisionEnd[collisionEndIndex++] = pair;
 
