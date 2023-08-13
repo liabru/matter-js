@@ -37,14 +37,17 @@ var Common = require('../core/Common');
      * @param {number} timestamp
      */
     Pairs.update = function(pairs, collisions, timestamp) {
-        var pairsList = pairs.list,
+        var pairUpdate = Pair.update,
+            pairCreate = Pair.create,
+            pairSetActive = Pair.setActive,
+            pairsTable = pairs.table,
+            pairsList = pairs.list,
             pairsListLength = pairsList.length,
             pairsListIndex = pairsListLength,
-            pairsTable = pairs.table,
-            collisionsLength = collisions.length,
             collisionStart = pairs.collisionStart,
             collisionEnd = pairs.collisionEnd,
             collisionActive = pairs.collisionActive,
+            collisionsLength = collisions.length,
             collisionStartIndex = 0,
             collisionEndIndex = 0,
             collisionActiveIndex = 0,
@@ -67,10 +70,10 @@ var Common = require('../core/Common');
                 }
 
                 // update the pair
-                Pair.update(pair, collision, timestamp);
+                pairUpdate(pair, collision, timestamp);
             } else {
                 // pair did not exist, create a new pair
-                pair = Pair.create(collision, timestamp);
+                pair = pairCreate(collision, timestamp);
                 pairsTable[pair.id] = pair;
 
                 // add the new pair
@@ -87,7 +90,7 @@ var Common = require('../core/Common');
             pair = pairsList[i];
             
             if (pair.timeUpdated < timestamp) {
-                Pair.setActive(pair, false, timestamp);
+                pairSetActive(pair, false, timestamp);
                 collisionEnd[collisionEndIndex++] = pair;
 
                 // remove inactive pairs

@@ -75,7 +75,7 @@ var Contact = require('./Contact');
         collision.pair = pair;
 
         var support = supports[0],
-        contact = contacts[0];
+            contact = contacts[0];
 
         // reset first contact if support changed
         if (contact.vertex !== support) {
