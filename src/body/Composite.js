@@ -175,6 +175,11 @@ var Body = require('./Body');
      * @return {composite} The original compositeA with the objects from compositeB added
      */
     Composite.addComposite = function(compositeA, compositeB) {
+        if (compositeA.composites.find(function (compos) {
+            return compos.id == compositeB.id;
+        })) {
+            return;
+        }
         compositeA.composites.push(compositeB);
         compositeB.parent = compositeA;
         Composite.setModified(compositeA, true, true, false);
@@ -228,6 +233,11 @@ var Body = require('./Body');
      * @return {composite} The original composite with the body added
      */
     Composite.addBody = function(composite, body) {
+        if (composite.bodies.find(function (bodyB) {
+            return bodyB.id == body.id;
+        })) {
+            return;
+        }
         composite.bodies.push(body);
         Composite.setModified(composite, true, true, false);
         return composite;
@@ -243,6 +253,7 @@ var Body = require('./Body');
      * @return {composite} The original composite with the body removed
      */
     Composite.removeBody = function(composite, body, deep) {
+        Events.trigger(body, 'beforeRemoved', {});
         var position = Common.indexOf(composite.bodies, body);
         if (position !== -1) {
             Composite.removeBodyAt(composite, position);
@@ -254,6 +265,7 @@ var Body = require('./Body');
             }
         }
 
+        Events.trigger(body, 'afterRemoved', {});
         return composite;
     };
 
@@ -280,6 +292,11 @@ var Body = require('./Body');
      * @return {composite} The original composite with the constraint added
      */
     Composite.addConstraint = function(composite, constraint) {
+        if (composite.constraints.find(function (constraintB) {
+            return constraintB.id == constraint.id;
+        })) {
+            return;
+        }
         composite.constraints.push(constraint);
         Composite.setModified(composite, true, true, false);
         return composite;
