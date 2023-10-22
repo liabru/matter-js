@@ -1,5 +1,5 @@
 /**
-* The `Matter.Render` module is a simple canvas based renderer for visualising instances of `Matter.Engine`.
+* The `Matter.Render` module is a lightweight, optional utility which provides a simple canvas based renderer for visualising instances of `Matter.Engine`.
 * It is intended for development and debugging purposes, but may also be suitable for simple games.
 * It includes a number of drawing options including wireframe, vector with support for sprites and viewports.
 *
@@ -61,6 +61,7 @@ var Mouse = require('../core/Mouse');
                 timestampElapsedHistory: [],
                 engineDeltaHistory: [],
                 engineElapsedHistory: [],
+                engineUpdatesHistory: [],
                 elapsedHistory: []
             },
             options: {
@@ -552,15 +553,19 @@ var Mouse = require('../core/Mouse');
             elapsedHistory = timing.elapsedHistory,
             timestampElapsedHistory = timing.timestampElapsedHistory,
             engineDeltaHistory = timing.engineDeltaHistory,
+            engineUpdatesHistory = timing.engineUpdatesHistory,
             engineElapsedHistory = timing.engineElapsedHistory,
+            lastEngineUpdatesPerFrame = engine.timing.lastUpdatesPerFrame,
             lastEngineDelta = engine.timing.lastDelta;
         
         var deltaMean = _mean(deltaHistory),
             elapsedMean = _mean(elapsedHistory),
             engineDeltaMean = _mean(engineDeltaHistory),
+            engineUpdatesMean = _mean(engineUpdatesHistory),
             engineElapsedMean = _mean(engineElapsedHistory),
             timestampElapsedMean = _mean(timestampElapsedHistory),
             rateMean = (timestampElapsedMean / deltaMean) || 0,
+            neededUpdatesPerFrame = Math.round(deltaMean / lastEngineDelta),
             fps = (1000 / deltaMean) || 0;
 
         var graphHeight = 4,
@@ -572,7 +577,7 @@ var Mouse = require('../core/Mouse');
 
         // background
         context.fillStyle = '#0e0f19';
-        context.fillRect(0, 50, gap * 4 + width * 5 + 22, height);
+        context.fillRect(0, 50, gap * 5 + width * 6 + 22, height);
 
         // show FPS
         Render.status(
@@ -590,17 +595,25 @@ var Mouse = require('../core/Mouse');
             function(i) { return (engineDeltaHistory[i] / engineDeltaMean) - 1; }
         );
 
+        // show engine updates per frame
+        Render.status(
+            context, x + (gap + width) * 2, y, width, graphHeight, engineUpdatesHistory.length,
+            lastEngineUpdatesPerFrame + ' upf', 
+            Math.pow(Common.clamp((engineUpdatesMean / neededUpdatesPerFrame) || 1, 0, 1), 4),
+            function(i) { return (engineUpdatesHistory[i] / engineUpdatesMean) - 1; }
+        );
+
         // show engine update time
         Render.status(
-            context, x + (gap + width) * 2, y, width, graphHeight, engineElapsedHistory.length,
+            context, x + (gap + width) * 3, y, width, graphHeight, engineElapsedHistory.length,
             engineElapsedMean.toFixed(2) + ' ut', 
-            1 - (engineElapsedMean / Render._goodFps),
+            1 - (lastEngineUpdatesPerFrame * engineElapsedMean / Render._goodFps),
             function(i) { return (engineElapsedHistory[i] / engineElapsedMean) - 1; }
         );
 
         // show render time
         Render.status(
-            context, x + (gap + width) * 3, y, width, graphHeight, elapsedHistory.length,
+            context, x + (gap + width) * 4, y, width, graphHeight, elapsedHistory.length,
             elapsedMean.toFixed(2) + ' rt', 
             1 - (elapsedMean / Render._goodFps),
             function(i) { return (elapsedHistory[i] / elapsedMean) - 1; }
@@ -608,7 +621,7 @@ var Mouse = require('../core/Mouse');
 
         // show effective speed
         Render.status(
-            context, x + (gap + width) * 4, y, width, graphHeight, timestampElapsedHistory.length, 
+            context, x + (gap + width) * 5, y, width, graphHeight, timestampElapsedHistory.length, 
             rateMean.toFixed(2) + ' x', 
             rateMean * rateMean * rateMean,
             function(i) { return (((timestampElapsedHistory[i] / deltaHistory[i]) / rateMean) || 0) - 1; }
@@ -1433,6 +1446,9 @@ var Mouse = require('../core/Mouse');
         timing.timestampElapsedHistory.unshift(timing.timestampElapsed);
         timing.timestampElapsedHistory.length = Math.min(timing.timestampElapsedHistory.length, historySize);
 
+        timing.engineUpdatesHistory.unshift(engine.timing.lastUpdatesPerFrame);
+        timing.engineUpdatesHistory.length = Math.min(timing.engineUpdatesHistory.length, historySize);
+
         timing.engineElapsedHistory.unshift(engine.timing.lastElapsed);
         timing.engineElapsedHistory.length = Math.min(timing.engineElapsedHistory.length, historySize);
 
@@ -1722,6 +1738,7 @@ var Mouse = require('../core/Mouse');
      *
      * - average render frequency (e.g. 60 fps)
      * - exact engine delta time used for last update (e.g. 16.66ms)
+     * - average updates per frame (e.g. 1)
      * - average engine execution duration (e.g. 5.00ms)
      * - average render execution duration (e.g. 0.40ms)
      * - average effective play speed (e.g. '1.00x' is 'real-time')
