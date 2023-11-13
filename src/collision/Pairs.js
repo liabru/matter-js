@@ -64,9 +64,6 @@ var Common = require('../core/Common');
                 if (pair.isActive) {
                     // pair exists and is active
                     collisionActive[collisionActiveIndex++] = pair;
-                } else {
-                    // pair exists but was inactive, so a collision has just started again
-                    collisionStart[collisionStartIndex++] = pair;
                 }
 
                 // update the pair
@@ -89,16 +86,21 @@ var Common = require('../core/Common');
         for (i = 0; i < pairsListLength; i++) {
             pair = pairsList[i];
             
-            if (pair.timeUpdated < timestamp) {
+            // pair is active if updated this timestep
+            if (pair.timeUpdated >= timestamp) {
+                // keep active pairs
+                pairsList[pairsListIndex++] = pair;
+            } else {
                 pairSetActive(pair, false, timestamp);
-                collisionEnd[collisionEndIndex++] = pair;
 
-                // remove inactive pairs
-                if (!pair.collision.bodyA.isSleeping && !pair.collision.bodyB.isSleeping) {
+                // keep inactive pairs if both bodies may be sleeping
+                if (pair.collision.bodyA.sleepCounter > 0 && pair.collision.bodyB.sleepCounter > 0) {
+                    pairsList[pairsListIndex++] = pair;
+                } else {
+                    // remove inactive pairs if either body awake
+                    collisionEnd[collisionEndIndex++] = pair;
                     delete pairsTable[pair.id];
                 }
-            } else {
-                pairsList[pairsListIndex++] = pair;
             }
         }
 
