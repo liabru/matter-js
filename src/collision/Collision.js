@@ -100,27 +100,32 @@ var Pair = require('./Pair');
         }
 
         var normal = collision.normal,
+            tangent = collision.tangent,
+            penetration = collision.penetration,
             supports = collision.supports,
+            depth = minOverlap.overlap,
             minAxis = minOverlap.axis,
-            minAxisX = minAxis.x,
-            minAxisY = minAxis.y;
+            normalX = minAxis.x,
+            normalY = minAxis.y,
+            deltaX = bodyB.position.x - bodyA.position.x,
+            deltaY = bodyB.position.y - bodyA.position.y;
 
         // ensure normal is facing away from bodyA
-        if (minAxisX * (bodyB.position.x - bodyA.position.x) + minAxisY * (bodyB.position.y - bodyA.position.y) < 0) {
-            normal.x = minAxisX;
-            normal.y = minAxisY;
-        } else {
-            normal.x = -minAxisX;
-            normal.y = -minAxisY;
+        if (normalX * deltaX + normalY * deltaY >= 0) {
+            normalX = -normalX;
+            normalY = -normalY;
         }
+
+        normal.x = normalX;
+        normal.y = normalY;
         
-        collision.tangent.x = -normal.y;
-        collision.tangent.y = normal.x;
+        tangent.x = -normalY;
+        tangent.y = normalX;
 
-        collision.depth = minOverlap.overlap;
+        penetration.x = normalX * depth;
+        penetration.y = normalY * depth;
 
-        collision.penetration.x = normal.x * collision.depth;
-        collision.penetration.y = normal.y * collision.depth;
+        collision.depth = depth;
 
         // find support points, there is always either exactly one or two
         var supportsB = Collision._findSupports(bodyA, bodyB, normal, 1),
