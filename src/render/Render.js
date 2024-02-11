@@ -144,6 +144,8 @@ var Mouse = require('../core/Mouse');
 
             Render.world(render, time);
 
+            render.context.setTransform(render.options.pixelRatio, 0, 0, render.options.pixelRatio, 0, 0);
+
             if (render.options.showStats || render.options.showDebug) {
                 Render.stats(render, render.context, time);
             }
@@ -151,6 +153,8 @@ var Mouse = require('../core/Mouse');
             if (render.options.showPerformance || render.options.showDebug) {
                 Render.performance(render, render.context, time);
             }
+
+            render.context.setTransform(1, 0, 0, 1, 0, 0);
         })();
     };
 

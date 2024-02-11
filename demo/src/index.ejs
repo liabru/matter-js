@@ -35,7 +35,6 @@
         width: 100%;
         height: 100%;
         border: 0;
-        z-index: 1;
         pointer-events: none;
       }
 
@@ -43,9 +42,15 @@
         display: none;
       }
 
+      .matter-js.dev.matter-demo canvas {
+        background: transparent !important;
+        z-index: 20;
+      }
+
       .matter-js-compare-build.matter-demo canvas {
         opacity: 0.5;
         background: transparent !important;
+        z-index: 15 !important;
       }
 
       @media only screen and (min-width: 1300px) {
@@ -53,6 +58,11 @@
         .matter-demo canvas {
           position: relative;
           z-index: 20;
+        }
+
+        .matter-js-compare-build.matter-demo canvas {
+          position: relative;
+          z-index: 15;
         }
       }
     </style>
