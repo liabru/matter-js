@@ -79,8 +79,8 @@ var Bounds = require('../geometry/Bounds');
 
             // get current separation between body edges involved in collision
             pair.separation = 
-                normal.x * (bodyB.positionImpulse.x + collision.penetration.x - bodyA.positionImpulse.x)
-                + normal.y * (bodyB.positionImpulse.y + collision.penetration.y - bodyA.positionImpulse.y);
+                collision.depth + normal.x * (bodyB.positionImpulse.x - bodyA.positionImpulse.x)
+                + normal.y * (bodyB.positionImpulse.y - bodyA.positionImpulse.y);
         }
         
         for (i = 0; i < pairsLength; i++) {
