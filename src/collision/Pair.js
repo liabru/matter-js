@@ -74,29 +74,21 @@ var Contact = require('./Contact');
         pair.contactCount = supportCount;
         collision.pair = pair;
 
-        var support = supports[0],
-            contact = contacts[0];
+        var supportA = supports[0],
+            contactA = contacts[0],
+            supportB = supports[1],
+            contactB = contacts[1];
 
-        // reset first contact if support changed
-        if (contact.vertex !== support) {
-            contact.vertex = support;
-            contact.normalImpulse = 0;
-            contact.tangentImpulse = 0;
+        // match contacts to supports
+        if (contactB.vertex === supportA || contactA.vertex === supportB) {
+            contacts[1] = contactA;
+            contacts[0] = contactA = contactB;
+            contactB = contacts[1];
         }
 
-        if (supportCount < 2) {
-            return;
-        }
-
-        support = supports[1];
-        contact = contacts[1];
-
-        // reset second contact if support changed
-        if (contact.vertex !== support) {
-            contact.vertex = support;
-            contact.normalImpulse = 0;
-            contact.tangentImpulse = 0;
-        }
+        // update contacts
+        contactA.vertex = supportA;
+        contactB.vertex = supportB;
     };
     
     /**
