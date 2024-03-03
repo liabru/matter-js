@@ -3,8 +3,9 @@
 "use strict";
 
 const mock = require('mock-require');
-const { requireUncached, serialize } = require('./TestTools');
+const { requireUncached, serialize, smoothExp } = require('./TestTools');
 const consoleOriginal = global.console;
+const DateOriginal = global.Date;
 
 const runExample = options => {
   const { 
@@ -13,8 +14,8 @@ const runExample = options => {
     frameCallbacks
   } = prepareEnvironment(options);
 
-  let totalMemory = 0;
-  let totalDuration = 0;
+  let memoryDeltaAverage = 0;
+  let timeDeltaAverage = 0;
   let overlapTotal = 0;
   let overlapCount = 0;
   let i;
@@ -24,6 +25,12 @@ const runExample = options => {
     let runner;
     let engine;
     let render;
+    let extrinsicCapture;
+
+    const bodyOverlap = (bodyA, bodyB) => {
+      const collision = Matter.Collision.collides(bodyA, bodyB);
+      return collision ? collision.depth : 0;
+    };
 
     for (i = 0; i < options.repeats; i += 1) {
       if (global.gc) {
@@ -36,34 +43,46 @@ const runExample = options => {
       runner = example.runner;
       engine = example.engine;
       render = example.render;
-      
+
       for (j = 0; j < options.updates; j += 1) {
         const time = j * runner.delta;
         const callbackCount = frameCallbacks.length;
 
+        global.timeNow = time;
+
         for (let p = 0; p < callbackCount; p += 1) {
-          totalMemory += process.memoryUsage().heapUsed;
-          const callback = frameCallbacks.shift();
-          const startTime = process.hrtime();
+          const frameCallback = frameCallbacks.shift();
+          const memoryBefore = process.memoryUsage().heapUsed;
+          const timeBefore = process.hrtime();
 
-          callback(time);
+          frameCallback(time);
 
-          const duration = process.hrtime(startTime);
-          totalMemory += process.memoryUsage().heapUsed;
-          totalDuration += duration[0] * 1e9 + duration[1];
+          const timeDuration = process.hrtime(timeBefore);
+          const timeDelta = timeDuration[0] * 1e9 + timeDuration[1];
+          const memoryAfter = process.memoryUsage().heapUsed;
+          const memoryDelta = Math.max(memoryAfter - memoryBefore, 0);
+
+          memoryDeltaAverage = smoothExp(memoryDeltaAverage, memoryDelta);
+          timeDeltaAverage = smoothExp(timeDeltaAverage, timeDelta);
         }
 
-        const pairsList = engine.pairs.list;
-        const pairsListLength = engine.pairs.list.length;
+        if (j === 1) {
+          const pairsList = engine.pairs.list;
+          const pairsListLength = engine.pairs.list.length;
 
-        for (let p = 0; p < pairsListLength; p += 1) {
-          const pair = pairsList[p];
-          const separation = pair.separation - pair.slop;
+          for (let p = 0; p < pairsListLength; p += 1) {
+            const pair = pairsList[p];
 
-          if (pair.isActive && !pair.isSensor) {
-            overlapTotal += separation > 0 ? separation : 0;
-            overlapCount += 1;
+            if (pair.isActive && !pair.isSensor) {
+              overlapTotal += bodyOverlap(pair.bodyA, pair.bodyB);
+              overlapCount += 1;
+            }
           }
+        }
+
+        if (!extrinsicCapture && engine.timing.timestamp >= 1000) {
+          extrinsicCapture = captureExtrinsics(engine, Matter);
+          extrinsicCapture.updates = j;
         }
       }
     }
@@ -72,13 +91,13 @@ const runExample = options => {
 
     return {
       name: options.name,
-      duration: totalDuration,
+      duration: timeDeltaAverage,
+      memory: memoryDeltaAverage,
       overlap: overlapTotal / (overlapCount || 1),
-      memory: totalMemory,
-      logs: logs,
-      extrinsic: captureExtrinsics(engine, Matter),
+      extrinsic: extrinsicCapture,
       intrinsic: captureIntrinsics(engine, Matter),
-      state: captureState(engine, runner, render)
+      state: captureState(engine, runner, render),
+      logs
     };
 
   } catch (err) {
@@ -144,6 +163,7 @@ const prepareEnvironment = options => {
   const frameCallbacks = [];
 
   global.document = global.window = {
+    performance: {},
     addEventListener: () => {},
     requestAnimationFrame: callback => {
       frameCallbacks.push(callback);
@@ -174,6 +194,21 @@ const prepareEnvironment = options => {
     }
   };
 
+  global.Math.random = () => {
+    throw new Error("Math.random was called during tests, output can not be compared.");
+  };
+
+  global.timeNow = 0;
+
+  global.window.performance.now = () => global.timeNow;
+
+  global.Date = function() {
+    this.toString = () => global.timeNow.toString();
+    this.valueOf = () => global.timeNow;
+  };
+
+  global.Date.now = () => global.timeNow;
+
   const Matter = prepareMatter(options);
   mock('matter-js', Matter);
   global.Matter = Matter;
@@ -187,6 +222,7 @@ const prepareEnvironment = options => {
 
 const resetEnvironment = () => {
   global.console = consoleOriginal;
+  global.Date = DateOriginal;
   global.window = undefined;
   global.document = undefined;
   global.Matter = undefined;
@@ -195,46 +231,22 @@ const resetEnvironment = () => {
 
 const captureExtrinsics = ({ world }, Matter) => ({
   bodies: Matter.Composite.allBodies(world).reduce((bodies, body) => {
-      bodies[body.id] = [
-          body.position.x,
-          body.position.y,
-          body.positionPrev.x,
-          body.positionPrev.y,
-          body.angle,
-          body.anglePrev,
-          ...body.vertices.reduce((flat, vertex) => (flat.push(vertex.x, vertex.y), flat), [])
-      ];
+      bodies[body.id] = {
+        position: { x: body.position.x, y: body.position.y },
+        vertices: body.vertices.map(vertex => ({ x: vertex.x, y: vertex.y }))
+      };
 
       return bodies;
-  }, {}),
-  constraints: Matter.Composite.allConstraints(world).reduce((constraints, constraint) => {
-      let positionA;
-      let positionB;
-
-      try {
-        positionA = Matter.Constraint.pointAWorld(constraint);
-      } catch (err) { 
-        positionA = { x: 0, y: 0 };
-      }
-
-      try {
-        positionB = Matter.Constraint.pointBWorld(constraint);
-      } catch (err) {
-        positionB = { x: 0, y: 0 };
-      }
-
-      constraints[constraint.id] = [
-          positionA.x,
-          positionA.y,
-          positionB.x,
-          positionB.y
-      ];
-
-      return constraints;
   }, {})
 });
 
-const captureIntrinsics = ({ world }, Matter) => serialize({
+const captureIntrinsics = ({ world, timing }, Matter) => serialize({
+  engine: {
+    timing: {
+      timeScale: timing.timeScale,
+      timestamp: timing.timestamp
+    }
+  },
   bodies: Matter.Composite.allBodies(world).reduce((bodies, body) => {
       bodies[body.id] = body;
       return bodies;
@@ -289,6 +301,9 @@ const extrinsicProperties = [
   'velocity',
   'position',
   'positionPrev',
+  'motion',
+  'sleepCounter',
+  'positionImpulse'
 ];
 
 const excludeStateProperties = [
