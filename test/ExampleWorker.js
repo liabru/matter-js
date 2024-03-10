@@ -27,9 +27,9 @@ const runExample = options => {
     let render;
     let extrinsicCapture;
 
-    const bodyOverlap = (bodyA, bodyB) => {
-      const collision = Matter.Collision.collides(bodyA, bodyB);
-      return collision ? collision.depth : 0;
+    const pairOverlap = (pair) => {
+      const collision = Matter.Collision.collides(pair.bodyA, pair.bodyB);
+      return collision ? Math.max(collision.depth - pair.slop, 0) : -1;
     };
 
     for (i = 0; i < options.repeats; i += 1) {
@@ -66,18 +66,28 @@ const runExample = options => {
           timeDeltaAverage = smoothExp(timeDeltaAverage, timeDelta);
         }
 
-        if (j === 1) {
-          const pairsList = engine.pairs.list;
-          const pairsListLength = engine.pairs.list.length;
+        let overlapTotalUpdate = 0;
+        let overlapCountUpdate = 0;
 
-          for (let p = 0; p < pairsListLength; p += 1) {
-            const pair = pairsList[p];
+        const pairsList = engine.pairs.list;
+        const pairsListLength = engine.pairs.list.length;
 
-            if (pair.isActive && !pair.isSensor) {
-              overlapTotal += bodyOverlap(pair.bodyA, pair.bodyB);
-              overlapCount += 1;
+        for (let p = 0; p < pairsListLength; p += 1) {
+          const pair = pairsList[p];
+
+          if (pair.isActive && !pair.isSensor){
+            const overlap = pairOverlap(pair);
+
+            if (overlap >= 0) {
+              overlapTotalUpdate += overlap;
+              overlapCountUpdate += 1;
             }
           }
+        }
+
+        if (overlapCountUpdate > 0) {
+          overlapTotal += overlapTotalUpdate / overlapCountUpdate;
+          overlapCount += 1;
         }
 
         if (!extrinsicCapture && engine.timing.timestamp >= 1000) {
