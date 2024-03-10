@@ -1209,8 +1209,8 @@ var Mouse = require('../core/Mouse');
                 continue;
 
             collision = pair.collision;
-            for (j = 0; j < pair.activeContacts.length; j++) {
-                var contact = pair.activeContacts[j],
+            for (j = 0; j < pair.contactCount; j++) {
+                var contact = pair.contacts[j],
                     vertex = contact.vertex;
                 c.rect(vertex.x - 1.5, vertex.y - 1.5, 3.5, 3.5);
             }
@@ -1234,13 +1234,13 @@ var Mouse = require('../core/Mouse');
 
             collision = pair.collision;
 
-            if (pair.activeContacts.length > 0) {
-                var normalPosX = pair.activeContacts[0].vertex.x,
-                    normalPosY = pair.activeContacts[0].vertex.y;
+            if (pair.contactCount > 0) {
+                var normalPosX = pair.contacts[0].vertex.x,
+                    normalPosY = pair.contacts[0].vertex.y;
 
-                if (pair.activeContacts.length === 2) {
-                    normalPosX = (pair.activeContacts[0].vertex.x + pair.activeContacts[1].vertex.x) / 2;
-                    normalPosY = (pair.activeContacts[0].vertex.y + pair.activeContacts[1].vertex.y) / 2;
+                if (pair.contactCount === 2) {
+                    normalPosX = (pair.contacts[0].vertex.x + pair.contacts[1].vertex.x) / 2;
+                    normalPosY = (pair.contacts[0].vertex.y + pair.contacts[1].vertex.y) / 2;
                 }
 
                 if (collision.bodyB === collision.supports[0].body || collision.bodyA.isStatic === true) {
