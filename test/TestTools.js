@@ -12,23 +12,22 @@ const equalityThreshold = 1;
 const colors = { Red: 31, Green: 32, Yellow: 33, White: 37, BrightWhite: 90, BrightCyan: 36 };
 
 const comparisonReport = (capturesDev, capturesBuild, devSize, buildSize, buildVersion, save, benchmark) => {
-    const performanceDev = capturePerformanceTotals(capturesDev);
-    const performanceBuild = capturePerformanceTotals(capturesBuild);
+    const {
+        durationChange,
+        memoryChange,
+        overlapChange
+    } = captureBenchmark(capturesDev, capturesBuild);
 
-    const perfChange = noiseThreshold(1 - (performanceDev.duration / performanceBuild.duration), 0.01);
-    const memoryChange = noiseThreshold((performanceDev.memory / performanceBuild.memory) - 1, 0.01);
-    const overlapChange = (performanceDev.overlap / (performanceBuild.overlap || 1)) - 1;
     const filesizeChange = (devSize / buildSize) - 1;
-
-    const similaritys = extrinsicSimilarity(capturesDev, capturesBuild);
-    const similarityAverage = extrinsicSimilarityAverage(similaritys);
-    const similarityEntries = Object.entries(similaritys);
-    similarityEntries.sort((a, b) => a[1] - b[1]);
 
     const firstCapture = Object.entries(capturesDev)[0][1];
     const updates = firstCapture.extrinsic.updates;
 
+    const similaritys = extrinsicSimilarity(capturesDev, capturesBuild);
+    const similarityAverage = extrinsicSimilarityAverage(similaritys);
     const similarityAveragePerUpdate = Math.pow(1, -1 / updates) * Math.pow(similarityAverage, 1 / updates);
+    const similarityEntries = Object.entries(similaritys);
+    similarityEntries.sort((a, b) => a[1] - b[1]);
 
     const devIntrinsicsChanged = {};
     const buildIntrinsicsChanged = {};
@@ -51,8 +50,6 @@ const comparisonReport = (capturesDev, capturesBuild, devSize, buildSize, buildV
         })
         .sort((a, b) => a.name.localeCompare(b.name));
 
-    const formatColor = green => green ? colors.Green : colors.Yellow;
-
     const report = (breakEvery, format) => [
         [`Output sample comparison estimates of ${similarityEntries.length} examples`,
          `against previous release ${format('matter-js@' + buildVersion, colors.Yellow)}:`
@@ -70,7 +67,7 @@ const comparisonReport = (capturesDev, capturesBuild, devSize, buildSize, buildV
 
         ...(benchmark ? [
             `\n${format('Performance', colors.White)}`,
-            ` ${format(formatPercent(perfChange), formatColor(perfChange >= 0))}%`,
+            ` ${format(formatPercent(durationChange), formatColor(durationChange >= 0))}%`,
     
             `  ${format('Memory', colors.White)} `,
             ` ${format(formatPercent(memoryChange), formatColor(memoryChange <= 0))}%`,
@@ -102,8 +99,12 @@ const comparisonReport = (capturesDev, capturesBuild, devSize, buildSize, buildV
 };
 
 const similarityRatings = similarity => similarity < equalityThreshold ? color('●', colors.Yellow) : '·';
+
 const changeRatings = isChanged => isChanged ? color('◆', colors.White) : '·';
+
 const color = (text, number) => number ? `\x1b[${number}m${text}\x1b[0m` : text;
+
+const formatColor = isGreen => isGreen ? colors.Green : colors.Yellow;
 
 const formatPercent = (val, showSign=true, showFractional=false, padStart=6) => {
     let fractionalSign = '';
@@ -127,10 +128,35 @@ const noiseThreshold = (val, threshold) => {
     return sign * Math.max(0, magnitude - threshold) / (1 - threshold);
 };
 
+const median = (values, lower, upper) => {
+    const valuesSorted = values.slice(0).sort();
+
+    return mean(valuesSorted.slice(
+        Math.floor(valuesSorted.length * lower), 
+        Math.floor(valuesSorted.length * upper)
+    ));
+};
+
+const mean = (values) => {
+    const valuesLength = values.length;
+    let result = 0;
+
+    for (let i = 0; i < valuesLength; i += 1) {
+        result += values[i];
+    }
+
+    return (result / valuesLength) || 0;
+};
+
 const smoothExp = (last, current) => {
     const delta = current - last;
     const sign = delta < 0 ? -1 : 1;
     const magnitude = Math.abs(delta);
+
+    if (magnitude < 1) {
+        return last + 0.01 * delta;
+    }
+
     return last + Math.sqrt(magnitude) * sign;
 };
 
@@ -143,20 +169,35 @@ const equals = (a, b) => {
     return true;
 };
 
-const capturePerformanceTotals = (captures) => {
-    const totals = {
-        duration: 0,
-        overlap: 0,
-        memory: 0
+const captureBenchmark = (capturesDev, capturesBuild) => {
+    const overlapChanges = [];
+
+    let durationDev = 0;
+    let durationBuild = 0;
+    let memoryDev = 0;
+    let memoryBuild = 0;
+
+    for (const name in capturesDev) {
+        durationDev += capturesDev[name].duration;
+        durationBuild += capturesBuild[name].duration;
+
+        memoryDev += capturesDev[name].memory;
+        memoryBuild += capturesBuild[name].memory;
+
+        if (capturesBuild[name].overlap > 0.1 && capturesDev[name].overlap > 0.1){
+            overlapChanges.push(capturesDev[name].overlap / capturesBuild[name].overlap);
+        }
     };
 
-    for (const [ name ] of Object.entries(captures)) {
-        totals.duration += captures[name].duration;
-        totals.overlap += captures[name].overlap;
-        totals.memory += captures[name].memory;
-    };
+    const durationChange = 1 - noiseThreshold(durationDev / durationBuild, 0.02);
+    const memoryChange = noiseThreshold(memoryDev / memoryBuild, 0.02) - 1;
+    const overlapChange = noiseThreshold(median(overlapChanges, 0.45, 0.55), 0.001) - 1;
 
-    return totals;
+    return {
+        durationChange, 
+        memoryChange, 
+        overlapChange
+    };
 };
 
 const extrinsicSimilarity = (currentCaptures, referenceCaptures, key='extrinsic') => {
