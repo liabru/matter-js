@@ -74,16 +74,12 @@ See how others are using matter.js physics
 
 - [Patrick Heng](https://patrickheng.com/) by Patrick Heng
 - [USELESS](https://useless.london/) by Nice and Serious
-- [Secret 7](https://secret-7.com/) by Goodness
 - [New Company](https://www.new.company/) by New Company
 - [Game of The Year](https://gameoftheyear.withgoogle.com/) by Google
 - [Pablo The Flamingo](https://pablotheflamingo.com/) by Nathan Gordon
 - [Les métamorphoses de Mr. Kalia](https://lab212.org/oeuvres/2:art/18/Les-metamorphoses-de-Mr-Kalia) by Lab212
 - [Phaser](https://phaser.io/) by Photon Storm
-- [Sorry I Have No Filter](https://sorryihavenofilter.com/pages/about/) by Jessica Walsh
 - [Fuse](https://fuse.blog/) by Fuse
-- [Glyphfinder](https://www.glyphfinder.com/) by überdosis
-- [Isolation](https://isolation.is/postcards/my-week) by sabato studio
 - [more...](https://github.com/liabru/matter-js/wiki/Gallery)
 
 ### Features
