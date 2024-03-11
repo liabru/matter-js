@@ -92,7 +92,12 @@ var Mouse = require('../core/Mouse');
             }
         };
 
-        var render = Common.extend(defaults, options);
+        var render = Common.extend(defaults, {
+            ...options,
+            engine: undefined,
+            element: undefined,
+            canvas: undefined,
+        });
 
         if (render.canvas) {
             render.canvas.width = render.options.width || render.canvas.width;
