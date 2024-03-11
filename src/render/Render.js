@@ -756,9 +756,28 @@ var Mouse = require('../core/Mouse');
 
             if (!body.render.visible)
                 continue;
+            
+            var numParts = body.parts.length;
+            var kMin, kMax;
 
+            // We want to render only the main body in two cases.
+            // 1. We don't have any sub-parts (numParts===1)
+            // 2. We have sub-parts but are rendering a sprite.
+            if ((numParts === 1) || 
+             (numParts > 1 && body.render.sprite && body.render.sprite.texture && !options.wireframes)) {
+                // If actually rendering sprites, only render the main body, not any of the parts.
+                kMin = 0;
+                kMax = 0;
+            }
+            else {
+                // If not rendering sprites, if we have sub-parts, render only them and not the main body. If we
+                // don't have sub-parts, render only the main body.
+                kMin = 1;
+                kMax = numParts - 1;
+            }
+            
             // handle compound parts
-            for (k = body.parts.length > 1 ? 1 : 0; k < body.parts.length; k++) {
+            for (k = kMin; k <= kMax; k++) {
                 part = body.parts[k];
 
                 if (!part.render.visible)
