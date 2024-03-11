@@ -22,6 +22,7 @@ var Collision = require('./Collision');
     Detector.create = function(options) {
         var defaults = {
             bodies: [],
+            collisions: [],
             pairs: null
         };
 
@@ -45,6 +46,7 @@ var Collision = require('./Collision');
      */
     Detector.clear = function(detector) {
         detector.bodies = [];
+        detector.collisions = [];
     };
 
     /**
@@ -57,12 +59,13 @@ var Collision = require('./Collision');
      * @return {collision[]} collisions
      */
     Detector.collisions = function(detector) {
-        var collisions = [],
-            pairs = detector.pairs,
+        var pairs = detector.pairs,
             bodies = detector.bodies,
             bodiesLength = bodies.length,
             canCollide = Detector.canCollide,
             collides = Collision.collides,
+            collisions = detector.collisions,
+            collisionIndex = 0,
             i,
             j;
 
@@ -104,7 +107,7 @@ var Collision = require('./Collision');
                     var collision = collides(bodyA, bodyB, pairs);
 
                     if (collision) {
-                        collisions.push(collision);
+                        collisions[collisionIndex++] = collision;
                     }
                 } else {
                     var partsAStart = partsALength > 1 ? 1 : 0,
@@ -126,12 +129,16 @@ var Collision = require('./Collision');
                             var collision = collides(partA, partB, pairs);
 
                             if (collision) {
-                                collisions.push(collision);
+                                collisions[collisionIndex++] = collision;
                             }
                         }
                     }
                 }
             }
+        }
+
+        if (collisions.length !== collisionIndex) {
+            collisions.length = collisionIndex;
         }
 
         return collisions;
@@ -177,6 +184,13 @@ var Collision = require('./Collision');
      * _Note:_ The order of bodies in this array _is not fixed_ and will be continually managed by the detector.
      * @property bodies
      * @type body[]
+     * @default []
+     */
+
+    /**
+     * The array of `Matter.Collision` found in the last call to `Detector.collisions` on this detector.
+     * @property collisions
+     * @type collision[]
      * @default []
      */
 

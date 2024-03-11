@@ -17,13 +17,14 @@ const {
 const Example = requireUncached('../examples/index');
 const MatterBuild = requireUncached('../build/matter');
 const { versionSatisfies } = requireUncached('../src/core/Plugin');
-const Worker = require('jest-worker').default;
+const Worker = require('jest-worker').Worker;
 
 const testComparison = getArg('compare', null) === 'true';
 const saveComparison = getArg('save', null) === 'true';
 const specificExamples = getArg('examples', null, (val) => val.split(','));
 const repeats = getArg('repeats', 1, parseFloat);
 const updates = getArg('updates', 150, parseFloat);
+const benchmark = getArg('benchmark', null) === 'true';
 
 const excludeExamples = ['svg', 'terrain'];
 const excludeJitter = ['stack', 'circleStack', 'restitution', 'staticFriction', 'friction', 'newtonsCradle', 'catapult'];
@@ -37,68 +38,26 @@ const examples = (specificExamples || Object.keys(Example)).filter(key => {
 });
 
 const captureExamples = async useDev => {
-    const multiThreadWorker = new Worker(require.resolve('./ExampleWorker'), {
-        enableWorkerThreads: true
-    });
-
-    const overlapRuns = await Promise.all(examples.map(name => multiThreadWorker.runExample({
-        name,
-        useDev,
-        updates: 2,
-        repeats: 1,
-        stableSort: true,
-        jitter: excludeJitter.includes(name) ? 0 : 1e-10
-    })));
-
-    const behaviourRuns = await Promise.all(examples.map(name => multiThreadWorker.runExample({
-        name,
-        useDev,
-        updates: 2,
-        repeats: 1,
-        stableSort: true,
-        jitter: excludeJitter.includes(name) ? 0 : 1e-10
-    })));
-
-    const similarityRuns = await Promise.all(examples.map(name => multiThreadWorker.runExample({
-        name,
-        useDev,
-        updates: 2,
-        repeats: 1,
-        stableSort: false,
-        jitter: excludeJitter.includes(name) ? 0 : 1e-10
-    })));
-
-    await multiThreadWorker.end();
-
-    const singleThreadWorker = new Worker(require.resolve('./ExampleWorker'), {
+    const worker = new Worker(require.resolve('./ExampleWorker'), {
         enableWorkerThreads: true,
-        numWorkers: 1
+        numWorkers: benchmark ? 1 : undefined
     });
 
-    const completeRuns = await Promise.all(examples.map(name => singleThreadWorker.runExample({
+    const completeRuns = await Promise.all(examples.map(name => worker.runExample({
         name,
         useDev,
         updates: updates,
-        repeats: repeats,
+        repeats: benchmark ? Math.max(repeats, 3) : repeats,
         stableSort: false,
         jitter: excludeJitter.includes(name) ? 0 : 1e-10
     })));
 
-    await singleThreadWorker.end();
+    await worker.end();
 
     const capture = {};
 
     for (const completeRun of completeRuns) {
-        const behaviourRun = behaviourRuns.find(({ name }) => name === completeRun.name);
-        const similarityRun = similarityRuns.find(({ name }) => name === completeRun.name);
-        const overlapRun = overlapRuns.find(({ name }) => name === completeRun.name);
-
-        capture[overlapRun.name] = {
-            ...completeRun,
-            behaviourExtrinsic: behaviourRun.extrinsic,
-            similarityExtrinsic: similarityRun.extrinsic,
-            overlap: overlapRun.overlap
-        };
+        capture[completeRun.name] = completeRun;
     }
 
     return capture;
@@ -119,7 +78,7 @@ afterAll(async () => {
         'Examples ran against previous release and current build\n\n'
         + logReport(build, `release`) + '\n'
         + logReport(dev, `current`) + '\n'
-        + comparisonReport(dev, build, devSize, buildSize, MatterBuild.version, saveComparison)
+        + comparisonReport(dev, build, devSize, buildSize, MatterBuild.version, saveComparison, benchmark)
     );
 });
 

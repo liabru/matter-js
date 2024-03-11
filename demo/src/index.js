@@ -12,6 +12,7 @@
 var Matter = require('matter-js');
 var Examples = require('../../examples/index');
 var compare = require('./Compare').compare;
+var multi = require('./Multi').multi;
 var demo = require('./Demo').demo;
 
 // browser globals
@@ -31,9 +32,13 @@ var examples = Matter.Common.keys(Examples).map(function(id){
 
 // start the requested tool
 var isCompare = window.location.search.indexOf('compare') >= 0;
+var isMulti = window.location.search.indexOf('multi') >= 0;
 var isDev = __MATTER_IS_DEV__;
+
 if (isCompare) {
     compare(examples, isDev);
+} else if (isMulti) {
+    multi(examples, isDev);
 } else {
     demo(examples, isDev);
 }

@@ -8,25 +8,26 @@ const comparePath = './test/__compare__';
 const compareCommand = 'open http://localhost:8000/?compare';
 const diffSaveCommand = 'npm run test-save';
 const diffCommand = 'code -n -d test/__compare__/examples-build.json test/__compare__/examples-dev.json';
-const equalityThreshold = 0.99999;
+const equalityThreshold = 1;
 const colors = { Red: 31, Green: 32, Yellow: 33, White: 37, BrightWhite: 90, BrightCyan: 36 };
 
-const comparisonReport = (capturesDev, capturesBuild, devSize, buildSize, buildVersion, save) => {
-    const performanceDev = capturePerformanceTotals(capturesDev);
-    const performanceBuild = capturePerformanceTotals(capturesBuild);
+const comparisonReport = (capturesDev, capturesBuild, devSize, buildSize, buildVersion, save, benchmark) => {
+    const {
+        durationChange,
+        memoryChange,
+        overlapChange
+    } = captureBenchmark(capturesDev, capturesBuild);
 
-    const perfChange = noiseThreshold(1 - (performanceDev.duration / performanceBuild.duration), 0.01);
-    const memoryChange = noiseThreshold((performanceDev.memory / performanceBuild.memory) - 1, 0.01);
-    const overlapChange = (performanceDev.overlap / (performanceBuild.overlap || 1)) - 1;
     const filesizeChange = (devSize / buildSize) - 1;
 
-    const behaviourSimilaritys = extrinsicSimilarity(capturesDev, capturesBuild, 'behaviourExtrinsic');
-    const behaviourSimilarityAverage = extrinsicSimilarityAverage(behaviourSimilaritys);
-    const behaviourSimilarityEntries = Object.entries(behaviourSimilaritys);
-    behaviourSimilarityEntries.sort((a, b) => a[1] - b[1]);
+    const firstCapture = Object.entries(capturesDev)[0][1];
+    const updates = firstCapture.extrinsic.updates;
 
-    const similaritys = extrinsicSimilarity(capturesDev, capturesBuild, 'similarityExtrinsic');
+    const similaritys = extrinsicSimilarity(capturesDev, capturesBuild);
     const similarityAverage = extrinsicSimilarityAverage(similaritys);
+    const similarityAveragePerUpdate = Math.pow(1, -1 / updates) * Math.pow(similarityAverage, 1 / updates);
+    const similarityEntries = Object.entries(similaritys);
+    similarityEntries.sort((a, b) => a[1] - b[1]);
 
     const devIntrinsicsChanged = {};
     const buildIntrinsicsChanged = {};
@@ -50,32 +51,31 @@ const comparisonReport = (capturesDev, capturesBuild, devSize, buildSize, buildV
         .sort((a, b) => a.name.localeCompare(b.name));
 
     const report = (breakEvery, format) => [
-        [`Output comparison of ${behaviourSimilarityEntries.length}`,
-         `examples against previous release ${format('matter-js@' + buildVersion, colors.Yellow)}`
+        [`Output sample comparison estimates of ${similarityEntries.length} examples`,
+         `against previous release ${format('matter-js@' + buildVersion, colors.Yellow)}:`
         ].join(' '),
 
-        `\n\n${format('Behaviour  ', colors.White)}`,
-        `${format(formatPercent(behaviourSimilarityAverage), behaviourSimilarityAverage === 1 ? colors.Green : colors.Yellow)}%`,
-
-        ` ${format('Similarity', colors.White)}`,
-        `${format(formatPercent(similarityAverage), similarityAverage === 1 ? colors.Green : colors.Yellow)}%`,
+        `\n\n${format(`Similarity`, colors.White)}  `,
+        `${format(formatPercent(similarityAveragePerUpdate, false, true), formatColor(similarityAveragePerUpdate === 1))}% `,
 
         ` ${format('Overlap', colors.White)}`,
-        ` ${format((overlapChange >= 0 ? '+' : '-') + formatPercent(overlapChange, true), overlapChange <= 0 ? colors.Green : colors.Yellow)}%`,
-
-        `\n${format('Performance', colors.White)}`,
-        `${format((perfChange >= 0 ? '+' : '-') + formatPercent(perfChange, true), perfChange >= 0 ? colors.Green : colors.Yellow)}%`,
-
-        ` ${format('Memory', colors.White)}`,
-        `    ${format((memoryChange >= 0 ? '+' : '-') + formatPercent(memoryChange, true), memoryChange <= 0 ? colors.Green : colors.Yellow)}%`,
+        ` ${format(formatPercent(overlapChange), formatColor(overlapChange <= 0))}%`,
 
         ` ${format('Filesize', colors.White)}`,
-        `${format((filesizeChange >= 0 ? '+' : '-') + formatPercent(filesizeChange, true), filesizeChange <= 0 ? colors.Green : colors.Yellow)}%`,
+        `${format(formatPercent(filesizeChange), formatColor(filesizeChange <= 0))}%`,
         `${format(`${(devSize / 1024).toPrecision(4)} KB`, colors.White)}`,
+
+        ...(benchmark ? [
+            `\n${format('Performance', colors.White)}`,
+            ` ${format(formatPercent(durationChange), formatColor(durationChange >= 0))}%`,
+    
+            `  ${format('Memory', colors.White)} `,
+            ` ${format(formatPercent(memoryChange), formatColor(memoryChange <= 0))}%`,
+        ] : []),
 
         captureSummary.reduce((output, p, i) => {
             output += `${p.name} `;
-            output += `${similarityRatings(behaviourSimilaritys[p.name])} `;
+            output += `${similarityRatings(similaritys[p.name])} `;
             output += `${changeRatings(capturesDev[p.name].changedIntrinsics)} `;
             if (i > 0 && i < captureSummary.length && breakEvery > 0 && i % breakEvery === 0) {
                 output += '\n';
@@ -83,9 +83,9 @@ const comparisonReport = (capturesDev, capturesBuild, devSize, buildSize, buildV
             return output;
         }, '\n\n'),
 
-        `\n\nwhere  · no change  ● extrinsics changed  ◆ intrinsics changed\n`,
+        `\n\nwhere for the sample  · no change detected  ● extrinsics changed  ◆ intrinsics changed\n`,
 
-        behaviourSimilarityAverage < 1 ? `\n${format('▶', colors.White)} ${format(compareCommand + '=' + 150 + '#' + behaviourSimilarityEntries[0][0], colors.BrightCyan)}` : '',
+        similarityAverage < 1 ? `\n${format('▶', colors.White)} ${format(compareCommand + '=' + 150 + '#' + similarityEntries[0][0], colors.BrightCyan)}` : '',
         intrinsicChangeCount > 0 ? `\n${format('▶', colors.White)} ${format((save ? diffCommand : diffSaveCommand), colors.BrightCyan)}` : ''
     ].join('  ');
 
@@ -98,22 +98,66 @@ const comparisonReport = (capturesDev, capturesBuild, devSize, buildSize, buildV
     return report(5, color);
 };
 
-const similarity = (a, b) => {
-    const distance = Math.sqrt(a.reduce(
-        (sum, _val, i) => sum + Math.pow((a[i] || 0) - (b[i] || 0), 2), 0)
-    );
-    return 1 / (1 + (distance / a.length));
-};
-
 const similarityRatings = similarity => similarity < equalityThreshold ? color('●', colors.Yellow) : '·';
+
 const changeRatings = isChanged => isChanged ? color('◆', colors.White) : '·';
+
 const color = (text, number) => number ? `\x1b[${number}m${text}\x1b[0m` : text;
-const formatPercent = (val, abs) => (100 * (abs ? Math.abs(val) : val)).toFixed(2);
+
+const formatColor = isGreen => isGreen ? colors.Green : colors.Yellow;
+
+const formatPercent = (val, showSign=true, showFractional=false, padStart=6) => {
+    let fractionalSign = '';
+
+    if (showFractional && val > 0.9999 && val < 1) {
+        val = 0.9999;
+        fractionalSign = '>';
+    } else if (showFractional && val > 0 && val < 0.0001) {
+        val = 0.0001;
+        fractionalSign = '<';
+    }
+
+    const percentFixed = Math.abs(100 * val).toFixed(2);
+    const sign = parseFloat((100 * val).toFixed(2)) >= 0 ? '+' : '-';
+    return ((showFractional ? fractionalSign : '') + (showSign ? sign : '') + percentFixed).padStart(padStart, ' ');
+};
 
 const noiseThreshold = (val, threshold) => {
     const sign = val < 0 ? -1 : 1;
     const magnitude = Math.abs(val);
     return sign * Math.max(0, magnitude - threshold) / (1 - threshold);
+};
+
+const median = (values, lower, upper) => {
+    const valuesSorted = values.slice(0).sort();
+
+    return mean(valuesSorted.slice(
+        Math.floor(valuesSorted.length * lower), 
+        Math.floor(valuesSorted.length * upper)
+    ));
+};
+
+const mean = (values) => {
+    const valuesLength = values.length;
+    let result = 0;
+
+    for (let i = 0; i < valuesLength; i += 1) {
+        result += values[i];
+    }
+
+    return (result / valuesLength) || 0;
+};
+
+const smoothExp = (last, current) => {
+    const delta = current - last;
+    const sign = delta < 0 ? -1 : 1;
+    const magnitude = Math.abs(delta);
+
+    if (magnitude < 1) {
+        return last + 0.01 * delta;
+    }
+
+    return last + Math.sqrt(magnitude) * sign;
 };
 
 const equals = (a, b) => {
@@ -125,41 +169,77 @@ const equals = (a, b) => {
     return true;
 };
 
-const capturePerformanceTotals = (captures) => {
-    const totals = {
-        duration: 0,
-        overlap: 0,
-        memory: 0
+const captureBenchmark = (capturesDev, capturesBuild) => {
+    const overlapChanges = [];
+
+    let durationDev = 0;
+    let durationBuild = 0;
+    let memoryDev = 0;
+    let memoryBuild = 0;
+
+    for (const name in capturesDev) {
+        durationDev += capturesDev[name].duration;
+        durationBuild += capturesBuild[name].duration;
+
+        memoryDev += capturesDev[name].memory;
+        memoryBuild += capturesBuild[name].memory;
+
+        if (capturesBuild[name].overlap > 0.1 && capturesDev[name].overlap > 0.1){
+            overlapChanges.push(capturesDev[name].overlap / capturesBuild[name].overlap);
+        }
     };
 
-    for (const [ name ] of Object.entries(captures)) {
-        totals.duration += captures[name].duration;
-        totals.overlap += captures[name].overlap;
-        totals.memory += captures[name].memory;
-    };
+    const durationChange = 1 - noiseThreshold(durationDev / durationBuild, 0.02);
+    const memoryChange = noiseThreshold(memoryDev / memoryBuild, 0.02) - 1;
+    const overlapChange = noiseThreshold(median(overlapChanges, 0.45, 0.55), 0.001) - 1;
 
-    return totals;
+    return {
+        durationChange, 
+        memoryChange, 
+        overlapChange
+    };
 };
 
-const extrinsicSimilarity = (currentCaptures, referenceCaptures, key) => {
+const extrinsicSimilarity = (currentCaptures, referenceCaptures, key='extrinsic') => {
     const result = {};
+    const zeroVector = { x: 0, y: 0 };
 
-    Object.entries(currentCaptures).forEach(([name, current]) => {
-        const reference = referenceCaptures[name];
-        const worldVector = [];
-        const worldVectorRef = [];
-        const currentExtrinsic = current[key];
-        const referenceExtrinsic = reference[key];
+    for (const name in currentCaptures) {
+        const currentExtrinsic = currentCaptures[name][key];
+        const referenceExtrinsic = referenceCaptures[name][key];
 
-        Object.keys(currentExtrinsic).forEach(objectType => {
-            Object.keys(currentExtrinsic[objectType]).forEach(objectId => {
-                worldVector.push(...currentExtrinsic[objectType][objectId]);
-                worldVectorRef.push(...referenceExtrinsic[objectType][objectId]);
-            });
-        });
+        let totalCount = 0;
+        let totalSimilarity = 0;
 
-        result[name] = similarity(worldVector, worldVectorRef);
-    });
+        for (const objectType in currentExtrinsic) {
+            for (const objectId in currentExtrinsic[objectType]) {
+                const currentObject = currentExtrinsic[objectType][objectId];
+                const referenceObject = referenceExtrinsic[objectType][objectId];
+
+                for (let i = 0; i < currentObject.vertices.length; i += 1) {
+                    const currentPosition = currentObject.position;
+                    const currentVertex = currentObject.vertices[i];
+                    const referenceVertex = referenceObject.vertices[i] ? referenceObject.vertices[i] : zeroVector;
+
+                    const radius = Math.sqrt(
+                        Math.pow(currentVertex.x - currentPosition.x, 2)
+                        + Math.pow(currentVertex.y - currentPosition.y, 2)
+                    );
+
+                    const distance = Math.sqrt(
+                        Math.pow(currentVertex.x - referenceVertex.x, 2)
+                        + Math.pow(currentVertex.y - referenceVertex.y, 2)
+                    );
+
+                    totalSimilarity += Math.min(1, distance / (2 * radius)) / currentObject.vertices.length;
+                }
+
+                totalCount += 1;
+            }
+        }
+
+        result[name] = 1 - (totalSimilarity / totalCount);
+    }
 
     return result;
 };
@@ -291,6 +371,6 @@ const toMatchIntrinsics = {
 };
 
 module.exports = {
-    requireUncached, comparisonReport, logReport, getArg,
+    requireUncached, comparisonReport, logReport, getArg, smoothExp,
     serialize, toMatchExtrinsics, toMatchIntrinsics
 };
