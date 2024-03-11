@@ -776,7 +776,9 @@ var Mouse = require('../core/Mouse');
                         texture = _getTexture(render, sprite.texture);
 
                     c.translate(part.position.x, part.position.y);
-                    c.rotate(part.angle);
+                    // rotate sprite if not lockRotation
+                    if(!part.render.sprite.lockRotation)
+                        c.rotate(part.angle);
 
                     c.drawImage(
                         texture,
@@ -787,7 +789,10 @@ var Mouse = require('../core/Mouse');
                     );
 
                     // revert translation, hopefully faster than save / restore
-                    c.rotate(-part.angle);
+
+                    // rotate sprite if not lockRotation
+                    if(!part.render.sprite.lockRotation)
+                        c.rotate(-part.angle);
                     c.translate(-part.position.x, -part.position.y);
                 } else {
                     // part polygon

@@ -82,7 +82,8 @@ var Axes = require('../geometry/Axes');
                     xScale: 1,
                     yScale: 1,
                     xOffset: 0,
-                    yOffset: 0
+                    yOffset: 0,
+                    lockRotation: false
                 }
             },
             events: null,
