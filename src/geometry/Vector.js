@@ -48,7 +48,7 @@ module.exports = Vector;
     };
 
     /**
-     * Returns the magnitude (length) of a vector (therefore saving a `sqrt` operation).
+     * Returns the squared magnitude (length) of a vector (therefore saving a `sqrt` operation).
      * @method magnitudeSquared
      * @param {vector} vector
      * @return {number} The squared magnitude of the vector
