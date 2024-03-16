@@ -68,7 +68,7 @@ var Common = require('./Common');
      * This runner favours a smoother user experience over perfect time keeping.
      * The number of updates per frame is kept within limits specified by `runner.maxFrameTime`, `runner.maxUpdates` and `runner.maxFrameDelta`.
      * When device performance is too limited the simulation may appear to slow down compared to real time.
-     * As an alternative, to directly step the engine in your own game loop implementation, see `Engine.update`.
+     * As an alternative see `Engine.update` to directly step the engine in your own game loop implementation.
      * @method run
      * @param {runner} runner
      * @param {engine} [engine]
@@ -92,7 +92,7 @@ var Common = require('./Common');
     /**
      * Used by the game loop inside `Runner.run`.
      * 
-     * As an alternative to directly step the engine in your own game loop implementation, see `Engine.update`.
+     * As an alternative see `Engine.update` to directly step the engine in your own game loop implementation.
      * @method tick
      * @param {runner} runner
      * @param {engine} engine
@@ -218,7 +218,7 @@ var Common = require('./Common');
     /**
      * Ends execution of `Runner.run` on the given `runner`, by canceling the frame loop.
      * 
-     * To temporarily pause the runner, see `runner.enabled`.
+     * Alternatively to temporarily pause the runner, see `runner.enabled`.
      * @method stop
      * @param {runner} runner
      */
@@ -227,7 +227,7 @@ var Common = require('./Common');
     };
 
     /**
-     * Schedules a `callback` on this `runner` for the next animation frame.
+     * Schedules `callback` on this `runner` for the next animation frame.
      * @private
      * @method _onNextFrame
      * @param {runner} runner
@@ -343,29 +343,29 @@ var Common = require('./Common');
     /**
      * The fixed timestep size used for `Engine.update` calls in milliseconds.
      * 
-     * This `delta` value is recommended to be `16.666` ms or lower (equivalent to at least 60hz).
+     * This `delta` value is recommended to be `1000 / 60` ms or smaller (i.e. equivalent to at least 60hz).
      * 
-     * Lower `delta` values provide a higher quality results at the cost of performance.
+     * Smaller `delta` values provide higher quality results at the cost of performance.
      * 
-     * This value should be held fixed during running, otherwise quality may be affected. 
+     * You should avoid changing `delta` during running, otherwise quality may be affected. 
      * 
-     * For smoothest results choose an evenly divisible factor of your target framerates, this helps provide an equal number of updates per frame.
+     * For smoothest results choose a `delta` using an integer multiple of display FPS, i.e. `1000 / (n * fps)` as this helps distribute an equal number of updates over each display frame.
      * 
-     * Rounding to the nearest 1 Hz is recommended for smoother results (see `runner.frameDeltaSnapping`).
+     * For example with a 60 Hz `delta` i.e. `1000 / 60` the runner will on average perform one update per frame on displays running 60 FPS, or one update every two frames on displays running 120 FPS, etc.
      * 
-     * For example with a `delta` of `1000 / 60` the runner will on average perform one update per frame for displays at 60 FPS, or one update every two frames for displays at 120 FPS.
+     * Where as e.g. using a 240 Hz `delta` i.e. `1000 / 240` the runner will on average perform four updates per frame on displays running 60 FPS, or two updates per frame on displays running 120 FPS, etc.
      * 
-     * `Runner.run` will call multiple engine updates to simulate the time elapsed between frames, but the number of allowed calls may be limited by the runner's performance budgets.
+     * Therefore note that `Runner.run` can call multiple engine updates to simulate the time elapsed between frames, but the number of actual updates in any particular frame may be restricted by the runner's performance budgets.
      * 
-     * These performance budgets are specified by `runner.maxFrameTime`, `runner.maxUpdates`, `runner.maxFrameDelta`. See those properties for details.
-     *
+     * These performance budgets are specified by `runner.maxFrameTime` and `runner.maxUpdates`. See those properties for details.
+     * 
      * @property delta
      * @type number
      * @default 1000 / 60
      */
 
     /**
-     * A flag that can be toggled to enable or disable tick calls on this runner, therefore pausing engine updates while the loop remains running.
+     * A flag that can be toggled to enable or disable tick calls on this runner, therefore pausing engine updates while the runner loop remains running.
      *
      * @property enabled
      * @type boolean
@@ -373,7 +373,7 @@ var Common = require('./Common');
      */
 
     /**
-     * The accumulated time elapsed that has yet to be simulated, in milliseconds.
+     * The accumulated time elapsed that has yet to be simulated in milliseconds.
      * This value is clamped within some limits (see `Runner.tick` code).
      *
      * @private
@@ -383,10 +383,10 @@ var Common = require('./Common');
      */
 
     /**
-     * The measured time elapsed between the last two browser frames in milliseconds.
+     * The measured time elapsed between the last two browser frames measured in milliseconds.
      * This value is clamped inside `runner.maxFrameDelta`.
      * 
-     * You may use this to estimate the browser FPS (for the current instant) whilst running use `1000 / runner.frameDelta`.
+     * You may use this to estimate the browser FPS (for the current frame) whilst running as `1000 / runner.frameDelta`.
      *
      * @readonly
      * @property frameDelta
@@ -394,7 +394,7 @@ var Common = require('./Common');
      */
 
     /**
-     * This option applies averaging to the frame delta to smooth noisy frame rates.
+     * Applies averaging to smooth frame rate measurements and therefore stabilise play rate.
      *
      * @property frameDeltaSmoothing
      * @type boolean
@@ -402,9 +402,9 @@ var Common = require('./Common');
      */
 
     /**
-     * Rounds frame delta to the nearest 1 Hz.
-     * It follows that your choice of `runner.delta` should be rounded to the nearest 1 Hz for best results.
-     * This option helps smooth noisy refresh rates and simplify hardware differences e.g. 59.94Hz vs 60Hz display refresh rates.
+     * Rounds measured frame delta to the nearest 1 Hz.
+     * Your choice of `runner.delta` should be rounded to the nearest 1 Hz for best results.
+     * This option helps smooth frame rate measurements and unify display hardware differences e.g. 59.94Hz vs 60Hz refresh rates.
      *
      * @property frameDeltaSnapping
      * @type boolean
@@ -412,8 +412,8 @@ var Common = require('./Common');
      */
 
     /**
-     * Clamps the maximum `runner.frameDelta` in milliseconds.
-     * This is to avoid simulating periods where the browser thread is paused e.g. whilst minimised.
+     * Clamps the maximum measured `runner.frameDelta` in milliseconds.
+     * Therefore avoids simulating long periods measured between frames e.g. periods the thread is frozen whilst the browser has been minimised.
      *
      * @property maxFrameDelta
      * @type number
@@ -421,13 +421,15 @@ var Common = require('./Common');
      */
 
     /**
-     * The runner will attempt to limit engine update rate should the browser frame rate drop below a set level (50 FPS using the default `runner.maxFrameTime` value `1000 / 50` milliseconds).
+     * A performance budget that limits execution time allowed for this runner per display frame in milliseconds.
      * 
-     * This budget is intended to help maintain browser interactivity and help improve framerate recovery during temporary high CPU spikes.
+     * To calculate the display FPS at which this throttle is applied use `1000 / maxFrameTime`.
      * 
-     * It will only cover time elapsed whilst executing the functions called in the scope of this runner, including `Engine.update` etc. and its related event callbacks.
+     * This performance budget is intended to help maintain browser interactivity and help improve framerate recovery during temporary high CPU usage.
      * 
-     * For any significant additional processing you perform on the same thread but outside the scope of this runner e.g. rendering time, you may wish to reduce this budget.
+     * This only covers the measured time elapsed executing the functions called in the scope of the runner tick, including `Engine.update` etc. and its related user event callbacks.
+     * 
+     * You may wish to reduce this budget to allow for any significant additional processing you perform on the same thread outside the scope of this runner, e.g. rendering time.
      * 
      * See also `runner.maxUpdates`.
      *
@@ -437,10 +439,9 @@ var Common = require('./Common');
      */
 
     /**
-     * A hard limit for maximum engine updates allowed per frame.
+     * An optional hard limit for maximum engine updates allowed per frame tick in addition to `runner.maxFrameTime`.
      * 
-     * If not provided, it is automatically set by `Runner.create` based on `runner.delta` and `runner.maxFrameTime`.
-     * If you change `runner.delta` or `runner.maxFrameTime`, you may need to manually update this value afterwards.
+     * Unless you set a value it is automatically chosen based on `runner.delta` and `runner.maxFrameTime`.
      * 
      * See also `runner.maxFrameTime`.
      * 
