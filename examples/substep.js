@@ -32,8 +32,10 @@ Example.substep = function() {
 
     // create runner with higher precision timestep (requires >= v0.20.0 beta)
     var runner = Runner.create({
-        delta: 1000 / (60 * 10), // 600Hz delta = 1.666ms = 10upf @ 60fps (10x default precision)
-        maxFrameTime: 1000 / 50 // performance budget
+        // 600Hz delta = 1.666ms = 10upf @ 60fps (i.e. 10x default precision)
+        delta: 1000 / (60 * 10),
+        // 50fps minimum performance target (i.e. budget allows up to ~20ms execution per frame)
+        maxFrameTime: 1000 / 50
     });
 
     Runner.run(runner, engine);
