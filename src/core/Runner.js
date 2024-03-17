@@ -22,7 +22,10 @@ var Common = require('./Common');
 
 (function() {
 
+    Runner._maxFrameDelta = 1000 / 5;
+    Runner._frameDeltaFallback = 1000 / 60;
     Runner._timeBufferMargin = 1.5;
+    Runner._elapsedNextEstimate = 1;
     Runner._smoothingLowerBound = 0.1;
     Runner._smoothingUpperBound = 0.9;
 
@@ -35,7 +38,7 @@ var Common = require('./Common');
     Runner.create = function(options) {
         var defaults = {
             delta: 1000 / 60,
-            frameDelta: 0,
+            frameDelta: null,
             frameDeltaSmoothing: true,
             frameDeltaSnapping: true,
             frameDeltaHistory: [],
@@ -44,17 +47,12 @@ var Common = require('./Common');
             timeBuffer: 0,
             timeLastTick: null,
             maxUpdates: null,
-            maxFrameTime: 1000 / 50,
-            maxFrameDelta: 1000 / 10,
+            maxFrameTime: 1000 / 30,
             lastUpdatesDeferred: 0,
             enabled: true
         };
 
         var runner = Common.extend(defaults, options);
-
-        if (runner.maxUpdates === null) {
-            runner.maxUpdates = Math.ceil(runner.maxFrameTime / runner.delta);
-        }
 
         // for temporary back compatibility only
         runner.fps = 0;
@@ -66,7 +64,7 @@ var Common = require('./Common');
      * Continuously updates a `Matter.Engine` on every browser frame whilst synchronising updates with the browser frame rate.
      * It is intended for development and debugging purposes inside a browser environment.
      * This runner favours a smoother user experience over perfect time keeping.
-     * The number of updates per frame is kept within limits specified by `runner.maxFrameTime`, `runner.maxUpdates` and `runner.maxFrameDelta`.
+     * The number of updates per frame is kept within performance budgets specified by `runner.maxFrameTime` and `runner.maxUpdates`.
      * When device performance is too limited the simulation may appear to slow down compared to real time.
      * As an alternative see `Engine.update` to directly step the engine in your own game loop implementation.
      * @method run
@@ -76,7 +74,7 @@ var Common = require('./Common');
      */
     Runner.run = function(runner, engine) {
         // initial time buffer for the first frame
-        runner.timeBuffer = runner.delta * Runner._timeBufferMargin;
+        runner.timeBuffer = Runner._frameDeltaFallback;
 
         (function onFrame(time){
             runner.frameRequestId = Runner._onNextFrame(runner, onFrame);
@@ -106,10 +104,10 @@ var Common = require('./Common');
         // find frame delta time since last call
         var frameDelta = time - runner.timeLastTick;
 
-        // fallback for unexpected frame delta values (e.g. 0, NaN or from long pauses)
-        if (!frameDelta || frameDelta > runner.maxFrameDelta) {
-            // reuse last accepted frame delta or fallback to one update
-            frameDelta = runner.frameDelta || engineDelta;
+        // fallback for unusable frame delta values (e.g. 0, NaN, on first frame or long pauses)
+        if (!frameDelta || !runner.timeLastTick || frameDelta > Runner._maxFrameDelta) {
+            // reuse last accepted frame delta else fallback
+            frameDelta = runner.frameDelta || Runner._frameDeltaFallback;
         }
 
         if (runner.frameDeltaSmoothing) {
@@ -151,8 +149,8 @@ var Common = require('./Common');
         // reset count of over budget updates
         runner.lastUpdatesDeferred = 0;
 
-        // get max updates per second
-        var maxUpdates = runner.maxUpdates;
+        // get max updates per frame
+        var maxUpdates = runner.maxUpdates || Math.ceil(runner.maxFrameTime / engineDelta);
 
         // create event object
         var event = {
@@ -163,10 +161,10 @@ var Common = require('./Common');
         Events.trigger(runner, 'beforeTick', event);
         Events.trigger(runner, 'tick', event);
 
+        var updateStartTime = Common.now();
+
         // simulate time elapsed between calls
         while (engineDelta > 0 && runner.timeBuffer >= engineDelta * Runner._timeBufferMargin) {
-            var updateStartTime = Common.now();
-
             // update the engine
             Events.trigger(runner, 'beforeUpdate', event);
             Engine.update(engine, engineDelta);
@@ -178,10 +176,11 @@ var Common = require('./Common');
 
             // find elapsed time during this tick
             var elapsedTimeTotal = Common.now() - tickStartTime,
-                elapsedTimeUpdate = Common.now() - updateStartTime;
+                elapsedTimeUpdates = Common.now() - updateStartTime,
+                elapsedNextEstimate = elapsedTimeTotal + Runner._elapsedNextEstimate * elapsedTimeUpdates / updateCount;
 
             // defer updates if over performance budgets for this frame
-            if (updateCount >= maxUpdates || elapsedTimeTotal + elapsedTimeUpdate > runner.maxFrameTime) {
+            if (updateCount >= maxUpdates || elapsedNextEstimate > runner.maxFrameTime) {
                 runner.lastUpdatesDeferred = Math.round(Math.max(0, (runner.timeBuffer / engineDelta) - Runner._timeBufferMargin));
                 break;
             }
@@ -235,10 +234,10 @@ var Common = require('./Common');
      * @return {number} frameRequestId
      */
     Runner._onNextFrame = function(runner, callback) {
-        if (typeof window !== 'undefined') {
+        if (typeof window !== 'undefined' && window.requestAnimationFrame) {
             runner.frameRequestId = window.requestAnimationFrame(callback);
         } else {
-            Common.warnOnce('Matter.Runner: missing required global window.requestAnimationFrame.');
+            throw new Error('Matter.Runner: missing required global window.requestAnimationFrame.');
         }
 
         return runner.frameRequestId;
@@ -251,10 +250,10 @@ var Common = require('./Common');
      * @param {runner} runner
      */
     Runner._cancelNextFrame = function(runner) {
-        if (typeof window !== 'undefined') {
+        if (typeof window !== 'undefined' && window.cancelAnimationFrame) {
             window.cancelAnimationFrame(runner.frameRequestId);
         } else {
-            Common.warnOnce('Matter.Runner: missing required global window.cancelAnimationFrame.');
+            throw new Error('Matter.Runner: missing required global window.cancelAnimationFrame.');
         }
     };
 
@@ -384,8 +383,6 @@ var Common = require('./Common');
 
     /**
      * The measured time elapsed between the last two browser frames measured in milliseconds.
-     * This value is clamped inside `runner.maxFrameDelta`.
-     * 
      * You may use this to estimate the browser FPS (for the current frame) whilst running as `1000 / runner.frameDelta`.
      *
      * @readonly
@@ -412,15 +409,6 @@ var Common = require('./Common');
      */
 
     /**
-     * Clamps the maximum measured `runner.frameDelta` in milliseconds.
-     * Therefore avoids simulating long periods measured between frames e.g. periods the thread is frozen whilst the browser has been minimised.
-     *
-     * @property maxFrameDelta
-     * @type number
-     * @default 500
-     */
-
-    /**
      * A performance budget that limits execution time allowed for this runner per display frame in milliseconds.
      * 
      * To calculate the display FPS at which this throttle is applied use `1000 / maxFrameTime`.
@@ -435,7 +423,7 @@ var Common = require('./Common');
      *
      * @property maxFrameTime
      * @type number
-     * @default 1000 / 50
+     * @default 1000 / 30
      */
 
     /**
