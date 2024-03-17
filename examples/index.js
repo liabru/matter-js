@@ -41,6 +41,7 @@ module.exports = {
     stress2: require('./stress2.js'),
     stress3: require('./stress3.js'),
     stress4: require('./stress4.js'),
+    substep: require('./substep.js'),
     svg: require('./svg.js'),
     terrain: require('./terrain.js'),
     timescale: require('./timescale.js'),

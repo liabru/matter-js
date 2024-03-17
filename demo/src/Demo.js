@@ -41,6 +41,22 @@ var demo = function(examples, isDev) {
     document.title = 'Matter.js Demo' + (isDev ? ' ・ Dev' : '');
 
     if (isDev) {
+        // add delta control
+        Matter.Common.chainPathAfter(MatterTools, 'Gui.create', function() {
+            this.datGui.__folders["Engine"]
+                .add(demo, "delta", 0, 1000 / 55)
+                .onChange(function() {
+                    var runner = demo.example.instance.runner;
+                    runner.delta = demo.delta;
+                })
+                .step(0.001)
+                .listen();
+        });
+
+        Matter.after('Runner.create', function() {
+            demo.delta = this.delta;
+        });
+
         // add compare button
         var buttonSource = demo.dom.buttonSource,
             buttonCompare = buttonSource.cloneNode(true);
