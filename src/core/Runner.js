@@ -22,7 +22,7 @@ var Common = require('./Common');
 
 (function() {
 
-    Runner._maxFrameDelta = 1000 / 5;
+    Runner._maxFrameDelta = 1000 / 15;
     Runner._frameDeltaFallback = 1000 / 60;
     Runner._timeBufferMargin = 1.5;
     Runner._elapsedNextEstimate = 1;
@@ -105,7 +105,7 @@ var Common = require('./Common');
         var frameDelta = time - runner.timeLastTick;
 
         // fallback for unusable frame delta values (e.g. 0, NaN, on first frame or long pauses)
-        if (!frameDelta || !runner.timeLastTick || frameDelta > Runner._maxFrameDelta) {
+        if (!frameDelta || !runner.timeLastTick || frameDelta > Math.max(Runner._maxFrameDelta, runner.maxFrameTime)) {
             // reuse last accepted frame delta else fallback
             frameDelta = runner.frameDelta || Runner._frameDeltaFallback;
         }
