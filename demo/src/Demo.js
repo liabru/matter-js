@@ -57,9 +57,11 @@ var demo = function(examples, isDev) {
 
         buttonSource.parentNode.insertBefore(buttonCompare, buttonSource.nextSibling);
 
-        // always show debug info
         Matter.before('Render.create', function(renderOptions) {
+            // custom render options in development demo
             renderOptions.options.showDebug = true;
+            renderOptions.options.pixelRatio = 'auto';
+            renderOptions.options.wireframeStrokeStyle = '#aaa';
         });
 
         // arrow key navigation of examples
