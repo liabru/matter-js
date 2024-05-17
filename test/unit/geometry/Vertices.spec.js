@@ -656,3 +656,187 @@ describe('Vertices.scale', () => {
   
     });
 });
+
+describe('Vertices.chamfer', () => { 
+    it('should be able to chamfer valid vertices', () => {
+        // Arrange
+        const vertices = getTestVerticesSqaureWithoutBody();
+        const radius = [2, 3, 4, 5, ];
+        const quality = -3.4;
+        const qualityMin = 6.;
+        const qualityMax = 12.;
+    
+        // Act
+        const result = Vertices.chamfer(vertices, radius, quality, qualityMin, qualityMax);
+    
+        // Assert
+        assertXY(result[0], 1., 3.);
+        assertXY(result[1], 1.0681483474218634, 2.4823619097949585);
+        assertXY(result[2], 1.2679491924311226, 2.);
+        assertXY(result[3], 1.5857864376269049, 1.585786437626905);
+        assertXY(result[4], 1.9999999999999998, 1.2679491924311228);
+        assertXY(result[5], 2.482361909794958, 1.0681483474218636);
+        assertXY(result[6], 4.440892098500626e-16, 0.9999999999999996);
+        assertXY(result[7], 0.7764571353075627, 1.1022225211327945);
+        assertXY(result[8], 1.5000000000000002, 1.4019237886466835);
+        assertXY(result[9], 2.121320343559643, 1.8786796564403567);
+        assertXY(result[10], 2.5980762113533165, 2.499999999999999);
+        assertXY(result[11], 2.897777478867205, 3.223542864692437);
+        assertXY(result[12], 3, -1);
+        assertXY(result[13], 2.8637033051562732, 0.03527618041008296);
+        assertXY(result[14], 2.464101615137755, 0.9999999999999998);
+        assertXY(result[15], 1.8284271247461903, 1.8284271247461898);
+        assertXY(result[16], 1.0000000000000004, 2.4641016151377544);
+        assertXY(result[17], 0.035276180410083846, 2.863703305156273);
+        assertXY(result[18], 6., 3.);
+        assertXY(result[19], 4.705904774487396, 2.8296291314453415);
+        assertXY(result[20], 3.5000000000000004, 2.3301270189221936);
+        assertXY(result[21], 2.4644660940672627, 1.5355339059327378);
+        assertXY(result[22], 1.6698729810778072, 0.5000000000000004);
+        assertXY(result[23], 1.1703708685546594, -0.7059047744873952);
+    });
+
+     it('should be able to chamfer valid vertices with qualityMax smaller then qualityMin', () => {
+        // Arrange
+        const vertices = getTestVerticesSqaureWithoutBody();
+        const radius = [2, 3, 4, 5, ];
+        const quality = -3.4;
+        const qualityMin = 2.;
+        const qualityMax = 1.;
+    
+        // Act
+        const result = Vertices.chamfer(vertices, radius, quality, qualityMin, qualityMax);
+    
+        // Assert
+         assertXY(result[0], 1., 3.);
+         assertXY(result[1], 1.5857864376269049, 1.585786437626905);
+         assertXY(result[2], 4.440892098500626e-16, 0.9999999999999996);
+         assertXY(result[3], 2.121320343559643, 1.8786796564403567);
+         assertXY(result[4], 3., -1.);
+         assertXY(result[5], 1.8284271247461903, 1.8284271247461898);
+         assertXY(result[6], 6., 3. );
+         assertXY(result[7], 2.4644660940672627, 1.5355339059327378);
+        
+     });
+    
+    it('should be able to chamfer valid vertices with undefined qualityMax', () => {
+        // Arrange
+        const vertices = getTestVerticesSqaureWithoutBody();
+        const radius = [2, 3, 4, 5, ];
+        const quality = -3.4;
+        const qualityMin = 2.;
+        const qualityMax = undefined;
+    
+        // Act
+        const result = Vertices.chamfer(vertices, radius, quality, qualityMin, qualityMax);
+    
+        // Assert
+         assertXY(result[0], 1., 3.);
+         assertXY(result[1], 1.5857864376269049, 1.585786437626905);
+         assertXY(result[2], 4.440892098500626e-16, 0.9999999999999996);
+         assertXY(result[3], 2.121320343559643, 1.8786796564403567);
+         assertXY(result[4], 3., -1.);
+         assertXY(result[5], 1.8284271247461903, 1.8284271247461898);
+         assertXY(result[6], 6., 3. );
+         assertXY(result[7], 2.4644660940672627, 1.5355339059327378);
+        
+    });
+
+    it('should be able to chamfer valid vertices with undefined qualityMin and undefined qualityMax', () => {
+        // Arrange
+        const vertices = getTestVerticesSqaureWithoutBody();
+        const radius = [2, 3, 4, 5, ];
+        const quality = -3.4;
+        const qualityMin = undefined;
+        const qualityMax = undefined;
+    
+        // Act
+        const result = Vertices.chamfer(vertices, radius, quality, qualityMin, qualityMax);
+    
+        // Assert
+         assertXY(result[0], 1., 3.);
+         assertXY(result[1], 1.5857864376269049, 1.585786437626905);
+         assertXY(result[2], 4.440892098500626e-16, 0.9999999999999996);
+         assertXY(result[3], 2.121320343559643, 1.8786796564403567);
+         assertXY(result[4], 3., -1.);
+         assertXY(result[5], 1.8284271247461903, 1.8284271247461898);
+         assertXY(result[6], 6., 3. );
+         assertXY(result[7], 2.4644660940672627, 1.5355339059327378);
+        
+    });
+
+    it('should be able to chamfer valid vertices with undefined quality and undefined qualityMin and undefined qualityMax', () => {
+        // Arrange
+        const vertices = getTestVerticesSqaureWithoutBody();
+        const radius = [2, 3, 4, 5, ];
+        const quality = undefined;
+        const qualityMin = undefined;
+        const qualityMax = undefined;
+    
+        // Act
+        const result = Vertices.chamfer(vertices, radius, quality, qualityMin, qualityMax);
+    
+        // Assert
+        assertXY(result[0], 1., 3.);
+        assertXY(result[1], 1.4951214255668521, 1.6826767761054022);
+        assertXY(result[2], 2.7353404762120563, 1.0175885047578193);
+        assertXY(result[3], 4.440892098500626e-16, 0.9999999999999996);
+        assertXY(result[4], 1.7711728834401939, 1.5786477709828843);
+        assertXY(result[5], 2.8590889395283896, 3.091368922022566);
+        assertXY(result[6], 3., -1.);
+        assertXY(result[7], 2.3545917657194435, 1.1786955008369815);
+        assertXY(result[8], 0.626642957316347, 2.6543169935588686);
+        assertXY(result[9], 6., 3.);
+        assertXY(result[10], 3.445185946065424, 2.2980140937203055);
+        assertXY(result[11], 1.607749275741794, 0.3891700599273511);
+    });
+
+    it('should be able to chamfer valid vertices with undefined radius and undefined quality and undefined qualityMin and undefined qualityMax', () => {
+        // Arrange
+        const vertices = getTestVerticesSqaureWithoutBody();
+        const radius = undefined;
+        const quality = undefined;
+        const qualityMin = undefined;
+        const qualityMax = undefined;
+    
+        // Act
+        const result = Vertices.chamfer(vertices, radius, quality, qualityMin, qualityMax);
+    
+        // Assert
+        assertXY(result[0], 1., 9.);    
+        assertXY(result[1], 1.8366176963389194, 5.438265314261145);
+        assertXY(result[2], 4.171488492898817, 2.6214831954606046);
+        assertXY(result[3], 7.516263832912953, 1.1387960854282735);
+        assertXY(result[4], -5., 1.);
+        assertXY(result[5], -1.4382653142611441, 1.8366176963389194);
+        assertXY(result[6], 1.3785168045393954, 4.171488492898817);
+        assertXY(result[7], 2.8612039145717265, 7.516263832912953);
+        assertXY(result[8], 3., -5.);
+        assertXY(result[9], 2.1633823036610806, -1.4382653142611441);
+        assertXY(result[10], -0.17148849289881696, 1.3785168045393954);
+        assertXY(result[11], -3.516263832912953, 2.8612039145717265);
+        assertXY(result[12], 9., 3.);
+        assertXY(result[13], 5.438265314261145, 2.1633823036610806);
+        assertXY(result[14], 2.6214831954606046, -0.17148849289881696);
+        assertXY(result[15], 1.1387960854282735, -3.516263832912953);
+    });
+
+
+    it('should not be able to chamfer undefined vertices', () => {
+        // Arrange
+        // Arrange
+        const vertices = undefined;
+        const radius = [2, 3, 4, 5, ];
+        const quality = -3.4;
+        const qualityMin = 6.;
+        const qualityMax = 12.;
+    
+        // Act
+        const result = () => Vertices.chamfer(vertices, radius, quality, qualityMin, qualityMax);
+    
+        // Assert
+        // TODO: This causes a read from undefined. This should probably be fixed.
+        expect(result).toThrow("Cannot read properties of undefined (reading 'length')");
+  
+    });
+});
