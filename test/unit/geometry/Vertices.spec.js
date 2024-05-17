@@ -2,6 +2,80 @@ const {assertFloat, assertXY} = require("../TestUtil");
 const {TestSquare} = require("../TestData");
 const Vector = require("../../../src/geometry/Vector");
 const Vertices = require("../../../src/geometry/Vertices");
+const Body = require("../../../src/body/Body");
+
+describe('Vertices.create', () => { 
+    it('should be able to create the vertices with valid points and body', () => {
+        // Arrange
+        const points = TestSquare;
+        const body = Body.create();
+            
+        // Act
+        const result = Vertices.create(points, body);
+    
+        // Assert
+        assertXY(result[0], 1., 1.);
+        assertXY(result[1], 3., 1.);
+        assertXY(result[2], 3., 3.);
+        assertXY(result[3], 1., 3.);
+        expect(result.length).toEqual(4);
+        expect(result[0].body.id).toEqual(body.id);
+        expect(result[1].body.id).toEqual(body.id);
+        expect(result[2].body.id).toEqual(body.id);
+        expect(result[3].body.id).toEqual(body.id);
+        expect(result[0].isInternal).toEqual(false);
+        expect(result[1].isInternal).toEqual(false);
+        expect(result[2].isInternal).toEqual(false);
+        expect(result[3].isInternal).toEqual(false);
+        expect(result[0].index).toEqual(0);
+        expect(result[1].index).toEqual(1);
+        expect(result[2].index).toEqual(2);
+        expect(result[3].index).toEqual(3);
+
+    });
+
+    it('should be able to create the vertices with valid points and undefined body', () => {
+        // Arrange
+        const points = TestSquare;
+        const body = undefined;
+            
+        // Act
+        const result = Vertices.create(points, body);
+    
+        // Assert
+        assertXY(result[0], 1., 1.);
+        assertXY(result[1], 3., 1.);
+        assertXY(result[2], 3., 3.);
+        assertXY(result[3], 1., 3.);
+        expect(result.length).toEqual(4);
+        expect(result[0].body).toEqual(undefined);
+        expect(result[1].body).toEqual(undefined);
+        expect(result[2].body).toEqual(undefined);
+        expect(result[3].body).toEqual(undefined);
+        expect(result[0].isInternal).toEqual(false);
+        expect(result[1].isInternal).toEqual(false);
+        expect(result[2].isInternal).toEqual(false);
+        expect(result[3].isInternal).toEqual(false);
+        expect(result[0].index).toEqual(0);
+        expect(result[1].index).toEqual(1);
+        expect(result[2].index).toEqual(2);
+        expect(result[3].index).toEqual(3);
+
+    });
+
+    it('should not be able to create the vertices with undefined points and valid body', () => {
+        // Arrange
+        const points = undefined;
+        const body = Body.create();
+            
+        // Act
+        // TODO: This causes a read from undefined. This should probably be fixed.
+        const result = () => Vertices.create(points, body);
+    
+        // Assert
+        expect(result).toThrow("Cannot read properties of undefined (reading 'length')");
+    });
+});
 
 describe('Vertices.rotate', () => { 
     it('should be able to rotate the vertices in place', () => {
