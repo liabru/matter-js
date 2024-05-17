@@ -36,7 +36,7 @@ var Bounds = require('../geometry/Bounds');
         for (i = 0; i < pairsLength; i++) {
             pair = pairs[i];
             
-            if (!pair.isActive)
+            if (!pair.isActive || pair.isSensor)
                 continue;
             
             contactCount = pair.contactCount;
