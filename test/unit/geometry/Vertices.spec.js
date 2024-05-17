@@ -356,3 +356,30 @@ describe('Vertices.centre', () => {
   
     });
 });
+
+describe('Vertices.mean', () => { 
+    it('should be able to get the mean of the valid vertices', () => {
+        // Arrange
+        const vertices = testVerticesSqaureWithoutBody;
+    
+        // Act
+        const result = Vertices.mean(vertices);
+    
+        // Assert
+        assertXY(result, 2., 2.);
+  
+    });
+
+    it('should not be able to get the mean of undefined vertices', () => {
+        // Arrange
+        const vertices = undefined;
+    
+        // Act
+        const result = () => Vertices.mean(vertices);
+    
+        // Assert
+        // TODO: This causes a read from undefined. This should probably be fixed.
+        expect(result).toThrow("Cannot read properties of undefined (reading 'length')");
+  
+    });
+});
