@@ -512,3 +512,59 @@ describe('Vertices.translate', () => {
   
     });
 });
+
+describe('Vertices.contains', () => { 
+    it('should be able to get if a vector is contained within the valid vertices', () => {
+        // Arrange
+        const vertices = getTestVerticesSqaureWithoutBody();
+        const vector = { x: 2., y: 2. };
+    
+        // Act
+        const result = Vertices.contains(vertices, vector);
+    
+        // Assert
+        expect(result).toEqual(true);
+  
+    });
+
+    it('should be able to get if a vector is not contained within the valid vertices', () => {
+        // Arrange
+        const vertices = getTestVerticesSqaureWithoutBody();
+        const vector = { x: 200., y: 200. };
+    
+        // Act
+        const result = Vertices.contains(vertices, vector);
+    
+        // Assert
+        expect(result).toEqual(false);
+  
+    });
+
+    it('should not be able to get if an undefined vector is provided', () => {
+        // Arrange
+        const vertices = getTestVerticesSqaureWithoutBody();
+        const vector = undefined;
+    
+        // Act
+        const result = () => Vertices.contains(vertices, vector);
+    
+        // Assert
+        // TODO: This causes a read from undefined. This should probably be fixed.
+        expect(result).toThrow("Cannot read properties of undefined (reading 'x')");
+  
+    });
+
+    it('should not be able to get if undefined vertices are provided', () => {
+        // Arrange
+        const vertices = undefined;
+        const vector = { x: 2., y: 2. };;
+    
+        // Act
+        const result = () => Vertices.contains(vertices, vector);
+    
+        // Assert
+        // TODO: This causes a read from undefined. This should probably be fixed.
+        expect(result).toThrow("Cannot read properties of undefined (reading 'length')");
+  
+    });
+});
