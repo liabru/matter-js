@@ -77,6 +77,98 @@ describe('Vertices.create', () => {
     });
 });
 
+describe('Vertices.fromPath', () => { 
+    it('should be able to create the vertices with valid path', () => {
+        // Arrange
+        const path = "1 2 L 3, 4 L 5 6";
+        const body = Body.create();
+            
+        // Act
+        const result = Vertices.fromPath(path, body);
+    
+        // Assert
+        assertXY(result[0], 1., 2.);
+        assertXY(result[1], 3., 4.);
+        assertXY(result[2], 5., 6.);
+        expect(result.length).toEqual(3);
+        expect(result[0].body.id).toEqual(body.id);
+        expect(result[1].body.id).toEqual(body.id);
+        expect(result[2].body.id).toEqual(body.id);
+        expect(result[0].isInternal).toEqual(false);
+        expect(result[1].isInternal).toEqual(false);
+        expect(result[2].isInternal).toEqual(false);
+        expect(result[0].index).toEqual(0);
+        expect(result[1].index).toEqual(1);
+        expect(result[2].index).toEqual(2);
+
+    });
+  
+    it('should be able to create the vertices with an undefined body', () => {
+        // Arrange
+        const path = "1 2 L 3, 4 L 5 6";
+        const body = undefined;
+            
+        // Act
+        const result = Vertices.fromPath(path, body);
+    
+        // Assert
+        assertXY(result[0], 1., 2.);
+        assertXY(result[1], 3., 4.);
+        assertXY(result[2], 5., 6.);
+        expect(result.length).toEqual(3);
+        expect(result[0].body).toEqual(undefined);
+        expect(result[1].body).toEqual(undefined);
+        expect(result[2].body).toEqual(undefined);
+        expect(result[0].isInternal).toEqual(false);
+        expect(result[1].isInternal).toEqual(false);
+        expect(result[2].isInternal).toEqual(false);
+        expect(result[0].index).toEqual(0);
+        expect(result[1].index).toEqual(1);
+        expect(result[2].index).toEqual(2);
+
+    });
+  
+    it('should (not?) be able to create the vertices with an invalid path', () => {
+        // Arrange
+        const path = "1 2 L123NND L 5 6";
+        const body = Body.create();
+            
+        // Act
+        // TODO: This causes the result to have NaN y on the second Vector. This probaby should be fixed.
+        const result = Vertices.fromPath(path, body);
+    
+        // Assert
+        assertXY(result[0], 1., 2.);
+        assertXY(result[1], 123., NaN);
+        assertXY(result[2], 5., 6.);
+        expect(result.length).toEqual(3);
+        expect(result[0].body.id).toEqual(body.id);
+        expect(result[1].body.id).toEqual(body.id);
+        expect(result[2].body.id).toEqual(body.id);
+        expect(result[0].isInternal).toEqual(false);
+        expect(result[1].isInternal).toEqual(false);
+        expect(result[2].isInternal).toEqual(false);
+        expect(result[0].index).toEqual(0);
+        expect(result[1].index).toEqual(1);
+        expect(result[2].index).toEqual(2);
+
+    });
+    
+    it('should not be able to create the vertices with an undefined path', () => {
+        // Arrange
+        const path = undefined;
+        const body = Body.create();
+            
+        // Act
+        // TODO: This causes a read from undefined. This should probably be fixed.
+        const result = () => Vertices.fromPath(path, body);
+    
+        // Assert
+        expect(result).toThrow("Cannot read properties of undefined (reading 'replace')");
+
+    });
+});
+
 describe('Vertices.rotate', () => { 
     it('should be able to rotate the vertices in place', () => {
       // Arrange
