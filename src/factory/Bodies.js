@@ -46,7 +46,6 @@ var Vector = require('../geometry/Vector');
             var chamfer = options.chamfer;
             rectangle.vertices = Vertices.chamfer(rectangle.vertices, chamfer.radius, 
                 chamfer.quality, chamfer.qualityMin, chamfer.qualityMax);
-            delete options.chamfer;
         }
 
         return Body.create(Common.extend({}, rectangle, options));
