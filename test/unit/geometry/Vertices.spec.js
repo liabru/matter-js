@@ -383,3 +383,61 @@ describe('Vertices.mean', () => {
   
     });
 });
+
+describe('Vertices.inertia', () => { 
+    it('should be able to get the inertia of the valid vertices', () => {
+        // Arrange
+        const vertices = testVerticesSqaureWithoutBody;
+        const mass = 37.3;
+    
+        // Act
+        const result = Vertices.inertia(vertices, mass);
+    
+        // Assert
+        assertFloat(result, 211.36666666666665);
+  
+    });
+
+    it('should be able to get the inertia of the valid vertices with negative mass', () => {
+        // Arrange
+        const vertices = testVerticesSqaureWithoutBody;
+        const mass = -37.3;
+    
+        // Act
+        const result = Vertices.inertia(vertices, mass);
+    
+        // Assert
+        assertFloat(result, -211.36666666666665);
+  
+    });
+
+    it('should not be able to get the inertia of the valid vertices with undefined mass', () => {
+        // Arrange
+        const vertices = testVerticesSqaureWithoutBody;
+        const mass = undefined;
+    
+        // Act
+        const result = Vertices.inertia(vertices, mass);
+    
+        // Assert
+        // TODO: This causes the result to be NaN. This probaby should be fixed.
+        assertFloat(result, NaN);
+  
+    });
+
+
+
+    it('should not be able to get the inertia of undefined vertices', () => {
+        // Arrange
+        const vertices = undefined;
+        const mass = 37.3;
+    
+        // Act
+        const result = () => Vertices.inertia(vertices);
+    
+        // Assert
+        // TODO: This causes a read from undefined. This should probably be fixed.
+        expect(result).toThrow("Cannot read properties of undefined (reading 'length')");
+  
+    });
+});
