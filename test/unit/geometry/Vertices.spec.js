@@ -328,4 +328,31 @@ describe('Vertices.rotate', () => {
         expect(result).toThrow("Cannot read properties of undefined (reading 'length')");
     
       });
-  });
+});
+  
+describe('Vertices.centre', () => { 
+    it('should be able to get the centre of the valid vertices', () => {
+        // Arrange
+        const vertices = testVerticesSqaureWithoutBody;
+    
+        // Act
+        const result = Vertices.centre(vertices);
+    
+        // Assert
+        assertXY(result, 2., 2.);
+  
+    });
+
+    it('should not be able to get the centre of undefined vertices', () => {
+        // Arrange
+        const vertices = undefined;
+    
+        // Act
+        const result = () => Vertices.centre(vertices);
+    
+        // Assert
+        // TODO: This causes a read from undefined. This should probably be fixed.
+        expect(result).toThrow("Cannot read properties of undefined (reading 'length')");
+  
+    });
+});
