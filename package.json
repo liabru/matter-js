@@ -57,6 +57,7 @@
     "test-all": "npm run test-node && npm run test-browser",
     "test-save": "npm run test-node -- --save=true",
     "test-watch": "npm run test-node -- --watch",
+    "test-unit": "jest --testPathPattern=test/unit",
     "changelog": "conventional-changelog -i CHANGELOG.md -s -r",
     "release": "npm version --no-git-tag-version",
     "preversion": "git checkout master && npm run lint && npm run test-all -- --save=true",
