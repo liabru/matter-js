@@ -568,3 +568,91 @@ describe('Vertices.contains', () => {
   
     });
 });
+
+describe('Vertices.scale', () => { 
+    it('should be able to scale valid vertices', () => {
+        // Arrange
+        const vertices = getTestVerticesSqaureWithoutBody();
+        const scaleX = 42.2;
+        const scaleY = 37.3;
+        const point = { x: 93.5, y: 97.8 };
+    
+        // Act
+        const result = Vertices.scale(vertices, scaleX, scaleY, point);
+    
+        // Assert
+        assertXY(result[0], -3810.0000000000005, -3512.8399999999992);
+        assertXY(result[1], -3725.6000000000004, -3512.8399999999992);
+        assertXY(result[2], -3725.6000000000004, -3438.2399999999993);
+        assertXY(result[3], -3810.0000000000005, -3438.2399999999993);
+    });
+
+    it('should be able to scale valid vertices if point is undefined', () => {
+        // Arrange
+        const vertices = getTestVerticesSqaureWithoutBody();
+        const scaleX = 42.2;
+        const scaleY = 37.3;
+        const point = undefined;
+    
+        // Act
+        const result = Vertices.scale(vertices, scaleX, scaleY, point);
+    
+        // Assert
+        assertXY(result[0], -40.2, -35.3);
+        assertXY(result[1], 44.2, -35.3);
+        assertXY(result[2], 44.2, 39.3);
+        assertXY(result[3], -40.2, 39.3);
+    });
+
+    it('should not be able to scale valid vertices if scaleY is undefined', () => {
+        // Arrange
+        const vertices = getTestVerticesSqaureWithoutBody();
+        const scaleX = 42.2;
+        const scaleY = undefined;
+        const point = { x: 93.5, y: 97.8 };
+    
+        // Act
+        const result = Vertices.scale(vertices, scaleX, scaleY, point);
+    
+        // Assert
+        // TODO: This causes a read from undefined. This should probably be fixed.
+        assertXY(result[0], -3810.0000000000005, NaN);
+        assertXY(result[1], -3725.6000000000004, NaN);
+        assertXY(result[2], -3725.6000000000004, NaN);
+        assertXY(result[3], -3810.0000000000005, NaN);
+    });
+
+    it('should not be able to scale valid vertices if scaleX is undefined', () => {
+        // Arrange
+        const vertices = getTestVerticesSqaureWithoutBody();
+        const scaleX = undefined;
+        const scaleY = 37.3;
+        const point = { x: 93.5, y: 97.8 };
+    
+        // Act
+        const result = Vertices.scale(vertices, scaleX, scaleY, point);
+    
+        // Assert
+        // TODO: This causes a read from undefined. This should probably be fixed.
+        assertXY(result[0], NaN, -3512.8399999999992);
+        assertXY(result[1], NaN, -3512.8399999999992);
+        assertXY(result[2], NaN, -3438.2399999999993);
+        assertXY(result[3], NaN, -3438.2399999999993);
+    });
+
+    it('should not be able to scale undefined vertices', () => {
+        // Arrange
+        const vertices = undefined;
+        const scaleX = 42.2;
+        const scaleY = 37.3;
+        const point = { x: 93.5, y: 97.8 };
+    
+        // Act
+        const result = () => Vertices.scale(vertices, scaleX, scaleY, point);
+    
+        // Assert
+        // TODO: This causes a read from undefined. This should probably be fixed.
+        expect(result).toThrow("Cannot read properties of undefined (reading 'length')");
+  
+    });
+});
