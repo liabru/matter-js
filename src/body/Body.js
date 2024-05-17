@@ -878,6 +878,26 @@ var Axes = require('../geometry/Axes');
     */
 
     /**
+    * Fired before a body is going to be removed
+    *
+    * @event beforeRemoved
+    * @this {body} The body that is going to be removed
+    * @param {} event An event object
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
+    * Fired after a body was removed
+    *
+    * @event afterRemoved
+    * @this {body} The body that was removed
+    * @param {} event An event object
+    * @param {} event.source The source object of the event
+    * @param {} event.name The name of the event
+    */
+
+    /**
     * Fired when a body starts sleeping (where `this` is the body).
     *
     * @event sleepStart
