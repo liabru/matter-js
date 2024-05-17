@@ -1,4 +1,4 @@
-const Vector = require("../../src/geometry/Vector")
+const _ = require('lodash');
 
 const testSquare = [
     { x: 1.,  y: 1., },
@@ -150,22 +150,6 @@ const testBodyWithoutParts = {
     parts: [],
 };
 
-const GetTestBodyPartsWithParent = () => {
-    let parts = [];
-    parts.push(testBodyWithoutParts);
-    parts.push(...testBodyPartsWithoutParent);
-    return parts;
-};
-
-const testBodyPartsWithParent = GetTestBodyPartsWithParent();
-
-const GetTestBodyWithParts = () => {
-    const body = testBodyWithoutParts;
-    body.parts.push(...testBodyPartsWithParent);
-    return body;
-};
-
-const testBodyWithParts = GetTestBodyWithParts();
 
 const testVerticesSqaureWithoutBody = [
     { x: 1., y: 1., index: 0, body: undefined, isInternal: false, },
@@ -188,13 +172,52 @@ const testVerticesAreaZeroWithoutBody = [
     { x: 1., y: 3., index: 3, body: undefined, isInternal: false, },
 ];
 
+const getTestSquare = () => {
+    return _.cloneDeep(testSquare);
+}
+
+const getTestBodyPartsWithoutParent = () => {
+    return _.cloneDeep(testBodyPartsWithoutParent);
+}
+
+const getTestBodyWithoutParts = () => {
+    return _cloneDeep(testBodyWithoutParts);
+}
+
+const getTestBodyWithParts = () => {
+    const body = testBodyWithoutParts;
+    body.parts.push(...getTestBodyPartsWithoutParent());
+    return _.cloneDeep(body);
+};
+
+const getTestBodyPartsWithParent = () => {
+    let parts = [];
+    parts.push(testBodyWithoutParts);
+    parts.push(...getTestBodyPartsWithoutParent);
+
+    return _.cloneDeep(parts);
+};
+
+const getTestVerticesSqaureWithoutBody = () => {
+    return _.cloneDeep(testVerticesSqaureWithoutBody);
+};
+
+const getTestVerticesNegAreaWithoutBody = () => {
+    return _.cloneDeep(testVerticesNegAreaWithoutBody);
+}
+
+const getTestVerticesAreaZeroWithoutBody = () => {
+    return _.cloneDeep(testVerticesAreaZeroWithoutBody);
+};
+
+
 module.exports = {
-    testSquare,
-    testVerticesSqaureWithoutBody,
-    testVerticesAreaZeroWithoutBody,
-    testVerticesNegAreaWithoutBody,
-    testBodyPartsWithParent,
-    testBodyPartsWithoutParent,
-    testBodyWithParts,
-    testBodyWithoutParts,
+    getTestSquare,
+    getTestBodyPartsWithoutParent,
+    getTestBodyWithoutParts,
+    getTestBodyWithParts,
+    getTestBodyPartsWithParent,
+    getTestVerticesSqaureWithoutBody,
+    getTestVerticesNegAreaWithoutBody,
+    getTestVerticesAreaZeroWithoutBody,
 };

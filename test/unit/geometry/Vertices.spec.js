@@ -1,13 +1,18 @@
 const {assertFloat, assertXY} = require("../TestUtil");
-const {testSquare, testBodyWithParts, testVerticesSqaureWithoutBody, testVerticesAreaZeroWithoutBody, testVerticesNegAreaWithoutBody} = require("../TestData");
+const {
+    getTestSquare,
+    getTestBodyWithParts,
+    getTestVerticesSqaureWithoutBody,
+    getTestVerticesAreaZeroWithoutBody,
+    getTestVerticesNegAreaWithoutBody } = require("../TestData");
 const Vector = require("../../../src/geometry/Vector");
 const Vertices = require("../../../src/geometry/Vertices");
 
 describe('Vertices.create', () => { 
     it('should be able to create the vertices with valid points and body', () => {
         // Arrange
-        const points = testSquare;
-        const body = testBodyWithParts;
+        const points = getTestSquare();
+        const body = getTestBodyWithParts();
             
         // Act
         const result = Vertices.create(points, body);
@@ -35,7 +40,7 @@ describe('Vertices.create', () => {
 
     it('should be able to create the vertices with valid points and undefined body', () => {
         // Arrange
-        const points = testSquare;
+        const points = getTestSquare();
         const body = undefined;
             
         // Act
@@ -65,7 +70,7 @@ describe('Vertices.create', () => {
     it('should not be able to create the vertices with undefined points and valid body', () => {
         // Arrange
         const points = undefined;
-        const body = testBodyWithParts;
+        const body = getTestBodyWithParts();
             
         // Act
         // TODO: This causes a read from undefined. This should probably be fixed.
@@ -80,7 +85,7 @@ describe('Vertices.fromPath', () => {
     it('should be able to create the vertices with valid path', () => {
         // Arrange
         const path = "1 2 L 3, 4 L 5 6";
-        const body = testBodyWithParts;
+        const body = getTestBodyWithParts();
             
         // Act
         const result = Vertices.fromPath(path, body);
@@ -130,7 +135,7 @@ describe('Vertices.fromPath', () => {
     it('should (not?) be able to create the vertices with an invalid path', () => {
         // Arrange
         const path = "1 2 L123NND L 5 6";
-        const body = testBodyWithParts;
+        const body = getTestBodyWithParts();
             
         // Act
         // TODO: This causes the result to have NaN y on the second Vector. This probaby should be fixed.
@@ -156,7 +161,7 @@ describe('Vertices.fromPath', () => {
     it('should not be able to create the vertices with an undefined path', () => {
         // Arrange
         const path = undefined;
-        const body = testBodyWithParts;
+        const body = getTestBodyWithParts();
             
         // Act
         // TODO: This causes a read from undefined. This should probably be fixed.
@@ -171,7 +176,7 @@ describe('Vertices.fromPath', () => {
 describe('Vertices.area', () => { 
     it('should be able to calulate the area with valid vertices and signed true', () => {
         // Arrange
-        const vertices = testVerticesNegAreaWithoutBody;
+        const vertices = getTestVerticesNegAreaWithoutBody();
         const signed = true;
   
         // Act
@@ -184,7 +189,7 @@ describe('Vertices.area', () => {
 
     it('should be able to calulate the area with valid vertices and signed false', () => {
         // Arrange
-        const vertices = testVerticesNegAreaWithoutBody;
+        const vertices = getTestVerticesNegAreaWithoutBody();
         const signed = false;
   
         // Act
@@ -197,7 +202,7 @@ describe('Vertices.area', () => {
 
     it('should be able to calulate the area with valid vertices and signed undefined', () => {
         // Arrange
-        const vertices = testVerticesNegAreaWithoutBody;
+        const vertices = getTestVerticesNegAreaWithoutBody();
         const signed = undefined;
   
         // Act
@@ -210,7 +215,7 @@ describe('Vertices.area', () => {
 
     it('should be able to calulate the area with valid vertices whose area add up to zero signed true', () => {
         // Arrange
-        const vertices = testVerticesAreaZeroWithoutBody;
+        const vertices = getTestVerticesAreaZeroWithoutBody();
         const signed = true;
   
         // Act
@@ -223,7 +228,7 @@ describe('Vertices.area', () => {
 
     it('should be able to calulate the area with valid vertices whose area add up to zero signed false', () => {
         // Arrange
-        const vertices = testVerticesAreaZeroWithoutBody;
+        const vertices = getTestVerticesAreaZeroWithoutBody();
         const signed = false;
   
         // Act
@@ -252,7 +257,7 @@ describe('Vertices.area', () => {
 describe('Vertices.rotate', () => { 
     it('should be able to rotate the vertices in place', () => {
         // Arrange
-        const points = testVerticesNegAreaWithoutBody;
+        const vertices = getTestVerticesSqaureWithoutBody();
         const angle = 37.;
         const point = Vector.create(42., 42.);
     
@@ -269,7 +274,7 @@ describe('Vertices.rotate', () => {
 
     it('should return undefined when rotating the vertices in place with angle set to zero', () => {
         // Arrange
-        const vertices = testSquare;
+        const vertices = getTestSquare();
         const angle = 0.;
         const point = Vector.create(42., 42.);
     
@@ -283,7 +288,7 @@ describe('Vertices.rotate', () => {
 
     it('should not be able to rotate the vertices in place with an undefined angle', () => {
         // Arrange
-        const vertices = testSquare;
+        const vertices = getTestSquare();
         const angle = undefined;
         const point = Vector.create(42., 42.);
     
@@ -301,7 +306,7 @@ describe('Vertices.rotate', () => {
 
       it('should not be able to rotate the vertices in place with undefined point', () => {
         // Arrange
-        const vertices = testSquare;
+        const vertices = getTestSquare();
         const angle = 37.;
         const point = undefined;
     
@@ -333,7 +338,7 @@ describe('Vertices.rotate', () => {
 describe('Vertices.centre', () => { 
     it('should be able to get the centre of the valid vertices', () => {
         // Arrange
-        const vertices = testVerticesSqaureWithoutBody;
+        const vertices = getTestVerticesSqaureWithoutBody();
     
         // Act
         const result = Vertices.centre(vertices);
@@ -360,7 +365,7 @@ describe('Vertices.centre', () => {
 describe('Vertices.mean', () => { 
     it('should be able to get the mean of the valid vertices', () => {
         // Arrange
-        const vertices = testVerticesSqaureWithoutBody;
+        const vertices = getTestVerticesSqaureWithoutBody();
     
         // Act
         const result = Vertices.mean(vertices);
@@ -387,7 +392,7 @@ describe('Vertices.mean', () => {
 describe('Vertices.inertia', () => { 
     it('should be able to get the inertia of the valid vertices', () => {
         // Arrange
-        const vertices = testVerticesSqaureWithoutBody;
+        const vertices = getTestVerticesSqaureWithoutBody();
         const mass = 37.3;
     
         // Act
@@ -400,7 +405,7 @@ describe('Vertices.inertia', () => {
 
     it('should be able to get the inertia of the valid vertices with negative mass', () => {
         // Arrange
-        const vertices = testVerticesSqaureWithoutBody;
+        const vertices = getTestVerticesSqaureWithoutBody();
         const mass = -37.3;
     
         // Act
@@ -413,7 +418,7 @@ describe('Vertices.inertia', () => {
 
     it('should not be able to get the inertia of the valid vertices with undefined mass', () => {
         // Arrange
-        const vertices = testVerticesSqaureWithoutBody;
+        const vertices = getTestVerticesSqaureWithoutBody();
         const mass = undefined;
     
         // Act
@@ -434,6 +439,72 @@ describe('Vertices.inertia', () => {
     
         // Act
         const result = () => Vertices.inertia(vertices);
+    
+        // Assert
+        // TODO: This causes a read from undefined. This should probably be fixed.
+        expect(result).toThrow("Cannot read properties of undefined (reading 'length')");
+  
+    });
+});
+
+describe('Vertices.translate', () => { 
+    it('should be able to translate valid vertices', () => {
+        // Arrange
+        const vertices = getTestVerticesSqaureWithoutBody();
+        const vector = { x: 42.2, y: 37.3 };
+        const scalar = 97.8;
+    
+        // Act
+        const result = Vertices.translate(vertices, vector, scalar);
+    
+        // Assert
+        assertXY(result[0], 4128.16, 3648.9399999999996);
+        assertXY(result[1], 4130.16, 3648.9399999999996);
+        assertXY(result[2], 4130.16, 3650.9399999999996);
+        assertXY(result[3], 4128.16, 3650.9399999999996);
+  
+    });
+
+    it('should be able to translate valid vertices with undefined scalar', () => {
+        // Arrange
+        const vertices = getTestVerticesSqaureWithoutBody();
+        const vector = { x: 42.2, y: 37.3 };
+        const scalar = undefined;
+    
+        // Act
+        const result = Vertices.translate(vertices, vector, scalar);
+    
+        // Assert
+        assertXY(result[0], 43.2, 38.3);
+        assertXY(result[1], 45.2, 38.3);
+        assertXY(result[2], 45.2, 40.3);
+        assertXY(result[3], 43.2, 40.3);
+  
+    });
+
+    it('should not be able to translate valid vertices with undefined vector', () => {
+        // Arrange
+        const vertices = getTestVerticesSqaureWithoutBody();
+        const vector = undefined;
+        const scalar = undefined;
+    
+        // Act
+        const result = () => Vertices.translate(vertices, vector, scalar);
+    
+        // Assert
+        // TODO: This causes a read from undefined. This should probably be fixed.
+        expect(result).toThrow("Cannot read properties of undefined (reading 'x')");
+  
+    });
+
+    it('should not be able to translate undefined vertices', () => {
+        // Arrange
+        const vertices = undefined;
+        const vector = { x: 42.2, y: 37.3 };
+        const scalar = 97.8;
+    
+        // Act
+        const result = () => Vertices.translate(vertices, vector, scalar);
     
         // Assert
         // TODO: This causes a read from undefined. This should probably be fixed.
