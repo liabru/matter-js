@@ -1,14 +1,13 @@
 const {assertFloat, assertXY} = require("../TestUtil");
-const {TestSquare} = require("../TestData");
+const {testSquare, testBodyWithParts, testVerticesSqaureWithoutBody, testVerticesAreaZeroWithoutBody, testVerticesNegAreaWithoutBody} = require("../TestData");
 const Vector = require("../../../src/geometry/Vector");
 const Vertices = require("../../../src/geometry/Vertices");
-const Body = require("../../../src/body/Body");
 
 describe('Vertices.create', () => { 
     it('should be able to create the vertices with valid points and body', () => {
         // Arrange
-        const points = TestSquare;
-        const body = Body.create();
+        const points = testSquare;
+        const body = testBodyWithParts;
             
         // Act
         const result = Vertices.create(points, body);
@@ -36,7 +35,7 @@ describe('Vertices.create', () => {
 
     it('should be able to create the vertices with valid points and undefined body', () => {
         // Arrange
-        const points = TestSquare;
+        const points = testSquare;
         const body = undefined;
             
         // Act
@@ -66,7 +65,7 @@ describe('Vertices.create', () => {
     it('should not be able to create the vertices with undefined points and valid body', () => {
         // Arrange
         const points = undefined;
-        const body = Body.create();
+        const body = testBodyWithParts;
             
         // Act
         // TODO: This causes a read from undefined. This should probably be fixed.
@@ -81,7 +80,7 @@ describe('Vertices.fromPath', () => {
     it('should be able to create the vertices with valid path', () => {
         // Arrange
         const path = "1 2 L 3, 4 L 5 6";
-        const body = Body.create();
+        const body = testBodyWithParts;
             
         // Act
         const result = Vertices.fromPath(path, body);
@@ -131,7 +130,7 @@ describe('Vertices.fromPath', () => {
     it('should (not?) be able to create the vertices with an invalid path', () => {
         // Arrange
         const path = "1 2 L123NND L 5 6";
-        const body = Body.create();
+        const body = testBodyWithParts;
             
         // Act
         // TODO: This causes the result to have NaN y on the second Vector. This probaby should be fixed.
@@ -157,7 +156,7 @@ describe('Vertices.fromPath', () => {
     it('should not be able to create the vertices with an undefined path', () => {
         // Arrange
         const path = undefined;
-        const body = Body.create();
+        const body = testBodyWithParts;
             
         // Act
         // TODO: This causes a read from undefined. This should probably be fixed.
@@ -169,27 +168,108 @@ describe('Vertices.fromPath', () => {
     });
 });
 
+describe('Vertices.area', () => { 
+    it('should be able to calulate the area with valid vertices and signed true', () => {
+        // Arrange
+        const vertices = testVerticesNegAreaWithoutBody;
+        const signed = true;
+  
+        // Act
+        const result = Vertices.area(vertices, signed);
+    
+        // Assert
+        assertFloat(result, -4.);
+  
+    });
+
+    it('should be able to calulate the area with valid vertices and signed false', () => {
+        // Arrange
+        const vertices = testVerticesNegAreaWithoutBody;
+        const signed = false;
+  
+        // Act
+        const result = Vertices.area(vertices, signed);
+    
+        // Assert
+        assertFloat(result, 4.);
+  
+    });
+
+    it('should be able to calulate the area with valid vertices and signed undefined', () => {
+        // Arrange
+        const vertices = testVerticesNegAreaWithoutBody;
+        const signed = undefined;
+  
+        // Act
+        const result = Vertices.area(vertices, signed);
+    
+        // Assert
+        assertFloat(result, 4.);
+  
+    });
+
+    it('should be able to calulate the area with valid vertices whose area add up to zero signed true', () => {
+        // Arrange
+        const vertices = testVerticesAreaZeroWithoutBody;
+        const signed = true;
+  
+        // Act
+        const result = Vertices.area(vertices, signed);
+    
+        // Assert
+        assertFloat(result, 0.);
+  
+    });
+
+    it('should be able to calulate the area with valid vertices whose area add up to zero signed false', () => {
+        // Arrange
+        const vertices = testVerticesAreaZeroWithoutBody;
+        const signed = false;
+  
+        // Act
+        const result = Vertices.area(vertices, signed);
+    
+        // Assert
+        assertFloat(result, 0.);
+  
+    });
+
+    it('should not be able to calulate the area with undefined vertices and signed true', () => {
+        // Arrange
+        const vertices = undefined;
+        const signed = true;
+  
+        // Act
+        const result = () => Vertices.area(vertices, signed);
+    
+        // Assert
+        // TODO: This causes a read from undefined. This should probably be fixed.
+        expect(result).toThrow("Cannot read properties of undefined (reading 'length')");
+  
+    });
+});
+
 describe('Vertices.rotate', () => { 
     it('should be able to rotate the vertices in place', () => {
-      // Arrange
-      const vertices = TestSquare;
-      const angle = 37.;
-      const point = Vector.create(42., 42.);
-  
-      // Act
-      const result = Vertices.rotate(vertices, angle, point);
-  
-      // Assert
-      assertXY(result[0], -15.767039597396057, 37.0030873378779);
-      assertXY(result[1], -14.236211493505373, 35.716011071163905);
-      assertXY(result[2], -12.94913522679137, 37.24683917505459);
-      assertXY(result[3], -14.479963330682054, 38.533915441768585);
+        // Arrange
+        const points = testVerticesNegAreaWithoutBody;
+        const angle = 37.;
+        const point = Vector.create(42., 42.);
+    
+        // Act
+        const result = Vertices.rotate(vertices, angle, point);
+    
+        // Assert
+        assertXY(result[0], -15.767039597396057, 37.0030873378779);
+        assertXY(result[1], -14.236211493505373, 35.716011071163905);
+        assertXY(result[2], -12.94913522679137, 37.24683917505459);
+        assertXY(result[3], -14.479963330682054, 38.533915441768585);
   
     });
 
     it('should return undefined when rotating the vertices in place with angle set to zero', () => {
         // Arrange
-        const vertices = TestSquare;
+        const vertices = testSquare;
         const angle = 0.;
         const point = Vector.create(42., 42.);
     
@@ -203,7 +283,7 @@ describe('Vertices.rotate', () => {
 
     it('should not be able to rotate the vertices in place with an undefined angle', () => {
         // Arrange
-        const vertices = TestSquare;
+        const vertices = testSquare;
         const angle = undefined;
         const point = Vector.create(42., 42.);
     
@@ -221,7 +301,7 @@ describe('Vertices.rotate', () => {
 
       it('should not be able to rotate the vertices in place with undefined point', () => {
         // Arrange
-        const vertices = TestSquare;
+        const vertices = testSquare;
         const angle = 37.;
         const point = undefined;
     
