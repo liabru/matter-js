@@ -6,11 +6,12 @@ const {
 const Body = require("../../../src/body/Body");
 
 describe('Body.create', () => { 
-    it('should create a body with the correct default properties', () => {
+    it('should create a body with the correct default properties not providing any options', () => {
         // Arrange
-			    
+		let options = undefined;
+		 
         // Act
-		const result = Body.create();
+		const result = Body.create(options);
     
         // Assert
 		assertFloat(result.angle, 0.);
