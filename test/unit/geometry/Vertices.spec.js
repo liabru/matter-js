@@ -876,3 +876,33 @@ describe('Vertices.clockwiseSort', () => {
   
     });
 });
+
+describe('Vertices.hull', () => { 
+    it('should be able to hull valid vertices', () => {
+        // Arrange
+        const vertices = getTestVerticesSqaureWithoutBody();
+    
+        // Act
+        const result = Vertices.hull(vertices);
+    
+        // Assert
+        assertXY(result[0], 3., 3.);
+        assertXY(result[1], 1., 3.);
+        assertXY(result[2], 1., 1.);
+        assertXY(result[3], 3., 1.);
+  
+    });
+
+    it('should not be able to hull undefined vertices', () => {
+        // Arrange
+        const vertices = undefined;
+    
+        // Act
+        const result = () => Vertices.hull(vertices);
+    
+        // Assert
+        // TODO: This causes a read from undefined. This should probably be fixed.
+        expect(result).toThrow("Cannot read properties of undefined (reading 'slice')");
+  
+    });
+});
