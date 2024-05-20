@@ -83,6 +83,56 @@ describe('Bounds.update', () => {
         // TODO: This causes a read from undefined. This should probably be fixed.
         expect(result).toThrow("Cannot read properties of undefined (reading 'min')");
 	});
+});
 
+describe('Bounds.contains', () => { 
+    it('should be able to determine that bounds contains valid vector', () => {
+        // Arrange
+		const bounds = getTestBounds();
+		const vector = Vector.create(100., 150.);
+			    
+        // Act
+        const result = Bounds.contains(bounds, vector);
+    
+        // Assert
+		expect(result).toEqual(true);
+	});
+	
+	it('should be able to determine that bounds does noet contains valid vector', () => {
+        // Arrange
+		const bounds = getTestBounds();
+		const vector = Vector.create(0., 0.);
+			    
+        // Act
+        const result = Bounds.contains(bounds, vector);
+    
+        // Assert
+		expect(result).toEqual(false);
+    });
 
+    it('should not be able to determine that bounds contains undefined vector', () => {
+        // Arrange
+		const bounds = getTestBounds();
+		const vector = undefined;
+			    
+        // Act
+        const result = () => Bounds.contains(bounds, vector);
+    
+        // Assert
+		// TODO: This causes a read from undefined. This should probably be fixed.
+        expect(result).toThrow("Cannot read properties of undefined (reading 'x')");
+	});
+
+	it('should not be able to determine that undefined bounds contains valid vector', () => {
+        // Arrange
+		const bounds = undefined;
+		const vector = Vector.create(100., 150.);
+			    
+        // Act
+        const result = () => Bounds.contains(bounds, vector);
+    
+        // Assert
+		// TODO: This causes a read from undefined. This should probably be fixed.
+        expect(result).toThrow("Cannot read properties of undefined (reading 'min')");
+	});
 });
