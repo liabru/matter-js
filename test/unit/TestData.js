@@ -172,6 +172,11 @@ const testVerticesAreaZeroWithoutBody = [
     { x: 1., y: 3., index: 3, body: undefined, isInternal: false, },
 ];
 
+const testBounds = {
+    min: { x: 100, y: 150, },
+    max: { x: 200, y: 250, },
+};
+
 const getTestSquare = () => {
     return _.cloneDeep(testSquare);
 }
@@ -210,6 +215,10 @@ const getTestVerticesAreaZeroWithoutBody = () => {
     return _.cloneDeep(testVerticesAreaZeroWithoutBody);
 };
 
+const getTestBounds = () => {
+    return _.cloneDeep(testBounds);
+}
+
 
 module.exports = {
     getTestSquare,
@@ -220,4 +229,5 @@ module.exports = {
     getTestVerticesSqaureWithoutBody,
     getTestVerticesNegAreaWithoutBody,
     getTestVerticesAreaZeroWithoutBody,
+    getTestBounds,
 };
