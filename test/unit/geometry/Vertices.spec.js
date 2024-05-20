@@ -906,3 +906,50 @@ describe('Vertices.hull', () => {
   
     });
 });
+
+describe('Vertices.isConvex', () => { 
+    it('should be able to determine if valid vertices are convex', () => {
+        // Arrange
+        const vertices = getTestVerticesSqaureWithoutBody();
+            
+        // Act
+        const result = Vertices.isConvex(vertices);
+    
+        // Assert
+        expect(result).toEqual(true);
+  
+    });
+
+    it('should be able to determine if valid vertices are not convex', () => {
+        // Arrange
+        const vertices = [
+            { x: 1, y: 1, index: 0, body: undefined },
+            { x: 5, y: 1, index: 1, body: undefined },
+            { x: 5, y: 3, index: 2, body: undefined },
+            { x: 4, y: 4, index: 3, body: undefined },
+            { x: 3, y: 3, index: 4, body: undefined },
+            { x: 2, y: 4, index: 5, body: undefined },
+            { x: 1, y: 3, index: 6, body: undefined },
+        ];
+            
+        // Act
+        const result = Vertices.isConvex(vertices);
+    
+        // Assert
+        expect(result).toEqual(false);
+  
+    });
+
+    it('should not be able to determine if undefined vertices are convex', () => {
+        // Arrange
+        const vertices = undefined;
+    
+        // Act
+        const result = () => Vertices.isConvex(vertices);
+    
+        // Assert
+        // TODO: This causes a read from undefined. This should probably be fixed.
+        expect(result).toThrow("Cannot read properties of undefined (reading 'length')");
+  
+    });
+});
