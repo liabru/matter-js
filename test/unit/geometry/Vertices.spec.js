@@ -840,3 +840,39 @@ describe('Vertices.chamfer', () => {
   
     });
 });
+
+describe('Vertices.clockwiseSort', () => { 
+    it('should be able to sort valid vertices', () => {
+        // Arrange
+        const temp = getTestVerticesSqaureWithoutBody();
+        const vertices = [];
+        vertices.push(temp[2]);
+        vertices.push(temp[3]);
+        vertices.push(temp[0]);
+        vertices.push(temp[1]);
+
+    
+        // Act
+        const result = Vertices.clockwiseSort(vertices);
+    
+        // Assert
+        assertXY(result[0], 1., 1.);
+        assertXY(result[1], 3., 1.);
+        assertXY(result[2], 3., 3.);
+        assertXY(result[3], 1., 3.);
+  
+    });
+
+    it('should not be able to sort undefined vertices', () => {
+        // Arrange
+        const vertices = undefined;
+    
+        // Act
+        const result = () => Vertices.clockwiseSort(vertices);
+    
+        // Assert
+        // TODO: This causes a read from undefined. This should probably be fixed.
+        expect(result).toThrow("Cannot read properties of undefined (reading 'length')");
+  
+    });
+});
