@@ -181,3 +181,43 @@ describe('Bounds.overlaps', () => {
 		expect(result).toThrow(/^Cannot read properties of undefined \(reading '.*'\)$/);
 	});
 });
+
+describe('Bounds.translate', () => { 
+    it('should be able to translate bounds with valid vector', () => {
+		// Arrange
+		const bounds = getTestBounds();
+		const vector = Vector.create(4., 1.);
+			    
+        // Act
+        Bounds.translate(bounds, vector);
+    
+        // Assert
+		assertBounds(bounds, 104., 151., 204., 251.);
+	});
+
+	it('should not be able to translate bounds with undefined vector', () => {
+		// Arrange
+		const bounds = getTestBounds();
+		const vector = undefined;
+			    
+        // Act
+        const result = () => Bounds.translate(bounds, vector);
+    
+        // Assert
+		// TODO: This causes a read from undefined. This should probably be fixed.
+        expect(result).toThrow(/^Cannot read properties of undefined \(reading '.*'\)$/);
+	});
+
+	it('should not be able to translate undefined bounds with valid vector', () => {
+		// Arrange
+		const bounds = undefined;
+		const vector = Vector.create(4., 1.);;
+			    
+        // Act
+        const result = () => Bounds.translate(bounds, vector);
+    
+        // Assert
+		// TODO: This causes a read from undefined. This should probably be fixed.
+        expect(result).toThrow(/^Cannot read properties of undefined \(reading '.*'\)$/);
+	});
+});
