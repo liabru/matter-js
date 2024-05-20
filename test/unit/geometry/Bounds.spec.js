@@ -221,3 +221,43 @@ describe('Bounds.translate', () => {
         expect(result).toThrow(/^Cannot read properties of undefined \(reading '.*'\)$/);
 	});
 });
+
+describe('Bounds.shift', () => { 
+    it('should be able to shift bounds with valid vector', () => {
+		// Arrange
+		const bounds = getTestBounds();
+		const vector = Vector.create(4., 1.);
+			    
+        // Act
+        Bounds.shift(bounds, vector);
+    
+        // Assert
+		assertBounds(bounds, 4., 1., 104., 101.);
+	});
+
+	it('should not be able to shift bounds with undefined vector', () => {
+		// Arrange
+		const bounds = getTestBounds();
+		const vector = undefined;
+			    
+        // Act
+        const result = () => Bounds.shift(bounds, vector);
+    
+        // Assert
+		// TODO: This causes a read from undefined. This should probably be fixed.
+        expect(result).toThrow(/^Cannot read properties of undefined \(reading '.*'\)$/);
+	});
+
+	it('should not be able to shift undefined bounds with valid vector', () => {
+		// Arrange
+		const bounds = undefined;
+		const vector = Vector.create(4., 1.);;
+			    
+        // Act
+        const result = () => Bounds.shift(bounds, vector);
+    
+        // Assert
+		// TODO: This causes a read from undefined. This should probably be fixed.
+        expect(result).toThrow(/^Cannot read properties of undefined \(reading '.*'\)$/);
+	});
+}); 
