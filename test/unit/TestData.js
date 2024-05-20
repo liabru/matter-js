@@ -52,7 +52,7 @@ const testBodyPartsWithoutParent  = [
         totalContacts: 258.,
         type: 'body',
         velocity: { x: 259., y: 260., },
-        vertices: [{ x: 261., y: 262., },{ x: 263., y: 264., },],
+        vertices: [{ x: 261, y: 262, }, { x: 263, y: 264, }, { x: 261, y: 265, },],
     },
         {
         isSensor: true,
@@ -98,7 +98,7 @@ const testBodyPartsWithoutParent  = [
         totalContacts: 358.,
         type: 'body',
         velocity: { x: 359., y: 360., },
-        vertices: [{ x: 361., y: 362., },{ x: 363., y: 364., },],
+        vertices: [{ x: 361, y: 362, }, { x: 363, y: 364, }, { x: 361, y: 365, },],
     },
 ];
 
@@ -146,7 +146,7 @@ const testBodyWithoutParts = {
     totalContacts: 158.,
     type: 'body',
     velocity: { x: 159., y: 160., },
-    vertices: [{ x: 161., y: 162., }, { x: 163., y: 164., },],
+    vertices: [{ x: 161, y: 162, }, { x: 163, y: 164, }, { x: 161, y: 165, },],
     parts: [],
 };
 
@@ -186,7 +186,7 @@ const getTestBodyPartsWithoutParent = () => {
 }
 
 const getTestBodyWithoutParts = () => {
-    return _cloneDeep(testBodyWithoutParts);
+    return _.cloneDeep(testBodyWithoutParts);
 }
 
 const getTestBodyWithParts = () => {

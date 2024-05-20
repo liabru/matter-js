@@ -1,5 +1,5 @@
 const assertFloat = (result, expected) => {
-    expect(Math.round(result * 100000)).toEqual(Math.round(expected * 100000));
+    expect(Math.round(result * 100000),'Assert float\n\tExpected: ' + expected + '\n\tReceived: ' + result +'\n\nIn order to test float values, the values have been multiplied by 100000 in official result below.').toEqual(Math.round(expected * 100000));
 }
 
 const assertXY = (result, expectedX, expectedY) => {
