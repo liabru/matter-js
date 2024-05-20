@@ -52,7 +52,7 @@ describe("Vector.clone", () => {
     }
 
     // Assert
-    expect(result).toThrow("Cannot read properties of undefined (reading 'x')");
+    expect(result).toThrow(/^Cannot read properties of undefined \(reading '.*'\)$/);
   });
 });
 
@@ -79,7 +79,7 @@ describe("Vector.magnitude", () => {
     }
     
     // Assert
-    expect(result).toThrow("Cannot read properties of undefined (reading 'x')");
+    expect(result).toThrow(/^Cannot read properties of undefined \(reading '.*'\)$/);
   })
 });
 

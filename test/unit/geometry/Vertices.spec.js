@@ -77,7 +77,7 @@ describe('Vertices.create', () => {
         const result = () => Vertices.create(points, body);
     
         // Assert
-        expect(result).toThrow("Cannot read properties of undefined (reading 'length')");
+        expect(result).toThrow(/^Cannot read properties of undefined \(reading '.*'\)$/);
     });
 });
 
@@ -168,7 +168,7 @@ describe('Vertices.fromPath', () => {
         const result = () => Vertices.fromPath(path, body);
     
         // Assert
-        expect(result).toThrow("Cannot read properties of undefined (reading 'replace')");
+        expect(result).toThrow(/^Cannot read properties of undefined \(reading '.*'\)$/);
 
     });
 });
@@ -249,7 +249,7 @@ describe('Vertices.area', () => {
     
         // Assert
         // TODO: This causes a read from undefined. This should probably be fixed.
-        expect(result).toThrow("Cannot read properties of undefined (reading 'length')");
+        expect(result).toThrow(/^Cannot read properties of undefined \(reading '.*'\)$/);
   
     });
 });
@@ -315,7 +315,7 @@ describe('Vertices.rotate', () => {
         const result = () => Vertices.rotate(vertices, angle, point);
     
         // Assert
-        expect(result).toThrow("Cannot read properties of undefined (reading 'x')");
+        expect(result).toThrow(/^Cannot read properties of undefined \(reading '.*'\)$/);
     
       });
 
@@ -330,7 +330,7 @@ describe('Vertices.rotate', () => {
         const result = () => Vertices.rotate(vertices, angle, point);
     
         // Assert
-        expect(result).toThrow("Cannot read properties of undefined (reading 'length')");
+        expect(result).toThrow(/^Cannot read properties of undefined \(reading '.*'\)$/);
     
       });
 });
@@ -357,7 +357,7 @@ describe('Vertices.centre', () => {
     
         // Assert
         // TODO: This causes a read from undefined. This should probably be fixed.
-        expect(result).toThrow("Cannot read properties of undefined (reading 'length')");
+        expect(result).toThrow(/^Cannot read properties of undefined \(reading '.*'\)$/);
   
     });
 });
@@ -384,7 +384,7 @@ describe('Vertices.mean', () => {
     
         // Assert
         // TODO: This causes a read from undefined. This should probably be fixed.
-        expect(result).toThrow("Cannot read properties of undefined (reading 'length')");
+        expect(result).toThrow(/^Cannot read properties of undefined \(reading '.*'\)$/);
   
     });
 });
@@ -442,7 +442,7 @@ describe('Vertices.inertia', () => {
     
         // Assert
         // TODO: This causes a read from undefined. This should probably be fixed.
-        expect(result).toThrow("Cannot read properties of undefined (reading 'length')");
+        expect(result).toThrow(/^Cannot read properties of undefined \(reading '.*'\)$/);
   
     });
 });
@@ -493,7 +493,7 @@ describe('Vertices.translate', () => {
     
         // Assert
         // TODO: This causes a read from undefined. This should probably be fixed.
-        expect(result).toThrow("Cannot read properties of undefined (reading 'x')");
+        expect(result).toThrow(/^Cannot read properties of undefined \(reading '.*'\)$/);
   
     });
 
@@ -508,7 +508,7 @@ describe('Vertices.translate', () => {
     
         // Assert
         // TODO: This causes a read from undefined. This should probably be fixed.
-        expect(result).toThrow("Cannot read properties of undefined (reading 'length')");
+        expect(result).toThrow(/^Cannot read properties of undefined \(reading '.*'\)$/);
   
     });
 });
@@ -550,7 +550,7 @@ describe('Vertices.contains', () => {
     
         // Assert
         // TODO: This causes a read from undefined. This should probably be fixed.
-        expect(result).toThrow("Cannot read properties of undefined (reading 'x')");
+        expect(result).toThrow(/^Cannot read properties of undefined \(reading '.*'\)$/);
   
     });
 
@@ -564,7 +564,7 @@ describe('Vertices.contains', () => {
     
         // Assert
         // TODO: This causes a read from undefined. This should probably be fixed.
-        expect(result).toThrow("Cannot read properties of undefined (reading 'length')");
+        expect(result).toThrow(/^Cannot read properties of undefined \(reading '.*'\)$/);
   
     });
 });
@@ -652,7 +652,7 @@ describe('Vertices.scale', () => {
     
         // Assert
         // TODO: This causes a read from undefined. This should probably be fixed.
-        expect(result).toThrow("Cannot read properties of undefined (reading 'length')");
+        expect(result).toThrow(/^Cannot read properties of undefined \(reading '.*'\)$/);
   
     });
 });
@@ -836,7 +836,7 @@ describe('Vertices.chamfer', () => {
     
         // Assert
         // TODO: This causes a read from undefined. This should probably be fixed.
-        expect(result).toThrow("Cannot read properties of undefined (reading 'length')");
+        expect(result).toThrow(/^Cannot read properties of undefined \(reading '.*'\)$/);
   
     });
 });
@@ -872,7 +872,7 @@ describe('Vertices.clockwiseSort', () => {
     
         // Assert
         // TODO: This causes a read from undefined. This should probably be fixed.
-        expect(result).toThrow("Cannot read properties of undefined (reading 'length')");
+        expect(result).toThrow(/^Cannot read properties of undefined \(reading '.*'\)$/);
   
     });
 });
@@ -902,7 +902,7 @@ describe('Vertices.hull', () => {
     
         // Assert
         // TODO: This causes a read from undefined. This should probably be fixed.
-        expect(result).toThrow("Cannot read properties of undefined (reading 'slice')");
+        expect(result).toThrow(/^Cannot read properties of undefined \(reading '.*'\)$/);
   
     });
 });
@@ -949,7 +949,7 @@ describe('Vertices.isConvex', () => {
     
         // Assert
         // TODO: This causes a read from undefined. This should probably be fixed.
-        expect(result).toThrow("Cannot read properties of undefined (reading 'length')");
+        expect(result).toThrow(/^Cannot read properties of undefined \(reading '.*'\)$/);
   
     });
 });

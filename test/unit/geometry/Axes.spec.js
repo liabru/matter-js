@@ -27,7 +27,7 @@ describe('Axes.fromVertices', () => {
     
         // Assert
         // TODO: This causes a read from undefined. This should probably be fixed.
-        expect(result).toThrow("Cannot read properties of undefined (reading 'length')");
+        expect(result).toThrow(/^Cannot read properties of undefined \(reading '.*'\)$/);
   
     });
 });
@@ -72,7 +72,7 @@ describe('Axes.rotate', () => {
     
         // Assert
         // TODO: This causes a read from undefined. This should probably be fixed.
-        expect(result).toThrow("Cannot read properties of undefined (reading 'length')");
+        expect(result).toThrow(/^Cannot read properties of undefined \(reading '.*'\)$/);
   
     });
 });

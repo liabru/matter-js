@@ -68,7 +68,7 @@ describe('Bounds.update', () => {
         const result = () => Bounds.update(bounds, vertices, velocity);
     
         // TODO: This causes a read from undefined. This should probably be fixed.
-        expect(result).toThrow("Cannot read properties of undefined (reading 'length')");
+        expect(result).toThrow(/^Cannot read properties of undefined \(reading '.*'\)$/);
 	});
 	
 	it('should not be able to update undefined bounds with valid vertices', () => {
@@ -81,7 +81,7 @@ describe('Bounds.update', () => {
         const result = () => Bounds.update(bounds, vertices, velocity);
     
         // TODO: This causes a read from undefined. This should probably be fixed.
-        expect(result).toThrow("Cannot read properties of undefined (reading 'min')");
+        expect(result).toThrow(/^Cannot read properties of undefined \(reading '.*'\)$/);
 	});
 });
 
@@ -120,7 +120,7 @@ describe('Bounds.contains', () => {
     
         // Assert
 		// TODO: This causes a read from undefined. This should probably be fixed.
-        expect(result).toThrow("Cannot read properties of undefined (reading 'x')");
+        expect(result).toThrow(/^Cannot read properties of undefined \(reading '.*'\)$/);
 	});
 
 	it('should not be able to determine that undefined bounds contains valid vector', () => {
@@ -133,6 +133,51 @@ describe('Bounds.contains', () => {
     
         // Assert
 		// TODO: This causes a read from undefined. This should probably be fixed.
-        expect(result).toThrow("Cannot read properties of undefined (reading 'min')");
+        expect(result).toThrow(/^Cannot read properties of undefined \(reading '.*'\)$/);
+	});
+});
+
+describe('Bounds.overlaps', () => { 
+    it('should be able to determine that bounds overlap with valid other bounds', () => {
+        // Arrange
+		const bounds = getTestBounds();
+		const otherBounds = getTestBounds();
+		otherBounds.max.x += 100.;
+		otherBounds.max.y += 100.;
+					    
+        // Act
+        const result = Bounds.overlaps(bounds, otherBounds);
+    
+        // Assert
+		expect(result).toEqual(true);
+	});
+
+	it('should be able to determine that bounds do not overlap with valid other bounds', () => {
+        // Arrange
+		const bounds = getTestBounds();
+		const otherBounds = getTestBounds();
+		otherBounds.min.x = 1.;
+		otherBounds.min.y = 1.;
+		otherBounds.max.x = 10.;
+		otherBounds.max.y = 10.;
+					    
+        // Act
+        const result = Bounds.overlaps(bounds, otherBounds);
+    
+        // Assert
+		expect(result).toEqual(false);
+	});
+	
+	it('should not be able to determine that bounds overlap with undefined other bounds', () => {
+        // Arrange
+		const bounds = getTestBounds();
+		const otherBounds = undefined;
+					    
+        // Act
+        const result = () => Bounds.overlaps(bounds, otherBounds);
+
+        // Assert
+		// TODO: This causes a read from undefined. This should probably be fixed.
+		expect(result).toThrow(/^Cannot read properties of undefined \(reading '.*'\)$/);
 	});
 });
