@@ -633,5 +633,52 @@ describe('Body.setStatic', () => {
 		// TODO: This causes a read from undefined. This should probably be fixed.
         expect(result).toThrow(/^Cannot read properties of undefined \(reading '.*'\)$/);
 	});
+});
 
+describe('Body.setMass', () => {
+	it('should be able to set the mass on a default body', () => {
+		// Arrange
+		const body = getTestBodyWithPartsWithParent();
+		const mass = 42.1;
+
+		// Act
+		Body.setMass(body, mass);
+
+		// Assert
+		assertFloat(body.mass, 42.1);
+		assertFloat(body.inverseMass, 0.023752969121140142);
+		assertFloat(body.inertia, 41.17132352941176);
+		assertFloat(body.inverseInertia, 0.02428875037951173);
+		assertFloat(body.density, 0.40095238095238095);
+	});
+
+	it('should be not able to set an undefined mass on a default body', () => {
+		// Arrange
+		const body = getTestBodyWithPartsWithParent();
+		const mass = undefined;
+
+		// Act
+		Body.setMass(body, mass);
+
+		// Assert
+		// TODO: This causes the result to have undefined and NaN properties. This should probably be fixed.
+		expect(body.mass).toEqual(undefined);
+		expect(body.inverseMass).toEqual(NaN);
+		expect(body.inertia).toEqual(NaN);
+		expect(body.inverseInertia).toEqual(NaN);
+		expect(body.density).toEqual(NaN);
+	});
+
+	it('should be not able to set an mass on an undefined body', () => {
+		// Arrange
+		const body = undefined;
+		const mass = 42.1;
+
+		// Act
+		let result = () => Body.setMass(body, mass);
+
+		// Assert
+		// TODO: This causes a read from undefined. This should probably be fixed.
+        expect(result).toThrow(/^Cannot read properties of undefined \(reading '.*'\)$/);
+	});
 });
