@@ -1,7 +1,8 @@
 const {assertFloat, assertXY, assertBounds} = require("../TestUtil");
 const {
 	getTestBodyWithoutParts,
-	getTestBodyPartsWithoutParent
+	getTestBodyPartsWithoutParent,
+	getTestBodyWithPartsWithParent,
 	} = require("../TestData");
 const Body = require("../../../src/body/Body");
 
@@ -347,4 +348,290 @@ describe('Body.nextCategory', () => {
 			expect(Body._nextCategory).toEqual(-2147483648);
 		});
 	});
+});
+
+describe('Body.setStatic', () => {
+	it('should be able to set a default body to static when all parts are not static yet', () => {
+		// Arrange
+		let body = getTestBodyWithPartsWithParent();
+		body.parts[0].isStatic = false;
+		body.parts[1].isStatic = false;
+		body.parts[2].isStatic = false;
+		const isStatic = true;
+
+		// Act 
+		Body.setStatic(body, isStatic);
+
+		// Assert
+		let part = body.parts[0];
+		assertFloat(part.restitution, 0.);
+		assertFloat(part.friction, 1.);
+		assertFloat(part.mass, Infinity);
+		assertFloat(part.inertia, Infinity);
+		assertFloat(part.density, Infinity);
+		assertFloat(part.inverseMass, 0.);
+		assertXY(part.position, 139., 140.);
+		assertFloat(part.anglePrev, 101.);
+		assertFloat(part.angularVelocity, 0.);
+		assertFloat(part.speed, 0.);
+		assertFloat(part.angularSpeed, 0.);
+		assertFloat(part.motion, 0.);
+		assertFloat(part._original.restitution, 152.);
+		assertFloat(part._original.friction, 129.);
+		assertFloat(part._original.mass, 136.);
+		assertFloat(part._original.inertia, 133.);
+		assertFloat(part._original.inverseInertia, 134.);
+		assertFloat(part._original.inverseMass, 135.);
+		assertFloat(part._original.density, 126);
+  
+		part = body.parts[1];
+		assertFloat(part.restitution, 0.);
+		assertFloat(part.friction, 1.);
+		assertFloat(part.mass, Infinity);
+		assertFloat(part.inertia, Infinity);
+		assertFloat(part.density, Infinity);
+		assertFloat(part.inverseMass, 0.);
+		assertXY(part.position, 239., 240.);
+		assertFloat(part.anglePrev, 201.);
+		assertFloat(part.angularVelocity, 0.);
+		assertFloat(part.speed, 0.);
+		assertFloat(part.angularSpeed, 0.);
+		assertFloat(part.motion, 0.);
+		assertFloat(part._original.restitution, 252.);
+		assertFloat(part._original.friction, 229.);
+		assertFloat(part._original.mass, 236.);
+		assertFloat(part._original.inertia, 233.);
+		assertFloat(part._original.inverseInertia, 234.);
+		assertFloat(part._original.inverseMass, 235.);
+		assertFloat(part._original.density, 226);
+    
+		part = body.parts[2];
+		assertFloat(part.restitution, 0.);
+		assertFloat(part.friction, 1.);
+		assertFloat(part.mass, Infinity);
+		assertFloat(part.inertia, Infinity);
+		assertFloat(part.density, Infinity);
+		assertFloat(part.inverseMass, 0.);
+		assertXY(part.position, 339., 340.);
+		assertFloat(part.anglePrev, 301.);
+		assertFloat(part.angularVelocity, 0.);
+		assertFloat(part.speed, 0.);
+		assertFloat(part.angularSpeed, 0.);
+		assertFloat(part.motion, 0.);
+		assertFloat(part._original.restitution, 352.);
+		assertFloat(part._original.friction, 329.);
+		assertFloat(part._original.mass, 336.);
+		assertFloat(part._original.inertia, 333.);
+		assertFloat(part._original.inverseInertia, 334.);
+		assertFloat(part._original.inverseMass, 335.);
+		assertFloat(part._original.density, 326);
+	});
+
+	it('should be able to set a default body back from static without an _original', () => {
+		// Arrange
+		let body = getTestBodyWithPartsWithParent();
+		let body2 = getTestBodyWithPartsWithParent();
+		body.parts[0].isStatic = true;
+		body.parts[1].isStatic = true;
+		body.parts[2].isStatic = true;
+
+		const isStatic = false;
+
+		// Act 
+		Body.setStatic(body, isStatic);
+
+		// Assert
+		let part = body.parts[0];
+		let part2 = body2.parts[0];
+		assertFloat(part.restitution, part2.restitution);
+		assertFloat(part.friction, part2.friction);
+		assertFloat(part.mass, part2.mass);
+		assertFloat(part.inertia, part2.inertia);
+		assertFloat(part.density, part2.density);
+		assertFloat(part.inverseMass, part2.inverseMass);
+		assertXY(part.position, part2.position.x, part2.position.y);
+		assertFloat(part.anglePrev, part2.anglePrev);
+		assertFloat(part.angularVelocity, part2.angularVelocity);
+		assertFloat(part.speed, part2.speed);
+		assertFloat(part.angularSpeed, part2.angularSpeed);
+		assertFloat(part.motion, part2.motion);
+		expect(part.isStatic).toEqual(false);
+		
+  
+		part = body.parts[1];
+		part2 = body2.parts[1];
+		assertFloat(part.restitution, part2.restitution);
+		assertFloat(part.friction, part2.friction);
+		assertFloat(part.mass, part2.mass);
+		assertFloat(part.inertia, part2.inertia);
+		assertFloat(part.density, part2.density);
+		assertFloat(part.inverseMass, part2.inverseMass);
+		assertXY(part.position, part2.position.x, part2.position.y);
+		assertFloat(part.anglePrev, part2.anglePrev);
+		assertFloat(part.angularVelocity, part2.angularVelocity);
+		assertFloat(part.speed, part2.speed);
+		assertFloat(part.angularSpeed, part2.angularSpeed);
+		assertFloat(part.motion, part2.motion);
+		expect(part.isStatic).toEqual(false);
+    
+		part = body.parts[2];
+		part2 = body2.parts[2];
+		assertFloat(part.restitution, part2.restitution);
+		assertFloat(part.friction, part2.friction);
+		assertFloat(part.mass, part2.mass);
+		assertFloat(part.inertia, part2.inertia);
+		assertFloat(part.density, part2.density);
+		assertFloat(part.inverseMass, part2.inverseMass);
+		assertXY(part.position, part2.position.x, part2.position.y);
+		assertFloat(part.anglePrev, part2.anglePrev);
+		assertFloat(part.angularVelocity, part2.angularVelocity);
+		assertFloat(part.speed, part2.speed);
+		assertFloat(part.angularSpeed, part2.angularSpeed);
+		assertFloat(part.motion, part2.motion);
+		expect(part.isStatic).toEqual(false);
+	});
+
+	it('should be able to set a default body back from static without an _original with undefined isStatic', () => {
+		// Arrange
+		let body = getTestBodyWithPartsWithParent();
+		let body2 = getTestBodyWithPartsWithParent();
+		body.parts[0].isStatic = true;
+		body.parts[1].isStatic = true;
+		body.parts[2].isStatic = true;
+
+		const isStatic = undefined;
+
+		// Act 
+		Body.setStatic(body, isStatic);
+
+		// Assert
+		let part = body.parts[0];
+		let part2 = body2.parts[0];
+		assertFloat(part.restitution, part2.restitution);
+		assertFloat(part.friction, part2.friction);
+		assertFloat(part.mass, part2.mass);
+		assertFloat(part.inertia, part2.inertia);
+		assertFloat(part.density, part2.density);
+		assertFloat(part.inverseMass, part2.inverseMass);
+		assertXY(part.position, part2.position.x, part2.position.y);
+		assertFloat(part.anglePrev, part2.anglePrev);
+		assertFloat(part.angularVelocity, part2.angularVelocity);
+		assertFloat(part.speed, part2.speed);
+		assertFloat(part.angularSpeed, part2.angularSpeed);
+		assertFloat(part.motion, part2.motion);
+		expect(part.isStatic).toEqual(undefined);
+		
+  
+		part = body.parts[1];
+		part2 = body2.parts[1];
+		assertFloat(part.restitution, part2.restitution);
+		assertFloat(part.friction, part2.friction);
+		assertFloat(part.mass, part2.mass);
+		assertFloat(part.inertia, part2.inertia);
+		assertFloat(part.density, part2.density);
+		assertFloat(part.inverseMass, part2.inverseMass);
+		assertXY(part.position, part2.position.x, part2.position.y);
+		assertFloat(part.anglePrev, part2.anglePrev);
+		assertFloat(part.angularVelocity, part2.angularVelocity);
+		assertFloat(part.speed, part2.speed);
+		assertFloat(part.angularSpeed, part2.angularSpeed);
+		assertFloat(part.motion, part2.motion);
+		expect(part.isStatic).toEqual(undefined);
+    
+		part = body.parts[2];
+		part2 = body2.parts[2];
+		assertFloat(part.restitution, part2.restitution);
+		assertFloat(part.friction, part2.friction);
+		assertFloat(part.mass, part2.mass);
+		assertFloat(part.inertia, part2.inertia);
+		assertFloat(part.density, part2.density);
+		assertFloat(part.inverseMass, part2.inverseMass);
+		assertXY(part.position, part2.position.x, part2.position.y);
+		assertFloat(part.anglePrev, part2.anglePrev);
+		assertFloat(part.angularVelocity, part2.angularVelocity);
+		assertFloat(part.speed, part2.speed);
+		assertFloat(part.angularSpeed, part2.angularSpeed);
+		assertFloat(part.motion, part2.motion);
+		expect(part.isStatic).toEqual(undefined);
+	});
+
+
+	it('should be able to set a default body back from static without an _original', () => {
+		// Arrange
+		let body = getTestBodyWithPartsWithParent();
+		let body2 = getTestBodyWithPartsWithParent();
+		body.parts[0].isStatic = true;
+		body.parts[1].isStatic = true;
+		body.parts[2].isStatic = true;
+
+		const isStatic = false;
+
+		// Act 
+		Body.setStatic(body, isStatic);
+
+		// Assert
+		// TODO: body.isStatic becomes undefined this way. Maybe this is undesired?	
+		let part = body.parts[0];
+		let part2 = body2.parts[0];
+		assertFloat(part.restitution, part2.restitution);
+		assertFloat(part.friction, part2.friction);
+		assertFloat(part.mass, part2.mass);
+		assertFloat(part.inertia, part2.inertia);
+		assertFloat(part.density, part2.density);
+		assertFloat(part.inverseMass, part2.inverseMass);
+		assertXY(part.position, part2.position.x, part2.position.y);
+		assertFloat(part.anglePrev, part2.anglePrev);
+		assertFloat(part.angularVelocity, part2.angularVelocity);
+		assertFloat(part.speed, part2.speed);
+		assertFloat(part.angularSpeed, part2.angularSpeed);
+		assertFloat(part.motion, part2.motion);
+		expect(part.isStatic).toEqual(false);
+		
+  
+		part = body.parts[1];
+		part2 = body2.parts[1];
+		assertFloat(part.restitution, part2.restitution);
+		assertFloat(part.friction, part2.friction);
+		assertFloat(part.mass, part2.mass);
+		assertFloat(part.inertia, part2.inertia);
+		assertFloat(part.density, part2.density);
+		assertFloat(part.inverseMass, part2.inverseMass);
+		assertXY(part.position, part2.position.x, part2.position.y);
+		assertFloat(part.anglePrev, part2.anglePrev);
+		assertFloat(part.angularVelocity, part2.angularVelocity);
+		assertFloat(part.speed, part2.speed);
+		assertFloat(part.angularSpeed, part2.angularSpeed);
+		assertFloat(part.motion, part2.motion);
+		expect(part.isStatic).toEqual(false);
+    
+		part = body.parts[2];
+		part2 = body2.parts[2];
+		assertFloat(part.restitution, part2.restitution);
+		assertFloat(part.friction, part2.friction);
+		assertFloat(part.mass, part2.mass);
+		assertFloat(part.inertia, part2.inertia);
+		assertFloat(part.density, part2.density);
+		assertFloat(part.inverseMass, part2.inverseMass);
+		assertXY(part.position, part2.position.x, part2.position.y);
+		assertFloat(part.anglePrev, part2.anglePrev);
+		assertFloat(part.angularVelocity, part2.angularVelocity);
+		assertFloat(part.speed, part2.speed);
+		assertFloat(part.angularSpeed, part2.angularSpeed);
+		assertFloat(part.motion, part2.motion);
+		expect(part.isStatic).toEqual(false);
+	});
+
+	it('should be not able to set a undefined body', () => {
+		// Arrange
+		let body = undefined;
+		const isStatic = true;
+
+		// Act 
+		let result = () => Body.setStatic(body, isStatic);
+
+		// Assert
+		// TODO: This causes a read from undefined. This should probably be fixed.
+        expect(result).toThrow(/^Cannot read properties of undefined \(reading '.*'\)$/);
+	});
+
 });

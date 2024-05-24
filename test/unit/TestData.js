@@ -189,18 +189,18 @@ const getTestBodyWithoutParts = () => {
     return _.cloneDeep(testBodyWithoutParts);
 }
 
-const getTestBodyWithParts = () => {
+const getTestBodyWithPartsWithoutParent = () => {
     const body = testBodyWithoutParts;
     body.parts.push(...getTestBodyPartsWithoutParent());
     return _.cloneDeep(body);
 };
 
-const getTestBodyPartsWithParent = () => {
-    let parts = [];
-    parts.push(testBodyWithoutParts);
-    parts.push(...getTestBodyPartsWithoutParent);
+const getTestBodyWithPartsWithParent = () => {
+    const body = testBodyWithoutParts;
+    body.parts.push(body);
+    body.parts.push(...getTestBodyPartsWithoutParent());
 
-    return _.cloneDeep(parts);
+    return _.cloneDeep(body);
 };
 
 const getTestVerticesSqaureWithoutBody = () => {
@@ -224,8 +224,8 @@ module.exports = {
     getTestSquare,
     getTestBodyPartsWithoutParent,
     getTestBodyWithoutParts,
-    getTestBodyWithParts,
-    getTestBodyPartsWithParent,
+    getTestBodyWithPartsWithoutParent,
+    getTestBodyWithPartsWithParent,
     getTestVerticesSqaureWithoutBody,
     getTestVerticesNegAreaWithoutBody,
     getTestVerticesAreaZeroWithoutBody,

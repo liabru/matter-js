@@ -1,7 +1,7 @@
 const {assertFloat, assertXY} = require("../TestUtil");
 const {
     getTestSquare,
-    getTestBodyWithParts,
+    getTestBodyWithPartsWithoutParent,
     getTestVerticesSqaureWithoutBody,
     getTestVerticesAreaZeroWithoutBody,
     getTestVerticesNegAreaWithoutBody } = require("../TestData");
@@ -12,7 +12,7 @@ describe('Vertices.create', () => {
     it('should be able to create the vertices with valid points and body', () => {
         // Arrange
         const points = getTestSquare();
-        const body = getTestBodyWithParts();
+        const body = getTestBodyWithPartsWithoutParent();
             
         // Act
         const result = Vertices.create(points, body);
@@ -70,7 +70,7 @@ describe('Vertices.create', () => {
     it('should not be able to create the vertices with undefined points and valid body', () => {
         // Arrange
         const points = undefined;
-        const body = getTestBodyWithParts();
+        const body = getTestBodyWithPartsWithoutParent();
             
         // Act
         // TODO: This causes a read from undefined. This should probably be fixed.
@@ -85,7 +85,7 @@ describe('Vertices.fromPath', () => {
     it('should be able to create the vertices with valid path', () => {
         // Arrange
         const path = "1 2 L 3, 4 L 5 6";
-        const body = getTestBodyWithParts();
+        const body = getTestBodyWithPartsWithoutParent();
             
         // Act
         const result = Vertices.fromPath(path, body);
@@ -135,7 +135,7 @@ describe('Vertices.fromPath', () => {
     it('should (not?) be able to create the vertices with an invalid path', () => {
         // Arrange
         const path = "1 2 L123NND L 5 6";
-        const body = getTestBodyWithParts();
+        const body = getTestBodyWithPartsWithoutParent();
             
         // Act
         // TODO: This causes the result to have NaN y on the second Vector. This probaby should be fixed.
@@ -161,7 +161,7 @@ describe('Vertices.fromPath', () => {
     it('should not be able to create the vertices with an undefined path', () => {
         // Arrange
         const path = undefined;
-        const body = getTestBodyWithParts();
+        const body = getTestBodyWithPartsWithoutParent();
             
         // Act
         // TODO: This causes a read from undefined. This should probably be fixed.
