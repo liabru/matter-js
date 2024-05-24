@@ -299,10 +299,10 @@ describe('Body.nextCategory', () => {
 		});
 	});
 
-	it('should be able to calculate and set the valid next category maximum times', () => {
+	it('should not be able to calculate and set the valid next category past maximum times', () => {
 		jest.isolateModules(() => {
 			// Arrange
-			const Body = require("../../../src/body/Body");
+			const Body = require("../../../src/body/Body"); 
 		 
 			// Act
 			let result = Body.nextCategory();
