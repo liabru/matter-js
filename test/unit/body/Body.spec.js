@@ -237,3 +237,114 @@ describe('Body.nextGroup', () => {
 		});
 	});
 });
+
+describe('Body.nextCategory', () => {
+	it('should calculate and set the valid next category', () => {
+		jest.isolateModules(() => {
+			// Arrange
+			const Body = require("../../../src/body/Body");
+		 
+			// Act
+			const result = Body.nextCategory();
+		    
+			// Assert
+			expect(result).toEqual(2);
+			expect(Body._nextCategory).toEqual(2);
+		});
+	});
+
+	it('should be able to calculate and set the valid next category maximum times', () => {
+		jest.isolateModules(() => {
+			// Arrange
+			const Body = require("../../../src/body/Body");
+		 
+			// Act
+			let result = Body.nextCategory();
+			result = Body.nextCategory();
+			result = Body.nextCategory();
+			result = Body.nextCategory();
+			result = Body.nextCategory();
+			result = Body.nextCategory();
+			result = Body.nextCategory();
+			result = Body.nextCategory();
+			result = Body.nextCategory();
+
+			result = Body.nextCategory();
+			result = Body.nextCategory();
+			result = Body.nextCategory();
+			result = Body.nextCategory();
+			result = Body.nextCategory();
+			result = Body.nextCategory();
+			result = Body.nextCategory();
+			result = Body.nextCategory();
+			result = Body.nextCategory();
+			result = Body.nextCategory();
+
+			result = Body.nextCategory();
+			result = Body.nextCategory();
+			result = Body.nextCategory();
+			result = Body.nextCategory();
+			result = Body.nextCategory();
+			result = Body.nextCategory();
+			result = Body.nextCategory();
+			result = Body.nextCategory();
+			result = Body.nextCategory();
+			result = Body.nextCategory();
+
+			result = Body.nextCategory();
+					    
+			// Assert
+			expect(result).toEqual(1073741824);
+			expect(Body._nextCategory).toEqual(1073741824);
+		});
+	});
+
+	it('should be able to calculate and set the valid next category maximum times', () => {
+		jest.isolateModules(() => {
+			// Arrange
+			const Body = require("../../../src/body/Body");
+		 
+			// Act
+			let result = Body.nextCategory();
+			result = Body.nextCategory();
+			result = Body.nextCategory();
+			result = Body.nextCategory();
+			result = Body.nextCategory();
+			result = Body.nextCategory();
+			result = Body.nextCategory();
+			result = Body.nextCategory();
+			result = Body.nextCategory();
+
+			result = Body.nextCategory();
+			result = Body.nextCategory();
+			result = Body.nextCategory();
+			result = Body.nextCategory();
+			result = Body.nextCategory();
+			result = Body.nextCategory();
+			result = Body.nextCategory();
+			result = Body.nextCategory();
+			result = Body.nextCategory();
+			result = Body.nextCategory();
+
+			result = Body.nextCategory();
+			result = Body.nextCategory();
+			result = Body.nextCategory();
+			result = Body.nextCategory();
+			result = Body.nextCategory();
+			result = Body.nextCategory();
+			result = Body.nextCategory();
+			result = Body.nextCategory();
+			result = Body.nextCategory();
+			result = Body.nextCategory();
+
+			result = Body.nextCategory();
+
+			result = Body.nextCategory();
+					    
+			// Assert
+			// TODO: This should probably result in an error.			
+			expect(result).toEqual(-2147483648);
+			expect(Body._nextCategory).toEqual(-2147483648);
+		});
+	});
+});
