@@ -151,3 +151,89 @@ describe('Body.create', () => {
 		assertXY(result.vertices[3], 342.28094012193526, 437.0721468056014);
     });
 });
+
+describe('Body.nextGroup', () => {
+	it('should calculate and set the valid next group id if colliding', () => {
+		jest.isolateModules(() => {
+			// Arrange
+			const Body = require("../../../src/body/Body");
+			const isNonColliding = false;
+		 
+			// Act
+			const result = Body.nextGroup(isNonColliding);
+		    
+			// Assert
+			expect(result).toEqual(1);
+			expect(Body._nextCollidingGroupId).toEqual(2);
+			expect(Body._nextNonCollidingGroupId).toEqual(-1);
+		});
+	});
+
+	it('should calculate and set the valid next group id three times if colliding', () => {
+		jest.isolateModules(() => {
+			// Arrange
+			const Body = require("../../../src/body/Body");
+			const isNonColliding = false;
+		 
+			// Act
+			let result = Body.nextGroup(isNonColliding);
+			result = Body.nextGroup(isNonColliding);
+			result = Body.nextGroup(isNonColliding);
+		    
+			// Assert
+			expect(result).toEqual(3);
+			expect(Body._nextCollidingGroupId).toEqual(4);
+			expect(Body._nextNonCollidingGroupId).toEqual(-1);
+		});
+	});
+
+	it('should calculate and set the valid next group id if colliding is undefined', () => {
+		jest.isolateModules(() => {
+			// Arrange
+			const Body = require("../../../src/body/Body");
+			const isNonColliding = undefined;
+		 
+			// Act
+			const result = Body.nextGroup(isNonColliding);
+		    
+			// Assert
+			expect(result).toEqual(1);
+			expect(Body._nextCollidingGroupId).toEqual(2);
+			expect(Body._nextNonCollidingGroupId).toEqual(-1);
+		});
+	});
+
+	it('should calculate and set the valid next group id if non colliding', () => {
+		jest.isolateModules(() => {
+			// Arrange
+			const Body = require("../../../src/body/Body");
+			const isNonColliding = true;
+		 
+			// Act
+			const result = Body.nextGroup(isNonColliding);
+		    
+			// Assert
+			expect(result).toEqual(-1);
+			expect(Body._nextCollidingGroupId).toEqual(1);
+			expect(Body._nextNonCollidingGroupId).toEqual(-2);
+		});
+	});
+
+	it('should calculate and set the valid next group id three times if colliding', () => {
+		jest.isolateModules(() => {
+			// Arrange
+			const Body = require("../../../src/body/Body");
+			const isNonColliding = true;
+		 
+			// Act
+			let result = Body.nextGroup(isNonColliding);
+			result = Body.nextGroup(isNonColliding);
+			result = Body.nextGroup(isNonColliding);
+		    
+			// Assert
+			expect(result).toEqual(-3);
+			expect(Body._nextCollidingGroupId).toEqual(1);
+			expect(Body._nextNonCollidingGroupId).toEqual(-4);
+		});
+	});
+});
