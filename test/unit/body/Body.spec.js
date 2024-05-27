@@ -1,8 +1,9 @@
-const {assertFloat, assertXY, assertBounds} = require("../TestUtil");
+const {assertFloat, assertXY, assertBounds, assertVertex} = require("../TestUtil");
 const {
 	getTestBodyWithoutParts,
 	getTestBodyPartsWithoutParent,
 	getTestBodyWithPartsWithParent,
+	getTestSquare,
 	} = require("../TestData");
 const Body = require("../../../src/body/Body");
 
@@ -774,5 +775,62 @@ describe("Body.setInertia()", () => {
 		// Assert
 		// TODO: This causes a read or set from undefined. This should probably be fixed.
         expect(result).toThrow(/^Cannot .* properties of undefined \(.* '.*'\)$/);
+	});
+});
+
+describe('Body.setVertices', () => {
+	it('should mutate the body to contain valid values', () => {
+		// Arrange     
+		const vertices = getTestSquare();
+		const body = getTestBodyWithPartsWithParent();
+
+		// Act
+		Body.setVertices(body, vertices)
+
+		// Assert
+		assertFloat(body.area, 4.0);
+		assertXY(body.axes[0], 0.0, 1.0);
+		assertXY(body.axes[1], -1.0, 0.0);
+		assertBounds(body.bounds, 138., 139., 299., 301.);
+		assertFloat(body.density, 126.);
+		assertFloat(body.inertia, 1344.);
+		assertFloat(body.inverseInertia, 0.000744047619047619);
+		assertFloat(body.inverseMass, 0.001984126984126984);
+		assertFloat(body.mass, 504.);
+		assertXY(body.position, 139., 140.);
+		assertXY(body.velocity, 159., 160.);
+		assertVertex(body.vertices[0], body.id, 138., 139., 0, false);
+		assertVertex(body.vertices[1], body.id, 140., 139., 1, false);
+		assertVertex(body.vertices[2], body.id, 140., 141., 2, false);
+		assertVertex(body.vertices[3], body.id, 138., 141., 3, false);
+    
+	});
+
+	it('should not be able mutate the body to contain valid values with undefined vertices', () => {
+		// Arrange     
+		const vertices = undefined;
+		const body = getTestBodyWithPartsWithParent();
+
+		// Act
+		let result = () => Body.setVertices(body, vertices)
+
+		// Assert
+		// TODO: This causes a read or set from undefined. This should probably be fixed.
+        expect(result).toThrow(/^Cannot .* properties of undefined \(.* '.*'\)$/);
+    
+	});
+
+	it('should not be able mutate the body to contain valid values on undefined body', () => {
+		// Arrange     
+		const vertices = getTestSquare();
+		const body = undefined;
+
+		// Act
+		let result = () => Body.setVertices(body, vertices)
+
+		// Assert
+		// TODO: This causes a read or set from undefined. This should probably be fixed.
+        expect(result).toThrow(/^Cannot .* properties of undefined \(.* '.*'\)$/);
+    
 	});
 });
