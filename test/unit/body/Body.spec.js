@@ -682,3 +682,51 @@ describe('Body.setMass', () => {
         expect(result).toThrow(/^Cannot read properties of undefined \(reading '.*'\)$/);
 	});
 });
+
+describe('Body.setDensity', () => {
+	it('should be able to set the density on a default body', () => {
+		// Arrange
+		const body = getTestBodyWithPartsWithParent();
+		const density = 42.1;
+
+		// Act
+		Body.setDensity(body, density);
+
+		// Assert
+		assertFloat(body.mass, 4420.5);
+		assertFloat(body.inverseMass, 0.00022621875353466802);
+		assertFloat(body.inertia, 4322.988970588235);
+		assertFloat(body.inverseInertia, 0.00023132143218582596);
+		assertFloat(body.density, 42.1);
+	});
+
+	it('should not be able to set the density on a default body with undefined density', () => {
+		// Arrange
+		const body = getTestBodyWithPartsWithParent();
+		const density = undefined;
+
+		// Act
+		Body.setDensity(body, density);
+
+		// Assert
+		// TODO: This causes the result to have undefined and NaN properties. This should probably be fixed.
+		expect(body.mass).toEqual(NaN);
+		expect(body.inverseMass).toEqual(NaN);
+		expect(body.inertia).toEqual(NaN);
+		expect(body.inverseInertia).toEqual(NaN);
+		expect(body.density).toEqual(undefined);
+	});
+
+	it('should not be able to set the density on an undefined body', () => {
+		// Arrange
+		const body = undefined;
+		const density = 42.1;
+
+		// Act
+		let result = () => Body.setDensity(body, density);
+
+		// Assert
+		// TODO: This causes a read from undefined. This should probably be fixed.
+        expect(result).toThrow(/^Cannot read properties of undefined \(reading '.*'\)$/);
+	});
+});
