@@ -1030,3 +1030,75 @@ describe('Body.setParts', () => {
         expect(result).toThrow(/^Cannot .* properties of undefined \(.* '.*'\)$/);
 	});
 });
+
+describe('Body.setCentre', () => {
+	it('should be able to set the centre on a default body, not relative', () => {
+		// Arrange
+		const body = getTestBodyWithPartsWithParent();
+		const centre = { x: 42., y: 43. };
+		const relative = false;
+
+		// Act 
+		Body.setCentre(body, centre, relative);
+
+		// Assert
+		assertXY(body.position, 42., 43.);
+		assertXY(body.positionPrev, 46., 47.);
+	});
+
+	it('should be able to set the centre on a default body, with undefined relative', () => {
+		// Arrange
+		const body = getTestBodyWithPartsWithParent();
+		const centre = { x: 42., y: 43. };
+		const relative = undefined;
+
+		// Act 
+		Body.setCentre(body, centre, relative);
+
+		// Assert
+		assertXY(body.position, 42., 43.);
+		assertXY(body.positionPrev, 46., 47.);
+	});
+
+	it('should be able to set the centre on a default body, relative', () => {
+		// Arrange
+		const body = getTestBodyWithPartsWithParent();
+		const centre = { x: 42., y: 43. };
+		const relative = true;
+
+		// Act 
+		Body.setCentre(body, centre, relative);
+
+		// Assert
+		assertXY(body.position, 181., 183.);
+		assertXY(body.positionPrev, 185., 187.);
+	});
+
+	it('should not be able to set an undefined centre on a default body, not relative', () => {
+		// Arrange
+		const body = getTestBodyWithPartsWithParent();
+		const centre = undefined;
+		const relative = false;
+
+		// Act 
+		let result = () => Body.setCentre(body, centre, relative);
+
+		// Assert
+		// TODO: This causes a read or set from undefined. This should probably be fixed.
+        expect(result).toThrow(/^Cannot .* properties of undefined \(.* '.*'\)$/);
+	});
+
+	it('should not be able to set the centre on an undefined body, not relative', () => {
+		// Arrange
+		const body = undefined;
+		const centre = { x: 42., y: 43. };
+		const relative = false;
+
+		// Act 
+		let result = () => Body.setCentre(body, centre, relative);
+
+		// Assert
+		// TODO: This causes a read or set from undefined. This should probably be fixed.
+        expect(result).toThrow(/^Cannot .* properties of undefined \(.* '.*'\)$/);
+	});
+});
