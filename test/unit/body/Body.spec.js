@@ -730,3 +730,49 @@ describe('Body.setDensity', () => {
         expect(result).toThrow(/^Cannot read properties of undefined \(reading '.*'\)$/);
 	});
 });
+
+describe("Body.setInertia()", () => {
+	it('should mutate value of inertia and inverse inertia to valid values', () => {
+		// Arrange     
+		const body = getTestBodyWithPartsWithParent();
+		body.inertia = 0;
+		body.inverseInertia = 0;
+		const inertia = 12;
+    
+		// Act
+		Body.setInertia(body, inertia)
+
+		// Assert
+		assertFloat(body.inertia, 12)
+		assertFloat(body.inverseInertia, 0.08333333333333333)
+	});
+
+	it('should not be able mutate value of inertia and inverse inertia to valid values with undefined inertia', () => {
+		// Arrange     
+		const body = getTestBodyWithPartsWithParent();
+		body.inertia = 0;
+		body.inverseInertia = 0;
+		const inertia = undefined;
+    
+		// Act
+		Body.setInertia(body, inertia)
+
+		// Assert
+		// TODO: This causes the result to have undefined and NaN properties. This should probably be fixed.
+		expect(body.inertia).toEqual(undefined);
+		expect(body.inverseInertia).toEqual(NaN);
+	});
+
+	it('should not be mutate value of inertia and inverse inertia to valid values on undefined body', () => {
+		// Arrange     
+		const body = undefined;
+		const inertia = 12;
+    
+		// Act
+		let result = () => Body.setInertia(body, inertia);
+
+		// Assert
+		// TODO: This causes a read or set from undefined. This should probably be fixed.
+        expect(result).toThrow(/^Cannot .* properties of undefined \(.* '.*'\)$/);
+	});
+});
