@@ -6,6 +6,7 @@ const {
 	getTestSquare,
 	} = require("../TestData");
 const Body = require("../../../src/body/Body");
+const Vector = require("../../../src/geometry/Vector");
 
 describe('Body.create', () => { 
     it('should create a body with the correct default properties not providing any options', () => {
@@ -1100,5 +1101,165 @@ describe('Body.setCentre', () => {
 		// Assert
 		// TODO: This causes a read or set from undefined. This should probably be fixed.
         expect(result).toThrow(/^Cannot .* properties of undefined \(.* '.*'\)$/);
+	});
+});
+
+describe('Body.setPosition', () => {
+	it('should update body with position without setting velocity', () => {
+		// Arrange
+		const body = getTestBodyWithPartsWithParent();
+		const position = Vector.create(37., 37.); // true random
+		const updateVelocity = false;
+
+		// Act
+		Body.setPosition(body, position, updateVelocity);
+
+		// Assert
+		let part = body.parts[0];
+		expect(part.id).toEqual(body.id);
+		assertXY(part.position, 37., 37.);
+		assertXY(part.positionPrev, 41., 41.);
+		assertXY(part.velocity, 159., 160.);
+		assertBounds(part.bounds, 59., 59., 220., 222.);
+		assertXY(part.position, 37., 37.);
+		assertXY(part.velocity, 159., 160.);
+		assertXY(part.vertices[0], 59., 59.);
+		assertXY(part.vertices[1], 61., 61.);
+		assertXY(part.vertices[2], 59., 62.);
+
+
+		part = body.parts[1];
+		assertXY(part.position, 137., 137.);
+		assertXY(part.positionPrev, 243., 244.);
+		assertXY(part.velocity, 259., 260.);
+		assertBounds(part.bounds, 159., 159., 320., 322.);
+		assertXY(part.position, 137., 137.);
+		assertXY(part.velocity, 259., 260.);
+		assertXY(part.vertices[0], 159., 159.);
+		assertXY(part.vertices[1], 161., 161.);
+		assertXY(part.vertices[2], 159., 162.);
+
+		part = body.parts[2];
+		assertXY(part.position, 237., 237.);
+		assertXY(part.positionPrev, 343., 344.);
+		assertXY(part.velocity, 359., 360.);
+		assertBounds(part.bounds, 259., 259., 420., 422.);
+		assertXY(part.position, 237., 237.);
+		assertXY(part.velocity, 359., 360.);
+		assertXY(part.vertices[0], 259., 259.);
+		assertXY(part.vertices[1], 261., 261.);
+		assertXY(part.vertices[2], 259., 262.);
+	});
+
+	it('should update body with position with setting undefined velocity', () => {
+		// Arrange
+		const body = getTestBodyWithPartsWithParent();
+		const position = Vector.create(37., 37.); // true random
+		const updateVelocity = undefined;
+
+		// Act
+		Body.setPosition(body, position, updateVelocity);
+
+		// Assert
+		let part = body.parts[0];
+		expect(part.id).toEqual(body.id);
+		assertXY(part.position, 37., 37.);
+		assertXY(part.positionPrev, 41., 41.);
+		assertXY(part.velocity, 159., 160.);
+		assertBounds(part.bounds, 59., 59., 220., 222.);
+		assertXY(part.position, 37., 37.);
+		assertXY(part.velocity, 159., 160.);
+		assertXY(part.vertices[0], 59., 59.);
+		assertXY(part.vertices[1], 61., 61.);
+		assertXY(part.vertices[2], 59., 62.);
+
+
+		part = body.parts[1];
+		assertXY(part.position, 137., 137.);
+		assertXY(part.positionPrev, 243., 244.);
+		assertXY(part.velocity, 259., 260.);
+		assertBounds(part.bounds, 159., 159., 320., 322.);
+		assertXY(part.position, 137., 137.);
+		assertXY(part.velocity, 259., 260.);
+		assertXY(part.vertices[0], 159., 159.);
+		assertXY(part.vertices[1], 161., 161.);
+		assertXY(part.vertices[2], 159., 162.);
+
+		part = body.parts[2];
+		assertXY(part.position, 237., 237.);
+		assertXY(part.positionPrev, 343., 344.);
+		assertXY(part.velocity, 359., 360.);
+		assertBounds(part.bounds, 259., 259., 420., 422.);
+		assertXY(part.position, 237., 237.);
+		assertXY(part.velocity, 359., 360.);
+		assertXY(part.vertices[0], 259., 259.);
+		assertXY(part.vertices[1], 261., 261.);
+		assertXY(part.vertices[2], 259., 262.);
+	});
+
+	it('should update body with position and setting velocity', () => {
+		// Arrange
+		const body = getTestBodyWithPartsWithParent();
+		const position = Vector.create(37., 37.) // true random
+		const updateVelocity = true
+
+		// Act
+		Body.setPosition(body, position, updateVelocity)
+
+		// Assert
+		let part = body.parts[0];
+		expect(part.id).toEqual(body.id);
+		assertXY(part.position, 37., 37.)
+		assertXY(part.positionPrev, 139., 140.)
+		assertFloat(part.speed, 144.9586147836685)
+		assertXY(part.velocity, -102., -103.)
+    	assertBounds(part.bounds, -43., -44., 61., 62.)
+		assertXY(part.vertices[0], 59., 59.)
+		assertXY(part.vertices[1], 61., 61.)
+		assertXY(part.vertices[2], 59., 62.)
+
+		part = body.parts[1];
+		assertBounds(part.bounds, 57., 56., 161., 162.)
+		assertXY(part.position, 137., 137.)
+		assertXY(part.velocity, 259., 260.)
+		assertXY(part.vertices[0], 159., 159.)
+		assertXY(part.vertices[1], 161., 161.)
+		assertXY(part.vertices[2], 159., 162.)
+
+		part = body.parts[2];
+		assertBounds(part.bounds, 157., 156., 261., 262.)
+		assertXY(part.position, 237., 237.)
+		assertXY(part.velocity, 359., 360.)
+		assertXY(part.vertices[0], 259., 259.)
+		assertXY(part.vertices[1], 261., 261.)
+		assertXY(part.vertices[2], 259., 262.)
+	});
+
+	it('should not be able to update body with undefined position without setting velocity', () => {
+		// Arrange
+		const body = getTestBodyWithPartsWithParent();
+		const position = undefined;
+		const updateVelocity = false;
+
+		// Act
+		let result = () => Body.setPosition(body, position, updateVelocity);
+
+		// Assert
+		// TODO: This causes a read or set from undefined. This should probably be fixed.
+        expect(result).toThrow(/^Cannot .* properties of undefined \(.* '.*'\)$/); 
+	});
+
+	it('should not be able to update undefined body with position without setting velocity', () => {
+		// Arrange
+		const body = undefined;
+		const position = Vector.create(37., 37.) // true random
+		const updateVelocity = false;
+
+		// Act
+		let result = () => Body.setPosition(body, position, updateVelocity);
+
+		// Assert
+		// TODO: This causes a read or set from undefined. This should probably be fixed.
+        expect(result).toThrow(/^Cannot .* properties of undefined \(.* '.*'\)$/); 
 	});
 });
