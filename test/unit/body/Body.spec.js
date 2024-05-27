@@ -834,3 +834,199 @@ describe('Body.setVertices', () => {
     
 	});
 });
+
+describe('Body.setParts', () => {
+	it('should update body with parts with setting autohull to false', () => {
+		// Arrange
+		const body = getTestBodyWithoutParts();
+		const parts = getTestBodyPartsWithoutParent();
+
+		const autoHull = false;
+
+		// Act
+		Body.setParts(body, parts, autoHull);
+
+		// Assert
+		let part = body.parts[0];
+		expect(part.id).toEqual(body.id);
+		assertFloat(part.area, 510.);
+		assertBounds(part.bounds, 161., 162., 322., 325.);
+		assertFloat(part.density, 1.1215686274509804);
+		assertFloat(part.inertia, 566.);
+		assertFloat(part.inverseInertia, 0.0017667844522968198);
+		assertFloat(part.inverseMass, 0.0017482517482517483);
+		assertFloat(part.mass, 572.);
+		assertXY(part.position, 297.7412587412587, 298.7412587412587);
+		assertXY(part.positionPrev, 297.7412587412587, 298.7412587412587);
+		assertXY(part.vertices[0], 161., 162.);
+		assertXY(part.vertices[1], 163., 164.);
+		assertXY(part.vertices[2], 161., 165.);
+		expect(part.parts.length).toEqual(3);
+		expect(part.vertices.length).toEqual(3);
+   
+		part = body.parts[1];
+		assertFloat(part.area, 205.);
+		assertBounds(part.bounds, 261., 262., 422., 425.);
+		assertFloat(part.density, 226.);
+		assertFloat(part.inertia, 233.);
+		assertFloat(part.inverseInertia, 234.);
+		assertFloat(part.inverseMass, 235.);
+		assertFloat(part.mass, 236.);
+		assertXY(part.position, 239., 240.);
+		assertXY(part.positionPrev, 243., 244.);
+		assertXY(part.vertices[0], 261., 262.);
+		assertXY(part.vertices[1], 263., 264.);
+		assertXY(part.vertices[2], 261., 265.);
+		expect(part.vertices.length).toEqual(3);
+
+		part = body.parts[2];
+		assertFloat(part.area, 305.);
+		assertBounds(part.bounds, 361., 362., 522., 525.);
+		assertFloat(part.density, 326.);
+		assertFloat(part.inertia, 333.);
+		assertFloat(part.inverseInertia, 334.);
+		assertFloat(part.inverseMass, 335.);
+		assertFloat(part.mass, 336.);
+		assertXY(part.position, 339., 340.);
+		assertXY(part.positionPrev, 343., 344.);
+		assertXY(part.vertices[0], 361., 362.);
+		assertXY(part.vertices[1], 363., 364.);
+		assertXY(part.vertices[2], 361., 365.);
+		expect(part.vertices.length).toEqual(3);
+	});
+
+	it('should update body with parts without setting autohull', () => {
+		// Arrange
+		const body = getTestBodyWithoutParts();
+		const parts = getTestBodyPartsWithoutParent();
+
+		const autoHull = undefined;
+
+		// Act
+		Body.setParts(body, parts, autoHull);
+
+		// Assert
+		let part = body.parts[0];
+		expect(part.id).toEqual(body.id);
+		assertFloat(part.area, 510.);
+		assertBounds(part.bounds, 400., 402., 661., 665.);
+		assertFloat(part.density, 1.1215686274509804);
+		assertFloat(part.inertia, 566.);
+		assertFloat(part.inverseInertia, 0.0017667844522968198);
+		assertFloat(part.inverseMass, 0.0017482517482517483);
+		assertFloat(part.mass, 572.);
+		assertXY(part.position, 297.7412587412587, 298.7412587412587);
+		assertXY(part.positionPrev, 297.7412587412587, 298.7412587412587);
+		assertVertex(part.vertices[0], body.id, 502., 504., 0, false);
+		assertVertex(part.vertices[1], body.id, 500., 505., 1, false);
+		assertVertex(part.vertices[2], body.id, 400., 405., 2, false);
+		assertVertex(part.vertices[3], body.id, 400., 402., 3, false);
+		expect(part.parts.length).toEqual(3);
+		expect(part.vertices.length).toEqual(4);
+   
+		part = body.parts[1];
+		assertFloat(part.area, 205.);
+		assertBounds(part.bounds, 261., 262., 422., 425.);
+		assertFloat(part.density, 226.);
+		assertFloat(part.inertia, 233.);
+		assertFloat(part.inverseInertia, 234.);
+		assertFloat(part.inverseMass, 235.);
+		assertFloat(part.mass, 236.);
+		assertXY(part.position, 239., 240.);
+		assertXY(part.positionPrev, 243., 244.);
+		assertXY(part.vertices[0], 261., 262.);
+		assertXY(part.vertices[1], 263., 264.);
+		assertXY(part.vertices[2], 261., 265.);
+		expect(part.vertices.length).toEqual(3);
+
+		part = body.parts[2];
+		assertFloat(part.area, 305.);
+		assertBounds(part.bounds, 361., 362., 522., 525.);
+		assertFloat(part.density, 326.);
+		assertFloat(part.inertia, 333.);
+		assertFloat(part.inverseInertia, 334.);
+		assertFloat(part.inverseMass, 335.);
+		assertFloat(part.mass, 336.);
+		assertXY(part.position, 339., 340.);
+		assertXY(part.positionPrev, 343., 344.);
+		assertXY(part.vertices[0], 361., 362.);
+		assertXY(part.vertices[1], 363., 364.);
+		assertXY(part.vertices[2], 361., 365.);
+		expect(part.vertices.length).toEqual(3);
+	});
+
+	it('should update body with parts with setting autohull to true', () => {
+		// Arrange
+		const body = getTestBodyWithoutParts();
+		const parts = getTestBodyPartsWithoutParent();
+
+		const autoHull = true;
+
+		// Act
+		Body.setParts(body, parts, autoHull);
+
+		// Assert
+		let part = body.parts[0];
+		expect(part.id).toEqual(body.id);
+		assertFloat(part.area, 510.);
+		assertBounds(part.bounds, 400., 402., 661., 665.);
+		assertFloat(part.density, 1.1215686274509804);
+		assertFloat(part.inertia, 566.);
+		assertFloat(part.inverseInertia, 0.0017667844522968198);
+		assertFloat(part.inverseMass, 0.0017482517482517483);
+		assertFloat(part.mass, 572.);
+		assertXY(part.position, 297.7412587412587, 298.7412587412587);
+		assertXY(part.positionPrev, 297.7412587412587, 298.7412587412587);
+		assertVertex(part.vertices[0], body.id, 502., 504., 0, false);
+		assertVertex(part.vertices[1], body.id, 500., 505., 1, false);
+		assertVertex(part.vertices[2], body.id, 400., 405., 2, false);
+		assertVertex(part.vertices[3], body.id, 400., 402., 3, false);
+		expect(part.parts.length).toEqual(3);
+		expect(part.vertices.length).toEqual(4);
+   
+		part = body.parts[1];
+		assertFloat(part.area, 205.);
+		assertBounds(part.bounds, 261., 262., 422., 425.);
+		assertFloat(part.density, 226.);
+		assertFloat(part.inertia, 233.);
+		assertFloat(part.inverseInertia, 234.);
+		assertFloat(part.inverseMass, 235.);
+		assertFloat(part.mass, 236.);
+		assertXY(part.position, 239., 240.);
+		assertXY(part.positionPrev, 243., 244.);
+		assertXY(part.vertices[0], 261., 262.);
+		assertXY(part.vertices[1], 263., 264.);
+		assertXY(part.vertices[2], 261., 265.);
+		expect(part.vertices.length).toEqual(3);
+
+		part = body.parts[2];
+		assertFloat(part.area, 305.);
+		assertBounds(part.bounds, 361., 362., 522., 525.);
+		assertFloat(part.density, 326.);
+		assertFloat(part.inertia, 333.);
+		assertFloat(part.inverseInertia, 334.);
+		assertFloat(part.inverseMass, 335.);
+		assertFloat(part.mass, 336.);
+		assertXY(part.position, 339., 340.);
+		assertXY(part.positionPrev, 343., 344.);
+		assertXY(part.vertices[0], 361., 362.);
+		assertXY(part.vertices[1], 363., 364.);
+		assertXY(part.vertices[2], 361., 365.);
+		expect(part.vertices.length).toEqual(3);
+	});
+
+	it('should not be able update an undefined body with parts with setting autohull to false', () => {
+		// Arrange
+		const body = undefined;
+		const parts = getTestBodyPartsWithoutParent();
+
+		const autoHull = false;
+
+		// Act
+		let result = () => Body.setParts(body, parts, autoHull);
+
+		// Assert
+		// TODO: This causes a read or set from undefined. This should probably be fixed.
+        expect(result).toThrow(/^Cannot .* properties of undefined \(.* '.*'\)$/);
+	});
+});
