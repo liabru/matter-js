@@ -1,22 +1,22 @@
-const {assertFloat, assertXY, assertBounds, assertVertex} = require("../TestUtil");
+const { assertFloat, assertXY, assertBounds, assertVertex } = require("../TestUtil");
 const {
 	getTestBodyWithoutParts,
 	getTestBodyPartsWithoutParent,
 	getTestBodyWithPartsWithParent,
 	getTestSquare,
-	} = require("../TestData");
+} = require("../TestData");
 const Body = require("../../../src/body/Body");
 const Vector = require("../../../src/geometry/Vector");
 
-describe('Body.create', () => { 
-    it('should create a body with the correct default properties not providing any options', () => {
-        // Arrange
+describe('Body.create', () => {
+	it('should create a body with the correct default properties not providing any options', () => {
+		// Arrange
 		let options = undefined;
-		 
-        // Act
+
+		// Act
 		const result = Body.create(options);
-    
-        // Assert
+
+		// Assert
 		assertFloat(result.angle, 0.);
 		assertFloat(result.anglePrev, 0.);
 		assertFloat(result.angularVelocity, 0.);
@@ -79,16 +79,16 @@ describe('Body.create', () => {
 		assertXY(result.vertices[2], 20., 20.);
 		assertXY(result.vertices[3], -20., 20.);
 	});
-	
+
 	it('should create a body with the correct properties providing valid options', () => {
 		// Arrange
 		let options = getTestBodyWithoutParts();
 		options.parts = getTestBodyPartsWithoutParent();
-			    
-        // Act
+
+		// Act
 		const result = Body.create(options);
-    
-        // Assert
+
+		// Assert
 		assertFloat(result.angle, 101.);
 		assertFloat(result.anglePrev, 102.);
 		assertFloat(result.angularSpeed, 103.);
@@ -152,7 +152,7 @@ describe('Body.create', () => {
 		assertXY(result.vertices[1], 384.92277102138115, 574.1512271116169);
 		assertXY(result.vertices[2], 340.9248627604002, 439.7481614149658);
 		assertXY(result.vertices[3], 342.28094012193526, 437.0721468056014);
-    });
+	});
 });
 
 describe('Body.nextGroup', () => {
@@ -161,10 +161,10 @@ describe('Body.nextGroup', () => {
 			// Arrange
 			const Body = require("../../../src/body/Body");
 			const isNonColliding = false;
-		 
+
 			// Act
 			const result = Body.nextGroup(isNonColliding);
-		    
+
 			// Assert
 			expect(result).toEqual(1);
 			expect(Body._nextCollidingGroupId).toEqual(2);
@@ -177,12 +177,12 @@ describe('Body.nextGroup', () => {
 			// Arrange
 			const Body = require("../../../src/body/Body");
 			const isNonColliding = false;
-		 
+
 			// Act
 			let result = Body.nextGroup(isNonColliding);
 			result = Body.nextGroup(isNonColliding);
 			result = Body.nextGroup(isNonColliding);
-		    
+
 			// Assert
 			expect(result).toEqual(3);
 			expect(Body._nextCollidingGroupId).toEqual(4);
@@ -195,10 +195,10 @@ describe('Body.nextGroup', () => {
 			// Arrange
 			const Body = require("../../../src/body/Body");
 			const isNonColliding = undefined;
-		 
+
 			// Act
 			const result = Body.nextGroup(isNonColliding);
-		    
+
 			// Assert
 			expect(result).toEqual(1);
 			expect(Body._nextCollidingGroupId).toEqual(2);
@@ -211,10 +211,10 @@ describe('Body.nextGroup', () => {
 			// Arrange
 			const Body = require("../../../src/body/Body");
 			const isNonColliding = true;
-		 
+
 			// Act
 			const result = Body.nextGroup(isNonColliding);
-		    
+
 			// Assert
 			expect(result).toEqual(-1);
 			expect(Body._nextCollidingGroupId).toEqual(1);
@@ -227,12 +227,12 @@ describe('Body.nextGroup', () => {
 			// Arrange
 			const Body = require("../../../src/body/Body");
 			const isNonColliding = true;
-		 
+
 			// Act
 			let result = Body.nextGroup(isNonColliding);
 			result = Body.nextGroup(isNonColliding);
 			result = Body.nextGroup(isNonColliding);
-		    
+
 			// Assert
 			expect(result).toEqual(-3);
 			expect(Body._nextCollidingGroupId).toEqual(1);
@@ -246,10 +246,10 @@ describe('Body.nextCategory', () => {
 		jest.isolateModules(() => {
 			// Arrange
 			const Body = require("../../../src/body/Body");
-		 
+
 			// Act
 			const result = Body.nextCategory();
-		    
+
 			// Assert
 			expect(result).toEqual(2);
 			expect(Body._nextCategory).toEqual(2);
@@ -260,7 +260,7 @@ describe('Body.nextCategory', () => {
 		jest.isolateModules(() => {
 			// Arrange
 			const Body = require("../../../src/body/Body");
-		 
+
 			// Act
 			let result = Body.nextCategory();
 			result = Body.nextCategory();
@@ -295,7 +295,7 @@ describe('Body.nextCategory', () => {
 			result = Body.nextCategory();
 
 			result = Body.nextCategory();
-					    
+
 			// Assert
 			expect(result).toEqual(1073741824);
 			expect(Body._nextCategory).toEqual(1073741824);
@@ -305,8 +305,8 @@ describe('Body.nextCategory', () => {
 	it('should not be able to calculate and set the valid next category past maximum times', () => {
 		jest.isolateModules(() => {
 			// Arrange
-			const Body = require("../../../src/body/Body"); 
-		 
+			const Body = require("../../../src/body/Body");
+
 			// Act
 			let result = Body.nextCategory();
 			result = Body.nextCategory();
@@ -343,7 +343,7 @@ describe('Body.nextCategory', () => {
 			result = Body.nextCategory();
 
 			result = Body.nextCategory();
-					    
+
 			// Assert
 			// TODO: This should probably result in an error.			
 			expect(result).toEqual(-2147483648);
@@ -385,7 +385,7 @@ describe('Body.setStatic', () => {
 		assertFloat(part._original.inverseInertia, 134.);
 		assertFloat(part._original.inverseMass, 135.);
 		assertFloat(part._original.density, 126);
-  
+
 		part = body.parts[1];
 		assertFloat(part.restitution, 0.);
 		assertFloat(part.friction, 1.);
@@ -406,7 +406,7 @@ describe('Body.setStatic', () => {
 		assertFloat(part._original.inverseInertia, 234.);
 		assertFloat(part._original.inverseMass, 235.);
 		assertFloat(part._original.density, 226);
-    
+
 		part = body.parts[2];
 		assertFloat(part.restitution, 0.);
 		assertFloat(part.friction, 1.);
@@ -458,8 +458,8 @@ describe('Body.setStatic', () => {
 		assertFloat(part.angularSpeed, part2.angularSpeed);
 		assertFloat(part.motion, part2.motion);
 		expect(part.isStatic).toEqual(false);
-		
-  
+
+
 		part = body.parts[1];
 		part2 = body2.parts[1];
 		assertFloat(part.restitution, part2.restitution);
@@ -475,7 +475,7 @@ describe('Body.setStatic', () => {
 		assertFloat(part.angularSpeed, part2.angularSpeed);
 		assertFloat(part.motion, part2.motion);
 		expect(part.isStatic).toEqual(false);
-    
+
 		part = body.parts[2];
 		part2 = body2.parts[2];
 		assertFloat(part.restitution, part2.restitution);
@@ -522,8 +522,8 @@ describe('Body.setStatic', () => {
 		assertFloat(part.angularSpeed, part2.angularSpeed);
 		assertFloat(part.motion, part2.motion);
 		expect(part.isStatic).toEqual(undefined);
-		
-  
+
+
 		part = body.parts[1];
 		part2 = body2.parts[1];
 		assertFloat(part.restitution, part2.restitution);
@@ -539,7 +539,7 @@ describe('Body.setStatic', () => {
 		assertFloat(part.angularSpeed, part2.angularSpeed);
 		assertFloat(part.motion, part2.motion);
 		expect(part.isStatic).toEqual(undefined);
-    
+
 		part = body.parts[2];
 		part2 = body2.parts[2];
 		assertFloat(part.restitution, part2.restitution);
@@ -588,8 +588,8 @@ describe('Body.setStatic', () => {
 		assertFloat(part.angularSpeed, part2.angularSpeed);
 		assertFloat(part.motion, part2.motion);
 		expect(part.isStatic).toEqual(false);
-		
-  
+
+
 		part = body.parts[1];
 		part2 = body2.parts[1];
 		assertFloat(part.restitution, part2.restitution);
@@ -605,7 +605,7 @@ describe('Body.setStatic', () => {
 		assertFloat(part.angularSpeed, part2.angularSpeed);
 		assertFloat(part.motion, part2.motion);
 		expect(part.isStatic).toEqual(false);
-    
+
 		part = body.parts[2];
 		part2 = body2.parts[2];
 		assertFloat(part.restitution, part2.restitution);
@@ -633,7 +633,7 @@ describe('Body.setStatic', () => {
 
 		// Assert
 		// TODO: This causes a read from undefined. This should probably be fixed.
-        expect(result).toThrow(/^Cannot read properties of undefined \(reading '.*'\)$/);
+		expect(result).toThrow(/^Cannot read properties of undefined \(reading '.*'\)$/);
 	});
 });
 
@@ -681,7 +681,7 @@ describe('Body.setMass', () => {
 
 		// Assert
 		// TODO: This causes a read from undefined. This should probably be fixed.
-        expect(result).toThrow(/^Cannot read properties of undefined \(reading '.*'\)$/);
+		expect(result).toThrow(/^Cannot read properties of undefined \(reading '.*'\)$/);
 	});
 });
 
@@ -729,7 +729,7 @@ describe('Body.setDensity', () => {
 
 		// Assert
 		// TODO: This causes a read from undefined. This should probably be fixed.
-        expect(result).toThrow(/^Cannot read properties of undefined \(reading '.*'\)$/);
+		expect(result).toThrow(/^Cannot read properties of undefined \(reading '.*'\)$/);
 	});
 });
 
@@ -740,7 +740,7 @@ describe("Body.setInertia()", () => {
 		body.inertia = 0;
 		body.inverseInertia = 0;
 		const inertia = 12;
-    
+
 		// Act
 		Body.setInertia(body, inertia)
 
@@ -755,7 +755,7 @@ describe("Body.setInertia()", () => {
 		body.inertia = 0;
 		body.inverseInertia = 0;
 		const inertia = undefined;
-    
+
 		// Act
 		Body.setInertia(body, inertia)
 
@@ -769,13 +769,13 @@ describe("Body.setInertia()", () => {
 		// Arrange     
 		const body = undefined;
 		const inertia = 12;
-    
+
 		// Act
 		let result = () => Body.setInertia(body, inertia);
 
 		// Assert
 		// TODO: This causes a read or set from undefined. This should probably be fixed.
-        expect(result).toThrow(/^Cannot .* properties of undefined \(.* '.*'\)$/);
+		expect(result).toThrow(/^Cannot .* properties of undefined \(.* '.*'\)$/);
 	});
 });
 
@@ -804,7 +804,7 @@ describe('Body.setVertices', () => {
 		assertVertex(body.vertices[1], body.id, 140., 139., 1, false);
 		assertVertex(body.vertices[2], body.id, 140., 141., 2, false);
 		assertVertex(body.vertices[3], body.id, 138., 141., 3, false);
-    
+
 	});
 
 	it('should not be able mutate the body to contain valid values with undefined vertices', () => {
@@ -817,8 +817,8 @@ describe('Body.setVertices', () => {
 
 		// Assert
 		// TODO: This causes a read or set from undefined. This should probably be fixed.
-        expect(result).toThrow(/^Cannot .* properties of undefined \(.* '.*'\)$/);
-    
+		expect(result).toThrow(/^Cannot .* properties of undefined \(.* '.*'\)$/);
+
 	});
 
 	it('should not be able mutate the body to contain valid values on undefined body', () => {
@@ -831,8 +831,8 @@ describe('Body.setVertices', () => {
 
 		// Assert
 		// TODO: This causes a read or set from undefined. This should probably be fixed.
-        expect(result).toThrow(/^Cannot .* properties of undefined \(.* '.*'\)$/);
-    
+		expect(result).toThrow(/^Cannot .* properties of undefined \(.* '.*'\)$/);
+
 	});
 });
 
@@ -864,7 +864,7 @@ describe('Body.setParts', () => {
 		assertXY(part.vertices[2], 161., 165.);
 		expect(part.parts.length).toEqual(3);
 		expect(part.vertices.length).toEqual(3);
-   
+
 		part = body.parts[1];
 		assertFloat(part.area, 205.);
 		assertBounds(part.bounds, 261., 262., 422., 425.);
@@ -924,7 +924,7 @@ describe('Body.setParts', () => {
 		assertVertex(part.vertices[3], body.id, 400., 402., 3, false);
 		expect(part.parts.length).toEqual(3);
 		expect(part.vertices.length).toEqual(4);
-   
+
 		part = body.parts[1];
 		assertFloat(part.area, 205.);
 		assertBounds(part.bounds, 261., 262., 422., 425.);
@@ -984,7 +984,7 @@ describe('Body.setParts', () => {
 		assertVertex(part.vertices[3], body.id, 400., 402., 3, false);
 		expect(part.parts.length).toEqual(3);
 		expect(part.vertices.length).toEqual(4);
-   
+
 		part = body.parts[1];
 		assertFloat(part.area, 205.);
 		assertBounds(part.bounds, 261., 262., 422., 425.);
@@ -1028,7 +1028,7 @@ describe('Body.setParts', () => {
 
 		// Assert
 		// TODO: This causes a read or set from undefined. This should probably be fixed.
-        expect(result).toThrow(/^Cannot .* properties of undefined \(.* '.*'\)$/);
+		expect(result).toThrow(/^Cannot .* properties of undefined \(.* '.*'\)$/);
 	});
 });
 
@@ -1086,7 +1086,7 @@ describe('Body.setCentre', () => {
 
 		// Assert
 		// TODO: This causes a read or set from undefined. This should probably be fixed.
-        expect(result).toThrow(/^Cannot .* properties of undefined \(.* '.*'\)$/);
+		expect(result).toThrow(/^Cannot .* properties of undefined \(.* '.*'\)$/);
 	});
 
 	it('should not be able to set the centre on an undefined body, not relative', () => {
@@ -1100,7 +1100,7 @@ describe('Body.setCentre', () => {
 
 		// Assert
 		// TODO: This causes a read or set from undefined. This should probably be fixed.
-        expect(result).toThrow(/^Cannot .* properties of undefined \(.* '.*'\)$/);
+		expect(result).toThrow(/^Cannot .* properties of undefined \(.* '.*'\)$/);
 	});
 });
 
@@ -1213,7 +1213,7 @@ describe('Body.setPosition', () => {
 		assertXY(part.positionPrev, 139., 140.)
 		assertFloat(part.speed, 144.9586147836685)
 		assertXY(part.velocity, -102., -103.)
-    	assertBounds(part.bounds, -43., -44., 61., 62.)
+		assertBounds(part.bounds, -43., -44., 61., 62.)
 		assertXY(part.vertices[0], 59., 59.)
 		assertXY(part.vertices[1], 61., 61.)
 		assertXY(part.vertices[2], 59., 62.)
@@ -1246,7 +1246,7 @@ describe('Body.setPosition', () => {
 
 		// Assert
 		// TODO: This causes a read or set from undefined. This should probably be fixed.
-        expect(result).toThrow(/^Cannot .* properties of undefined \(.* '.*'\)$/); 
+		expect(result).toThrow(/^Cannot .* properties of undefined \(.* '.*'\)$/);
 	});
 
 	it('should not be able to update undefined body with position without setting velocity', () => {
@@ -1260,6 +1260,58 @@ describe('Body.setPosition', () => {
 
 		// Assert
 		// TODO: This causes a read or set from undefined. This should probably be fixed.
-        expect(result).toThrow(/^Cannot .* properties of undefined \(.* '.*'\)$/); 
+		expect(result).toThrow(/^Cannot .* properties of undefined \(.* '.*'\)$/);
+	});
+});
+
+describe('Body.setVelocity', () => {
+	it('should be able to set the velocity on a body', () => {
+		jest.isolateModules(() => {
+			// Arrange
+			const Body = require("../../../src/body/Body");
+			const body = getTestBodyWithPartsWithParent();
+			const velocity = { x: 42., y: 43. };
+
+			// Act
+			Body.setVelocity(body, velocity);
+
+			// Assert
+			assertXY(body.position, 139., 140.);
+			assertXY(body.positionPrev, -175.99999999999994, -182.49999999999994);
+			assertFloat(body.speed, 60.108235708594876);
+			assertXY(body.velocity, 42., 43);
+		});
+	});
+
+	it('should not be able to set undefined velocity on a body', () => {
+		jest.isolateModules(() => {
+			// Arrange
+			const Body = require("../../../src/body/Body");
+			const body = getTestBodyWithPartsWithParent();
+			const velocity = undefined;
+
+			// Act
+			let result = () => Body.setVelocity(body, velocity);
+
+			// Assert
+			// TODO: This causes a read or set from undefined. This should probably be fixed.
+			expect(result).toThrow(/^Cannot .* properties of undefined \(.* '.*'\)$/);
+		});
+	});
+
+	it('should not be able to set velocity on an undefined body', () => {
+		jest.isolateModules(() => {
+			// Arrange
+			const Body = require("../../../src/body/Body");
+			const body = undefined;
+			const velocity = { x: 42., y: 43. };
+
+			// Act
+			let result = () => Body.setVelocity(body, velocity);
+
+			// Assert
+			// TODO: This causes a read or set from undefined. This should probably be fixed.
+			expect(result).toThrow(/^Cannot .* properties of undefined \(.* '.*'\)$/);
+		});
 	});
 });
