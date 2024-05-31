@@ -1657,3 +1657,49 @@ describe('Body.setSpeed', () => {
 		expect(result).toThrow(/^Cannot .* properties of undefined \(.* '.*'\)$/);
 	});
 });
+
+describe('Body.setAngularVelocity', () => {
+	it('should be able to set the angular velocity on a body', () => {
+		// Arrange
+		const body = getTestBodyWithPartsWithParent();
+		const velocity = 37.;
+
+		// Act
+		Body.setAngularVelocity(body, velocity);
+    
+		// Assert
+		assertFloat(body.angle, 101.);
+		assertFloat(body.anglePrev, -176.49999999999994);
+		assertFloat(body.angularVelocity, 37.);
+		assertFloat(body.angularSpeed, 37.);
+	});
+
+	it('should not be able to set an angular velocity on a body with an undefined velocity', () => {
+		// Arrange
+		const body = getTestBodyWithPartsWithParent();
+		const velocity = undefined;
+
+		// Act
+		Body.setAngularVelocity(body, velocity);
+    
+		// Assert
+		// TODO: This causes the result to have undefined and NaN properties. This should probably be fixed.
+		assertFloat(body.angle, 101.);
+		expect(body.anglePrev).toEqual(NaN);
+		expect(body.angularSpeed).toEqual(NaN);
+		expect(body.angularVelocity).toEqual(NaN);
+	});
+
+	it('should not be able to set the angular velocity on an undefined body', () => {
+		// Arrange
+		const body = undefined;
+		const velocity = 37.;
+
+		// Act
+		let result = () => Body.setAngularVelocity(body, velocity);
+    
+		// Assert
+		// TODO: This causes a read or set from undefined. This should probably be fixed.
+		expect(result).toThrow(/^Cannot .* properties of undefined \(.* '.*'\)$/);
+	});
+});
