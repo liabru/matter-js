@@ -190,13 +190,13 @@ const getTestBodyWithoutParts = () => {
 }
 
 const getTestBodyWithPartsWithoutParent = () => {
-    const body = testBodyWithoutParts;
+    const body = getTestBodyWithoutParts();
     body.parts.push(...getTestBodyPartsWithoutParent());
     return _.cloneDeep(body);
 };
 
 const getTestBodyWithPartsWithParent = () => {
-    const body = testBodyWithoutParts;
+    const body = getTestBodyWithoutParts();
     body.parts.push(body);
     body.parts.push(...getTestBodyPartsWithoutParent());
 

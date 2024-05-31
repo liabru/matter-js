@@ -1263,3 +1263,248 @@ describe('Body.setPosition', () => {
         expect(result).toThrow(/^Cannot .* properties of undefined \(.* '.*'\)$/); 
 	});
 });
+
+describe('Body.setAngle', () => {
+	it('should be able to set the angle on a default body, not updating the velocity', () => {
+		jest.isolateModules(() => {
+			// Arrange
+			const Body = require("../../../src/body/Body");
+			const body = getTestBodyWithPartsWithParent();
+			const updateVelocity = false;
+			const angle = 37.;
+
+			// Act
+			Body.setAngle(body, angle, updateVelocity);
+
+			// Assert
+			let part = body.parts[0];
+			expect(part.id).toEqual(body.id);
+			assertFloat(part.angle, 37.);
+			assertFloat(part.anglePrev, 38.);
+			assertXY(part.axes[0], 139.9796525125889, -55.594036392897955);
+			assertXY(part.axes[1], 142.6034190498416, -56.650374008432436);
+			assertBounds(part.bounds, 167.8614319097795, 127.32394861358623, 329.62151002436985, 289.5558579204094);
+			assertXY(part.position, 139., 140.);
+			assertXY(part.vertices[0], 167.8614319097795, 128.3802862291207);
+			assertXY(part.vertices[1], 170.4851984470322, 127.32394861358623);
+			assertXY(part.vertices[2], 170.62151002436985, 129.55585792040935);
+
+
+			part = body.parts[1];
+			assertFloat(part.angle, 137.);
+			assertFloat(part.anglePrev, 202.);
+			assertXY(part.axes[0], 271.16797937522296, -108.41091716962202);
+			assertXY(part.axes[1], 273.7917459124756, -109.46725478515651);
+			assertBounds(part.bounds, 299.04975877241355, 74.50706783686216, 460.80983688700394, 236.7389771436853);
+			assertXY(part.position, 270.1883268626341, 87.18311922327594);
+			assertXY(part.vertices[0], 299.04975877241355, 75.56340545239664);
+			assertXY(part.vertices[1], 301.6735253096662, 74.50706783686216);
+			assertXY(part.vertices[2], 301.80983688700394, 76.73897714368529);
+		
+
+			part = body.parts[2];
+			assertFloat(part.angle, 237.);
+			assertFloat(part.anglePrev, 302.);
+			assertXY(part.axes[0], 402.35630623785704, -161.22779794634607);
+			assertXY(part.axes[1], 404.9800727751097, -162.28413556188056);
+			assertBounds(part.bounds, 430.2380856350476, 21.6901870601381, 591.998163749638, 183.92209636696123);
+			assertXY(part.position, 401.37665372526817, 34.366238446551876);
+			assertXY(part.vertices[0], 430.2380856350476, 22.74652467567259);
+			assertXY(part.vertices[1], 432.8618521723003, 21.6901870601381);
+			assertXY(part.vertices[2], 432.998163749638, 23.92209636696124);
+		});
+	});
+
+	it('should be able to set the angle on a default body, not using the undefined update velocity', () => {
+		jest.isolateModules(() => {
+			// Arrange
+			const Body = require("../../../src/body/Body");
+			const body = getTestBodyWithPartsWithParent();
+			const updateVelocity = undefined;
+			const angle = 37.;
+
+			// Act
+			Body.setAngle(body, angle, updateVelocity);
+
+			// Assert
+			let part = body.parts[0];
+			expect(part.id).toEqual(body.id);
+			assertFloat(part.angle, 37.);
+			assertFloat(part.anglePrev, 38.);
+			assertXY(part.axes[0], 139.9796525125889, -55.594036392897955);
+			assertXY(part.axes[1], 142.6034190498416, -56.650374008432436);
+			assertBounds(part.bounds, 167.8614319097795, 127.32394861358623, 329.62151002436985, 289.5558579204094);
+			assertXY(part.position, 139., 140.);
+			assertXY(part.vertices[0], 167.8614319097795, 128.3802862291207);
+			assertXY(part.vertices[1], 170.4851984470322, 127.32394861358623);
+			assertXY(part.vertices[2], 170.62151002436985, 129.55585792040935);
+
+
+			part = body.parts[1];
+			assertFloat(part.angle, 137.);
+			assertFloat(part.anglePrev, 202.);
+			assertXY(part.axes[0], 271.16797937522296, -108.41091716962202);
+			assertXY(part.axes[1], 273.7917459124756, -109.46725478515651);
+			assertBounds(part.bounds, 299.04975877241355, 74.50706783686216, 460.80983688700394, 236.7389771436853);
+			assertXY(part.position, 270.1883268626341, 87.18311922327594);
+			assertXY(part.vertices[0], 299.04975877241355, 75.56340545239664);
+			assertXY(part.vertices[1], 301.6735253096662, 74.50706783686216);
+			assertXY(part.vertices[2], 301.80983688700394, 76.73897714368529);
+		
+
+			part = body.parts[2];
+			assertFloat(part.angle, 237.);
+			assertFloat(part.anglePrev, 302.);
+			assertXY(part.axes[0], 402.35630623785704, -161.22779794634607);
+			assertXY(part.axes[1], 404.9800727751097, -162.28413556188056);
+			assertBounds(part.bounds, 430.2380856350476, 21.6901870601381, 591.998163749638, 183.92209636696123);
+			assertXY(part.position, 401.37665372526817, 34.366238446551876);
+			assertXY(part.vertices[0], 430.2380856350476, 22.74652467567259);
+			assertXY(part.vertices[1], 432.8618521723003, 21.6901870601381);
+			assertXY(part.vertices[2], 432.998163749638, 23.92209636696124);
+		});
+	});	
+
+	it('should be able to set the angle on a default body, updating the velocity', () => {
+		jest.isolateModules(() => {
+			// Arrange
+			const Body = require("../../../src/body/Body");
+			const body = getTestBodyWithPartsWithParent();
+			const updateVelocity = true;
+			const angle = 37.;
+
+			// Act
+			Body.setAngle(body, angle, updateVelocity);
+
+			// Assert
+			let part = body.parts[0];
+			expect(part.id).toEqual(body.id);
+			assertFloat(part.angle, 37.);
+			assertFloat(part.anglePrev, 101.);
+			assertFloat(part.angularSpeed, 64.);
+			assertFloat(part.angularVelocity, -64.);
+			assertXY(part.axes[0], 139.9796525125889, -55.594036392897955);
+			assertXY(part.axes[1], 142.6034190498416, -56.650374008432436);
+			assertBounds(part.bounds, 167.8614319097795, 127.32394861358623, 329.62151002436985, 289.5558579204094);
+			assertXY(part.position, 139., 140.);
+			assertXY(part.vertices[0], 167.8614319097795, 128.3802862291207);
+			assertXY(part.vertices[1], 170.4851984470322, 127.32394861358623);
+			assertXY(part.vertices[2], 170.62151002436985, 129.55585792040935);
+
+			part = body.parts[1];
+			assertFloat(part.angle, 137.);
+			assertFloat(part.anglePrev, 202.);
+			assertXY(part.axes[0], 271.16797937522296, -108.41091716962202);
+			assertXY(part.axes[1], 273.7917459124756, -109.46725478515651);
+			assertBounds(part.bounds, 299.04975877241355, 74.50706783686216, 460.80983688700394, 236.7389771436853);
+			assertXY(part.position, 270.1883268626341, 87.18311922327594);
+			assertXY(part.vertices[0], 299.04975877241355, 75.56340545239664);
+			assertXY(part.vertices[1], 301.6735253096662, 74.50706783686216);
+			assertXY(part.vertices[2], 301.80983688700394, 76.73897714368529);
+
+			part = body.parts[2];
+			assertFloat(part.angle, 237.);
+			assertFloat(part.anglePrev, 302.);
+			assertXY(part.axes[0], 402.35630623785704, -161.22779794634607);
+			assertXY(part.axes[1], 404.9800727751097, -162.28413556188056);
+			assertBounds(part.bounds, 430.2380856350476, 21.6901870601381, 591.998163749638, 183.92209636696123);
+			assertXY(part.position, 401.37665372526817, 34.366238446551876);
+			assertXY(part.vertices[0], 430.2380856350476, 22.74652467567259);
+			assertXY(part.vertices[1], 432.8618521723003, 21.6901870601381);
+			assertXY(part.vertices[2], 432.998163749638, 23.92209636696124);
+		});
+	});
+
+
+	it('should not be able to set an undefined angle on a default body, not updating the velocity', () => {
+		jest.isolateModules(() => {
+			// Arrange
+			const Body = require("../../../src/body/Body");
+			const body = getTestBodyWithPartsWithParent();
+			const updateVelocity = false;
+			const angle = undefined;
+
+			// Act
+			Body.setAngle(body, angle, updateVelocity);
+
+			// Assert
+			let part = body.parts[0];
+			expect(part.id).toEqual(body.id);
+			expect(part.angle).toEqual(NaN);
+			expect(part.anglePrev).toEqual(NaN);
+			expect(part.axes[0].x).toEqual(NaN);
+			expect(part.axes[0].y).toEqual(NaN);
+			expect(part.axes[1].x).toEqual(NaN);
+			expect(part.axes[1].y).toEqual(NaN);
+			expect(part.bounds.min.x).toEqual(Infinity);
+			expect(part.bounds.min.y).toEqual(Infinity);
+			expect(part.bounds.max.x).toEqual(-Infinity);
+			expect(part.bounds.max.y).toEqual(-Infinity);
+			expect(part.vertices[0].x).toEqual(NaN);
+			expect(part.vertices[0].y).toEqual(NaN);
+			expect(part.vertices[1].x).toEqual(NaN);
+			expect(part.vertices[1].y).toEqual(NaN);
+			expect(part.vertices[2].x).toEqual(NaN);
+			expect(part.vertices[2].y).toEqual(NaN);
+			assertXY(part.position, 139., 140.);
+
+			part = body.parts[1];
+			expect(part.angle).toEqual(NaN);
+			assertFloat(part.anglePrev, 202.);
+			expect(part.axes[0].x).toEqual(NaN);
+			expect(part.axes[0].y).toEqual(NaN);
+			expect(part.axes[1].x).toEqual(NaN);
+			expect(part.axes[1].y).toEqual(NaN);
+			expect(part.bounds.min.x).toEqual(Infinity);
+			expect(part.bounds.min.y).toEqual(Infinity);
+			expect(part.bounds.max.x).toEqual(-Infinity);
+			expect(part.bounds.max.y).toEqual(-Infinity);
+			expect(part.vertices[0].x).toEqual(NaN);
+			expect(part.vertices[0].y).toEqual(NaN);
+			expect(part.vertices[1].x).toEqual(NaN);
+			expect(part.vertices[1].y).toEqual(NaN);
+			expect(part.vertices[2].x).toEqual(NaN);
+			expect(part.vertices[2].y).toEqual(NaN);
+			expect(part.position.x).toEqual(NaN);
+			expect(part.position.y).toEqual(NaN);
+
+			part = body.parts[2];
+			expect(part.angle).toEqual(NaN);
+			assertFloat(part.anglePrev, 302.);
+			expect(part.axes[0].x).toEqual(NaN);
+			expect(part.axes[0].y).toEqual(NaN);
+			expect(part.axes[1].x).toEqual(NaN);
+			expect(part.axes[1].y).toEqual(NaN);
+			expect(part.bounds.min.x).toEqual(Infinity);
+			expect(part.bounds.min.y).toEqual(Infinity);
+			expect(part.bounds.max.x).toEqual(-Infinity);
+			expect(part.bounds.max.y).toEqual(-Infinity);
+			expect(part.vertices[0].x).toEqual(NaN);
+			expect(part.vertices[0].y).toEqual(NaN);
+			expect(part.vertices[1].x).toEqual(NaN);
+			expect(part.vertices[1].y).toEqual(NaN);
+			expect(part.vertices[2].x).toEqual(NaN);
+			expect(part.vertices[2].y).toEqual(NaN);
+			expect(part.position.x).toEqual(NaN);
+			expect(part.position.y).toEqual(NaN);
+		});
+	});
+
+	it('should not be able to set the angle on a undefined body, not updating the velocity', () => {
+		jest.isolateModules(() => {
+			// Arrange
+			const Body = require("../../../src/body/Body");
+			const body = undefined;
+			const updateVelocity = false;
+			const angle = 37.;
+
+			// Act
+			let result = () => Body.setAngle(body, angle, updateVelocity);
+
+			// Assert
+			// TODO: This causes a read or set from undefined. This should probably be fixed.
+			expect(result).toThrow(/^Cannot .* properties of undefined \(.* '.*'\)$/); 
+		});
+	});	
+
+});
