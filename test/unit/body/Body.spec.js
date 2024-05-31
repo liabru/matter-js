@@ -1704,6 +1704,31 @@ describe('Body.setAngularVelocity', () => {
 	});
 });
 
+describe('Body.getAngularVelocity', () => {
+	it('should be able to get the angular velocity from a valid body', () => {
+		// Arrange
+		const body = getTestBodyWithPartsWithParent();
+		
+		// Act
+		let result = Body.getAngularVelocity(body);
+
+		// Assert
+		assertFloat(result, -0.13333333333333333);
+	});
+
+	it('should not be able to get the angular velocity from an undefined body', () => {
+		// Arrange
+		const body = undefined;
+		
+		// Act
+		let result = () => Body.getAngularVelocity(body);
+
+		// Assert
+		// TODO: This causes a read or set from undefined. This should probably be fixed.
+		expect(result).toThrow(/^Cannot .* properties of undefined \(.* '.*'\)$/);
+	});
+});
+
 describe('Body.getAngularSpeed', () => {
 	it('should be able to get the angular speed from a valid body', () => {
 		// Arrange
