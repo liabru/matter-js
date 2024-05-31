@@ -1264,58 +1264,6 @@ describe('Body.setPosition', () => {
 	});
 });
 
-describe('Body.setVelocity', () => {
-	it('should be able to set the velocity on a body', () => {
-		jest.isolateModules(() => {
-			// Arrange
-			const Body = require("../../../src/body/Body");
-			const body = getTestBodyWithPartsWithParent();
-			const velocity = { x: 42., y: 43. };
-
-			// Act
-			Body.setVelocity(body, velocity);
-
-			// Assert
-			assertXY(body.position, 139., 140.);
-			assertXY(body.positionPrev, -175.99999999999994, -182.49999999999994);
-			assertFloat(body.speed, 60.108235708594876);
-			assertXY(body.velocity, 42., 43);
-		});
-	});
-
-	it('should not be able to set undefined velocity on a body', () => {
-		jest.isolateModules(() => {
-			// Arrange
-			const Body = require("../../../src/body/Body");
-			const body = getTestBodyWithPartsWithParent();
-			const velocity = undefined;
-
-			// Act
-			let result = () => Body.setVelocity(body, velocity);
-
-			// Assert
-			// TODO: This causes a read or set from undefined. This should probably be fixed.
-			expect(result).toThrow(/^Cannot .* properties of undefined \(.* '.*'\)$/);
-		});
-	});
-
-	it('should not be able to set velocity on an undefined body', () => {
-		jest.isolateModules(() => {
-			// Arrange
-			const Body = require("../../../src/body/Body");
-			const body = undefined;
-			const velocity = { x: 42., y: 43. };
-
-			// Act
-			let result = () => Body.setVelocity(body, velocity);
-
-			// Assert
-			// TODO: This causes a read or set from undefined. This should probably be fixed.
-			expect(result).toThrow(/^Cannot .* properties of undefined \(.* '.*'\)$/);
-		});
-	});
-});
-
 describe('Body.setAngle', () => {
 	it('should be able to set the angle on a default body, not updating the velocity', () => {
 		jest.isolateModules(() => {
@@ -1558,5 +1506,82 @@ describe('Body.setAngle', () => {
 			expect(result).toThrow(/^Cannot .* properties of undefined \(.* '.*'\)$/); 
 		});
 	});	
-
 });
+
+describe('Body.setVelocity', () => {
+	it('should be able to set the velocity on a body', () => {
+		jest.isolateModules(() => {
+			// Arrange
+			const Body = require("../../../src/body/Body");
+			const body = getTestBodyWithPartsWithParent();
+			const velocity = { x: 42., y: 43. };
+
+			// Act
+			Body.setVelocity(body, velocity);
+
+			// Assert
+			assertXY(body.position, 139., 140.);
+			assertXY(body.positionPrev, -175.99999999999994, -182.49999999999994);
+			assertFloat(body.speed, 60.108235708594876);
+			assertXY(body.velocity, 42., 43);
+		});
+	});
+
+	it('should not be able to set undefined velocity on a body', () => {
+		jest.isolateModules(() => {
+			// Arrange
+			const Body = require("../../../src/body/Body");
+			const body = getTestBodyWithPartsWithParent();
+			const velocity = undefined;
+
+			// Act
+			let result = () => Body.setVelocity(body, velocity);
+
+			// Assert
+			// TODO: This causes a read or set from undefined. This should probably be fixed.
+			expect(result).toThrow(/^Cannot .* properties of undefined \(.* '.*'\)$/);
+		});
+	});
+
+	it('should not be able to set velocity on an undefined body', () => {
+		jest.isolateModules(() => {
+			// Arrange
+			const Body = require("../../../src/body/Body");
+			const body = undefined;
+			const velocity = { x: 42., y: 43. };
+
+			// Act
+			let result = () => Body.setVelocity(body, velocity);
+
+			// Assert
+			// TODO: This causes a read or set from undefined. This should probably be fixed.
+			expect(result).toThrow(/^Cannot .* properties of undefined \(.* '.*'\)$/);
+		});
+	});
+});
+
+describe('Body.getVelocity', () => {
+	it('should be able to get the velocity from a valid body', () => {
+		// Arrange
+		const body = getTestBodyWithPartsWithParent();
+		
+		// Act
+		let result = Body.getVelocity(body);
+
+		// Assert
+		assertXY(result, -0.5333333333333333, -0.5333333333333333);
+	});
+
+	it('should not be able to get the velocity from an undefined body', () => {
+		// Arrange
+		const body = undefined;
+		
+		// Act
+		let result = () => Body.getVelocity(body);
+
+		// Assert
+		// TODO: This causes a read or set from undefined. This should probably be fixed.
+		expect(result).toThrow(/^Cannot .* properties of undefined \(.* '.*'\)$/);
+	});
+});
+		
