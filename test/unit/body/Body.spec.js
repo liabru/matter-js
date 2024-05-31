@@ -1799,3 +1799,103 @@ describe('Body.setAngularSpeed', () => {
 		expect(result).toThrow(/^Cannot .* properties of undefined \(.* '.*'\)$/);
 	});
 });
+
+describe('Body.translate', () => {
+	it('should be able to translate a body without updating the velocity', () => {
+		// Arrange
+		const body = getTestBodyWithPartsWithParent();
+		let translate = { x: 37., y: 38. };
+		let updateVelocity = false;
+    
+		// Act
+		Body.translate(body, translate, updateVelocity);
+
+		// Assert
+		let part = body.parts[0];
+		assertBounds(part.bounds, 198., 200., 359., 363.);
+		assertXY(part.position, 176., 178.);
+		assertXY(part.velocity, 159., 160.);
+		assertXY(part.vertices[0], 198., 200.);
+		assertXY(part.vertices[1], 200., 202.);
+		assertXY(part.vertices[2], 198., 203.);
+
+		part = body.parts[1];
+		assertBounds(part.bounds, 298., 300., 459., 463.);
+		assertXY(part.position, 276., 278.);
+		assertXY(part.velocity, 259., 260.);
+		assertXY(part.vertices[0], 298., 300.);
+		assertXY(part.vertices[1], 300., 302.);
+		assertXY(part.vertices[2], 298., 303.);
+
+		part = body.parts[2];
+		assertBounds(part.bounds, 398., 400., 559., 563.);
+		assertXY(part.position, 376., 378.);
+		assertXY(part.velocity, 359., 360.);
+		assertXY(part.vertices[0], 398., 400.);
+		assertXY(part.vertices[1], 400., 402.);
+		assertXY(part.vertices[2], 398., 403.);
+	});
+
+	it('should be able to translate a body updating with an undefined velocity', () => {
+		// Arrange
+		const body = getTestBodyWithPartsWithParent();
+		let translate = { x: 37., y: 38. };
+		let updateVelocity = undefined;
+    
+		// Act
+		Body.translate(body, translate, updateVelocity);
+
+		// Assert
+		let part = body.parts[0];
+		assertBounds(part.bounds, 198., 200., 359., 363.);
+		assertXY(part.position, 176., 178.);
+		assertXY(part.velocity, 159., 160.);
+		assertXY(part.vertices[0], 198., 200.);
+		assertXY(part.vertices[1], 200., 202.);
+		assertXY(part.vertices[2], 198., 203.);
+
+		part = body.parts[1];
+		assertBounds(part.bounds, 298., 300., 459., 463.);
+		assertXY(part.position, 276., 278.);
+		assertXY(part.velocity, 259., 260.);
+		assertXY(part.vertices[0], 298., 300.);
+		assertXY(part.vertices[1], 300., 302.);
+		assertXY(part.vertices[2], 298., 303.);
+
+		part = body.parts[2];
+		assertBounds(part.bounds, 398., 400., 559., 563.);
+		assertXY(part.position, 376., 378.);
+		assertXY(part.velocity, 359., 360.);
+		assertXY(part.vertices[0], 398., 400.);
+		assertXY(part.vertices[1], 400., 402.);
+		assertXY(part.vertices[2], 398., 403.);
+	});
+
+	it('should not be able to translate a body without updating the velocity using an undefined translate', () => {
+		// Arrange
+		const body = getTestBodyWithPartsWithParent();
+		let translate = undefined;
+		let updateVelocity = false;
+    
+		// Act
+		let result = () => Body.translate(body, translate, updateVelocity);
+
+		// Assert
+		// TODO: This causes a read or set from undefined. This should probably be fixed.
+		expect(result).toThrow(/^Cannot .* properties of undefined \(.* '.*'\)$/);
+	});
+
+	it('should not be able to translate an undefined body without updating the velocity', () => {
+		// Arrange
+		const body = undefined;
+		let translate = { x: 37., y: 38. };
+		let updateVelocity = false;
+    
+		// Act
+		let result = () => Body.translate(body, translate, updateVelocity);
+
+		// Assert
+		// TODO: This causes a read or set from undefined. This should probably be fixed.
+		expect(result).toThrow(/^Cannot .* properties of undefined \(.* '.*'\)$/);
+	});
+});
