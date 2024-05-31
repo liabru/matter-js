@@ -1610,3 +1610,50 @@ describe('Body.getSpeed', () => {
 	});
 });
 		
+describe('Body.setSpeed', () => {
+	it('should be able to set the speed on a valid body', () => {
+		// Arrange
+		const body = getTestBodyWithPartsWithParent();
+		const speed = 42.1;
+		
+		// Act
+		Body.setSpeed(body, speed);
+
+		// Assert
+		assertXY(body.position, 139., 140.);
+		assertXY(body.positionPrev, 362.26896615965234, 363.26896615965234);
+		assertFloat(body.speed, 42.1);
+		assertXY(body.velocity, -29.76919548795365, -29.76919548795365);
+	});
+
+	it('should not be able to set undefined speed on a valid body', () => {
+		// Arrange
+		const body = getTestBodyWithPartsWithParent();
+		const speed = undefined;
+		
+		// Act
+		Body.setSpeed(body, speed);
+
+		// Assert
+		// TODO: This causes the result to have undefined and NaN properties. This should probably be fixed.
+		assertXY(body.position, 139., 140.);
+		expect(body.positionPrev.x).toEqual(NaN);
+		expect(body.positionPrev.y).toEqual(NaN);
+		expect(body.speed).toEqual(NaN);
+		expect(body.velocity.x).toEqual(NaN);
+		expect(body.velocity.y).toEqual(NaN);
+	});
+
+	it('should not be able to set the speed on an undefined body', () => {
+		// Arrange
+		const body = undefined;
+		const speed = 42.1;
+		
+		// Act
+		let result = () => Body.setSpeed(body, speed);
+
+		// Assert
+		// TODO: This causes a read or set from undefined. This should probably be fixed.
+		expect(result).toThrow(/^Cannot .* properties of undefined \(.* '.*'\)$/);
+	});
+});
