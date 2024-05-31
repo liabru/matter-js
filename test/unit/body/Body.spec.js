@@ -2169,5 +2169,283 @@ describe('Body.rotate', () => {
 		// TODO: This causes a read or set from undefined. This should probably be fixed.
 		expect(result).toThrow(/^Cannot .* properties of undefined \(.* '.*'\)$/);
 	});
+});
 
+describe('Body.scale', () => {
+	it('should be able to scale a body using a point', () => {
+		// Arrange
+		const body = getTestBodyWithPartsWithParent();
+		let scaleX = 7.;
+		let scaleY = 8.;
+		let point = { x: 93., y: 94. };
+
+		// Act
+		Body.scale(body, scaleX, scaleY, point);
+
+		// Assert
+		let part = body.parts[0]
+		assertFloat(part.angle, 101.);
+		assertFloat(part.anglePrev, 102.);
+		assertFloat(part.area, 336.);
+		assertXY(part.axes[0], 0.7525766947068778, -0.658504607868518);
+		assertXY(part.axes[1], 0.49613893835683387, 0.8682431421244593);
+		assertXY(part.axes[2], -1., 0.);
+		assertBounds(part.bounds, 569., 638., 742., 822.);
+		assertFloat(part.density, 126.);
+		assertFloat(part.inertia, 375692344392.70856);
+		assertFloat(part.inverseInertia, 2.6617524017330175e-12);
+		assertFloat(part.inverseMass, 0.00002362055933484505);
+		assertFloat(part.mass, 42336.);
+		assertXY(part.position, 415., 462.);
+		assertXY(part.vertices[0], 569., 638.);
+		assertXY(part.vertices[1], 583., 654.);
+		assertXY(part.vertices[2], 569., 662.);
+
+		part = body.parts[1]
+		assertFloat(part.angle, 201.);
+		assertFloat(part.anglePrev, 202.);
+		assertFloat(part.area, 168.);
+		assertXY(part.axes[0], 0.7525766947068778, -0.658504607868518);
+		assertXY(part.axes[1], 0.49613893835683387, 0.8682431421244593);
+		assertXY(part.axes[2], -1., 0.);
+		assertBounds(part.bounds, 1269., 1438., 1442., 1622.);
+		assertFloat(part.density, 126.);
+		assertFloat(part.inertia, 107623281758.02255);
+		assertFloat(part.inverseInertia, 9.291669828916522e-12);
+		assertFloat(part.inverseMass, 0.0000472411186696901);
+		assertFloat(part.mass, 21168.);
+		assertXY(part.position, 1115., 1262.);
+		assertXY(part.vertices[0], 1269., 1438.);
+		assertXY(part.vertices[1], 1283., 1454.);
+		assertXY(part.vertices[2], 1269., 1462.);
+
+		part = body.parts[2]
+		assertFloat(part.angle, 301.);
+		assertFloat(part.anglePrev, 302.);
+		assertFloat(part.area, 168.);
+		assertXY(part.axes[0], 0.7525766947068778, -0.658504607868518);
+		assertXY(part.axes[1], 0.49613893835683387, 0.8682431421244593);
+		assertXY(part.axes[2], -1., 0.);
+		assertBounds(part.bounds, 1969., 2238., 2142., 2422.);
+		assertFloat(part.density, 126.);
+		assertFloat(part.inertia, 268069062634.686);
+		assertFloat(part.inverseInertia, 3.730381977582996e-12);
+		assertFloat(part.inverseMass, 0.0000472411186696901);
+		assertFloat(part.mass, 21168.);
+		assertXY(part.position, 1815., 2062.);
+		assertXY(part.vertices[0], 1969., 2238.);
+		assertXY(part.vertices[1], 1983., 2254.);
+		assertXY(part.vertices[2], 1969., 2262.);
+	});
+
+	it('should be able to scale a body not using a point', () => {
+		// Arrange
+		const body = getTestBodyWithPartsWithParent();
+		let scaleX = 7.;
+		let scaleY = 8.;
+		let point = undefined;
+
+		// Act
+		Body.scale(body, scaleX, scaleY, point);
+
+		// Assert
+		let part = body.parts[0]
+		assertFloat(part.angle, 101.);
+		assertFloat(part.anglePrev, 102.);
+		assertFloat(part.area, 336.);
+		assertXY(part.axes[0], 0.7525766947068778, -0.658504607868518);
+		assertXY(part.axes[1], 0.49613893835683387, 0.8682431421244593);
+		assertXY(part.axes[2], -1., 0.);
+		assertBounds(part.bounds, 293., 316., 466., 500.);
+		assertFloat(part.density, 126.);
+		assertFloat(part.inertia, 243311333527.02026);
+		assertFloat(part.inverseInertia, 4.109960623305481e-12);
+		assertFloat(part.inverseMass, 0.00002362055933484505);
+		assertFloat(part.mass, 42336.);
+		assertXY(part.position, 139., 140.);
+		assertXY(part.vertices[0], 293., 316.);
+		assertXY(part.vertices[1], 307., 332.);
+		assertXY(part.vertices[2], 293., 340.);
+
+		part = body.parts[1]
+		assertFloat(part.angle, 201.);
+		assertFloat(part.anglePrev, 202.);
+		assertFloat(part.area, 168.);
+		assertXY(part.axes[0], 0.7525766947068778, -0.658504607868518);
+		assertXY(part.axes[1], 0.49613893835683387, 0.8682431421244593);
+		assertXY(part.axes[2], -1., 0.);
+		assertBounds(part.bounds, 993., 1116., 1166., 1300.);
+		assertFloat(part.density, 126.);
+		assertFloat(part.inertia, 57986153557.518196);
+		assertFloat(part.inverseInertia, 1.7245496358161957e-11);
+		assertFloat(part.inverseMass, 0.0000472411186696901);
+		assertFloat(part.mass, 21168.);
+		assertXY(part.position, 839., 940.);
+		assertXY(part.vertices[0], 993., 1116.);
+		assertXY(part.vertices[1], 1007., 1132.);
+		assertXY(part.vertices[2], 993., 1140.);
+
+		part = body.parts[2]
+		assertFloat(part.angle, 301.);
+		assertFloat(part.anglePrev, 302.);
+		assertFloat(part.area, 168.);
+		assertXY(part.axes[0], 0.7525766947068778, -0.658504607868518);
+		assertXY(part.axes[1], 0.49613893835683387, 0.8682431421244593);
+		assertXY(part.axes[2], -1., 0.);
+		assertBounds(part.bounds, 1693., 1916., 1866., 2100.);
+		assertFloat(part.density, 126.);
+		assertFloat(part.inertia, 185325179969.50208);
+		assertFloat(part.inverseInertia, 5.3959208358225496e-12);
+		assertFloat(part.inverseMass, 0.0000472411186696901);
+		assertFloat(part.mass, 21168.);
+		assertXY(part.position, 1539., 1740.);
+		assertXY(part.vertices[0], 1693., 1916.);
+		assertXY(part.vertices[1], 1707., 1932.);
+		assertXY(part.vertices[2], 1693., 1940.);
+	});
+
+	it('should be able to scale a body with no parts using a point', () => {
+		// Arrange
+		const body = getTestBodyWithoutParts();
+		body.parts.push(body);
+		let scaleX = 7.;
+		let scaleY = 8.;
+		let point = { x: 93., y: 94. };
+
+		// Act
+		Body.scale(body, scaleX, scaleY, point);
+
+		// Assert
+		assertFloat(body.angle, 101.);
+		assertFloat(body.anglePrev, 102.);
+		assertFloat(body.area, 168.);
+		assertXY(body.axes[0], 0.7525766947068778, -0.658504607868518);
+		assertXY(body.axes[1], 0.49613893835683387, 0.8682431421244593);
+		assertXY(body.axes[2], -1., 0.);
+		assertBounds(body.bounds, 569., 638., 742., 822.);
+		assertFloat(body.density, 126.);
+		assertFloat(body.inertia, 19148711497.75123);
+		assertFloat(body.inverseInertia, 5.2222834947272416e-11);
+		assertFloat(body.inverseMass, 0.0000472411186696901);
+		assertFloat(body.mass, 21168.);
+		assertXY(body.position, 415., 462.);
+		assertXY(body.vertices[0], 569., 638.);
+		assertXY(body.vertices[1], 583., 654.);
+		assertXY(body.vertices[2], 569., 662.);
+	});
+
+	it('should not be able to scale a body using a point and an undefined scale', () => {
+		// Arrange
+		const body = getTestBodyWithPartsWithParent();
+		let scaleX = undefined;
+		let scaleY = undefined;
+		let point = { x: 93., y: 94. };
+
+		// Act
+		Body.scale(body, scaleX, scaleY, point);
+
+		// Assert
+		// TODO: This causes the result to have undefined and NaN properties. This should probably be fixed.
+		let part = body.parts[0]
+		assertFloat(part.angle, 101.);
+		assertFloat(part.anglePrev, 102.);
+		expect(part.area).toEqual(NaN);
+		expect(part.axes[0].x).toEqual(NaN);
+		expect(part.axes[0].y).toEqual(NaN);
+		expect(part.bounds.min.x).toEqual(Infinity);
+		expect(part.bounds.min.y).toEqual(Infinity);
+		expect(part.bounds.max.x).toEqual(-Infinity);
+		expect(part.bounds.max.y).toEqual(-Infinity);
+		expect(part.density).toEqual(NaN);
+		expect(part.inertia).toEqual(NaN);
+		expect(part.inverseInertia).toEqual(NaN);
+		expect(part.inverseMass).toEqual(NaN);
+		expect(part.mass).toEqual(NaN);
+		expect(part.position.x).toEqual(NaN);
+		expect(part.position.y).toEqual(NaN);
+		expect(part.vertices[0].x).toEqual(NaN);
+		expect(part.vertices[0].y).toEqual(NaN);
+		expect(part.vertices[1].x).toEqual(NaN);
+		expect(part.vertices[1].y).toEqual(NaN);
+		expect(part.vertices[2].x).toEqual(NaN);
+		expect(part.vertices[2].y).toEqual(NaN);
+
+		part = body.parts[1]
+		assertFloat(part.angle, 201.);
+		assertFloat(part.anglePrev, 202.);
+		expect(part.area).toEqual(NaN);
+		expect(part.axes[0].x).toEqual(NaN);
+		expect(part.axes[0].y).toEqual(NaN);
+		expect(part.bounds.min.x).toEqual(Infinity);
+		expect(part.bounds.min.y).toEqual(Infinity);
+		expect(part.bounds.max.x).toEqual(-Infinity);
+		expect(part.bounds.max.y).toEqual(-Infinity);
+		expect(part.density).toEqual(NaN);
+		expect(part.inertia).toEqual(NaN);
+		expect(part.inverseInertia).toEqual(NaN);
+		expect(part.inverseMass).toEqual(NaN);
+		expect(part.mass).toEqual(NaN);
+		expect(part.position.x).toEqual(NaN);
+		expect(part.position.y).toEqual(NaN);
+		expect(part.vertices[0].x).toEqual(NaN);
+		expect(part.vertices[0].y).toEqual(NaN);
+		expect(part.vertices[1].x).toEqual(NaN);
+		expect(part.vertices[1].y).toEqual(NaN);
+		expect(part.vertices[2].x).toEqual(NaN);
+		expect(part.vertices[2].y).toEqual(NaN);
+
+		part = body.parts[2]
+		assertFloat(part.angle, 301.);
+		assertFloat(part.anglePrev, 302.);
+		expect(part.area).toEqual(NaN);
+		expect(part.axes[0].x).toEqual(NaN);
+		expect(part.axes[0].y).toEqual(NaN);
+		expect(part.bounds.min.x).toEqual(Infinity);
+		expect(part.bounds.min.y).toEqual(Infinity);
+		expect(part.bounds.max.x).toEqual(-Infinity);
+		expect(part.bounds.max.y).toEqual(-Infinity);
+		expect(part.density).toEqual(NaN);
+		expect(part.inertia).toEqual(NaN);
+		expect(part.inverseInertia).toEqual(NaN);
+		expect(part.inverseMass).toEqual(NaN);
+		expect(part.mass).toEqual(NaN);
+		expect(part.position.x).toEqual(NaN);
+		expect(part.position.y).toEqual(NaN);
+		expect(part.vertices[0].x).toEqual(NaN);
+		expect(part.vertices[0].y).toEqual(NaN);
+		expect(part.vertices[1].x).toEqual(NaN);
+		expect(part.vertices[1].y).toEqual(NaN);
+		expect(part.vertices[2].x).toEqual(NaN);
+		expect(part.vertices[2].y).toEqual(NaN);
+	});
+
+	it('should be able to scale a circular body', () => {
+		// Arrange
+		const body = getTestBodyWithPartsWithParent();
+		body.circleRadius = 37.37;
+		let scaleX = 37.;
+		let scaleY = 37.;
+		let point = { x: 93., y: 94. };
+
+		// Act
+		Body.scale(body, scaleX, scaleY, point);
+
+		// Assert
+		assertFloat(body.circleRadius, 1382.6899999999998);
+	});
+
+	it('should not be able to scale an undefined body using a point', () => {
+		// Arrange
+		const body = undefined;
+		let scaleX = 7.;
+		let scaleY = 8.;
+		let point = { x: 93., y: 94. };
+
+		// Act
+		let result = () => Body.scale(body, scaleX, scaleY, point);
+
+		// Assert
+		// TODO: This causes a read or set from undefined. This should probably be fixed.
+		expect(result).toThrow(/^Cannot .* properties of undefined \(.* '.*'\)$/);
+	});
 });
