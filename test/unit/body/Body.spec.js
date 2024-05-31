@@ -1899,3 +1899,275 @@ describe('Body.translate', () => {
 		expect(result).toThrow(/^Cannot .* properties of undefined \(.* '.*'\)$/);
 	});
 });
+
+describe('Body.rotate', () => {
+	it('should be able to rotate a default body with a point not updating the velocity', () => {
+		// Arrange
+		const body = getTestBodyWithPartsWithParent();
+		const rotation = 37.;
+		const point = { x: 93., y: 94. };
+		const updateVelocity = false;
+
+		// Act
+		Body.rotate(body, rotation, point, updateVelocity);
+
+		// Assert
+		let part = body.parts[0]
+		assertFloat(part.angle, 138.);
+		assertFloat(part.anglePrev, 139.);
+		assertXY(part.axes[0], 149.99246977540537, 13.684261422309802);
+		assertXY(part.axes[1], 152.81037414601002, 13.928013259486477);
+		assertBounds(part.bounds, 188.8087486005593, 102.28756246400738, 350.626652971164, 264.5838046198434);
+		assertXY(part.position, 157.81180052390778, 99.60629225506382);
+		assertXY(part.vertices[0], 188.8087486005593, 102.28756246400738);
+		assertXY(part.vertices[1], 191.626652971164, 102.53131430118407);
+		assertXY(part.vertices[2], 190.7393630006303, 104.58380461984342);
+
+		part = body.parts[1]
+		assertFloat(part.angle, 238.);
+		assertFloat(part.anglePrev, 202.);
+		assertXY(part.axes[0], 290.88768830563964, 25.871853281144183);
+		assertXY(part.axes[1], 293.70559267624435, 26.11560511832087);
+		assertBounds(part.bounds, 329.7039671307936, 114.47515432284177, 491.5218715013983, 276.7713964786778);
+		assertXY(part.position, 298.70701905414205, 111.7938841138982);
+		assertXY(part.vertices[0], 329.7039671307936, 114.47515432284177);
+		assertXY(part.vertices[1], 332.5218715013983, 114.71890616001845);
+		assertXY(part.vertices[2], 331.6345815308646, 116.7713964786778);
+
+		part = body.parts[2]
+		assertFloat(part.angle, 338.);
+		assertFloat(part.anglePrev, 302.);
+		assertXY(part.axes[0], 431.7829068358739, 38.05944513997858);
+		assertXY(part.axes[1], 434.6008112064786, 38.30319697715527);
+		assertBounds(part.bounds, 470.5991856610279, 126.66274618167616, 632.4170900316326, 288.9589883375122);
+		assertXY(part.position, 439.6022375843763, 123.98147597273258);
+		assertXY(part.vertices[0], 470.5991856610279, 126.66274618167616);
+		assertXY(part.vertices[1], 473.4170900316326, 126.90649801885284);
+		assertXY(part.vertices[2], 472.52980006109885, 128.9589883375122);
+	});
+
+	it('should be able to rotate a default body with a point updating with undefined velocity', () => {
+		// Arrange
+		const body = getTestBodyWithPartsWithParent();
+		const rotation = 37.;
+		const point = { x: 93., y: 94. };
+		const updateVelocity = undefined;
+
+		// Act
+		Body.rotate(body, rotation, point, updateVelocity);
+
+		// Assert
+		let part = body.parts[0]
+		assertFloat(part.angle, 138.);
+		assertFloat(part.anglePrev, 139.);
+		assertXY(part.axes[0], 149.99246977540537, 13.684261422309802);
+		assertXY(part.axes[1], 152.81037414601002, 13.928013259486477);
+		assertBounds(part.bounds, 188.8087486005593, 102.28756246400738, 350.626652971164, 264.5838046198434);
+		assertXY(part.position, 157.81180052390778, 99.60629225506382);
+		assertXY(part.vertices[0], 188.8087486005593, 102.28756246400738);
+		assertXY(part.vertices[1], 191.626652971164, 102.53131430118407);
+		assertXY(part.vertices[2], 190.7393630006303, 104.58380461984342);
+
+		part = body.parts[1]
+		assertFloat(part.angle, 238.);
+		assertFloat(part.anglePrev, 202.);
+		assertXY(part.axes[0], 290.88768830563964, 25.871853281144183);
+		assertXY(part.axes[1], 293.70559267624435, 26.11560511832087);
+		assertBounds(part.bounds, 329.7039671307936, 114.47515432284177, 491.5218715013983, 276.7713964786778);
+		assertXY(part.position, 298.70701905414205, 111.7938841138982);
+		assertXY(part.vertices[0], 329.7039671307936, 114.47515432284177);
+		assertXY(part.vertices[1], 332.5218715013983, 114.71890616001845);
+		assertXY(part.vertices[2], 331.6345815308646, 116.7713964786778);
+
+		part = body.parts[2]
+		assertFloat(part.angle, 338.);
+		assertFloat(part.anglePrev, 302.);
+		assertXY(part.axes[0], 431.7829068358739, 38.05944513997858);
+		assertXY(part.axes[1], 434.6008112064786, 38.30319697715527);
+		assertBounds(part.bounds, 470.5991856610279, 126.66274618167616, 632.4170900316326, 288.9589883375122);
+		assertXY(part.position, 439.6022375843763, 123.98147597273258);
+		assertXY(part.vertices[0], 470.5991856610279, 126.66274618167616);
+		assertXY(part.vertices[1], 473.4170900316326, 126.90649801885284);
+		assertXY(part.vertices[2], 472.52980006109885, 128.9589883375122);
+	});
+
+	it('should be able to rotate a default body with a point updating the velocity', () => {
+		// Arrange
+		const body = getTestBodyWithPartsWithParent();
+		const rotation = 37.;
+		const point = { x: 93., y: 94. };
+		const updateVelocity = true;
+
+		// Act
+		Body.rotate(body, rotation, point, updateVelocity);
+
+		// Assert
+		let part = body.parts[0]
+		assertFloat(part.angle, 138.);
+		assertFloat(part.anglePrev, 101.);
+		assertXY(part.axes[0], 149.99246977540537, 13.684261422309802);
+		assertXY(part.axes[1], 152.81037414601002, 13.928013259486477);
+		assertBounds(part.bounds, 188.8087486005593, 61.8938547190712, 210.43845349507177, 104.58380461984342);
+		assertXY(part.position, 157.81180052390778, 99.60629225506382);
+		assertXY(part.vertices[0], 188.8087486005593, 102.28756246400738);
+		assertXY(part.vertices[1], 191.626652971164, 102.53131430118407);
+		assertXY(part.vertices[2], 190.7393630006303, 104.58380461984342);
+
+		part = body.parts[1]
+		assertFloat(part.angle, 238.);
+		assertFloat(part.anglePrev, 202.);
+		assertXY(part.axes[0], 290.88768830563964, 25.871853281144183);
+		assertXY(part.axes[1], 293.70559267624435, 26.11560511832087);
+		assertBounds(part.bounds, 329.7039671307936, 74.0814465779056, 351.3336720253061, 116.7713964786778);
+		assertXY(part.position, 298.70701905414205, 111.7938841138982);
+		assertXY(part.vertices[0], 329.7039671307936, 114.47515432284177);
+		assertXY(part.vertices[1], 332.5218715013983, 114.71890616001845);
+		assertXY(part.vertices[2], 331.6345815308646, 116.7713964786778);
+
+		part = body.parts[2]
+		assertFloat(part.angle, 338.);
+		assertFloat(part.anglePrev, 302.);
+		assertXY(part.axes[0], 431.7829068358739, 38.05944513997858);
+		assertXY(part.axes[1], 434.6008112064786, 38.30319697715527);
+		assertBounds(part.bounds, 470.5991856610279, 86.26903843673998, 492.2288905555404, 128.9589883375122);
+		assertXY(part.position, 439.6022375843763, 123.98147597273258);
+		assertXY(part.vertices[0], 470.5991856610279, 126.66274618167616);
+		assertXY(part.vertices[1], 473.4170900316326, 126.90649801885284);
+		assertXY(part.vertices[2], 472.52980006109885, 128.9589883375122);
+	});
+
+
+	it('should be able to rotate a body with an undefined point and not updating the velocity', () => {
+		// Arrange
+		const body = getTestBodyWithPartsWithParent();
+		const rotation = 37.;
+		const point = undefined;
+		const updateVelocity = false;
+
+		// Act
+		Body.rotate(body, rotation, point, updateVelocity);
+
+		// Assert
+		let part = body.parts[0]
+		assertFloat(part.angle, 138.);
+		assertFloat(part.anglePrev, 139.);
+		assertXY(part.axes[0], 149.99246977540537, 13.684261422309802);
+		assertXY(part.axes[1], 152.81037414601002, 13.928013259486477);
+		assertBounds(part.bounds, 169.99694807665153, 142.68127020894357, 331.8148524472562, 304.9775123647796);
+		assertXY(part.position, 139., 140.);
+		assertXY(part.vertices[0], 169.99694807665153, 142.68127020894357);
+		assertXY(part.vertices[1], 172.81485244725621, 142.92502204612026);
+		assertXY(part.vertices[2], 171.92756247672253, 144.97751236477959);
+
+		part = body.parts[1]
+		assertFloat(part.angle, 238.);
+		assertFloat(part.anglePrev, 202.);
+		assertXY(part.axes[0], 290.88768830563964, 25.871853281144183);
+		assertXY(part.axes[1], 293.70559267624435, 26.11560511832087);
+		assertBounds(part.bounds, 310.89216660688584, 154.86886206777797, 472.71007097749055, 317.165104223614);
+		assertXY(part.position, 279.8952185302343, 152.18759185883437);
+		assertXY(part.vertices[0], 310.89216660688584, 154.86886206777797);
+		assertXY(part.vertices[1], 313.71007097749055, 155.11261390495463);
+		assertXY(part.vertices[2], 312.8227810069568, 157.16510422361398);
+
+		part = body.parts[2]
+		assertFloat(part.angle, 338.);
+		assertFloat(part.anglePrev, 302.);
+		assertXY(part.axes[0], 431.7829068358739, 38.05944513997858);
+		assertXY(part.axes[1], 434.6008112064786, 38.30319697715527);
+		assertBounds(part.bounds, 451.7873851371201, 167.05645392661233, 613.6052895077248, 329.35269608244835);
+		assertXY(part.position, 420.79043706046855, 164.37518371766876);
+		assertXY(part.vertices[0], 451.7873851371201, 167.05645392661233);
+		assertXY(part.vertices[1], 454.6052895077248, 167.30020576378902);
+		assertXY(part.vertices[2], 453.7179995371911, 169.35269608244838);
+	});
+
+	it('should not be able to rotate a default body with a point not updating the velocity with an undefined rotation', () => {
+		// Arrange
+		const body = getTestBodyWithPartsWithParent();
+		const rotation = undefined;
+		const point = { x: 93., y: 94. };
+		const updateVelocity = false;
+
+		// Act
+		Body.rotate(body, rotation, point, updateVelocity);
+
+		// Assert
+		// TODO: This causes the result to have undefined and NaN properties. This should probably be fixed.
+		let part = body.parts[0];
+		expect(part.angle).toEqual(NaN);
+		expect(part.anglePrev).toEqual(NaN);
+		expect(part.axes[0].x).toEqual(NaN);
+		expect(part.axes[0].y).toEqual(NaN);
+		expect(part.axes[1].x).toEqual(NaN);
+		expect(part.axes[1].y).toEqual(NaN);
+		expect(part.bounds.min.x).toEqual(Infinity);
+		expect(part.bounds.min.y).toEqual(Infinity);
+		expect(part.bounds.max.x).toEqual(-Infinity);
+		expect(part.bounds.max.y).toEqual(-Infinity);
+		expect(part.position.x).toEqual(NaN);
+		expect(part.position.y).toEqual(NaN);
+		expect(part.vertices[0].x).toEqual(NaN);
+		expect(part.vertices[0].y).toEqual(NaN);
+		expect(part.vertices[1].x).toEqual(NaN);
+		expect(part.vertices[1].y).toEqual(NaN);
+		expect(part.vertices[2].x).toEqual(NaN);
+		expect(part.vertices[2].y).toEqual(NaN);
+
+		part = body.parts[1]
+		expect(part.angle).toEqual(NaN);
+		assertFloat(part.anglePrev, 202.);
+		expect(part.axes[0].x).toEqual(NaN);
+		expect(part.axes[0].y).toEqual(NaN);
+		expect(part.axes[1].x).toEqual(NaN);
+		expect(part.axes[1].y).toEqual(NaN);
+		expect(part.bounds.min.x).toEqual(Infinity);
+		expect(part.bounds.min.y).toEqual(Infinity);
+		expect(part.bounds.max.x).toEqual(-Infinity);
+		expect(part.bounds.max.y).toEqual(-Infinity);
+		expect(part.position.x).toEqual(NaN);
+		expect(part.position.y).toEqual(NaN);
+		expect(part.vertices[0].x).toEqual(NaN);
+		expect(part.vertices[0].y).toEqual(NaN);
+		expect(part.vertices[1].x).toEqual(NaN);
+		expect(part.vertices[1].y).toEqual(NaN);
+		expect(part.vertices[2].x).toEqual(NaN);
+		expect(part.vertices[2].y).toEqual(NaN);
+
+		part = body.parts[2]
+		expect(part.angle).toEqual(NaN);
+		assertFloat(part.anglePrev, 302.);
+		expect(part.axes[0].x).toEqual(NaN);
+		expect(part.axes[0].y).toEqual(NaN);
+		expect(part.axes[1].x).toEqual(NaN);
+		expect(part.axes[1].y).toEqual(NaN);
+		expect(part.bounds.min.x).toEqual(Infinity);
+		expect(part.bounds.min.y).toEqual(Infinity);
+		expect(part.bounds.max.x).toEqual(-Infinity);
+		expect(part.bounds.max.y).toEqual(-Infinity);
+		expect(part.position.x).toEqual(NaN);
+		expect(part.position.y).toEqual(NaN);
+		expect(part.vertices[0].x).toEqual(NaN);
+		expect(part.vertices[0].y).toEqual(NaN);
+		expect(part.vertices[1].x).toEqual(NaN);
+		expect(part.vertices[1].y).toEqual(NaN);
+		expect(part.vertices[2].x).toEqual(NaN);
+		expect(part.vertices[2].y).toEqual(NaN);
+	});
+
+	it('should not be able to rotate an undefined body with a point not updating the velocity', () => {
+		// Arrange
+		const body = undefined;
+		const rotation = 37.;
+		const point = { x: 93., y: 94. };
+		const updateVelocity = false;
+
+		// Act
+		let result = () => Body.rotate(body, rotation, point, updateVelocity);
+
+		// Assert
+		// TODO: This causes a read or set from undefined. This should probably be fixed.
+		expect(result).toThrow(/^Cannot .* properties of undefined \(.* '.*'\)$/);
+	});
+
+});
