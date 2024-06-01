@@ -2449,3 +2449,171 @@ describe('Body.scale', () => {
 		expect(result).toThrow(/^Cannot .* properties of undefined \(.* '.*'\)$/);
 	});
 });
+
+describe('Body.update', () => {
+	it('should be able to update a valid body providing a delta time', () => {
+		// Arrange
+		const body = getTestBodyWithPartsWithParent();
+		let deltaTime = 2.;
+    
+		// Act
+		Body.update(body, deltaTime);
+
+		// Assert
+		let part = body.parts[0];
+		assertFloat(part.angle, 121082.60418646617);
+		assertFloat(part.anglePrev, 101.);
+		assertFloat(part.angularVelocity, 120981.60418646617);
+		assertXY(part.axes[0], 142.05303055391587, -50.05932990410723);
+		assertXY(part.axes[1], 144.71622087157778, -51.0119144577884);
+		assertBounds(part.bounds, 115357.4911405531, 116033.529738297, 230549.39901876543, 231940.72603011483);
+		assertFloat(part.deltaTime, 312.);
+		assertFloat(part.density, 126.);
+		assertXY(part.force, 127., 128);
+		assertFloat(part.frictionAir, 130.);
+		assertFloat(part.inertia, 133.);
+		assertFloat(part.mass, 136.);
+		assertXY(part.position, 115328.19604705882, 116044.96075294117);
+		assertXY(part.positionPrev, 139., 140.);
+		assertFloat(part.timeScale, 156.);
+		assertFloat(part.torque, 157.);
+		assertXY(part.velocity, 115189.19604705882, 115904.96075294117);
+		assertXY(part.vertices[0], 115357.4911405531, 116034.48232285069);
+		assertXY(part.vertices[1], 115360.15433087076, 116033.529738297);
+		assertXY(part.vertices[2], 115360.20297170662, 116035.76527717366);
+		
+		part = body.parts[1]
+		assertFloat(part.angle, 201);
+		assertFloat(part.anglePrev, 202.);
+		assertFloat(part.angularVelocity, 204.);
+		assertXY(part.axes[0], 275.2125464370103, -97.68855758816609);
+		assertXY(part.axes[1], 277.8757367546722, -98.64114214184728);
+		assertBounds(part.bounds, 115490.6506564362, 115985.90051061293, 230682.55853464853, 231893.09680243078);
+		assertFloat(part.deltaTime, 225.);
+		assertFloat(part.density, 226.);
+		assertXY(part.force, 227., 228);
+		assertFloat(part.frictionAir, 230.);
+		assertFloat(part.inertia, 233.);
+		assertFloat(part.mass, 236.);
+		assertXY(part.position, 115461.35556294191, 115997.33152525712);
+		assertXY(part.positionPrev, 243., 244.);
+		assertFloat(part.timeScale, 256.);
+		assertFloat(part.torque, 257.);
+		assertXY(part.velocity, 259., 260.);
+		assertXY(part.vertices[0], 115490.6506564362, 115986.85309516662);
+		assertXY(part.vertices[1], 115493.31384675387, 115985.90051061293);
+		assertXY(part.vertices[2], 115493.36248758971, 115988.1360494896);
+    
+		part = body.parts[2]
+		assertFloat(part.angle, 301);
+		assertFloat(part.anglePrev, 302.);
+		assertFloat(part.angularVelocity, 304.);
+		assertXY(part.axes[0], 408.37206232010476, -145.31778527222497);
+		assertXY(part.axes[1], 411.03525263776663, -146.27036982590613);
+		assertBounds(part.bounds, 115623.8101723193, 115938.27128292888, 230815.71805053164, 231845.46757474673);
+		assertFloat(part.deltaTime, 325.);
+		assertFloat(part.density, 326.);
+		assertXY(part.force, 327., 328);
+		assertFloat(part.frictionAir, 330.);
+		assertFloat(part.inertia, 333.);
+		assertFloat(part.mass, 336.);
+		assertXY(part.position, 115594.51507882502, 115949.70229757305);
+		assertXY(part.positionPrev, 343., 344.);
+		assertFloat(part.timeScale, 356.);
+		assertFloat(part.torque, 357.);
+		assertXY(part.velocity, 359., 360.);
+		assertXY(part.vertices[0], 115623.8101723193, 115939.22386748256);
+		assertXY(part.vertices[1], 115626.47336263696, 115938.27128292888);
+		assertXY(part.vertices[2], 115626.5220034728, 115940.50682180555);
+	});
+
+	it('should be able to update a valid body providing an undefined delta time', () => {
+		// Arrange
+		const body = getTestBodyWithPartsWithParent();
+		let deltaTime = undefined;
+    
+		// Act
+		Body.update(body, deltaTime);
+
+		// Assert
+		let part = body.parts[0];
+		assertFloat(part.angle, 8401753.82406015);
+		assertFloat(part.anglePrev, 101.);
+		assertFloat(part.angularVelocity, 8401652.82406015);
+		assertXY(part.axes[0], -43.980856722441075, -144.05097792781592);
+		assertXY(part.axes[1], -44.81947020798727, -146.75222345939204);
+		assertBounds(part.bounds, 7999988.795461703, 8049673.326230091, 15999850.889872752, 16099241.768652093);
+		assertFloat(part.deltaTime, 2600.);
+		assertFloat(part.density, 126.);
+		assertXY(part.force, 127., 128);
+		assertFloat(part.frictionAir, 130.);
+		assertFloat(part.inertia, 133.);
+		assertFloat(part.mass, 136.);
+		assertXY(part.position, 7999998.858823529, 8049705.74117647);
+		assertXY(part.positionPrev, 139., 140.);
+		assertFloat(part.timeScale, 156.);
+		assertFloat(part.torque, 157.);
+		assertXY(part.velocity, 7999859.858823529, 8049565.74117647);
+		assertXY(part.vertices[0], 7999989.634075188, 8049676.0274756225);
+		assertXY(part.vertices[1], 7999988.795461703, 8049673.326230091);
+		assertXY(part.vertices[2], 7999991.031049223, 8049673.37258136);
+		
+    
+		part = body.parts[1]
+		assertFloat(part.angle, 201);
+		assertFloat(part.anglePrev, 202.);
+		assertFloat(part.angularVelocity, 204.);
+		assertXY(part.axes[0], -85.91153099975105, -279.11325450662287);
+		assertXY(part.axes[1], -86.75014448529726, -281.81450003819896);
+		assertBounds(part.bounds, 7999946.864787426, 8049538.263953513, 15999808.959198475, 16099106.706375513);
+		assertFloat(part.deltaTime, 225.);
+		assertFloat(part.density, 226.);
+		assertXY(part.force, 227., 228);
+		assertFloat(part.frictionAir, 230.);
+		assertFloat(part.inertia, 233.);
+		assertFloat(part.mass, 236.);
+		assertXY(part.position, 7999956.928149252, 8049570.678899892);
+		assertXY(part.positionPrev, 243., 244.);
+		assertFloat(part.timeScale, 256.);
+		assertFloat(part.torque, 257.);
+		assertXY(part.velocity, 259., 260.);
+		assertXY(part.vertices[0], 7999947.703400911, 8049540.965199044);
+		assertXY(part.vertices[1], 7999946.864787426, 8049538.263953513);
+		assertXY(part.vertices[2], 7999949.100374945, 8049538.310304781);
+    
+		part = body.parts[2]
+		assertFloat(part.angle, 301);
+		assertFloat(part.anglePrev, 302.);
+		assertFloat(part.angularVelocity, 304.);
+		assertXY(part.axes[0], -127.842205277061, -414.1755310854297);
+		assertXY(part.axes[1], -128.6808187626072, -416.87677661700593);
+		assertBounds(part.bounds, 7999904.934113149, 8049403.201676934, 15999767.028524198, 16098971.644098936);
+		assertFloat(part.deltaTime, 325.);
+		assertFloat(part.density, 326.);
+		assertXY(part.force, 327., 328);
+		assertFloat(part.frictionAir, 330.);
+		assertFloat(part.inertia, 333.);
+		assertFloat(part.mass, 336.);
+		assertXY(part.position, 7999914.997474975, 8049435.616623312);
+		assertXY(part.positionPrev, 343., 344.);
+		assertFloat(part.timeScale, 356.);
+		assertFloat(part.torque, 357.);
+		assertXY(part.velocity, 359., 360.);
+		assertXY(part.vertices[0], 7999905.772726634, 8049405.9029224655);
+		assertXY(part.vertices[1], 7999904.934113149, 8049403.201676934);
+		assertXY(part.vertices[2], 7999907.169700668, 8049403.248028202);
+	});
+
+	it('should not be able to update an undefined body providing a delta time', () => {
+		// Arrange
+		const body = undefined;
+		let deltaTime = 2.;
+    
+		// Act
+		let result = () => Body.update(body, deltaTime);
+
+		// Assert
+		// TODO: This causes a read or set from undefined. This should probably be fixed.
+		expect(result).toThrow(/^Cannot .* properties of undefined \(.* '.*'\)$/);
+	});
+});
