@@ -2705,3 +2705,31 @@ describe('Body.applyForce', () => {
 		expect(result).toThrow(/^Cannot .* properties of undefined \(.* '.*'\)$/);
 	});
 });
+
+describe('Body._totalProperties', () => {
+	it('should sum the properties of all compound parts of the given body', () => {
+		// Arrange
+		const body = getTestBodyWithPartsWithParent();
+
+		// Act
+		const result = Body._totalProperties(body);
+
+		// Assert
+		assertFloat(result.area, 510.);
+		assertXY(result.centre, 297.7412587412587, 298.7412587412587);
+		assertFloat(result.inertia, 566.);
+		assertFloat(result.mass, 572.);
+	});
+
+	it('should not be able sum the properties of all compound parts of an undefined body', () => {
+		// Arrange
+		const body = undefined;
+
+		// Act
+		const result = () => Body._totalProperties(body);
+
+		// Assert
+		// TODO: This causes a read or set from undefined. This should probably be fixed.
+		expect(result).toThrow(/^Cannot .* properties of undefined \(.* '.*'\)$/);
+	});
+});
