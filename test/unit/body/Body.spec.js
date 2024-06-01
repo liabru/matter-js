@@ -2617,3 +2617,30 @@ describe('Body.update', () => {
 		expect(result).toThrow(/^Cannot .* properties of undefined \(.* '.*'\)$/);
 	});
 });
+
+describe('Body.updateVelocities', () => {
+	it('should be able update all velocities and speeds', () => {
+		// Arrange
+		const body = getTestBodyWithPartsWithParent();
+    
+		// Act
+		Body.updateVelocities(body);
+
+		// Assert 
+		assertFloat(body.speed, 0.7542472332656507);
+		assertFloat(body.angularVelocity, -0.13333333333333333);
+		assertFloat(body.angularSpeed, 0.13333333333333333);
+	});
+
+	it('should not be able update all velocities and speeds on undefined body', () => {
+		// Arrange
+		const body = undefined;
+    
+		// Act
+		let result = () => Body.updateVelocities(body);
+
+		// Assert 
+		// TODO: This causes a read or set from undefined. This should probably be fixed.
+		expect(result).toThrow(/^Cannot .* properties of undefined \(.* '.*'\)$/);
+	});
+});
