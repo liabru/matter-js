@@ -2644,3 +2644,64 @@ describe('Body.updateVelocities', () => {
 		expect(result).toThrow(/^Cannot .* properties of undefined \(.* '.*'\)$/);
 	});
 });
+
+describe('Body.applyForce', () => {
+	it('should be able to apply force to a valid body', () => {
+		// Arrange
+		const body = getTestBodyWithPartsWithParent();
+		body.force = { x: 3, y: 4 };
+		let position = { x: 89., y: 99. };
+		let force = { x: 37, y: 42. };
+
+		// Act
+		Body.applyForce(body, position, force);
+
+		// Assert 
+		assertXY(body.force, 40., 46.);
+		assertFloat(body.torque, -426.);
+	});
+
+	it('should not be able to apply an undefined force to a valid body', () => {
+		// Arrange
+		const body = getTestBodyWithPartsWithParent();
+		body.force = { x: 3, y: 4 };
+		let position = { x: 89., y: 99. };
+		let force = undefined;
+
+		// Act
+		let result = () => Body.applyForce(body, position, force);
+
+		// Assert 
+		// TODO: This causes a read or set from undefined. This should probably be fixed.
+		expect(result).toThrow(/^Cannot .* properties of undefined \(.* '.*'\)$/);
+	});
+
+	it('should not be able to apply force to a valid body with an undefined position', () => {
+		// Arrange
+		const body = getTestBodyWithPartsWithParent();
+		body.force = { x: 3, y: 4 };
+		let position = undefined;
+		let force = { x: 37, y: 42. };
+
+		// Act
+		let result = () => Body.applyForce(body, position, force);
+
+		// Assert 
+		// TODO: This causes a read or set from undefined. This should probably be fixed.
+		expect(result).toThrow(/^Cannot .* properties of undefined \(.* '.*'\)$/);
+	});
+
+	it('should not be able to apply force to an undefined body', () => {
+		// Arrange
+		const body = undefined;
+		let position = { x: 89., y: 99. };
+		let force = { x: 37, y: 42. };
+
+		// Act
+		let result = () => Body.applyForce(body, position, force);
+
+		// Assert 
+		// TODO: This causes a read or set from undefined. This should probably be fixed.
+		expect(result).toThrow(/^Cannot .* properties of undefined \(.* '.*'\)$/);
+	});
+});
