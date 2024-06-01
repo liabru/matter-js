@@ -352,6 +352,106 @@ describe('Body.nextCategory', () => {
 	});
 });
 
+describe('Body.set', () => {
+	it('should be able to set json settings on a body with undefined value', () => {
+		// Arrange
+		let body = getTestBodyWithPartsWithParent();
+		let settings = { area: 42.1 };
+		let value = undefined;
+
+		// Act 
+		Body.set(body, settings, value);
+
+		// Assert
+		assertFloat(body.area, 42.1);
+	});
+
+	it('should be able to set json settings on a body with value', () => {
+		// Arrange
+		let body = getTestBodyWithPartsWithParent();
+		let settings = { area: 42.1 };
+		let value = 37.3;
+
+		// Act 
+		Body.set(body, settings, value);
+
+		// Assert
+		assertFloat(body.area, 42.1);
+	});
+
+	it('should be able to set string setting on a body with value', () => {
+		// Arrange
+		let body = getTestBodyWithPartsWithParent();
+		let settings = 'area';
+		let value = 37.3;
+
+		// Act 
+		Body.set(body, settings, value);
+
+		// Assert
+		assertFloat(body.area, 37.3);
+	});
+
+	it('should be able to set string setting on a body with undefined value', () => {
+		// Arrange
+		let body = getTestBodyWithPartsWithParent();
+		let settings = 'area';
+		let value = undefined;
+
+		// Act 
+		Body.set(body, settings, value);
+
+		// Assert
+		expect(body.area).toEqual(undefined);
+	});
+
+	it('should not be able to set unknown json settings on a body with undefined value', () => {
+		// Arrange
+		let body = getTestBodyWithPartsWithParent();
+		let settings = { blabla: 42.1 };
+		let value = undefined;
+
+		// Act 
+		Body.set(body, settings, value); 
+
+		// Assert
+		// TODO
+		// This is probably a bug: if (!Object.prototype.hasOwnProperty.call(settings, property))
+		// You can now add properties to the body. The check here seems to be designed to not allow that.
+		// The test should not test 'settings' to have the property but the 'body' variable.
+		assertFloat(body.blabla, 42.1);
+	});
+
+	it('should be able to set undefined settings on a body with undefined value', () => {
+		// Arrange
+		let body = getTestBodyWithPartsWithParent();
+		let body2 = getTestBodyWithPartsWithParent();
+		let settings = undefined;
+		let value = undefined;
+
+		// Act 
+		Body.set(body, settings, value); 
+
+		// Assert
+		expect(body).toEqual(body2);
+	});
+
+	it('should not be able to set json settings on an undefined body with undefined value', () => {
+		// Arrange
+		let body = undefined;
+		let settings = { area: 42.1 };
+		let value = undefined;
+
+		// Act 
+		let result = () => Body.set(body, settings, value);
+
+		// Assert
+		// TODO: This causes a read or set from undefined. This should probably be fixed.
+		expect(result).toThrow(/^Cannot .* properties of undefined \(.* '.*'\)$/);
+	});
+});
+
+
 describe('Body.setStatic', () => {
 	it('should be able to set a default body to static when all parts are not static yet', () => {
 		// Arrange
