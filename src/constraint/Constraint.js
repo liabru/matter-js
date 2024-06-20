@@ -37,7 +37,17 @@ var Common = require('../core/Common');
      * @return {constraint} constraint
      */
     Constraint.create = function(options) {
-        var constraint = options;
+        var defaults = {
+            id: Common.nextId(),
+            type: 'constraint',
+            label: 'Constraint',
+            damping: 0,
+            angularStiffness: 0,
+            plugin: {},
+        };
+
+        // NOTE: defaults are merged non-recursively, so any deep defaults must be merged separately.
+        var constraint = Common.extend(defaults, false, options);
 
         // if bodies defined but no points, use body centre
         if (constraint.bodyA && !constraint.pointA)
@@ -49,19 +59,13 @@ var Common = require('../core/Common');
         var initialPointA = constraint.bodyA ? Vector.add(constraint.bodyA.position, constraint.pointA) : constraint.pointA,
             initialPointB = constraint.bodyB ? Vector.add(constraint.bodyB.position, constraint.pointB) : constraint.pointB,
             length = Vector.magnitude(Vector.sub(initialPointA, initialPointB));
-    
+
         constraint.length = typeof constraint.length !== 'undefined' ? constraint.length : length;
 
         // option defaults
-        constraint.id = constraint.id || Common.nextId();
-        constraint.label = constraint.label || 'Constraint';
-        constraint.type = 'constraint';
         constraint.stiffness = constraint.stiffness || (constraint.length > 0 ? 1 : 0.7);
-        constraint.damping = constraint.damping || 0;
-        constraint.angularStiffness = constraint.angularStiffness || 0;
         constraint.angleA = constraint.bodyA ? constraint.bodyA.angle : constraint.angleA;
         constraint.angleB = constraint.bodyB ? constraint.bodyB.angle : constraint.angleB;
-        constraint.plugin = {};
 
         // render
         var render = {
@@ -159,7 +163,7 @@ var Common = require('../core/Common');
             Vector.rotate(pointA, bodyA.angle - constraint.angleA, pointA);
             constraint.angleA = bodyA.angle;
         }
-        
+
         // update reference angle
         if (bodyB && !bodyB.isStatic) {
             Vector.rotate(pointB, bodyB.angle - constraint.angleB, pointB);
@@ -240,7 +244,7 @@ var Common = require('../core/Common');
             // keep track of applied impulses for post solving
             bodyB.constraintImpulse.x += force.x * share;
             bodyB.constraintImpulse.y += force.y * share;
-            
+
             // apply forces
             bodyB.position.x += force.x * share;
             bodyB.position.y += force.y * share;
@@ -279,7 +283,7 @@ var Common = require('../core/Common');
             // update geometry and reset
             for (var j = 0; j < body.parts.length; j++) {
                 var part = body.parts[j];
-                
+
                 Vertices.translate(part.vertices, impulse);
 
                 if (j > 0) {
@@ -426,7 +430,7 @@ var Common = require('../core/Common');
      */
 
     /**
-     * A `String` that defines the constraint rendering type. 
+     * A `String` that defines the constraint rendering type.
      * The possible values are 'line', 'pin', 'spring'.
      * An appropriate render type will be automatically chosen unless one is given in options.
      *
@@ -486,7 +490,7 @@ var Common = require('../core/Common');
      */
 
     /**
-     * A `Number` that specifies the damping of the constraint, 
+     * A `Number` that specifies the damping of the constraint,
      * i.e. the amount of resistance applied to each body based on their velocities to limit the amount of oscillation.
      * Damping will only be apparent when the constraint also has a very low `stiffness`.
      * A value of `0.1` means the constraint will apply heavy damping, resulting in little to no oscillation.
@@ -498,7 +502,7 @@ var Common = require('../core/Common');
      */
 
     /**
-     * A `Number` that specifies the target resting length of the constraint. 
+     * A `Number` that specifies the target resting length of the constraint.
      * It is calculated automatically in `Constraint.create` from initial positions of the `constraint.bodyA` and `constraint.bodyB`.
      *
      * @property length
