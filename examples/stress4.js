@@ -35,9 +35,7 @@ Example.stress4 = function() {
     Render.run(render);
 
     // create runner
-    var runner = Runner.create({
-        isFixed: true
-    });
+    var runner = Runner.create();
 
     Runner.run(runner, engine);
 
