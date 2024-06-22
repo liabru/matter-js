@@ -348,9 +348,9 @@ var Common = require('./Common');
      * 
      * Where as e.g. using a 240 Hz `delta` i.e. `1000 / 240` the runner will on average perform four updates per frame on displays running 60 FPS and two updates per frame on displays running 120 FPS, etc.
      * 
-     * Therefore note that `Runner.run` can call multiple engine updates (or none) to simulate the time elapsed between browser frames, as well as the number of actual updates in any particular frame may be restricted to respect the runner's performance budgets.
+     * Therefore `Runner.run` will call multiple engine updates (or none) as needed to simulate the time elapsed between browser frames. 
      * 
-     * These performance budgets are specified by `runner.maxFrameTime` and `runner.maxUpdates`. See those properties for details.
+     * In practice the number of updates in any particular frame may be restricted to respect the runner's performance budgets. These are specified by `runner.maxFrameTime` and `runner.maxUpdates`, see those properties for details.
      * 
      * @property delta
      * @type number
