@@ -116,7 +116,6 @@ var compare = function(examples, isDev) {
             ticks += 1;
 
             var demoBuildInstance = demoBuild.example.instance;
-            runner.isFixed = demoBuildInstance.runner.isFixed = true;
             runner.delta = demoBuildInstance.runner.delta = 1000 / 60;
 
             window.Matter = MatterBuild;

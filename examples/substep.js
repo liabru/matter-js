@@ -1,24 +1,18 @@
 var Example = Example || {};
 
-Example.stress4 = function() {
+Example.substep = function() {
     var Engine = Matter.Engine,
-        Events = Matter.Events,
         Render = Matter.Render,
         Runner = Matter.Runner,
-        Composites = Matter.Composites,
-        Common = Matter.Common,
+        Events = Matter.Events,
+        Composite = Matter.Composite,
         MouseConstraint = Matter.MouseConstraint,
         Mouse = Matter.Mouse,
-        Composite = Matter.Composite,
         Bodies = Matter.Bodies;
 
     // create engine
-    var engine = Engine.create({
-        positionIterations: 25,
-        velocityIterations: 35
-    });
-
-    var world = engine.world;
+    var engine = Engine.create(),
+        world = engine.world;
 
     // create renderer
     var render = Render.create({
@@ -27,39 +21,50 @@ Example.stress4 = function() {
         options: {
             width: 800,
             height: 600,
-            showStats: true,
-            showPerformance: true
+            wireframes: false,
+            showDebug: true,
+            background: '#000',
+            pixelRatio: 2
         }
     });
 
     Render.run(render);
 
-    // create runner
-    var runner = Runner.create();
+    // create runner with higher precision timestep (requires >= v0.20.0 beta)
+    var runner = Runner.create({
+        // 600Hz delta = 1.666ms = 10upf @ 60fps (i.e. 10x default precision)
+        delta: 1000 / (60 * 10),
+        // 50fps minimum performance target (i.e. budget allows up to ~20ms execution per frame)
+        maxFrameTime: 1000 / 50
+    });
 
     Runner.run(runner, engine);
 
-    // add bodies
-    var stack = function(scale, columns, rows) {
-        return Composites.stack(40, 40, columns, rows, 0, 0, function(x, y) {
-            var sides = Math.round(Common.random(1, 8));
-
-            switch (Math.round(Common.random(0, 1))) {
-            case 0:
-                if (Common.random() < 0.8) {
-                    return Bodies.rectangle(x, y, Common.random(25, 50) * scale, Common.random(25, 50) * scale);
-                } else {
-                    return Bodies.rectangle(x, y, Common.random(80, 120) * scale, Common.random(25, 30) * scale);
-                }
-            case 1:
-                return Bodies.polygon(x, y, sides, Common.random(25, 50) * scale);
-            }
-        });
-    };
-
+    // demo substepping using very thin bodies (than is typically recommended)
     Composite.add(world, [
-        stack(0.2, 61, 15), 
-        stack(0.3, 31, 12),
+        Bodies.rectangle(250, 250, 300, 1.25, {
+            frictionAir: 0, 
+            friction: 0,
+            restitution: 0.9,
+            angle: 0.5,
+            render: {
+                lineWidth: 0.5,
+                fillStyle: '#f55a3c'
+            }
+        }),
+        Bodies.circle(200, 200, 2.25, {
+            frictionAir: 0, 
+            friction: 0,
+            restitution: 0.9,
+            angle: 0.5,
+            render: {
+                fillStyle: '#fff'
+            }
+        })
+    ]);
+
+    // add bodies
+    Composite.add(world, [
         Bodies.rectangle(400, 0, 800, 50, { isStatic: true, render: { visible: false } }),
         Bodies.rectangle(400, 600, 800, 50, { isStatic: true, render: { visible: false } }),
         Bodies.rectangle(800, 300, 50, 600, { isStatic: true, render: { visible: false } }),
@@ -67,10 +72,8 @@ Example.stress4 = function() {
     ]);
 
     // scene animation
-    engine.timing.timeScale = 0.9;
-    engine.gravity.scale = 0.0007;
-
-    Events.on(engine, 'beforeUpdate', function() {
+    Events.on(engine, 'afterUpdate', function(event) {
+        engine.gravity.scale = 0.00035;
         engine.gravity.x = Math.cos(engine.timing.timestamp * 0.0005);
         engine.gravity.y = Math.sin(engine.timing.timestamp * 0.0005);
     });
@@ -111,9 +114,9 @@ Example.stress4 = function() {
     };
 };
 
-Example.stress4.title = 'Stress 4';
-Example.stress4.for = '>=0.14.2';
+Example.substep.title = 'High Substeps (Low Delta)';
+Example.substep.for = '>=0.20.0';
 
 if (typeof module !== 'undefined') {
-    module.exports = Example.stress4;
+    module.exports = Example.substep;
 }

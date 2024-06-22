@@ -24,6 +24,8 @@ var Body = require('../body/Body');
 
 (function() {
 
+    Engine._deltaMax = 1000 / 60;
+
     /**
      * Creates a new engine. The options parameter is an object that specifies any properties you wish to override the defaults.
      * All properties have default values, and many are pre-calculated automatically based on other properties.
@@ -51,7 +53,8 @@ var Body = require('../body/Body');
                 timestamp: 0,
                 timeScale: 1,
                 lastDelta: 0,
-                lastElapsed: 0
+                lastElapsed: 0,
+                lastUpdatesPerFrame: 0
             }
         };
 
@@ -88,6 +91,13 @@ var Body = require('../body/Body');
             timing = engine.timing,
             timestamp = timing.timestamp,
             i;
+
+        // warn if high delta
+        if (delta > Engine._deltaMax) {
+            Common.warnOnce(
+                'Matter.Engine.update: delta argument is recommended to be less than or equal to', Engine._deltaMax.toFixed(3), 'ms.'
+            );
+        }
 
         delta = typeof delta !== 'undefined' ? delta : Common._baseDelta;
         delta *= timing.timeScale;
