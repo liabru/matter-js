@@ -185,6 +185,7 @@ const prepareEnvironment = options => {
       height: 600,
       style: {},
       addEventListener: () => {},
+      setAttribute: () => {},
       getAttribute: name => ({
         'data-pixel-ratio': '1'
       }[name]),

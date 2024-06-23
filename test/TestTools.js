@@ -238,7 +238,7 @@ const extrinsicSimilarity = (currentCaptures, referenceCaptures, key='extrinsic'
             }
         }
 
-        result[name] = 1 - (totalSimilarity / totalCount);
+        result[name] = 1 - (totalSimilarity / (totalCount || 1));
     }
 
     return result;
