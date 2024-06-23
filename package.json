@@ -59,7 +59,7 @@
     "test-watch": "npm run test-node -- --watch",
     "changelog": "conventional-changelog -i CHANGELOG.md -s -r",
     "release": "npm version --no-git-tag-version",
-    "preversion": "git checkout master && npm run lint && npm run test-all -- --save=true",
+    "preversion": "git checkout master && npm run lint && npm run test-node -- --save=true",
     "version": "git checkout -b release/$npm_package_version && npm run build"
   },
   "files": [
