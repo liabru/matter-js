@@ -64,7 +64,11 @@
   },
   "files": [
     "src",
-    "build",
-    "CHANGELOG.md"
+    "build/matter.js",
+    "build/matter.min.js",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE",
+    "package.json"
   ]
 }
