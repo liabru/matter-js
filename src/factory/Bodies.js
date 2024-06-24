@@ -116,6 +116,9 @@ var Vector = require('../geometry/Vector');
      * @return {body} A new circle body
      */
     Bodies.circle = function(x, y, radius, options, maxSides) {
+        if( radius === 0 )
+            throw new Error('The radius of `Bodies.circle` must be non-zero.');
+
         options = options || {};
 
         var circle = {
