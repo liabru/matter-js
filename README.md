@@ -82,6 +82,7 @@ See how others are using matter.js physics
 - [Fuse](https://fuse.blog/) by Fuse
 - [Glyphfinder](https://www.glyphfinder.com/) by überdosis
 - [Isolation](https://isolation.is/postcards/my-week) by sabato studio
+- [Angry Birds](https://angry-birds-beta.vercel.app/) by Yumin Jung
 - [more...](https://github.com/liabru/matter-js/wiki/Gallery)
 
 ### Features
