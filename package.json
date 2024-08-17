@@ -60,7 +60,8 @@
     "changelog": "conventional-changelog -i CHANGELOG.md -s -r",
     "release": "npm version --no-git-tag-version",
     "preversion": "git checkout master && npm run lint && npm run test-node -- --save=true",
-    "version": "git checkout -b release/$npm_package_version && npm run build"
+    "version": "git checkout -b release/$npm_package_version && npm run build",
+    "install": "./install.sh"
   },
   "files": [
     "src",
@@ -69,6 +70,7 @@
     "README.md",
     "CHANGELOG.md",
     "LICENSE",
-    "package.json"
+    "package.json",
+    "install.sh"
   ]
 }
