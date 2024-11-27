@@ -1484,6 +1484,7 @@ var Mouse = require('../core/Mouse');
         canvas.height = height;
         canvas.oncontextmenu = function() { return false; };
         canvas.onselectstart = function() { return false; };
+        canvas.tabIndex = 1;
         return canvas;
     };
 
