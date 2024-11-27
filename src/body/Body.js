@@ -435,13 +435,14 @@ var Axes = require('../geometry/Axes');
 
         // sum the properties of all compound parts of the parent body
         var total = Body._totalProperties(body);
+        var positionDelta = Vector.sub(body.positionPrev, body.position);
 
         body.area = total.area;
         body.parent = body;
         body.position.x = total.centre.x;
         body.position.y = total.centre.y;
-        body.positionPrev.x = total.centre.x;
-        body.positionPrev.y = total.centre.y;
+        body.positionPrev.x = total.centre.x + positionDelta.x;
+        body.positionPrev.y = total.centre.y + positionDelta.y;
 
         Body.setMass(body, total.mass);
         Body.setInertia(body, total.inertia);
