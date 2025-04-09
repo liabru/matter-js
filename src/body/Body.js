@@ -756,8 +756,8 @@ var Axes = require('../geometry/Axes');
             velocityPrevY = (body.position.y - body.positionPrev.y) * correction;
 
         // update velocity with Verlet integration
-        body.velocity.x = (velocityPrevX * frictionAir) + (body.force.x / body.mass) * deltaTimeSquared;
-        body.velocity.y = (velocityPrevY * frictionAir) + (body.force.y / body.mass) * deltaTimeSquared;
+        body.velocity.x = (velocityPrevX * frictionAir) + (body.force.x / body.mass) * deltaTime * (deltaTime + body.deltaTime) / 2;
+        body.velocity.y = (velocityPrevY * frictionAir) + (body.force.y / body.mass) * deltaTime * (deltaTime + body.deltaTime) / 2;
 
         body.positionPrev.x = body.position.x;
         body.positionPrev.y = body.position.y;
