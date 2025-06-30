@@ -184,3 +184,5 @@ Copyright (c) 2014 Liam Brummitt
 
 This license is also supplied with the release and source code.  
 As stated in the license, absolutely no warranty is provided.
+> ⚡️ This simulation now runs smoother than a Tesla's AC motor.
+
