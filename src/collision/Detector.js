@@ -69,10 +69,23 @@ var Collision = require('./Collision');
             i,
             j;
 
-        bodies.sort(Detector._compareBoundsX);
+        // Sorts the bodies first on static/active state, then by minimum x bound
+        bodies.sort(Detector._compareBodiesCollisionChecking);
 
-        for (i = 0; i < bodiesLength; i++) {
-            var bodyA = bodies[i],
+        // Filter out active bodies to reduce number of comparisons
+        let activeBodies = new Array(bodiesLength);
+        let nextIdx = 0;
+        for (let k = 0; k < bodies.length; k++) {
+            let body = bodies[k];
+            if (!(body.isStatic || body.isSleeping)) {
+                // Cache active body with reference to original index
+                activeBodies[nextIdx++] = [body, k];
+            }
+        }
+        nextIdx--;
+
+        activeBodies.forEach(bodyTuple => {
+            var bodyA = bodyTuple[0],
                 boundsA = bodyA.bounds,
                 boundXMax = bodyA.bounds.max.x,
                 boundYMax = bodyA.bounds.max.y,
@@ -81,19 +94,23 @@ var Collision = require('./Collision');
                 partsALength = bodyA.parts.length,
                 partsASingle = partsALength === 1;
 
+            i = bodyTuple[1];
+
             for (j = i + 1; j < bodiesLength; j++) {
                 var bodyB = bodies[j],
-                    boundsB = bodyB.bounds;
+                    boundsB = bodyB.bounds,
+                    bodyBStatic = bodyB.isStatic || bodyB.isSleeping;
 
                 if (boundsB.min.x > boundXMax) {
-                    break;
+                    if (bodyBStatic) {
+                        break;
+                    } else {
+                        j = nextIdx;
+                        continue;
+                    }
                 }
 
                 if (boundYMax < boundsB.min.y || boundYMin > boundsB.max.y) {
-                    continue;
-                }
-
-                if (bodyAStatic && (bodyB.isStatic || bodyB.isSleeping)) {
                     continue;
                 }
 
@@ -135,7 +152,7 @@ var Collision = require('./Collision');
                     }
                 }
             }
-        }
+        });
 
         if (collisions.length !== collisionIndex) {
             collisions.length = collisionIndex;
@@ -161,6 +178,25 @@ var Collision = require('./Collision');
 
     /**
      * The comparison function used in the broadphase algorithm.
+     * Returns 1 or -1 if one body is static and the other body is active. Otherwise, returns the signed delta of the bodies bounds on the x-axis.
+     * @private
+     * @method _sortCompare
+     * @param {body} bodyA
+     * @param {body} bodyB
+     * @return {number} The signed number used for sorting
+     */
+    Detector._compareBodiesCollisionChecking = function(bodyA, bodyB) {
+        bodyAStatic = bodyA.isStatic || bodyA.isSleeping;
+        bodyBStatic = bodyB.isStatic || bodyB.isSleeping;
+        if (bodyAStatic != bodyBStatic) {
+            return bodyAStatic ? 1 : -1;
+        } else {
+            return Detector._compareBoundsX(bodyA, bodyB);
+        }
+    }
+
+    /**
+     * A comparison function used in the broadphase algorithm.
      * Returns the signed delta of the bodies bounds on the x-axis.
      * @private
      * @method _sortCompare
