@@ -27,6 +27,9 @@ importers:
       '@rollup/plugin-terser':
         specifier: ^1.0.0
         version: 1.0.0(rollup@4.60.4)
+      matter-wrap:
+        specifier: ^0.2.0
+        version: 0.2.0
       pathseg:
         specifier: ^1.2.1
         version: 1.2.1
@@ -372,6 +375,9 @@ packages:
   matter-tools@0.14.0:
     resolution: {integrity: sha512-BJlSfuN8Vi289EgEtosO9Kr05Jc6AZKGem0hH5e+AUXWJMHmWXF4m/DWXZgnToCGNPOvkynTRxOZNUPuL8xqtA==}
 
+  matter-wrap@0.2.0:
+    resolution: {integrity: sha512-Gp3tETlN6uZftc1Jnv1sogQd8uB2Xh4c5bQ18qKR6KOMfUlsS8vztrC1vDrZS8eg4MuwE1AgZEcwxI41BSW6oQ==}
+
   mime@4.1.0:
     resolution: {integrity: sha512-X5ju04+cAzsojXKes0B/S4tcYtFAJ6tTMuSPBEn9CPGlrWr8Fiw7qYeLT0XyH80HSoAoqWCaz+MWKh22P7G1cw==}
     engines: {node: '>=16'}
@@ -714,6 +720,8 @@ snapshots:
       '@jridgewell/sourcemap-codec': 1.5.5
 
   matter-tools@0.14.0: {}
+
+  matter-wrap@0.2.0: {}
 
   mime@4.1.0: {}
 

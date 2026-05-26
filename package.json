@@ -25,6 +25,7 @@
     "@rollup/plugin-node-resolve": "^16.0.3",
     "@rollup/plugin-replace": "^6.0.3",
     "@rollup/plugin-terser": "^1.0.0",
+    "matter-wrap": "^0.2.0",
     "pathseg": "^1.2.1",
     "poly-decomp": "^0.3.0",
     "rollup": "^4.60.4",

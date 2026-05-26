@@ -5,6 +5,7 @@ import alias from '@rollup/plugin-alias';
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import replace from '@rollup/plugin-replace';
+import terser from '@rollup/plugin-terser';
 import serve from 'rollup-plugin-serve';
 import livereload from 'rollup-plugin-livereload';
 
@@ -12,18 +13,78 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8'));
 const dev = process.env.ROLLUP_WATCH === 'true' || process.env.NODE_ENV === 'development';
-const name = 'matter-demo';
+const name = 'matter-demo.bundle';
 const outDir = path.resolve(__dirname, 'demo/js');
 const devPath = './src/module/main.js';
 const devServer = true;
 
+const banner =
+  `/*! ${name} ${pkg.version} by @liabru
+/* ${pkg.homepage}
+/* License ${pkg.license}
+*/`;
+
+function vendorCommentsPlugin() {
+  return {
+    renderChunk(code, chunk) {
+      let bundleString = code;
+
+      for (const [id, moduleInfo] of Object.entries(chunk.modules)) {
+        if (moduleInfo.renderedLength === 0 || !moduleInfo.code) continue;
+        if (id.includes('?')) continue;
+
+        let vendor = null;
+        if (id.includes('.pnpm/')) {
+          vendor = id.split('.pnpm/')[1].split('/')[0];
+        } else if (id.includes('node_modules/')) {
+          vendor = id.split('node_modules/')[1].split('/')[0];
+        }
+
+        if (vendor) {
+          const moduleCode = moduleInfo.code;
+          const startIdx = bundleString.indexOf(moduleCode);
+
+          if (startIdx !== -1) {
+            const endIdx = startIdx + moduleCode.length;
+            bundleString = 
+              bundleString.slice(0, startIdx) + 
+              `\n\n/*! Vendor chunk: ${vendor} \n*/\n\n` + 
+              moduleCode + 
+              `\n\n/*! End of vendor chunk. \n*/\n\n` + 
+              bundleString.slice(endIdx);
+          }
+        }
+      }
+
+      return { code: bundleString, map: null };
+    }
+  };
+}
+
 export default {
   input: { [name]: 'demo/src/index.js' },
+  watch: {
+    chokidar: {
+      usePolling: true
+    }
+  },
+  output: {
+    dir: outDir,
+    format: 'umd',
+    name: 'MatterDemo',
+    sourcemap: dev,
+    banner,
+    globals: {
+      'matter-js': 'Matter',
+      'MatterDev': 'Matter',
+      'MatterBuild': 'Matter'
+    },
+  },
   plugins: [
     alias({
       entries: [
-        { find: 'matter-js',  replacement: path.resolve(__dirname, devPath) },
-        { find: 'MatterDev',  replacement: path.resolve(__dirname, devPath) },
+        { find: 'matter-js', replacement: path.resolve(__dirname, devPath) },
+        { find: 'MatterDev', replacement: path.resolve(__dirname, devPath) },
         { find: 'MatterBuild', replacement: path.resolve(__dirname, devPath) }
       ]
     }),
@@ -36,27 +97,22 @@ export default {
     }),
     resolve({ browser: true }),
     commonjs(),
-    dev && serve({ contentBase: 'demo', port: 8080 }),
+    !dev && vendorCommentsPlugin(),
+    !dev && terser({
+      mangle: true,
+      format: {
+        comments: function (node, comment) {
+          if (comment.type === 'comment2') {
+            return /(^\!|@license|@preserve|license)/i.test(comment.value);
+          }
+          return false;
+        }
+      }
+    }),
     dev && livereload({
-      watch: ['demo/src', 'demo/index.html'],
-      verbose: false
-    })
+      watch: ['demo/js'],
+      usePolling: true,
+    }),
+    dev && serve({ contentBase: 'demo', port: 8080 }),
   ].filter(Boolean),
-  watch: {
-    exclude: ['demo/js/**', 'demo/js/**/lost+found']
-  },
-  output: {
-    dir: outDir,
-    format: 'umd',
-    name: 'MatterDemo',
-    entryFileNames: dev ? '[name].js' : '[name].[hash].js',
-    chunkFileNames: dev ? '[name].js' : '[name].[hash].js',
-    sourcemap: dev,
-    banner: `// matter-demo bundle ${pkg.version} by @liabru\n// ${pkg.homepage}\n// License ${pkg.license}`,
-    globals: {
-      'matter-js': 'Matter',
-      'MatterDev': 'Matter',
-      'MatterBuild': 'Matter'
-    },
-  },
 };
