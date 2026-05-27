@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@rollup/plugin-replace':
+        specifier: ^6.0.3
+        version: 6.0.3(rollup@4.60.4)
       matter-tools:
         specifier: ^0.14.0
         version: 0.14.0
@@ -21,9 +24,6 @@ importers:
       '@rollup/plugin-node-resolve':
         specifier: ^16.0.3
         version: 16.0.3(rollup@4.60.4)
-      '@rollup/plugin-replace':
-        specifier: ^6.0.3
-        version: 6.0.3(rollup@4.60.4)
       '@rollup/plugin-terser':
         specifier: ^1.0.0
         version: 1.0.0(rollup@4.60.4)
