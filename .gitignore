@@ -4,6 +4,7 @@ node_modules
 npm-debug.log
 docs
 matter-doc-theme
+build/matter-demo.bundle.js
 build/matter-dev.js
 build/matter-dev.min.js
 build/matter.dev.js

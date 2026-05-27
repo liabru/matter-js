@@ -14,7 +14,7 @@ const __dirname = path.dirname(__filename);
 const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8'));
 const dev = process.env.ROLLUP_WATCH === 'true' || process.env.NODE_ENV === 'development';
 const name = 'matter-demo.bundle';
-const outDir = path.resolve(__dirname, 'demo/js');
+const outDir = path.resolve(__dirname, (dev ? 'build' : 'demo'));
 const devPath = './src/module/main.js';
 const devServer = true;
 
@@ -30,29 +30,30 @@ function vendorCommentsPlugin() {
       let bundleString = code;
 
       for (const [id, moduleInfo] of Object.entries(chunk.modules)) {
+        let vendor = null;
+
         if (moduleInfo.renderedLength === 0 || !moduleInfo.code) continue;
         if (id.includes('?')) continue;
 
-        let vendor = null;
         if (id.includes('.pnpm/')) {
           vendor = id.split('.pnpm/')[1].split('/')[0];
         } else if (id.includes('node_modules/')) {
           vendor = id.split('node_modules/')[1].split('/')[0];
         }
 
-        if (vendor) {
-          const moduleCode = moduleInfo.code;
-          const startIdx = bundleString.indexOf(moduleCode);
+        if (!vendor) continue;
 
-          if (startIdx !== -1) {
-            const endIdx = startIdx + moduleCode.length;
-            bundleString = 
-              bundleString.slice(0, startIdx) + 
-              `\n\n/*! Vendor chunk: ${vendor} \n*/\n\n` + 
-              moduleCode + 
-              `\n\n/*! End of vendor chunk. \n*/\n\n` + 
-              bundleString.slice(endIdx);
-          }
+        const moduleCode = moduleInfo.code;
+        const start = bundleString.indexOf(moduleCode);
+
+        if (start !== -1) {
+          const end = start + moduleCode.length;
+          bundleString = 
+            bundleString.slice(0, start) + 
+            `\n\n/*! Vendor chunk: ${vendor} \n*/\n\n` + 
+            moduleCode + 
+            `\n\n/*! End of vendor chunk. \n*/\n\n` + 
+            bundleString.slice(start + moduleCode.length);
         }
       }
 
@@ -110,9 +111,9 @@ export default {
       }
     }),
     dev && livereload({
-      watch: ['demo/js'],
+      watch: ['build', 'demo'],
       usePolling: true,
     }),
-    dev && serve({ contentBase: 'demo', port: 8080 }),
+    dev && serve({ contentBase: ['build', 'demo'], port: 8080 }),
   ].filter(Boolean),
 };
