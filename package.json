@@ -24,7 +24,11 @@
     "@rollup/plugin-commonjs": "^29.0.2",
     "@rollup/plugin-node-resolve": "^16.0.3",
     "@rollup/plugin-terser": "^1.0.0",
+    "jest": "^30.4.2",
+    "jest-worker": "^30.4.1",
+    "json-stringify-pretty-compact": "^3.0.0",
     "matter-wrap": "^0.2.0",
+    "mock-require": "^3.0.3",
     "pathseg": "^1.2.1",
     "poly-decomp": "^0.3.0",
     "rollup": "^4.60.4",
@@ -34,8 +38,16 @@
   "scripts": {
     "start": "pnpm run serve",
     "dev": "pnpm run serve",
-    "serve": "rollup -c -w",
-    "build-demo": "rollup -c"
+    "serve": "rollup -w -c rollup.config.demo.mjs",
+    "build": "rollup -c",
+    "build-demo": "rollup -c rollup.config.demo.mjs",
+    "build-dev": "rollup -c --environment KIND:dev & rollup -c --environment MINIMIZE:true,KIND:dev",
+    "build-alpha": "rollup -c --environment KIND:alpha & rollup -c --environment MINIMIZE:true,KIND:alpha",
+    "benchmark": "pnpm run test-node -- --examples=stress3,stress4 --benchmark=true --updates=300 --repeats=3",
+    "test": "pnpm run test-node",
+    "test-node": "pnpm run build-dev && node --expose-gc ./node_modules/jest/bin/jest.js --force-exit --no-cache --runInBand ./test/Examples.spec.js",
+    "test-save": "npm run test-node -- --save=true",
+    "test-watch": "npm run test-node -- --watch"
   },
   "files": [
     "src",

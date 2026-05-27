@@ -1,79 +1,61 @@
-import path from 'path';
-import fs from 'fs';
+import path from "path";
+import fs from "fs";
 import { fileURLToPath } from 'url';
-import alias from '@rollup/plugin-alias';
-import resolve from '@rollup/plugin-node-resolve';
-import commonjs from '@rollup/plugin-commonjs';
-import replace from '@rollup/plugin-replace';
+import { execSync } from "child_process";
+import replace from "@rollup/plugin-replace";
+import resolve from "@rollup/plugin-node-resolve";
+import commonjs from "@rollup/plugin-commonjs";
 import terser from '@rollup/plugin-terser';
-import serve from 'rollup-plugin-serve';
-import livereload from 'rollup-plugin-livereload';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8'));
-const dev = process.env.ROLLUP_WATCH === 'true' || process.env.NODE_ENV === 'development';
-const name = 'matter-demo.bundle';
-const outDir = path.resolve(__dirname, (dev ? 'build' : 'demo'));
-const devPath = './src/module/main.js';
 
-const banner = `/*! 
-* ${name} ${pkg.version} by @liabru
-* ${pkg.homepage}
-* License ${pkg.license}
-*/`;
+const minimize = process.env.MINIMIZE || false;
+const kind = process.env.KIND || null;
+
+const commitHash = execSync("git rev-parse --short HEAD").toString().trim();
+const version = !kind ? pkg.version : `${pkg.version}-${kind}+${commitHash}`;
+const resolvePath = relativePath => path.resolve(__dirname, relativePath);
+const license = fs.readFileSync(resolvePath("LICENSE"), "utf8");
+
+const banner = `/*!
+ * ${pkg.name} ${version} by @liabru
+ * ${kind ? "Experimental pre-release build." : ""}
+ * ${pkg.homepage}
+ * License: ${pkg.license}
+ *
+${!minimize ? license.split("\n").map(l => ` * ${l}`).join("\n") : ""}
+ */`;
+
+const fileNameBase = `matter${kind ? '.' + kind : ''}${minimize ? '.min' : ''}.js`;
+const outDir = resolvePath("build");
 
 export default {
-  input: { [name]: 'demo/src/index.js' },
-  watch: {
-    chokidar: {
-      usePolling: true
+    input: "src/module/main.js",
+    external: ["poly-decomp", "matter-wrap"],
+    plugins: [
+        resolve(),
+        commonjs(),
+        replace({
+            preventAssignment: true,
+            values: {
+                __MATTER_VERSION__: JSON.stringify(version)
+            }
+        }),
+        minimize ? terser() : null
+    ].filter(Boolean),
+    output: {
+        file: path.join(outDir, fileNameBase),
+        format: "umd",
+        name: "Matter",
+        globals: {
+            "poly-decomp": "decomp",
+            "matter-wrap": "MatterWrap"
+        },
+        banner,
+        amd: { id: "matter" },
+        sourcemap: false,
+        intro: "var global = typeof globalThis !== 'undefined' ? globalThis : (typeof self !== 'undefined' ? self : this);"
     }
-  },
-  output: {
-    dir: outDir,
-    format: 'umd',
-    name: 'MatterDemo',
-    sourcemap: dev,
-    banner,
-    globals: {
-      'matter-js': 'Matter',
-      'MatterDev': 'Matter',
-      'MatterBuild': 'Matter'
-    },
-  },
-  plugins: [
-    alias({
-      entries: [
-        { find: 'matter-js', replacement: path.resolve(__dirname, devPath) },
-        { find: 'MatterDev', replacement: path.resolve(__dirname, devPath) },
-        { find: 'MatterBuild', replacement: path.resolve(__dirname, devPath) }
-      ]
-    }),
-    replace({
-      preventAssignment: true,
-      values: {
-        __MATTER_VERSION__: JSON.stringify('*'),
-        __MATTER_IS_DEV__: JSON.stringify(dev)
-      }
-    }),
-    resolve({ browser: true }),
-    commonjs(),
-    !dev && terser({
-      mangle: true,
-      format: {
-        comments: function (node, comment) {
-          if (comment.type === 'comment2') {
-            return /(^\!|@license|@preserve|license)/i.test(comment.value);
-          }
-          return false;
-        }
-      }
-    }),
-    dev && livereload({
-      watch: ['build', 'demo'],
-      usePolling: true,
-    }),
-    dev && serve({ contentBase: ['build', 'demo'], port: 8080 }),
-  ].filter(Boolean),
 };
