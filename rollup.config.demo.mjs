@@ -27,60 +27,60 @@ const banner = `/*!
 */`;
 
 export default {
-  input: { [name]: 'demo/src/index.js' },
-  watch: {
-    chokidar: {
-      usePolling: true
-    }
-  },
-  output: {
-    dir: outDir,
-    format: 'umd',
-    name: 'MatterDemo',
-    sourcemap: dev,
-    banner,
-    globals: {
-      'matter-js': 'Matter',
-      'MatterDev': 'Matter',
-      'MatterBuild': 'Matter'
+    input: { [name]: 'demo/src/index.js' },
+    watch: {
+        chokidar: {
+            usePolling: true
+        }
     },
-  },
-  plugins: [
-    alias({
-      entries: [
-        { find: 'matter-js', replacement: resolvePath(devPath) },
-        { find: 'MatterDev', replacement: resolvePath(devPath) },
-        {
-          find: 'MatterBuild', replacement: resolvePath(
-            dev ? buildPath : devPath
-          )
-        }
-      ]
-    }),
-    replace({
-      preventAssignment: true,
-      values: {
-        __MATTER_VERSION__: JSON.stringify('*'),
-        __MATTER_IS_DEV__: JSON.stringify(dev)
-      }
-    }),
-    resolve({ browser: true }),
-    commonjs(),
-    !dev && terser({
-      mangle: true,
-      format: {
-        comments: function (node, comment) {
-          if (comment.type === 'comment2') {
-            return /(^\!|@license|@preserve|license)/i.test(comment.value);
-          }
-          return false;
-        }
-      }
-    }),
-    dev && livereload({
-      watch: ['build', 'demo'],
-      usePolling: true,
-    }),
-    dev && serve({ contentBase: ['build', 'demo'], port: 8080 }),
-  ].filter(Boolean),
+    output: {
+        dir: outDir,
+        format: 'umd',
+        name: 'MatterDemo',
+        sourcemap: dev,
+        banner,
+        globals: {
+            'matter-js': 'Matter',
+            'MatterDev': 'Matter',
+            'MatterBuild': 'Matter'
+        },
+    },
+    plugins: [
+        alias({
+            entries: [
+                { find: 'matter-js', replacement: resolvePath(devPath) },
+                { find: 'MatterDev', replacement: resolvePath(devPath) },
+                {
+                    find: 'MatterBuild', replacement: resolvePath(
+                        dev ? buildPath : devPath
+                    )
+                }
+            ]
+        }),
+        replace({
+            preventAssignment: true,
+            values: {
+                __MATTER_VERSION__: JSON.stringify('*'),
+                __MATTER_IS_DEV__: JSON.stringify(dev)
+            }
+        }),
+        resolve({ browser: true }),
+        commonjs(),
+        !dev && terser({
+            mangle: true,
+            format: {
+                comments: function (node, comment) {
+                    if (comment.type === 'comment2') {
+                        return /(^!|@license|@preserve|license)/i.test(comment.value);
+                    }
+                    return false;
+                }
+            }
+        }),
+        dev && livereload({
+            watch: ['build', 'demo'],
+            usePolling: true,
+        }),
+        dev && serve({ contentBase: ['build', 'demo'], port: 8080 }),
+    ].filter(Boolean),
 };
