@@ -114,6 +114,10 @@ var Common = require('./Common');
             body.positionPrev.y = body.position.y;
 
             body.anglePrev = body.angle;
+            // zero the cached velocity so a resting body reads as stopped
+            // even though Engine no longer recomputes its velocity each step
+            body.velocity.x = 0;
+            body.velocity.y = 0;
             body.speed = 0;
             body.angularSpeed = 0;
             body.motion = 0;

@@ -332,7 +332,17 @@ var Body = require('../body/Body');
         var bodiesLength = bodies.length;
 
         for (var i = 0; i < bodiesLength; i++) {
-            Body.updateVelocities(bodies[i]);
+            var body = bodies[i];
+
+            // a static or sleeping body does not move, so its velocity is
+            // constant and was set when it came to rest (see Body.setStatic and
+            // Sleeping.set); skip the redundant recompute, matching the way
+            // _bodiesApplyGravity and _bodiesUpdate already skip resting bodies
+            if (body.isStatic || body.isSleeping) {
+                continue;
+            }
+
+            Body.updateVelocities(body);
         }
     };
 

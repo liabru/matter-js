@@ -282,6 +282,10 @@ var Axes = require('../geometry/Axes');
                 part.positionPrev.x = part.position.x;
                 part.positionPrev.y = part.position.y;
                 part.anglePrev = part.angle;
+                // zero the cached velocity so a resting body reads as stopped
+                // even though Engine no longer recomputes its velocity each step
+                part.velocity.x = 0;
+                part.velocity.y = 0;
                 part.angularVelocity = 0;
                 part.speed = 0;
                 part.angularSpeed = 0;
