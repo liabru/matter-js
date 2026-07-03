@@ -1,4 +1,5 @@
 .idea
+.DS_Store
 *.map
 node_modules
 npm-debug.log
