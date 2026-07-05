@@ -370,7 +370,65 @@ const toMatchIntrinsics = {
     }
 };
 
+const prepareGlobals = () => {
+  const logs = [];
+  const frameCallbacks = [];
+
+  global.document = global.window = {
+    performance: {},
+    addEventListener: () => {},
+    requestAnimationFrame: callback => {
+      frameCallbacks.push(callback);
+      return frameCallbacks.length;
+    },
+    createElement: () => ({
+      parentNode: {},
+      width: 800,
+      height: 600,
+      style: {},
+      addEventListener: () => {},
+      setAttribute: () => {},
+      getAttribute: name => ({
+        'data-pixel-ratio': '1'
+      }[name]),
+      getContext: () => new Proxy({}, {
+        get() { return () => {}; }
+      })
+    })
+  };
+
+  global.document.body = global.document.createElement();
+
+  global.Image = function Image() { };
+
+  global.console = { 
+    log: (...args) => {
+      logs.push(args.join(' '));
+    }
+  };
+
+  global.Math.random = () => {
+    throw new Error("Math.random was called during tests, output can not be compared.");
+  };
+
+  global.timeNow = 0;
+
+  global.window.performance.now = () => global.timeNow;
+
+  global.Date = function() {
+    this.toString = () => global.timeNow.toString();
+    this.valueOf = () => global.timeNow;
+  };
+
+  global.Date.now = () => global.timeNow;
+
+  return {
+    logs,
+    frameCallbacks
+  };
+};
+
 module.exports = {
     requireUncached, comparisonReport, logReport, getArg, smoothExp,
-    serialize, toMatchExtrinsics, toMatchIntrinsics
+    serialize, toMatchExtrinsics, toMatchIntrinsics, prepareGlobals
 };

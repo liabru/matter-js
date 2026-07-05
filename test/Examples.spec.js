@@ -11,8 +11,11 @@ const {
     logReport, 
     toMatchExtrinsics, 
     toMatchIntrinsics,
-    getArg
+    getArg,
+    prepareGlobals
 } = require('./TestTools');
+
+prepareGlobals();
 
 const Example = requireUncached('../examples/index');
 const MatterBuild = requireUncached('../build/matter');
