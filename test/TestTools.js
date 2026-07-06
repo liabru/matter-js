@@ -373,6 +373,7 @@ const toMatchIntrinsics = {
 const prepareGlobals = () => {
   const logs = [];
   const frameCallbacks = [];
+  let _mathRandomSeed = 0;
 
   global.document = global.window = {
     performance: {},
@@ -406,9 +407,11 @@ const prepareGlobals = () => {
       logs.push(args.join(' '));
     }
   };
-
+  
   global.Math.random = () => {
-    throw new Error("Math.random was called during tests, output can not be compared.");
+    // https://en.wikipedia.org/wiki/Linear_congruential_generator
+    _mathRandomSeed = (_mathRandomSeed * 9301 + 49297) % 233280;
+    return _mathRandomSeed / 233280;
   };
 
   global.timeNow = 0;
