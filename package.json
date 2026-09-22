@@ -53,9 +53,9 @@
     "lint-files": "eslint",
     "benchmark": "pnpm run test-node -- --examples=stress3,stress4 --benchmark=true --updates=300 --repeats=3",
     "test": "pnpm run test-node",
-    "test-node": "rollup -c --environment KIND:dev && node --expose-gc ./node_modules/jest/bin/jest.js --force-exit --no-cache --runInBand ./test/Examples.spec.js",
-    "test-save": "npm run test-node -- --save=true",
-    "test-watch": "npm run test-node -- --watch"
+    "test-node": "pnpm run build-dev && node --expose-gc ./node_modules/jest/bin/jest.js --force-exit --no-cache --runInBand ./test/Examples.spec.js",
+    "test-save": "pnpm run test-node -- --save=true",
+    "test-watch": "pnpm run test-node -- --watch"
   },
   "files": [
     "src",
