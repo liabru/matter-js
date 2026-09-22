@@ -6,7 +6,7 @@ const compactStringify = require('json-stringify-pretty-compact');
 
 const comparePath = './test/__compare__';
 const compareCommand = 'open http://localhost:8000/?compare';
-const diffSaveCommand = 'npm run test-save';
+const diffSaveCommand = 'pnpm run test-save';
 const diffCommand = 'code -n -d test/__compare__/examples-build.json test/__compare__/examples-dev.json';
 const equalityThreshold = 1;
 const colors = { Red: 31, Green: 32, Yellow: 33, White: 37, BrightWhite: 90, BrightCyan: 36 };
