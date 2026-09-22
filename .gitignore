@@ -19,3 +19,6 @@ test/node/diffs
 test/node/refs
 __snapshots__
 __compare__
+
+# Ignore npm lockfile as we use pnpm-lock.yaml instead
+package-lock.json
