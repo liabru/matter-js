@@ -20,22 +20,24 @@
     "rigid body physics"
   ],
   "devDependencies": {
-    "@eslint/eslintrc": "^3.3.5",
+    "@eslint/eslintrc": "^3.3.7",
     "@eslint/js": "^10.0.1",
     "@rollup/plugin-alias": "^6.0.0",
-    "@rollup/plugin-commonjs": "^29.0.2",
+    "@rollup/plugin-commonjs": "^29.0.3",
     "@rollup/plugin-node-resolve": "^16.0.3",
+    "@rollup/plugin-replace": "^6.0.3",
     "@rollup/plugin-terser": "^1.0.0",
-    "eslint": "^10.4.0",
-    "globals": "^17.6.0",
-    "jest": "^30.4.2",
-    "jest-worker": "^30.4.1",
+    "eslint": "^10.11.0",
+    "globals": "^17.12.0",
+    "jest": "^30.5.2",
+    "jest-worker": "^30.5.1",
     "json-stringify-pretty-compact": "^3.0.0",
+    "matter-tools": "^0.14.0",
     "matter-wrap": "^0.2.0",
     "mock-require": "^3.0.3",
     "pathseg": "^1.2.1",
     "poly-decomp": "^0.3.0",
-    "rollup": "^4.60.4",
+    "rollup": "^4.63.4",
     "rollup-plugin-livereload": "^2.0.5",
     "rollup-plugin-serve": "^3.0.0"
   },
@@ -65,9 +67,5 @@
     "CHANGELOG.md",
     "LICENSE",
     "package.json"
-  ],
-  "dependencies": {
-    "@rollup/plugin-replace": "^6.0.3",
-    "matter-tools": "^0.14.0"
-  }
+  ]
 }
