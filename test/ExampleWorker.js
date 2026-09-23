@@ -66,9 +66,6 @@ const runExample = options => {
           timeDeltaAverage = smoothExp(timeDeltaAverage, timeDelta);
         }
 
-        let overlapTotalUpdate = 0;
-        let overlapCountUpdate = 0;
-
         const pairsList = engine.pairs.list;
         const pairsListLength = engine.pairs.list.length;
 
@@ -79,15 +76,10 @@ const runExample = options => {
             const overlap = pairOverlap(pair);
 
             if (overlap >= 0) {
-              overlapTotalUpdate += overlap;
-              overlapCountUpdate += 1;
+              overlapTotal += overlap;
+              overlapCount += 1;
             }
           }
-        }
-
-        if (overlapCountUpdate > 0) {
-          overlapTotal += overlapTotalUpdate / overlapCountUpdate;
-          overlapCount += 1;
         }
 
         if (!extrinsicCapture && engine.timing.timestamp >= 1000) {
@@ -104,6 +96,7 @@ const runExample = options => {
       duration: timeDeltaAverage,
       memory: memoryDeltaAverage,
       overlap: overlapTotal / (overlapCount || 1),
+      overlapCount,
       extrinsic: extrinsicCapture,
       intrinsic: captureIntrinsics(engine, Matter),
       state: captureState(engine, runner, render),
