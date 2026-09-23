@@ -19,6 +19,18 @@
     "game engine",
     "rigid body physics"
   ],
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": ">=11.11.0",
+      "onFail": "error"
+    },
+    "runtime": {
+      "name": "node",
+      "version": ">=22.13.0", 
+      "onFail": "error"
+    }
+  },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.7",
     "@eslint/js": "^10.0.1",
