@@ -14,7 +14,7 @@ var Bounds = require('../geometry/Bounds');
 
 (function() {
 
-    Resolver._restingThresh = 2;
+    Resolver._restingThresh = 0;
     Resolver._restingThreshTangent = Math.sqrt(6);
     Resolver._positionDampen = 1;
     Resolver._frictionNormalMultiplier = 5;
@@ -175,22 +175,46 @@ var Bounds = require('../geometry/Bounds');
             var contacts = pair.contacts,
                 contactCount = pair.contactCount,
                 collision = pair.collision,
+                inverseMassTotal = pair.inverseMass,
                 bodyA = collision.parentA,
                 bodyB = collision.parentB,
-                normal = collision.normal,
-                tangent = collision.tangent;
-    
+                normalX = collision.normal.x,
+                normalY = collision.normal.y,
+                tangentX = collision.tangent.x,
+                tangentY = collision.tangent.y,
+                contactShare = 1 / contactCount,
+                normalImpulseMin = pair.separation * -10;
+
+            if (normalImpulseMin > 0) {
+                normalImpulseMin = 0;
+            }
+
             // resolve each contact
             for (j = 0; j < contactCount; j++) {
                 var contact = contacts[j],
-                    contactVertex = contact.vertex,
-                    normalImpulse = contact.normalImpulse,
+                    contactVertex = contact.vertex;
+
+                var offsetAX = contactVertex.x - bodyA.position.x,
+                    offsetAY = contactVertex.y - bodyA.position.y,
+                    offsetBX = contactVertex.x - bodyB.position.x,
+                    offsetBY = contactVertex.y - bodyB.position.y;
+
+                var oAcN = offsetAX * normalY - offsetAY * normalX,
+                    oBcN = offsetBX * normalY - offsetBY * normalX,
+                    share = contactShare / (inverseMassTotal + bodyA.inverseInertia * oAcN * oAcN + bodyB.inverseInertia * oBcN * oBcN);
+
+                // clamp stored impulse to reduce overshoot
+                if (contact.normalImpulse < normalImpulseMin * share) {
+                    contact.normalImpulse = normalImpulseMin * share;
+                }
+
+                var normalImpulse = contact.normalImpulse,
                     tangentImpulse = contact.tangentImpulse;
     
                 if (normalImpulse !== 0 || tangentImpulse !== 0) {
                     // total impulse from contact
-                    var impulseX = normal.x * normalImpulse + tangent.x * tangentImpulse,
-                        impulseY = normal.y * normalImpulse + tangent.y * tangentImpulse;
+                    var impulseX = normalX * normalImpulse + tangentX * tangentImpulse,
+                        impulseY = normalY * normalImpulse + tangentY * tangentImpulse;
                     
                     // apply impulse from contact
                     if (!(bodyA.isStatic || bodyA.isSleeping)) {
@@ -216,7 +240,7 @@ var Bounds = require('../geometry/Bounds');
     };
 
     /**
-     * Find a solution for pair velocities.
+     * Find a solution for pair velocities. This function applies one iteration, so should be called multiple times.
      * @method solveVelocity
      * @param {pair[]} pairs
      * @param {number} delta
@@ -314,7 +338,7 @@ var Bounds = require('../geometry/Bounds');
                 tangentImpulse *= share;
 
                 // handle high velocity and resting collisions separately
-                if (normalVelocity < restingThresh) {
+                if (normalVelocity < restingThresh && pair.restitution > 0) {
                     // high normal velocity so clear cached contact normal impulse
                     contact.normalImpulse = 0;
                 } else {
@@ -323,7 +347,7 @@ var Bounds = require('../geometry/Bounds');
                     var contactNormalImpulse = contact.normalImpulse;
                     contact.normalImpulse += normalImpulse;
                     if (contact.normalImpulse > 0) contact.normalImpulse = 0;
-                    normalImpulse = contact.normalImpulse - contactNormalImpulse;
+                    normalImpulse = 1.5 * (contact.normalImpulse - contactNormalImpulse);
                 }
 
                 // handle high velocity and resting collisions separately
