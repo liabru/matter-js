@@ -6,7 +6,7 @@ const compactStringify = require('json-stringify-pretty-compact');
 
 const comparePath = './test/__compare__';
 const compareCommand = 'open http://localhost:8000/?compare';
-const diffSaveCommand = 'npm run test-save';
+const diffSaveCommand = 'pnpm run test-save';
 const diffCommand = 'code -n -d test/__compare__/examples-build.json test/__compare__/examples-dev.json';
 const equalityThreshold = 1;
 const colors = { Red: 31, Green: 32, Yellow: 33, White: 37, BrightWhite: 90, BrightCyan: 36 };
@@ -370,7 +370,68 @@ const toMatchIntrinsics = {
     }
 };
 
+const prepareGlobals = () => {
+  const logs = [];
+  const frameCallbacks = [];
+  let _mathRandomSeed = 0;
+
+  global.document = global.window = {
+    performance: {},
+    addEventListener: () => {},
+    requestAnimationFrame: callback => {
+      frameCallbacks.push(callback);
+      return frameCallbacks.length;
+    },
+    createElement: () => ({
+      parentNode: {},
+      width: 800,
+      height: 600,
+      style: {},
+      addEventListener: () => {},
+      setAttribute: () => {},
+      getAttribute: name => ({
+        'data-pixel-ratio': '1'
+      }[name]),
+      getContext: () => new Proxy({}, {
+        get() { return () => {}; }
+      })
+    })
+  };
+
+  global.document.body = global.document.createElement();
+
+  global.Image = function Image() { };
+
+  global.console = { 
+    log: (...args) => {
+      logs.push(args.join(' '));
+    }
+  };
+  
+  global.Math.random = () => {
+    // https://en.wikipedia.org/wiki/Linear_congruential_generator
+    _mathRandomSeed = (_mathRandomSeed * 9301 + 49297) % 233280;
+    return _mathRandomSeed / 233280;
+  };
+
+  global.timeNow = 0;
+
+  global.window.performance.now = () => global.timeNow;
+
+  global.Date = function() {
+    this.toString = () => global.timeNow.toString();
+    this.valueOf = () => global.timeNow;
+  };
+
+  global.Date.now = () => global.timeNow;
+
+  return {
+    logs,
+    frameCallbacks
+  };
+};
+
 module.exports = {
     requireUncached, comparisonReport, logReport, getArg, smoothExp,
-    serialize, toMatchExtrinsics, toMatchIntrinsics
+    serialize, toMatchExtrinsics, toMatchIntrinsics, prepareGlobals
 };

@@ -6,19 +6,19 @@ By providing any kind of contribution to this project, **you must agree and be l
 
 ## Contributions
 
-Contributions by pull request or issues are welcome. Please ensure they follow the same style and architecture as the rest of the code. Use `npm run lint` and see [Testing](#Testing) below before submitting. Please **do not include** any changes to the files in the `build` directory. 
+Contributions by pull request or issues are welcome. Please ensure they follow the same style and architecture as the rest of the code. Use `pnpm run lint` and see [Testing](#Testing) below before submitting. Please **do not include** any changes to the files in the `build` directory. 
 
 Before contributing please read the license agreement described at the beginning of this document.
 
 ## Building
 
-To build you must first install [node.js](http://nodejs.org), then run
+To build you must first install [node.js](http://nodejs.org) and [pnpm](https://pnpm.io/), then run
 
-	npm install
+	pnpm install
 
 which will install the required build dependencies, then run
 
-	npm start
+	pnpm start
 
 which will run the development server and opens `http://localhost:8000/` in your browser. Any changes you make to the source will automatically rebuild and reload the page.
 
@@ -26,27 +26,22 @@ which will run the development server and opens `http://localhost:8000/` in your
 
 All contributions should pass when running the commands
 
-- `npm run lint`
-- `npm run test`
-- `npm run test-browser`
+- `pnpm run lint`
+- `pnpm run test`
 
-The output of `npm run test` also includes a [comparison report](https://github.com/liabru/matter-js/pull/794), which highlights changes in results, performance and accuracy against the last release build.
+The output of `pnpm run test` also includes a [comparison report](https://github.com/liabru/matter-js/pull/794), which highlights changes in results, performance and accuracy against the last release build.
 
 ## Commands
 
 The following development commands can be run at the terminal
 
-- **npm start**  
+- **pnpm start**  
 runs development server and opens demo page
-- **npm run build**  
+- **pnpm run build**  
 creates a release build
-- **npm run build-demo**  
+- **pnpm run build-demo**  
 builds the demo
-- **npm run lint**  
+- **pnpm run lint**  
 runs the linter
-- **npm run test**
+- **pnpm run test**
 runs the tests and compares results
-- **npm run test-browser**  
-runs the browser tests
-- **npm run doc**  
-builds the documentation

@@ -1,9 +1,11 @@
 .idea
+.DS_Store
 *.map
 node_modules
 npm-debug.log
 docs
 matter-doc-theme
+build/matter-demo.bundle.js
 build/matter-dev.js
 build/matter-dev.min.js
 build/matter.dev.js
@@ -17,3 +19,6 @@ test/node/diffs
 test/node/refs
 __snapshots__
 __compare__
+
+# Ignore npm lockfile as we use pnpm-lock.yaml instead
+package-lock.json

@@ -1,0 +1,7 @@
+# ref: https://pnpm.io/supply-chain-security
+minimumReleaseAge: 5760
+blockExoticSubdeps: true
+strictDepBuilds: true
+trustPolicy: no-downgrade
+trustPolicyExclude:
+  - 'semver@6.3.1'

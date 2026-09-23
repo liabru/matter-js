@@ -1221,7 +1221,6 @@ var Mouse = require('../core/Mouse');
             if (!pair.isActive)
                 continue;
 
-            collision = pair.collision;
             for (j = 0; j < pair.contactCount; j++) {
                 var contact = pair.contacts[j],
                     vertex = contact.vertex;

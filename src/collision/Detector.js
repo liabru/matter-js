@@ -73,7 +73,6 @@ var Collision = require('./Collision');
 
         for (i = 0; i < bodiesLength; i++) {
             var bodyA = bodies[i],
-                boundsA = bodyA.bounds,
                 boundXMax = bodyA.bounds.max.x,
                 boundYMax = bodyA.bounds.max.y,
                 boundYMin = bodyA.bounds.min.y,

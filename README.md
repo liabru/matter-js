@@ -159,13 +159,13 @@ See the [API Documentation](https://brm.io/matter-js/docs/) and the [wiki](https
 
 ### Building and Contributing
 
-To build you must first install [node.js](https://nodejs.org/), then run
+To build you must first install [node.js](https://nodejs.org/) and [pnpm](https://pnpm.io/), then run
 
-	npm install
+	pnpm install
 
 This will install the required build dependencies, then run
 
-	npm run dev
+	pnpm run start
 
 to spawn a development server. For information on contributing see [CONTRIBUTING.md](https://github.com/liabru/matter-js/blob/master/CONTRIBUTING.md).
 
