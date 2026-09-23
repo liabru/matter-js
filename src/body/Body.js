@@ -862,11 +862,17 @@ var Axes = require('../geometry/Axes');
 
             properties.mass += mass;
             properties.area += part.area;
-            properties.inertia += part.inertia;
             properties.centre = Vector.add(properties.centre, Vector.mult(part.position, mass));
         }
 
         properties.centre = Vector.div(properties.centre, properties.mass);
+
+        // calculate the total moment of inertia of all parts
+        for (var i = body.parts.length === 1 ? 0 : 1; i < body.parts.length; i++) {
+            var part = body.parts[i];
+            properties.inertia += part.inertia + part.mass * Math.pow(
+                Vector.magnitude(Vector.sub(part.position, properties.centre)), 2);
+        }
 
         return properties;
     };
