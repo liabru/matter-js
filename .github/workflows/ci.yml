@@ -24,6 +24,8 @@ jobs:
           runtime: node@${{ matrix.node-version }}
           cache: true
           require-lockfile: true
+          install: false
+      - run: pnpm install --frozen-lockfile --ignore-scripts
       - run: pnpm run lint
       - run: pnpm run build
       - run: pnpm run build-demo
