@@ -1,4 +1,6 @@
 name: CI
+permissions:
+  contents: read
 on:
   push:
     branches: [ master ]
@@ -10,17 +12,18 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-26.04
+    permissions: {}
     strategy:
       matrix:
-        node-version: [24.x]
+        node-version: [26.x]
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: pnpm/setup@703c52620218391530e48b9e8870d5c0082e1b9b # v2.1.0
         with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'pnpm'
-      - run: pnpm install --frozen-lockfile
+          version: 12.5.1
+          runtime: node@${{ matrix.node-version }}
+          cache: true
+          require-lockfile: true
       - run: pnpm run lint
       - run: pnpm run build
       - run: pnpm run build-demo
