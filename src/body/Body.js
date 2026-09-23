@@ -48,9 +48,10 @@ var Axes = require('../geometry/Axes');
             position: { x: 0, y: 0 },
             force: { x: 0, y: 0 },
             torque: 0,
+            positionWarming: 0,
             positionImpulse: { x: 0, y: 0 },
             constraintImpulse: { x: 0, y: 0, angle: 0 },
-            totalContacts: 0,
+            totalPairs: 0,
             speed: 0,
             angularSpeed: 0,
             velocity: { x: 0, y: 0 },
@@ -305,13 +306,15 @@ var Axes = require('../geometry/Axes');
     };
 
     /**
-     * Sets the area of the body only. Does not update vertices, density, mass or inertia values.
+     * Sets the area of the body only, automatically updates `body.positionWarming`.
+     * Does not update vertices, density, mass or inertia values.
      * @method setArea
      * @param {body} body
      * @param {number} area
      */
     Body.setArea = function(body, area) {
         body.area = area;
+        body.positionWarming = Body._positionWarming(body);
     };
 
     /**
@@ -846,6 +849,17 @@ var Axes = require('../geometry/Axes');
         body.force.x += force.x;
         body.force.y += force.y;
         body.torque += offset.x * force.y - offset.y * force.x;
+    };
+
+    /**
+     * Returns the position warming factor for the body.
+     * @method _positionWarming
+     * @private
+     * @param {body} body
+     * @return {number}
+     */
+    Body._positionWarming = function(body) {
+        return 1 / (1 + 0.012 * Math.sqrt(body.area));
     };
 
     /**

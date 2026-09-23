@@ -16,43 +16,45 @@ var Bounds = require('../geometry/Bounds');
 
     Resolver._restingThresh = 2;
     Resolver._restingThreshTangent = Math.sqrt(6);
-    Resolver._positionDampen = 0.9;
-    Resolver._positionWarming = 0.8;
+    Resolver._positionDampen = 1;
     Resolver._frictionNormalMultiplier = 5;
     Resolver._frictionMaxStatic = Number.MAX_VALUE;
 
     /**
      * Prepare pairs for position solving.
      * @method preSolvePosition
-     * @param {pair[]} pairs
+     * @param {collision[]} collisions
+     * @param {body[]} bodies
      */
-    Resolver.preSolvePosition = function(pairs) {
+    Resolver.preSolvePosition = function(collisions, bodies) {
         var i,
-            pair,
-            contactCount,
-            pairsLength = pairs.length;
+            body,
+            collision,
+            collisionsLength = collisions.length,
+            bodiesLength = bodies.length;
 
-        // find total contacts on each body
-        for (i = 0; i < pairsLength; i++) {
-            pair = pairs[i];
-            
-            if (!pair.isActive)
-                continue;
-            
-            contactCount = pair.contactCount;
-            pair.collision.parentA.totalContacts += contactCount;
-            pair.collision.parentB.totalContacts += contactCount;
+        for (i = 0; i < bodiesLength; i++) {
+            body = bodies[i];
+            body.positionImpulse.x *= body.positionWarming;
+            body.positionImpulse.y *= body.positionWarming;
+            body.totalPairs = 0;
+        }
+
+        for (i = 0; i < collisionsLength; i++) {
+            collision = collisions[i];
+            collision.parentA.totalPairs += 1;
+            collision.parentB.totalPairs += 1;
         }
     };
 
     /**
-     * Find a solution for pair positions.
+     * Find a solution for pair positions. This function applies one iteration, so should be called multiple times.
      * @method solvePosition
      * @param {pair[]} pairs
      * @param {number} delta
-     * @param {number} [damping=1]
+     * @param {number} iterations The total number iterations the engine will be calling this function.
      */
-    Resolver.solvePosition = function(pairs, delta, damping) {
+    Resolver.solvePosition = function(pairs, delta, iterations) {
         var i,
             pair,
             collision,
@@ -61,8 +63,9 @@ var Bounds = require('../geometry/Bounds');
             normal,
             contactShare,
             positionImpulse,
-            positionDampen = Resolver._positionDampen * (damping || 1),
             slopDampen = Common.clamp(delta / Common._baseDelta, 0, 1),
+            iterationDampen = Common.clamp(6 / iterations, 0, 1),
+            positionDampen = 0.5 * iterationDampen * Resolver._positionDampen,
             pairsLength = pairs.length;
 
         // find impulses required to resolve penetration
@@ -96,18 +99,18 @@ var Bounds = require('../geometry/Bounds');
             positionImpulse = pair.separation - pair.slop * slopDampen;
 
             if (bodyA.isStatic || bodyB.isStatic)
-                positionImpulse *= 2;
+                positionImpulse *= 3;
             
             if (!(bodyA.isStatic || bodyA.isSleeping)) {
-                contactShare = positionDampen / bodyA.totalContacts;
-                bodyA.positionImpulse.x += normal.x * positionImpulse * contactShare;
-                bodyA.positionImpulse.y += normal.y * positionImpulse * contactShare;
+                contactShare = positionDampen * positionImpulse / bodyA.totalPairs;
+                bodyA.positionImpulse.x += normal.x * contactShare;
+                bodyA.positionImpulse.y += normal.y * contactShare;
             }
 
             if (!(bodyB.isStatic || bodyB.isSleeping)) {
-                contactShare = positionDampen / bodyB.totalContacts;
-                bodyB.positionImpulse.x -= normal.x * positionImpulse * contactShare;
-                bodyB.positionImpulse.y -= normal.y * positionImpulse * contactShare;
+                contactShare = positionDampen * positionImpulse / bodyB.totalPairs;
+                bodyB.positionImpulse.x -= normal.x * contactShare;
+                bodyB.positionImpulse.y -= normal.y * contactShare;
             }
         }
     };
@@ -118,24 +121,27 @@ var Bounds = require('../geometry/Bounds');
      * @param {body[]} bodies
      */
     Resolver.postSolvePosition = function(bodies) {
-        var positionWarming = Resolver._positionWarming,
-            bodiesLength = bodies.length,
+        var bodiesLength = bodies.length,
             verticesTranslate = Vertices.translate,
             boundsUpdate = Bounds.update;
 
         for (var i = 0; i < bodiesLength; i++) {
-            var body = bodies[i],
-                positionImpulse = body.positionImpulse,
-                positionImpulseX = positionImpulse.x,
-                positionImpulseY = positionImpulse.y,
-                velocity = body.velocity;
+            var body = bodies[i];
 
-            // reset contact count
-            body.totalContacts = 0;
+            if (body.totalPairs === 0) {
+                continue;
+            }
+
+            var positionImpulse = body.positionImpulse,
+                positionImpulseX = positionImpulse.x,
+                positionImpulseY = positionImpulse.y;
 
             if (positionImpulseX !== 0 || positionImpulseY !== 0) {
+                var velocity = body.velocity,
+                    partsLength = body.parts.length;
+    
                 // update body geometry
-                for (var j = 0; j < body.parts.length; j++) {
+                for (var j = 0; j < partsLength; j++) {
                     var part = body.parts[j];
                     verticesTranslate(part.vertices, positionImpulse);
                     boundsUpdate(part.bounds, part.vertices, velocity);
@@ -146,16 +152,6 @@ var Bounds = require('../geometry/Bounds');
                 // move the body without changing velocity
                 body.positionPrev.x += positionImpulseX;
                 body.positionPrev.y += positionImpulseY;
-
-                if (positionImpulseX * velocity.x + positionImpulseY * velocity.y < 0) {
-                    // reset cached impulse if the body has velocity along it
-                    positionImpulse.x = 0;
-                    positionImpulse.y = 0;
-                } else {
-                    // warm the next iteration
-                    positionImpulse.x *= positionWarming;
-                    positionImpulse.y *= positionWarming;
-                }
             }
         }
     };
