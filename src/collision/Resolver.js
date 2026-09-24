@@ -201,15 +201,21 @@ var Bounds = require('../geometry/Bounds');
 
                 var oAcN = offsetAX * normalY - offsetAY * normalX,
                     oBcN = offsetBX * normalY - offsetBY * normalX,
-                    share = contactShare / (inverseMassTotal + bodyA.inverseInertia * oAcN * oAcN + bodyB.inverseInertia * oBcN * oBcN);
+                    share = contactShare / (inverseMassTotal + bodyA.inverseInertia * oAcN * oAcN + bodyB.inverseInertia * oBcN * oBcN),
+                    normalImpulseMinShare = normalImpulseMin * share;
 
                 // clamp stored impulse to reduce overshoot
-                if (contact.normalImpulse < normalImpulseMin * share) {
-                    contact.normalImpulse = normalImpulseMin * share;
+                if (contact.normalImpulse < normalImpulseMinShare) {
+                    contact.normalImpulse = normalImpulseMinShare;
                 }
 
-                var normalImpulse = contact.normalImpulse,
+                var normalImpulse = 1.75 * contact.normalImpulse,
                     tangentImpulse = contact.tangentImpulse;
+
+                // clamp warming impulse to reduce overshoot
+                if (normalImpulse < normalImpulseMinShare) {
+                    normalImpulse = normalImpulseMinShare;
+                }
     
                 if (normalImpulse !== 0 || tangentImpulse !== 0) {
                     // total impulse from contact
