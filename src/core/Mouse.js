@@ -34,7 +34,7 @@ var Common = require('../core/Common');
         mouse.scale = { x: 1, y: 1 };
         mouse.wheelDelta = 0;
         mouse.button = -1;
-        mouse.pixelRatio = parseInt(mouse.element.getAttribute('data-pixel-ratio'), 10) || 1;
+        mouse.pixelRatio = mouse.element.getAttribute('data-pixel-ratio') || 1;
 
         mouse.sourceEvents = {
             mousemove: null,
@@ -192,9 +192,13 @@ var Common = require('../core/Common');
             y = event.pageY - elementBounds.top - scrollY;
         }
 
-        return { 
-            x: x / (element.clientWidth / (element.width || element.clientWidth) * pixelRatio),
-            y: y / (element.clientHeight / (element.height || element.clientHeight) * pixelRatio)
+        return {
+            x: parseInt(
+                x / (element.clientWidth / (element.width || element.clientWidth) * pixelRatio)
+                , 10),
+            y: parseInt(
+                y / (element.clientHeight / (element.height || element.clientHeight) * pixelRatio)
+                , 10)
         };
     };
 
