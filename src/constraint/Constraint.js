@@ -69,7 +69,8 @@ var Common = require('../core/Common');
             lineWidth: 2,
             strokeStyle: '#ffffff',
             type: 'line',
-            anchors: true
+            anchors: true,
+	    zIndex: 0
         };
 
         if (constraint.length === 0 && constraint.stiffness > 0.1) {

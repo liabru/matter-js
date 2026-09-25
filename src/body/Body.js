@@ -83,7 +83,8 @@ var Axes = require('../geometry/Axes');
                     yScale: 1,
                     xOffset: 0,
                     yOffset: 0
-                }
+                },
+		zIndex: 0
             },
             events: null,
             bounds: null,

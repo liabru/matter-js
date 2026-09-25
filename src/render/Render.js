@@ -89,7 +89,8 @@ var Mouse = require('../core/Mouse');
                 showVertexNumbers: false,
                 showConvexHulls: false,
                 showInternalEdges: false,
-                showMousePosition: false
+                showMousePosition: false,
+                enableZIndex: false
             }
         };
 
@@ -367,6 +368,7 @@ var Mouse = require('../core/Mouse');
             background = options.wireframes ? options.wireframeBackground : options.background,
             bodies = [],
             constraints = [],
+            items = [],
             i;
 
         var event = {
@@ -391,8 +393,14 @@ var Mouse = require('../core/Mouse');
             for (i = 0; i < allBodies.length; i++) {
                 var body = allBodies[i];
                 if (Bounds.overlaps(body.bounds, render.bounds))
-                    bodies.push(body);
-            }
+                    if (options.enableZIndex.on) {
+                        for (i = 0; i < allBodies.length; i++) {
+                            items.push({ type: 'body', object: allBodies[i] });
+                        }
+                    } else {
+                        bodies.push(body);
+                    }
+            };
 
             // filter out constraints that are not in view
             for (i = 0; i < allConstraints.length; i++) {
@@ -409,8 +417,14 @@ var Mouse = require('../core/Mouse');
                     continue;
 
                 if (Bounds.contains(render.bounds, pointAWorld) || Bounds.contains(render.bounds, pointBWorld))
-                    constraints.push(constraint);
-            }
+                    if (options.enableZIndex.on) {
+                        for (i = 0; i < allConstraints.length; i++) {
+                            items.push({ type: 'constraint', object: allConstraints[i] });
+                        }
+                    } else {
+                        constraints.push(constraint);
+                    }
+            };
 
             // transform the view
             Render.startViewTransform(render);
@@ -425,64 +439,158 @@ var Mouse = require('../core/Mouse');
                 Mouse.setOffset(render.mouse, render.bounds.min);
             }
         } else {
-            constraints = allConstraints;
-            bodies = allBodies;
-
-            if (render.options.pixelRatio !== 1) {
-                render.context.setTransform(render.options.pixelRatio, 0, 0, render.options.pixelRatio, 0, 0);
+            if (options.enableZIndex.on) {
+                for (i = 0; i < allBodies.length; i++) {
+                    items.push({ type: 'body', object: allBodies[i] });
+                }
+                for (i = 0; i < allConstraints.length; i++) {
+                    items.push({ type: 'constraint', object: allConstraints[i] });
+                }
+                if (render.options.pixelRatio !== 1) {
+                    render.context.setTransform(render.options.pixelRatio, 0, 0, render.options.pixelRatio, 0, 0);
+                }
+            } else {
+                bodies = allBodies;
+                constraints = allConstraints;
             }
         }
 
-        if (!options.wireframes || (engine.enableSleeping && options.showSleeping)) {
-            // fully featured rendering of bodies
-            Render.bodies(render, bodies, context);
+        if (options.enableZIndex.on) {
+            // Sort elements by zIndex
+            items.sort(function(a, b) {
+                zIndexA = a.object.render.zIndex;
+                zIndexB = b.object.render.zIndex
+                return zIndexA - zIndexB;
+            });
+
+            // Start rendering in chunks using requestAnimationFrame
+            var batchSize = options.enableZIndex.chunkSize; // Adjust the batch size as needed
+            var currentIndex = 0;
+
+            function renderNextBatch() {
+                var endIndex = Math.min(currentIndex + batchSize, items.length);
+                var batch = items.slice(currentIndex, endIndex);
+                renderBatch(batch, render, context, engine, options);
+
+                currentIndex = endIndex;
+                if (currentIndex < items.length) {
+                    requestAnimationFrame(renderNextBatch);
+                } else {
+                    if (options.hasBounds) {
+                        // revert view transforms
+                        Render.endViewTransform(render);
+                    }
+
+                    Events.trigger(render, 'afterRender', event);
+
+                    // log the time elapsed computing this update
+                    timing.lastElapsed = Common.now() - startTime;
+                }
+            }
+
+            requestAnimationFrame(renderNextBatch);
+
+            function renderBatch(batch, render, context, engine, options) {
+                for (var i = 0; i < batch.length; i++) {
+                    var item = batch[i];
+                    if (item.type === 'body') {
+                        if (!options.wireframes || (engine.enableSleeping && options.showSleeping)) {
+                            // fully featured rendering of bodies
+                            Render.bodies(render, [item.object], context);
+                        } else {
+                            if (options.showConvexHulls)
+                                Render.bodyConvexHulls(render, [item.object], context);
+
+                            // optimised method for wireframes only
+                            Render.bodyWireframes(render, [item.object], context);
+                        }
+
+                        if (options.showBounds)
+                            Render.bodyBounds(render, [item.object], context);
+
+                        if (options.showAxes || options.showAngleIndicator)
+                            Render.bodyAxes(render, [item.object], context);
+
+                        if (options.showPositions)
+                            Render.bodyPositions(render, [item.object], context);
+
+                        if (options.showVelocity)
+                            Render.bodyVelocity(render, [item.object], context);
+
+                        if (options.showIds)
+                            Render.bodyIds(render, [item.object], context);
+
+                        if (options.showSeparations)
+                            Render.separations(render, engine.pairs.list, context);
+
+                        if (options.showCollisions)
+                            Render.collisions(render, engine.pairs.list, context);
+
+                        if (options.showVertexNumbers)
+                            Render.vertexNumbers(render, [item.object], context);
+
+                        if (options.showMousePosition)
+                            Render.mousePosition(render, render.mouse, context);
+
+                    } else if (item.type === 'constraint') {
+                        Render.constraints([item.object], context);
+                    }
+                }
+            };
+
         } else {
-            if (options.showConvexHulls)
-                Render.bodyConvexHulls(render, bodies, context);
+            if (!options.wireframes || (engine.enableSleeping && options.showSleeping)) {
+                // fully featured rendering of bodies
+                Render.bodies(render, bodies, context);
+            } else {
+                if (options.showConvexHulls)
+                    Render.bodyConvexHulls(render, bodies, context);
 
-            // optimised method for wireframes only
-            Render.bodyWireframes(render, bodies, context);
+                    // optimised method for wireframes only
+                    Render.bodyWireframes(render, bodies, context);
+            }
+
+            if (options.showBounds)
+                Render.bodyBounds(render, bodies, context);
+
+            if (options.showAxes || options.showAngleIndicator)
+                Render.bodyAxes(render, bodies, context);
+
+            if (options.showPositions)
+                Render.bodyPositions(render, bodies, context);
+
+            if (options.showVelocity)
+                Render.bodyVelocity(render, bodies, context);
+
+            if (options.showIds)
+                Render.bodyIds(render, bodies, context);
+
+            if (options.showSeparations)
+                Render.separations(render, engine.pairs.list, context);
+
+            if (options.showCollisions)
+                Render.collisions(render, engine.pairs.list, context);
+
+            if (options.showVertexNumbers)
+                Render.vertexNumbers(render, bodies, context);
+
+            if (options.showMousePosition)
+                Render.mousePosition(render, render.mouse, context);
+
+            Render.constraints(constraints, context);
+
+            if (options.hasBounds) {
+                // revert view transforms
+                Render.endViewTransform(render);
+            }
+
+            Events.trigger(render, 'afterRender', event);
+
+            // log the time elapsed computing this update
+            timing.lastElapsed = Common.now() - startTime;
         }
-
-        if (options.showBounds)
-            Render.bodyBounds(render, bodies, context);
-
-        if (options.showAxes || options.showAngleIndicator)
-            Render.bodyAxes(render, bodies, context);
-
-        if (options.showPositions)
-            Render.bodyPositions(render, bodies, context);
-
-        if (options.showVelocity)
-            Render.bodyVelocity(render, bodies, context);
-
-        if (options.showIds)
-            Render.bodyIds(render, bodies, context);
-
-        if (options.showSeparations)
-            Render.separations(render, engine.pairs.list, context);
-
-        if (options.showCollisions)
-            Render.collisions(render, engine.pairs.list, context);
-
-        if (options.showVertexNumbers)
-            Render.vertexNumbers(render, bodies, context);
-
-        if (options.showMousePosition)
-            Render.mousePosition(render, render.mouse, context);
-
-        Render.constraints(constraints, context);
-
-        if (options.hasBounds) {
-            // revert view transforms
-            Render.endViewTransform(render);
-        }
-
-        Events.trigger(render, 'afterRender', event);
-
-        // log the time elapsed computing this update
-        timing.lastElapsed = Common.now() - startTime;
     };
+
 
     /**
      * Renders statistics about the engine and world useful for debugging.
