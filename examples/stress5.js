@@ -1,6 +1,6 @@
 var Example = Example || {};
 
-Example.stress3 = function() {
+Example.stress5 = function() {
     var Engine = Matter.Engine,
         Render = Matter.Render,
         Runner = Matter.Runner,
@@ -14,7 +14,7 @@ Example.stress3 = function() {
     // create engine
     var engine = Engine.create({
         positionIterations: 6,
-        velocityIterations: 8
+        velocityIterations: 8,
     });
 
     var world = engine.world;
@@ -34,28 +34,37 @@ Example.stress3 = function() {
     Render.run(render);
 
     // create runner
-    var runner = Runner.create();
+    var runner = Runner.create({
+        delta: 1000 / (60 * 2)
+    });
+    
     Runner.run(runner, engine);
 
     // add bodies
-    var scale = 0.3;
+    let scale = 0.2;
+
+    var opts = { friction: 0.001, frictionAir: 0.001 };
+
+    for (var i = 0; i < 2; i += 1) {
+        var stack = Composites.stack(40, 40, 62, 28, 0, 0, function(x, y) {
+            var sides = Math.round(Common.random(1, 8));
     
-    var stack = Composites.stack(40, 40, 38, 18, 0, 0, function(x, y) {
-        var sides = Math.round(Common.random(1, 8));
-
-        switch (Math.round(Common.random(0, 1))) {
-        case 0:
-            if (Common.random() < 0.8) {
-                return Bodies.rectangle(x, y, Common.random(25, 50) * scale, Common.random(25, 50) * scale);
-            } else {
-                return Bodies.rectangle(x, y, Common.random(80, 120) * scale, Common.random(25, 30) * scale);
+            switch (Math.round(Common.random(0, 1))) {
+            case 0:
+                if (Common.random() < 0.8) {
+                    return Bodies.rectangle(
+                        x, y, Common.random(25, 50) * scale, Common.random(25, 50) * scale, opts);
+                } else {
+                    return Bodies.rectangle(
+                        x, y, Common.random(80, 120) * scale, Common.random(25, 30) * scale, opts);
+                }
+            case 1:
+                return Bodies.polygon(x, y, sides, Common.random(25, 50) * scale, opts);
             }
-        case 1:
-            return Bodies.polygon(x, y, sides, Common.random(25, 50) * scale);
-        }
-    });
-
-    Composite.add(world, stack);
+        });
+    
+        Composite.add(world, stack);
+    }
 
     Composite.add(world, [
         // walls
@@ -101,9 +110,9 @@ Example.stress3 = function() {
     };
 };
 
-Example.stress3.title = 'Stress 3';
-Example.stress3.for = '>=0.14.2';
+Example.stress5.title = 'Stress 5';
+Example.stress5.for = '>=0.14.2';
 
 if (typeof module !== 'undefined') {
-    module.exports = Example.stress3;
+    module.exports = Example.stress5;
 }
