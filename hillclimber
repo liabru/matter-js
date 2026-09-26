@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hill Racer</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #333;
+            margin: 0;
+            overflow: hidden; /* Hide scrollbars */
+            font-family: Arial, sans-serif;
+        }
+        canvas {
+            background-color: #87CEEB; /* Sky blue */
+            border: 2px solid #fff;
+        }
+        #instructions {
+            position: absolute;
+            top: 20px;
+            color: white;
+            font-size: 1.5rem;
+            text-shadow: 2px 2px 4px #000;
+        }
+    </style>
+</head>
+<body>
+    <div id="instructions">Use ⬅️ and ➡️ to drive!</div>
+    
+    <canvas id="gameCanvas"></canvas>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+
+    <script>
+        // --- Matter.js Module Aliases ---
+        const { Engine, Render, Runner, World, Bodies, Body, Constraint, Events } = Matter;
+
+        // --- Game Setup ---
+        const canvas = document.getElementById('gameCanvas');
+        const width = window.innerWidth - 10;
+        const height = window.innerHeight - 10;
+        canvas.width = width;
+        canvas.height = height;
+
+        // --- Game Constants ---
+        const CAR_X = 200;
+        const CAR_Y = height - 200;
+        const WHEEL_SIZE = 20;
+        const TORQUE_AMOUNT = 0.005; // How fast the wheels spin
+        const HILL_SEGMENT_LENGTH = 50;
+        const HILL_ROUGHNESS = 0.5; // How bumpy
+
+        // --- Game Variables ---
+        let engine;
+        let world;
+        let render;
+        let runner;
+        let car;
+        let ground;
+        let keys = {};
+        let gameOver = false;
+        let score = 0;
+
+        // --- Create Game Elements ---
+        
+        /**
+         * Creates the bumpy, hilly ground
+         */
+        function createHills() {
+            let segments = [];
+            let x = 0;
+            let y = height - 100; // Starting ground level
+
+            for (let i = 0; i < 100; i++) { // Create 100 segments of hills
+                let angle = Math.random() * Math.PI * HILL_ROUGHNESS - (Math.PI * HILL_ROUGHNESS / 2);
+                let segmentWidth = HILL_SEGMENT_LENGTH;
+                let segmentHeight = 20; // Thickness of the ground
+
+                // Calculate next y
+                let nextY = y + Math.sin(angle) * segmentWidth;
+
+                // Create a static (non-moving) rectangle body
+                let segment = Bodies.rectangle(
+                    x + segmentWidth / 2,
+                    (y + nextY) / 2, // Average Y
+                    segmentWidth,
+                    segmentHeight,
+                    {
+                        isStatic: true,
+                        angle: Math.atan2(nextY - y, segmentWidth), // Angle of the slope
+                        friction: 1.0 // High friction
+                    }
+                );
+
+                segments.push(segment);
+                
+                x += segmentWidth;
+                y = nextY;
+            }
+            return segments;
+        }
+
+        /**
+         * Creates the car (chassis and wheels)
+         */
+        function createCar(x, y) {
+            let chassis = Bodies.rectangle(x, y, 70, 30, { 
+                label: "chassis",
+                collisionFilter: { group: -1 }, // Don't collide with wheels
+            });
+
+            let wheelA = Bodies.circle(x - 35, y + 20, WHEEL_SIZE, {
+                label: "wheelA",
+                friction: 0.9,
+                collisionFilter: { group: -1 }
+            });
+
+            let wheelB = Bodies.circle(x + 35, y + 20, WHEEL_SIZE, {
+                label: "wheelB",
+                friction: 0.9,
+                collisionFilter: { group: -1 }
+            });
+
+            // "Axles" to connect wheels to chassis
+            let axleA = Constraint.create({
+                bodyA: chassis,
+                pointA: { x: -35, y: 20 },
+                bodyB: wheelA,
+                stiffness: 0.5
+            });
+
+            let axleB = Constraint.create({
+                bodyA: chassis,
+                pointA: { x: 35, y: 20 },
+                bodyB: wheelB,
+                stiffness: 0.5
+            });
+
+            // Add all parts to the world
+            World.add(world, [chassis, wheelA, wheelB, axleA, axleB]);
+            
+            return { chassis, wheelA, wheelB };
+        }
+
+        /**
+         * Initializes the entire game
+         */
+        function initGame() {
+            // Create engine
+            engine = Engine.create();
+            world = engine.world;
+            world.gravity.y = 1; // Normal gravity
+
+            // Create renderer
+            render = Render.create({
+                canvas: canvas,
+                engine: engine,
+                options: {
+                    width: width,
+                    height: height,
+                    wireframes: false, // Show solid shapes
+                    background: '#87CEEB'
+                }
+            });
+
+            // Reset variables
+            gameOver = false;
+            score = 0;
+            if (car) {
+                // Ensure car object exists before accessing properties
+                Body.setPosition(car.chassis, { x: CAR_X, y: CAR_Y });
+                Body.setPosition(car.wheelA, { x: CAR_X - 35, y: CAR_Y + 20 });
+                Body.setPosition(car.wheelB, { x: CAR_X + 35, y: CAR_Y + 20 });
+            }
+
+            // Clear previous world
+            World.clear(world);
+            
+            // Create ground and car
+            ground = createHills();
+            car = createCar(CAR_X, CAR_Y);
+            World.add(world, ground);
+            
+            // Create runner (game loop)
+            runner = Runner.create();
+            Runner.run(runner, engine);
+            Render.run(render);
+
+            // Start game loop
+            Events.on(engine, 'beforeUpdate', gameLoop);
+        }
+
+        // --- Game Loop ---
+        function gameLoop() {
+            if (gameOver) {
+                return;
+            }
+
+            // 1. Handle Controls
+            if (keys['ArrowRight']) {
+                // Apply torque (spin) to the wheels
+                Body.setTorque(car.wheelA, TORQUE_AMOUNT);
+                Body.setTorque(car.wheelB, TORQUE_AMOUNT);
+            }
+            if (keys['ArrowLeft']) {
+                Body.setTorque(car.wheelA, -TORQUE_AMOUNT);
+                Body.setTorque(car.wheelB, -TORQUE_AMOUNT);
+            }
+
+            // 2. Camera Follow
+            // Make the renderer look at the car's position
+            Render.lookAt(render, {
+                min: { x: car.chassis.position.x - width / 2, y: 0 },
+                max: { x: car.chassis.position.x + width / 2, y: height }
+            });
+
+            // 3. Update Score
+            let newScore = Math.floor(car.chassis.position.x - CAR_X);
+            score = Math.max(score, newScore);
+            document.getElementById('instructions').innerText = `Score: ${score}`;
+
+
+            // 4. Check Game Over (car flipped)
+            let angle = Math.abs(car.chassis.angle);
+            if (angle > Math.PI / 1.5) { // Flipped over 
+                gameOver = true;
+                showGameOver();
+            }
+        }
+
+        function showGameOver() {
+            // Stop the physics
+            Runner.stop(runner);
+            Events.off(engine, 'beforeUpdate', gameLoop);
+
+            // Display game over text
+            document.getElementById('instructions').innerHTML = `Game Over! Score: ${score}<br>Click to restart`;
+        }
+
+        // --- Event Listeners ---
+        window.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+        });
+
+        window.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+        });
+
+        // Restart game on click
+        canvas.addEventListener('click', () => {
+            if (gameOver) {
+                initGame();
+            }
+        });
+
+        // --- Start Game ---
+        initGame();
+
+    </script>
+</body>
+</html>
