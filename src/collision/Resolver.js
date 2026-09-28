@@ -17,7 +17,7 @@ var Bounds = require('../geometry/Bounds');
     Resolver._restingThresh = 0;
     Resolver._restingThreshTangent = Math.sqrt(6);
     Resolver._positionDampen = 1;
-    Resolver._frictionNormalMultiplier = 5;
+    Resolver._frictionNormalMultiplier = 10;
     Resolver._frictionMaxStatic = Number.MAX_VALUE;
 
     /**
