@@ -1,4 +1,6 @@
 .idea
+.zed
+.vscode
 .DS_Store
 *.map
 node_modules
