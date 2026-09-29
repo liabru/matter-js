@@ -5,3 +5,6 @@ strictDepBuilds: true
 trustPolicy: no-downgrade
 trustPolicyExclude:
   - 'semver@6.3.1'
+allowBuilds:
+  '@parcel/watcher': false
+  unrs-resolver: false
