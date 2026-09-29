@@ -17,6 +17,7 @@ var Bounds = require('../geometry/Bounds');
     Resolver._restingThresh = 0;
     Resolver._restingThreshTangent = Math.sqrt(6);
     Resolver._positionDampen = 1;
+    Resolver._velocityWarming = 10;
     Resolver._frictionNormalMultiplier = 10;
     Resolver._frictionMaxStatic = Number.MAX_VALUE;
 
@@ -119,13 +120,33 @@ var Bounds = require('../geometry/Bounds');
      * Apply position resolution.
      * @method postSolvePosition
      * @param {body[]} bodies
+     * @param {pair[]} pairs
      */
-    Resolver.postSolvePosition = function(bodies) {
+    Resolver.postSolvePosition = function(bodies, pairs) {
         var bodiesLength = bodies.length,
+            pairsLength = pairs.length,
             verticesTranslate = Vertices.translate,
-            boundsUpdate = Bounds.update;
+            boundsUpdate = Bounds.update,
+            i;
 
-        for (var i = 0; i < bodiesLength; i++) {
+        for (i = 0; i < pairsLength; i++) {
+            var pair = pairs[i];
+            
+            if (!pair.isActive || pair.isSensor)
+                continue;
+
+            var collision = pair.collision,
+                bodyA = collision.parentA,
+                bodyB = collision.parentB,
+                normal = collision.normal;
+
+            // update final separation between body edges involved in collision
+            pair.separation =
+                collision.depth + normal.x * (bodyB.positionImpulse.x - bodyA.positionImpulse.x)
+                + normal.y * (bodyB.positionImpulse.y - bodyA.positionImpulse.y);
+        }
+        
+        for (i = 0; i < bodiesLength; i++) {
             var body = bodies[i];
 
             if (body.totalPairs === 0) {
@@ -162,7 +183,8 @@ var Bounds = require('../geometry/Bounds');
      * @param {pair[]} pairs
      */
     Resolver.preSolveVelocity = function(pairs) {
-        var pairsLength = pairs.length,
+        var velocityWarming = -Resolver._velocityWarming,
+            pairsLength = pairs.length,
             i,
             j;
         
@@ -183,7 +205,7 @@ var Bounds = require('../geometry/Bounds');
                 tangentX = collision.tangent.x,
                 tangentY = collision.tangent.y,
                 contactShare = 1 / contactCount,
-                normalImpulseMin = pair.separation * -10;
+                normalImpulseMin = (pair.separation - pair.slop * 0.5) * velocityWarming;
 
             if (normalImpulseMin > 0) {
                 normalImpulseMin = 0;
@@ -209,7 +231,7 @@ var Bounds = require('../geometry/Bounds');
                     contact.normalImpulse = normalImpulseMinShare;
                 }
 
-                var normalImpulse = 1.75 * contact.normalImpulse,
+                var normalImpulse = 2 * contact.normalImpulse,
                     tangentImpulse = contact.tangentImpulse;
 
                 // clamp warming impulse to reduce overshoot

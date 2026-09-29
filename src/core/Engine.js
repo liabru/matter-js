@@ -172,7 +172,7 @@ var Body = require('../body/Body');
         for (i = 0; i < engine.positionIterations; i++) {
             Resolver.solvePosition(pairs.list, delta, engine.positionIterations);
         }
-        Resolver.postSolvePosition(allBodies);
+        Resolver.postSolvePosition(allBodies, pairs.list);
 
         // update all constraints (second pass)
         Constraint.preSolveAll(allBodies);
