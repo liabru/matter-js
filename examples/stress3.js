@@ -13,8 +13,7 @@ Example.stress3 = function() {
 
     // create engine
     var engine = Engine.create({
-        positionIterations: 6,
-        velocityIterations: 8
+        velocityIterations: 10
     });
 
     var world = engine.world;

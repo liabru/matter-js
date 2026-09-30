@@ -13,8 +13,7 @@ Example.stress5 = function() {
 
     // create engine
     var engine = Engine.create({
-        positionIterations: 6,
-        velocityIterations: 8,
+        velocityIterations: 6,
     });
 
     var world = engine.world;
@@ -35,7 +34,7 @@ Example.stress5 = function() {
 
     // create runner
     var runner = Runner.create({
-        delta: 1000 / (60 * 2)
+        delta: 1000 / (60 * 3)
     });
     
     Runner.run(runner, engine);
@@ -43,7 +42,10 @@ Example.stress5 = function() {
     // add bodies
     let scale = 0.2;
 
-    var opts = { friction: 0.001, frictionAir: 0.001 };
+    var opts = {
+        friction: 0.2,
+        frictionStatic: 0.4
+    };
 
     for (var i = 0; i < 2; i += 1) {
         var stack = Composites.stack(40, 40, 62, 28, 0, 0, function(x, y) {
@@ -68,8 +70,8 @@ Example.stress5 = function() {
 
     Composite.add(world, [
         // walls
-        Bodies.rectangle(400, 0, 800, 50, { isStatic: true }),
-        Bodies.rectangle(400, 600, 800, 50, { isStatic: true }),
+        Bodies.rectangle(400, -25, 800, 50, { isStatic: true }),
+        Bodies.rectangle(400, 625, 800, 50, { isStatic: true }),
         Bodies.rectangle(800, 300, 50, 600, { isStatic: true }),
         Bodies.rectangle(0, 300, 50, 600, { isStatic: true })
     ]);
