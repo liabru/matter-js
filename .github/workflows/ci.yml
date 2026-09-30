@@ -29,6 +29,6 @@ jobs:
           install: false
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - run: pnpm run lint
+      - run: pnpm test
       - run: pnpm run build
       - run: pnpm run build-demo
-      - run: pnpm test
