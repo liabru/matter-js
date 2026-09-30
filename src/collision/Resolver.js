@@ -18,7 +18,7 @@ var Bounds = require('../geometry/Bounds');
     Resolver._restingThreshTangent = Math.sqrt(6);
     Resolver._positionDampen = 1;
     Resolver._velocityWarming = 10;
-    Resolver._frictionNormalMultiplier = 10;
+    Resolver._frictionNormalMultiplier = 5;
     Resolver._frictionMaxStatic = Number.MAX_VALUE;
 
     /**
@@ -205,7 +205,7 @@ var Bounds = require('../geometry/Bounds');
                 tangentX = collision.tangent.x,
                 tangentY = collision.tangent.y,
                 contactShare = 1 / contactCount,
-                normalImpulseMin = (pair.separation - pair.slop * 0.5) * velocityWarming;
+                normalImpulseMin = pair.separation * velocityWarming;
 
             if (normalImpulseMin > 0) {
                 normalImpulseMin = 0;
