@@ -211,6 +211,7 @@ var Axes = require('../geometry/Axes');
                 break;
             case 'area':
                 Body.setArea(body, value);
+                break;
             case 'mass':
                 Body.setMass(body, value);
                 break;
