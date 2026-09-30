@@ -48,9 +48,10 @@ var Axes = require('../geometry/Axes');
             position: { x: 0, y: 0 },
             force: { x: 0, y: 0 },
             torque: 0,
+            positionWarming: 0,
             positionImpulse: { x: 0, y: 0 },
             constraintImpulse: { x: 0, y: 0, angle: 0 },
-            totalContacts: 0,
+            totalPairs: 0,
             speed: 0,
             angularSpeed: 0,
             velocity: { x: 0, y: 0 },
@@ -208,6 +209,9 @@ var Axes = require('../geometry/Axes');
             case 'isSleeping':
                 Sleeping.set(body, value);
                 break;
+            case 'area':
+                Body.setArea(body, value);
+                break;
             case 'mass':
                 Body.setMass(body, value);
                 break;
@@ -303,6 +307,18 @@ var Axes = require('../geometry/Axes');
     };
 
     /**
+     * Sets the area of the body only, automatically updates `body.positionWarming`.
+     * Does not update vertices, density, mass or inertia values.
+     * @method setArea
+     * @param {body} body
+     * @param {number} area
+     */
+    Body.setArea = function(body, area) {
+        body.area = area;
+        body.positionWarming = Body._positionWarming(body);
+    };
+
+    /**
      * Sets the mass of the body. Inverse mass, density and inertia are automatically updated to reflect the change.
      * @method setMass
      * @param {body} body
@@ -363,7 +379,7 @@ var Axes = require('../geometry/Axes');
 
         // update properties
         body.axes = Axes.fromVertices(body.vertices);
-        body.area = Vertices.area(body.vertices);
+        Body.setArea(body, Vertices.area(body.vertices));
         Body.setMass(body, body.density * body.area);
 
         // orient vertices around the centre of mass at origin (0, 0)
@@ -436,13 +452,13 @@ var Axes = require('../geometry/Axes');
         // sum the properties of all compound parts of the parent body
         var total = Body._totalProperties(body);
 
-        body.area = total.area;
         body.parent = body;
         body.position.x = total.centre.x;
         body.position.y = total.centre.y;
         body.positionPrev.x = total.centre.x;
         body.positionPrev.y = total.centre.y;
 
+        Body.setArea(body, total.area);
         Body.setMass(body, total.mass);
         Body.setInertia(body, total.inertia);
         Body.setPosition(body, total.centre);
@@ -695,7 +711,7 @@ var Axes = require('../geometry/Axes');
 
             // update properties
             part.axes = Axes.fromVertices(part.vertices);
-            part.area = Vertices.area(part.vertices);
+            Body.setArea(part, Vertices.area(part.vertices));
             Body.setMass(part, body.density * part.area);
 
             // update inertia (requires vertices to be at origin)
@@ -718,7 +734,7 @@ var Axes = require('../geometry/Axes');
 
         // handle parent body
         if (body.parts.length > 1) {
-            body.area = totalArea;
+            Body.setArea(body, totalArea);
 
             if (!body.isStatic) {
                 Body.setMass(body, body.density * totalArea);
@@ -834,6 +850,17 @@ var Axes = require('../geometry/Axes');
         body.force.x += force.x;
         body.force.y += force.y;
         body.torque += offset.x * force.y - offset.y * force.x;
+    };
+
+    /**
+     * Returns the position warming factor for the body.
+     * @method _positionWarming
+     * @private
+     * @param {body} body
+     * @return {number}
+     */
+    Body._positionWarming = function(body) {
+        return 1 / (1 + 0.012 * Math.sqrt(body.area));
     };
 
     /**

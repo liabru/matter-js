@@ -129,7 +129,7 @@ const noiseThreshold = (val, threshold) => {
 };
 
 const median = (values, lower, upper) => {
-    const valuesSorted = values.slice(0).sort();
+    const valuesSorted = values.slice(0).sort((a, b) => a - b);
 
     return mean(valuesSorted.slice(
         Math.floor(valuesSorted.length * lower), 
@@ -178,20 +178,31 @@ const captureBenchmark = (capturesDev, capturesBuild) => {
     let memoryBuild = 0;
 
     for (const name in capturesDev) {
-        durationDev += capturesDev[name].duration;
-        durationBuild += capturesBuild[name].duration;
+        const captureDev = capturesDev[name];
+        const captureBuild = capturesBuild[name];
+        
+        durationDev += captureDev.duration;
+        durationBuild += captureBuild.duration;
 
-        memoryDev += capturesDev[name].memory;
-        memoryBuild += capturesBuild[name].memory;
+        memoryDev += captureDev.memory;
+        memoryBuild += captureBuild.memory;
 
-        if (capturesBuild[name].overlap > 0.1 && capturesDev[name].overlap > 0.1){
-            overlapChanges.push(capturesDev[name].overlap / capturesBuild[name].overlap);
+        const buildOverlap = captureBuild.overlap;
+        const devOverlap = captureDev.overlap;
+
+        // filter examples to limit comparison noise where no perceptible overlap generated
+        if (
+          captureBuild.overlapCount > 200 && captureDev.overlapCount > 200
+          && buildOverlap > 0.01 && devOverlap > 0.01
+        ) {
+            const buildOverlap = captureBuild.overlap;
+            overlapChanges.push((devOverlap - buildOverlap) / buildOverlap);
         }
     };
 
     const durationChange = 1 - noiseThreshold(durationDev / durationBuild, 0.02);
     const memoryChange = noiseThreshold(memoryDev / memoryBuild, 0.02) - 1;
-    const overlapChange = noiseThreshold(median(overlapChanges, 0.45, 0.55), 0.001) - 1;
+    const overlapChange = noiseThreshold(median(overlapChanges, 0.45, 0.55), 0.001);
 
     return {
         durationChange, 

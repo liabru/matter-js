@@ -14,8 +14,7 @@ Example.stress4 = function() {
 
     // create engine
     var engine = Engine.create({
-        positionIterations: 25,
-        velocityIterations: 35
+        velocityIterations: 10
     });
 
     var world = engine.world;
@@ -35,7 +34,9 @@ Example.stress4 = function() {
     Render.run(render);
 
     // create runner
-    var runner = Runner.create();
+    var runner = Runner.create({
+        delta: 1000 / (60 * 2)
+    });
 
     Runner.run(runner, engine);
 
