@@ -82,6 +82,7 @@ See how others are using matter.js physics
 - [Fuse](https://fuse.blog/) by Fuse
 - [Glyphfinder](https://www.glyphfinder.com/) by überdosis
 - [Isolation](https://isolation.is/postcards/my-week) by sabato studio
+- [PrincipiaJS](https://dmilin1.github.io/PrincipiaJS/) by Dimitrie Milinovich
 - [more...](https://github.com/liabru/matter-js/wiki/Gallery)
 
 ### Features
